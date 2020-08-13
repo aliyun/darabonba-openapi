@@ -1,5 +1,5 @@
 {
-  "name": "alibabacloud/tea-openapi",
+  "name": "alibabacloud/darabonba-openapi",
   "description": "Alibaba Cloud OpenApi Client",
   "type": "library",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "AlibabaCloud\\Tea\\OpenApi\\": "src"
+      "Darabonba\\OpenApi\\": "src"
     }
   },
   "scripts": {

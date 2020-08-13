@@ -9,12 +9,12 @@
 ### Composer
 
 ```bash
-composer require alibabacloud/tea-openapi
+composer require alibabacloud/darabonba-openapi
 ```
 
 ## 问题
 
-[提交 Issue](https://github.com/aliyun/tea-openapi/issues/new)，不符合指南的问题可能会立即关闭。
+[提交 Issue](https://github.com/aliyun/darabonba-openapi/issues/new)，不符合指南的问题可能会立即关闭。
 
 ## 发行说明
 
@@ -22,7 +22,7 @@ composer require alibabacloud/tea-openapi
 
 ## 相关
 
-* [最新源码](https://github.com/aliyun/tea-openapi)
+* [最新源码](https://github.com/aliyun/darabonba-openapi)
 
 ## 许可证
 

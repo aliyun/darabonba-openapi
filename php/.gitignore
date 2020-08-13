@@ -12,4 +12,3 @@ composer.lock
 cache/
 *.cache
 runtime/
-.php_cs.cache
