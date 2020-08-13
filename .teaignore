@@ -1,0 +1,16 @@
+.git/
+.gitignore
+.teaignore
+.libraries.json
+libraries
+ts
+golang
+csharp
+java
+php
+cc
+python
+README-CN.md
+README.md
+swift
+*.tgz
