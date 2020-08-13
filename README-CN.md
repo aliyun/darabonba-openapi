@@ -1,18 +1,17 @@
-English | [简体中文](README-CN.md)
-
+[English](README.md) | 简体中文
 ![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
 # Alibaba Cloud OpenApi Client
 
-## Issues
+## 问题
 
-[Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
+[Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new)，不符合指南的问题可能会立即关闭。
 
-## References
+## 相关
 
 - [Latest Release](https://github.com/aliyun/darabonba-openapi)
 
-## License
+## 许可证
 
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 

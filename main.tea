@@ -1,0 +1,524 @@
+/**
+ * This is for OpenApi SDK
+ */
+
+import Util;
+import Credential;
+import OpenApiUtil;
+
+type @endpoint = string
+type @regionId = string
+type @protocol = string
+type @userAgent = string
+type @endpointRule = string
+type @endpointMap = map[string]string
+type @suffix = string
+type @readTimeout = number
+type @connectTimeout = number
+type @httpProxy = string
+type @httpsProxy = string
+type @socks5Proxy = string
+type @socks5NetWork = string
+type @noProxy = string
+type @network = string
+type @productId = string
+type @maxIdleConns = number
+type @endpointType = string
+type @openPlatformEndpoint = string
+type @credential = Credential
+
+/**
+ * Model for initing client
+ */
+model Config {
+  accessKeyId?: string(description='accesskey id',default=''),
+  accessKeySecret?: string(description='accesskey secret',default=''),
+  securityToken?: string(description='security token',example='a.txt',default=''),
+  protocol?: string(description='http protocol',example='http',default='http'),
+  regionId?: string(description='region id',example='cn-hangzhou',default=''),
+  readTimeout?: number(description='read timeout',example='10',default=''),
+  connectTimeout?: number(description='connect timeout',example='10',default=''),
+  httpProxy?: string(description='http proxy',example='http://localhost',default=''),
+  httpsProxy?: string(description='https proxy',example='https://localhost',default=''),
+  credential?: Credential(description='credential',example='',default=''),
+  endpoint?: string(description='endpoint',example='cs.aliyuncs.com',default=''),
+  noProxy?: string(description='proxy white list',example='http://localhost',default=''),
+  maxIdleConns?: number(description='max idle conns',example='3',default=''),
+  network?: string(description='network for endpoint',example='public',default=''),
+  userAgent?: string(description='user agent',example='Alibabacloud/1',default=''),
+  suffix?: string(description='suffix for endpoint',example='aliyun',default=''),
+  socks5Proxy?: string(description='socks5 proxy',default=''),
+  socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
+  endpointType?: string(description='endpoint type',example='internal',default=''),
+  openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
+  type?: string(description='credential type',example='access_key',default='',deprecated=true)
+}
+
+/**
+ * Init client with Config
+ * @param config config contains the necessary information to create a client
+ */
+init(config: Config) {
+  if (Util.isUnset(config)) {
+    throw {
+      code = 'ParameterMissing',
+      message = '\'config\' can not be unset'
+    };
+  }
+
+  if(!Util.empty(config.accessKeyId) && !Util.empty(config.accessKeySecret)){
+    if (!Util.empty(config.securityToken)) {
+      config.type = 'sts';
+    } else {
+      config.type = 'access_key';
+    }
+    var credentialConfig = new Credential.Config{
+      accessKeyId = config.accessKeyId,
+      type = config.type,
+      accessKeySecret = config.accessKeySecret,
+      securityToken = config.securityToken
+    };
+    @credential = new Credential(credentialConfig);
+  } else if(!Util.isUnset(config.credential)) {
+    @credential = config.credential;
+  }
+  @endpoint = config.endpoint;
+  @protocol = config.protocol;
+  @regionId = config.regionId;
+  @userAgent = config.userAgent;
+  @readTimeout = config.readTimeout;
+  @connectTimeout = config.connectTimeout;
+  @httpProxy = config.httpProxy;
+  @httpsProxy = config.httpsProxy;
+  @noProxy = config.noProxy;
+  @socks5Proxy = config.socks5Proxy;
+  @socks5NetWork = config.socks5NetWork;
+  @maxIdleConns = config.maxIdleConns;
+}
+
+model OpenApiRequest {
+  headers?: map[string]string,
+  query?: map[string]string,
+  body?: map[string]any,
+}
+
+/**
+ * Encapsulate the request and invoke the network
+ * @param action api name
+ * @param version product version
+ * @param protocol http or https
+ * @param method e.g. GET
+ * @param authType authorization type e.g. AK
+ * @param bodyType response body type e.g. String
+ * @param request object of OpenApiRequest
+ * @param runtime which controls some details of call api, such as retry times
+ * @return the response
+ */
+api doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
+  __request.protocol = Util.defaultString(@protocol, protocol);
+  __request.method = method;
+  __request.pathname = '/';
+  __request.query = {
+    Action = action,
+    Format = 'json',
+    Version = version,
+    Timestamp = OpenApiUtil.getTimestamp(),
+    SignatureNonce = Util.getNonce(),
+    ...request.query
+  };
+
+  // endpoint is setted in product client
+  __request.headers = {
+    host = @endpoint,
+    x-acs-version = version,
+    x-acs-action = action,
+    user-agent = getUserAgent(),
+  };
+
+  if (!Util.isUnset(request.body)) {
+    var tmp = Util.anyifyMapValue(OpenApiUtil.query(request.body));
+    __request.body = Util.toFormString(tmp);
+    __request.headers.content-type = 'application/x-www-form-urlencoded';
+  }
+
+
+  if (!Util.equalString(authType, 'Anonymous')) {
+    var accessKeyId = getAccessKeyId();
+    var accessKeySecret = getAccessKeySecret();
+    var securityToken = getSecurityToken();
+
+    if (!Util.empty(securityToken)) {
+      __request.query.SecurityToken = securityToken;
+    }
+    __request.query.SignatureMethod = 'HMAC-SHA1';
+    __request.query.SignatureVersion = '1.0';
+    __request.query.AccessKeyId = accessKeyId;
+    var signedParam = {
+      ...__request.query,
+      ...OpenApiUtil.query(request.body)
+    };
+    __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
+  }
+} returns {
+  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+    var _res = Util.readAsJSON(__response.body);
+    var err = Util.assertAsMap(_res);
+    throw {
+      message = err.Message,
+      data = err,
+      code = err.Code
+    };
+  }
+  if (Util.equalString(bodyType, 'binary')) {
+    var resp = {
+      body = __response.body,
+      headers = __response.headers
+    };
+    return resp;
+  } else if (Util.equalString(bodyType, 'byte')) {
+    var byt = Util.readAsBytes(__response.body);
+    return {
+      body = byt,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'string')) {
+    var str = Util.readAsString(__response.body);
+    return {
+      body = str,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'json')){
+    var obj = Util.readAsJSON(__response.body);
+    var res = Util.assertAsMap(obj);
+    return {
+      body = res,
+      headers = __response.headers
+    };
+  } else {
+    return {
+      headers = __response.headers
+    };
+  }
+} runtime {
+  timeouted = 'retry',
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = runtime.ignoreSSL
+}
+
+/**
+ * Encapsulate the request and invoke the network
+ * @param action api name
+ * @param version product version
+ * @param protocol http or https
+ * @param method e.g. GET
+ * @param authType authorization type e.g. AK
+ * @param pathname pathname of every api
+ * @param bodyType response body type e.g. String
+ * @param request object of OpenApiRequest
+ * @param runtime which controls some details of call api, such as retry times
+ * @return the response
+ */
+api doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
+  __request.protocol = Util.defaultString(@protocol, protocol);
+  __request.method = method;
+  __request.pathname = pathname;
+  __request.headers = {
+    date = Util.getDateUTCString(),
+    host = @endpoint,
+    accept = 'application/json',
+    x-acs-signature-nonce = Util.getNonce(),
+    x-acs-signature-method = 'HMAC-SHA1',
+    x-acs-signature-version = '1.0',
+    x-acs-version = version,
+    x-acs-action = action,
+    user-agent = Util.getUserAgent(@userAgent),
+    ...request.headers
+  };
+
+  if (!Util.isUnset(request.body)) {
+    __request.body = Util.toJSONString(request.body);
+    __request.headers.content-type = 'application/json; charset=UTF-8;';
+  }
+
+  if (!Util.isUnset(request.query)) {
+    __request.query = request.query;
+  }
+
+  if (!Util.equalString(authType, 'Anonymous')) {
+    var accessKeyId = @credential.getAccessKeyId();
+    var accessKeySecret = @credential.getAccessKeySecret();
+    var securityToken = @credential.getSecurityToken();
+    if (!Util.empty(securityToken)) {
+      __request.headers.x-acs-accesskey-id = accessKeyId;
+      __request.headers.x-acs-security-token = securityToken;
+    }
+
+    var stringToSign = OpenApiUtil.getStringToSign(__request);
+    __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+  }
+} returns {
+  if (Util.equalNumber(__response.statusCode, 204)) {
+    return {
+      headers = __response.headers
+    };
+  }
+
+  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+    var _res = Util.readAsJSON(__response.body);
+    var err = Util.assertAsMap(_res);
+    throw {
+      message = err.Message,
+      data = err,
+      code = err.Code
+    };
+  }
+  if (Util.equalString(bodyType, 'binary')) {
+    var resp = {
+      body = __response.body,
+      headers = __response.headers
+    };
+    return resp;
+  } else if (Util.equalString(bodyType, 'byte')) {
+    var byt = Util.readAsBytes(__response.body);
+    return {
+      body = byt,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'string')) {
+    var str = Util.readAsString(__response.body);
+    return {
+      body = str,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'json')){
+    var obj = Util.readAsJSON(__response.body);
+    var res = Util.assertAsMap(obj);
+    return {
+      body = res,
+      headers = __response.headers
+    };
+  } else {
+    return {
+      headers = __response.headers
+    };
+  }
+} runtime {
+  timeouted = 'retry',
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = runtime.ignoreSSL
+}
+
+/**
+ * Encapsulate the request and invoke the network with form body
+ * @param action api name
+ * @param version product version
+ * @param protocol http or https
+ * @param method e.g. GET
+ * @param authType authorization type e.g. AK
+ * @param pathname pathname of every api
+ * @param bodyType response body type e.g. String
+ * @param request object of OpenApiRequest
+ * @param runtime which controls some details of call api, such as retry times
+ * @return the response
+ */
+api doROARequestWithForm(action: string, version: string, protocol: string, method: string,  authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
+  __request.protocol = Util.defaultString(@protocol, protocol);
+  __request.method = method;
+  __request.pathname = pathname;
+  __request.headers = {
+    date = Util.getDateUTCString(),
+    host = @endpoint,
+    accept = 'application/json',
+    x-acs-signature-nonce = Util.getNonce(),
+    x-acs-signature-method = 'HMAC-SHA1',
+    x-acs-signature-version = '1.0',
+    x-acs-version = version,
+    x-acs-action = action,
+    user-agent = Util.getUserAgent(@userAgent),
+    ...request.headers
+  };
+
+  if (!Util.isUnset(request.body)) {
+    __request.body = OpenApiUtil.toForm(request.body);
+    __request.headers.content-type = 'application/x-www-form-urlencoded';
+  }
+
+
+  if (!Util.isUnset(request.query)) {
+    __request.query = request.query;
+  }
+
+  if (!Util.equalString(authType, 'Anonymous')) {
+    var accessKeyId = @credential.getAccessKeyId();
+    var accessKeySecret = @credential.getAccessKeySecret();
+    var securityToken = @credential.getSecurityToken();
+    if (!Util.empty(securityToken)) {
+      __request.headers.x-acs-accesskey-id = accessKeyId;
+      __request.headers.x-acs-security-token = securityToken;
+    }
+
+    var stringToSign = OpenApiUtil.getStringToSign(__request);
+    __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+  }
+} returns {
+  if (Util.equalNumber(__response.statusCode, 204)) {
+    return {
+      headers = __response.headers
+    };
+  }
+
+  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+    var _res = Util.readAsJSON(__response.body);
+    var err = Util.assertAsMap(_res);
+    throw {
+      message = err.Message,
+      data = err,
+      code = err.Code
+    };
+  }
+  if (Util.equalString(bodyType, 'binary')) {
+    var resp = {
+      body = __response.body,
+      headers = __response.headers
+    };
+    return resp;
+  } else if (Util.equalString(bodyType, 'byte')) {
+    var byt = Util.readAsBytes(__response.body);
+    return {
+      body = byt,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'string')) {
+    var str = Util.readAsString(__response.body);
+    return {
+      body = str,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'json')){
+    var obj = Util.readAsJSON(__response.body);
+    var res = Util.assertAsMap(obj);
+    return {
+      body = res,
+      headers = __response.headers
+    };
+  } else {
+    return {
+      headers = __response.headers
+    };
+  }
+} runtime {
+  timeouted = 'retry',
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = runtime.ignoreSSL
+}
+
+/**
+ * Get user agent
+ * @return user agent
+ */
+function getUserAgent(): string {
+  var userAgent = Util.getUserAgent(@userAgent);
+  return userAgent;
+}
+
+/**
+ * Get accesskey id by using credential
+ * @return accesskey id
+ */
+async function getAccessKeyId(): string {
+  if (Util.isUnset(@credential)) {
+    return '';
+  }
+  var accessKeyId = @credential.getAccessKeyId();
+  return accessKeyId;
+}
+
+/**
+ * Get accesskey secret by using credential
+ * @return accesskey secret
+ */
+async function getAccessKeySecret(): string {
+  if (Util.isUnset(@credential)) {
+    return '';
+  }
+  var secret = @credential.getAccessKeySecret();
+  return secret;
+}
+
+/**
+ * Get security token by using credential
+ * @return security token
+ */
+async function getSecurityToken(): string {
+  if (Util.isUnset(@credential)) {
+    return '';
+  }
+  var token = @credential.getSecurityToken();
+  return token;
+}
+
+/**
+ * If inputValue is not null, return it or return defaultValue
+ * @param inputValue  users input value
+ * @param defaultValue default value
+ * @return the final result
+ */
+static function defaultAny(inputValue: any, defaultValue: any): any {
+  if (Util.isUnset(inputValue)) {
+    return defaultValue;
+  }
+  return inputValue;
+}
+
+/**
+ * If the endpointRule and config.endpoint are empty, throw error
+ * @param config config contains the necessary information to create a client
+ */
+function checkConfig(config: Config)throws : void {
+  if (Util.empty(@endpointRule) && Util.empty(config.endpoint)) {
+    throw {
+      code = 'ParameterMissing',
+      message = '\'config.endpoint\' can not be empty'
+    };
+  }
+}
+
