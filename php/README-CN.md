@@ -9,12 +9,12 @@ English | [简体中文](README-CN.md)
 ### Composer
 
 ```bash
-composer require alibabacloud/tea-openapi
+composer require alibabacloud/darabonba-openapi
 ```
 
 ## Issues
 
-[Opening an Issue](https://github.com/aliyun/tea-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
+[Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
 
 ## Changelog
 
@@ -22,7 +22,7 @@ Detailed changes for each release are documented in the [release notes](./Change
 
 ## References
 
-* [Latest Release](https://github.com/aliyun/tea-openapi)
+* [Latest Release](https://github.com/aliyun/darabonba-openapi)
 
 ## License
 

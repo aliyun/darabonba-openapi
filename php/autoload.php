@@ -2,7 +2,7 @@
 
 class Autoloader
 {
-    const BASE_NAMESPACE = 'AlibabaCloud\\Tea\\OpenApi\\';
+    const BASE_NAMESPACE = 'Darabonba\\OpenApi\\';
 
     const BASE_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
 

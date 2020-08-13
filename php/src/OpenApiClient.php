@@ -2,24 +2,24 @@
 
 // This file is auto-generated, don't edit it. Thanks.
 
-namespace AlibabaCloud\Tea\OpenApi;
+namespace Darabonba\OpenApi;
 
 use AlibabaCloud\Credentials\Credential;
 use AlibabaCloud\OpenApiUtil\OpenApiUtilClient;
 use AlibabaCloud\Tea\Exception\TeaError;
 use AlibabaCloud\Tea\Exception\TeaUnableRetryError;
-use AlibabaCloud\Tea\OpenApi\OpenApi\Config;
-use AlibabaCloud\Tea\OpenApi\OpenApi\OpenApiRequest;
 use AlibabaCloud\Tea\Request;
 use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Utils\Utils;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
+use Darabonba\OpenApi\Models\Config;
+use Darabonba\OpenApi\Models\OpenApiRequest;
 use Exception;
 
 /**
  * This is for OpenApi SDK.
  */
-class OpenApi
+class OpenApiClient
 {
     protected $_endpoint;
 

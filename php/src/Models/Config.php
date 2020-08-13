@@ -2,7 +2,7 @@
 
 // This file is auto-generated, don't edit it. Thanks.
 
-namespace AlibabaCloud\Tea\OpenApi\OpenApi;
+namespace Darabonba\OpenApi\Models;
 
 use AlibabaCloud\Tea\Model;
 

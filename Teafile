@@ -19,7 +19,7 @@
     "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.0.1",
     "csharp": "AlibabaCloud.OpenApiClient:0.0.1",
     "java": "com.aliyun:tea-openapi:0.0.1",
-    "php": "alibabacloud/tea-openapi:^0.1.0",
+    "php": "alibabacloud/darabonba-openapi:^0.1.0",
     "python": "alibabacloud_tea_openapi:0.0.1"
   },
   "csharp": {
@@ -29,13 +29,12 @@
     "package": "com.aliyun.teaopenapi"
   },
   "php": {
-    "package": "AlibabaCloud.Tea.OpenApi",
-    "clientName": "OpenApi",
-    "modelDirName": "OpenApi",
+    "package": "Darabonba.OpenApi",
+    "clientName": "OpenApiClient",
     "packageInfo": {
-      "name": "alibabacloud/tea-openapi",
+      "name": "alibabacloud/darabonba-openapi",
       "desc": "Alibaba Cloud OpenApi Client",
-      "github": "https://github.com/aliyun/tea-openapi"
+      "github": "https://github.com/aliyun/darabonba-openapi"
     }
   },
   "python": {
