@@ -43,7 +43,7 @@
     "packageInfo": {
       "name": "alibabacloud_tea_openapi",
       "desc": "Alibaba Cloud openapi SDK Library for Python",
-      "github": "https://github.com/aliyun/tea-openapi",
+      "github": "https://github.com/aliyun/darabonba-openapi",
       "author": "Alibaba Cloud SDK",
       "email": "sdk-team@alibabacloud.com"
     }
