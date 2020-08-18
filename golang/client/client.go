@@ -531,7 +531,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
-				request_.Headers["content-type"] = tea.String("application/json; charset=UTF-8;")
+				request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
 			}
 
 			if !tea.BoolValue(util.IsUnset(request.Query)) {
