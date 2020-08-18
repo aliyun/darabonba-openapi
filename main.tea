@@ -250,7 +250,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
 
   if (!Util.isUnset(request.body)) {
     __request.body = Util.toJSONString(request.body);
-    __request.headers.content-type = 'application/json; charset=UTF-8;';
+    __request.headers.content-type = 'application/json; charset=utf-8';
   }
 
   if (!Util.isUnset(request.query)) {

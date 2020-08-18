@@ -388,7 +388,7 @@ export default class Client {
         };
         if (!Util.isUnset(request.body)) {
           request_.body = new $tea.BytesReadable(Util.toJSONString(request.body));
-          request_.headers["content-type"] = "application/json; charset=UTF-8;";
+          request_.headers["content-type"] = "application/json; charset=utf-8";
         }
 
         if (!Util.isUnset(request.query)) {
