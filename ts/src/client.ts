@@ -92,7 +92,7 @@ export class Config extends $tea.Model {
 export class OpenApiRequest extends $tea.Model {
   headers?: { [key: string]: string };
   query?: { [key: string]: string };
-  body?: { [key: string]: any };
+  body?: any;
   static names(): { [key: string]: string } {
     return {
       headers: 'headers',
@@ -105,7 +105,7 @@ export class OpenApiRequest extends $tea.Model {
     return {
       headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
       query: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      body: { 'type': 'map', 'keyType': 'string', 'valueType': 'any' },
+      body: 'any',
     };
   }
 
@@ -246,7 +246,7 @@ export default class Client {
           'user-agent': this.getUserAgent(),
         };
         if (!Util.isUnset(request.body)) {
-          let tmp = Util.anyifyMapValue(OpenApiUtil.query(request.body));
+          let tmp = Util.anyifyMapValue(OpenApiUtil.query(Util.toMap(request.body)));
           request_.body = new $tea.BytesReadable(Util.toFormString(tmp));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
@@ -264,7 +264,7 @@ export default class Client {
           request_.query["AccessKeyId"] = accessKeyId;
           let signedParam = {
             ...request_.query,
-            ...OpenApiUtil.query(request.body),
+            ...OpenApiUtil.query(Util.toMap(request.body)),
           };
           request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
         }
@@ -532,7 +532,7 @@ export default class Client {
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
-          request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(request.body));
+          request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(Util.toMap(request.body)));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 

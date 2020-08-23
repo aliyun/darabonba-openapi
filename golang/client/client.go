@@ -174,9 +174,9 @@ func (s *Config) SetType(v string) *Config {
 }
 
 type OpenApiRequest struct {
-	Headers map[string]*string     `json:"headers,omitempty" xml:"headers,omitempty"`
-	Query   map[string]*string     `json:"query,omitempty" xml:"query,omitempty"`
-	Body    map[string]interface{} `json:"body,omitempty" xml:"body,omitempty"`
+	Headers map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
+	Query   map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
+	Body    interface{}        `json:"body,omitempty" xml:"body,omitempty"`
 }
 
 func (s OpenApiRequest) String() string {
@@ -197,7 +197,7 @@ func (s *OpenApiRequest) SetQuery(v map[string]*string) *OpenApiRequest {
 	return s
 }
 
-func (s *OpenApiRequest) SetBody(v map[string]interface{}) *OpenApiRequest {
+func (s *OpenApiRequest) SetBody(v interface{}) *OpenApiRequest {
 	s.Body = v
 	return s
 }
@@ -350,7 +350,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"user-agent":    client.GetUserAgent(),
 			}
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				tmp := util.AnyifyMapValue(openapiutil.Query(request.Body))
+				tmp := util.AnyifyMapValue(openapiutil.Query(util.ToMap(request.Body)))
 				request_.Body = tea.ToReader(util.ToFormString(tmp))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
@@ -379,7 +379,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				request_.Query["SignatureVersion"] = tea.String("1.0")
 				request_.Query["AccessKeyId"] = accessKeyId
 				signedParam := tea.Merge(request_.Query,
-					openapiutil.Query(request.Body))
+					openapiutil.Query(util.ToMap(request.Body)))
 				request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, accessKeySecret)
 			}
 
@@ -718,7 +718,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				request_.Body = tea.ToReader(openapiutil.ToForm(request.Body))
+				request_.Body = tea.ToReader(openapiutil.ToForm(util.ToMap(request.Body)))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
 
