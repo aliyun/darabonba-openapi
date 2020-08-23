@@ -1,7 +1,4 @@
-2020-08-23 Version: v0.0.3
-- Improve.
-
-2020-08-18 Version: v0.0.2
+2020-08-23 Version: v0.0.2
 - Fix content-type.
 
 2020-08-13 Version: v0.0.1
