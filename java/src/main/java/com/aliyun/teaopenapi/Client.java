@@ -125,7 +125,7 @@ public class Client {
                     new TeaPair("user-agent", this.getUserAgent())
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                    java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(request.body));
+                    java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(com.aliyun.teautil.Common.toMap(request.body)));
                     request_.body = Tea.toReadable(com.aliyun.teautil.Common.toFormString(tmp));
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
@@ -143,7 +143,7 @@ public class Client {
                     request_.query.put("AccessKeyId", accessKeyId);
                     java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
                         request_.query,
-                        com.aliyun.openapiutil.Client.query(request.body)
+                        com.aliyun.openapiutil.Client.query(com.aliyun.teautil.Common.toMap(request.body))
                     );
                     request_.query.put("Signature", com.aliyun.openapiutil.Client.getRPCSignature(signedParam, request_.method, accessKeySecret));
                 }
@@ -256,7 +256,7 @@ public class Client {
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
                     request_.body = Tea.toReadable(com.aliyun.teautil.Common.toJSONString(request.body));
-                    request_.headers.put("content-type", "application/json; charset=UTF-8;");
+                    request_.headers.put("content-type", "application/json; charset=utf-8");
                 }
 
                 if (!com.aliyun.teautil.Common.isUnset(request.query)) {
@@ -389,7 +389,7 @@ public class Client {
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                    request_.body = Tea.toReadable(com.aliyun.openapiutil.Client.toForm(request.body));
+                    request_.body = Tea.toReadable(com.aliyun.openapiutil.Client.toForm(com.aliyun.teautil.Common.toMap(request.body)));
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
 
