@@ -177,8 +177,8 @@ class OpenApiClient
                     'x-acs-action'  => $action,
                     'user-agent'    => $this->getUserAgent(),
                 ];
-                $m = Utils::assertAsMap($request->body);
                 if (!Utils::isUnset($request->body)) {
+                    $m                                 = Utils::assertAsMap($request->body);
                     $tmp                               = Utils::anyifyMapValue(OpenApiUtilClient::query($m));
                     $_request->body                    = Utils::toFormString($tmp);
                     $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
@@ -193,8 +193,12 @@ class OpenApiClient
                     $_request->query['SignatureMethod']  = 'HMAC-SHA1';
                     $_request->query['SignatureVersion'] = '1.0';
                     $_request->query['AccessKeyId']      = $accessKeyId;
-                    $signedParam                         = Tea::merge($_request->query, OpenApiUtilClient::query($m));
-                    $_request->query['Signature']        = OpenApiUtilClient::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
+                    $t                                   = null;
+                    if (!Utils::isUnset($request->body)) {
+                        $t = Utils::assertAsMap($request->body);
+                    }
+                    $signedParam                  = Tea::merge($_request->query, OpenApiUtilClient::query($t));
+                    $_request->query['Signature'] = OpenApiUtilClient::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
                 }
                 $_lastRequest = $_request;
                 $_response    = Tea::send($_request, $_runtime);
