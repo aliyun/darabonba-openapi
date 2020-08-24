@@ -124,8 +124,9 @@ public class Client {
                     new TeaPair("x-acs-action", action),
                     new TeaPair("user-agent", this.getUserAgent())
                 );
+                java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                    java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(com.aliyun.teautil.Common.toMap(request.body)));
+                    java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(m));
                     request_.body = Tea.toReadable(com.aliyun.teautil.Common.toFormString(tmp));
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
@@ -143,7 +144,7 @@ public class Client {
                     request_.query.put("AccessKeyId", accessKeyId);
                     java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
                         request_.query,
-                        com.aliyun.openapiutil.Client.query(com.aliyun.teautil.Common.toMap(request.body))
+                        com.aliyun.openapiutil.Client.query(m)
                     );
                     request_.query.put("Signature", com.aliyun.openapiutil.Client.getRPCSignature(signedParam, request_.method, accessKeySecret));
                 }
@@ -389,7 +390,8 @@ public class Client {
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                    request_.body = Tea.toReadable(com.aliyun.openapiutil.Client.toForm(com.aliyun.teautil.Common.toMap(request.body)));
+                    java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
+                    request_.body = Tea.toReadable(com.aliyun.openapiutil.Client.toForm(m));
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
 
