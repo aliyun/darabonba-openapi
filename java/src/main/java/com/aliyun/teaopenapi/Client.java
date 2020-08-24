@@ -124,8 +124,8 @@ public class Client {
                     new TeaPair("x-acs-action", action),
                     new TeaPair("user-agent", this.getUserAgent())
                 );
-                java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
+                    java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                     java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(m));
                     request_.body = Tea.toReadable(com.aliyun.teautil.Common.toFormString(tmp));
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
@@ -142,9 +142,14 @@ public class Client {
                     request_.query.put("SignatureMethod", "HMAC-SHA1");
                     request_.query.put("SignatureVersion", "1.0");
                     request_.query.put("AccessKeyId", accessKeyId);
+                    java.util.Map<String, Object> t = null;
+                    if (!com.aliyun.teautil.Common.isUnset(request.body)) {
+                        t = com.aliyun.teautil.Common.assertAsMap(request.body);
+                    }
+
                     java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
                         request_.query,
-                        com.aliyun.openapiutil.Client.query(m)
+                        com.aliyun.openapiutil.Client.query(t)
                     );
                     request_.query.put("Signature", com.aliyun.openapiutil.Client.getRPCSignature(signedParam, request_.method, accessKeySecret));
                 }
