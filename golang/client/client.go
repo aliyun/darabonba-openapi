@@ -349,8 +349,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"x-acs-action":  action,
 				"user-agent":    client.GetUserAgent(),
 			}
+			m := util.AssertAsMap(request.Body)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				tmp := util.AnyifyMapValue(openapiutil.Query(util.ToMap(request.Body)))
+				tmp := util.AnyifyMapValue(openapiutil.Query(m))
 				request_.Body = tea.ToReader(util.ToFormString(tmp))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
@@ -379,7 +380,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				request_.Query["SignatureVersion"] = tea.String("1.0")
 				request_.Query["AccessKeyId"] = accessKeyId
 				signedParam := tea.Merge(request_.Query,
-					openapiutil.Query(util.ToMap(request.Body)))
+					openapiutil.Query(m))
 				request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, accessKeySecret)
 			}
 
@@ -718,7 +719,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				request_.Body = tea.ToReader(openapiutil.ToForm(util.ToMap(request.Body)))
+				m := util.AssertAsMap(request.Body)
+				request_.Body = tea.ToReader(openapiutil.ToForm(m))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
 

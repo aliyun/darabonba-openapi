@@ -135,8 +135,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     user-agent = getUserAgent(),
   };
 
+  var m = Util.assertAsMap(request.body);
   if (!Util.isUnset(request.body)) {
-    var tmp = Util.anyifyMapValue(OpenApiUtil.query(Util.toMap(request.body)));
+    var tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
     __request.body = Util.toFormString(tmp);
     __request.headers.content-type = 'application/x-www-form-urlencoded';
   }
@@ -155,7 +156,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     __request.query.AccessKeyId = accessKeyId;
     var signedParam = {
       ...__request.query,
-      ...OpenApiUtil.query(Util.toMap(request.body))
+      ...OpenApiUtil.query(m)
     };
     __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
   }
@@ -365,7 +366,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   };
 
   if (!Util.isUnset(request.body)) {
-    __request.body = OpenApiUtil.toForm(Util.toMap(request.body));
+    var m = Util.assertAsMap(request.body);
+    __request.body = OpenApiUtil.toForm(m);
     __request.headers.content-type = 'application/x-www-form-urlencoded';
   }
 
