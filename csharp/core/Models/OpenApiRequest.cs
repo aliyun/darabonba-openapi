@@ -19,7 +19,7 @@ namespace AlibabaCloud.OpenApiClient.Models
 
         [NameInMap("body")]
         [Validation(Required=false)]
-        public Dictionary<string, object> Body { get; set; }
+        public object Body { get; set; }
 
     }
 
