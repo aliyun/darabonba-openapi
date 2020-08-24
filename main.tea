@@ -135,8 +135,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     user-agent = getUserAgent(),
   };
 
-  var m = Util.assertAsMap(request.body);
   if (!Util.isUnset(request.body)) {
+    var m = Util.assertAsMap(request.body);
     var tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
     __request.body = Util.toFormString(tmp);
     __request.headers.content-type = 'application/x-www-form-urlencoded';
@@ -154,9 +154,13 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     __request.query.SignatureMethod = 'HMAC-SHA1';
     __request.query.SignatureVersion = '1.0';
     __request.query.AccessKeyId = accessKeyId;
+    var t : map[string]any = null;
+    if (!Util.isUnset(request.body)) {
+      t = Util.assertAsMap(request.body);
+    }
     var signedParam = {
       ...__request.query,
-      ...OpenApiUtil.query(m)
+      ...OpenApiUtil.query(t)
     };
     __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
   }

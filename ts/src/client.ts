@@ -245,8 +245,8 @@ export default class Client {
           'x-acs-action': action,
           'user-agent': this.getUserAgent(),
         };
-        let m = Util.assertAsMap(request.body);
         if (!Util.isUnset(request.body)) {
+          let m = Util.assertAsMap(request.body);
           let tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
           request_.body = new $tea.BytesReadable(Util.toFormString(tmp));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
@@ -263,9 +263,14 @@ export default class Client {
           request_.query["SignatureMethod"] = "HMAC-SHA1";
           request_.query["SignatureVersion"] = "1.0";
           request_.query["AccessKeyId"] = accessKeyId;
+          let t : {[key: string ]: any} = null;
+          if (!Util.isUnset(request.body)) {
+            t = Util.assertAsMap(request.body);
+          }
+
           let signedParam = {
             ...request_.query,
-            ...OpenApiUtil.query(m),
+            ...OpenApiUtil.query(t),
           };
           request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
         }

@@ -349,8 +349,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"x-acs-action":  action,
 				"user-agent":    client.GetUserAgent(),
 			}
-			m := util.AssertAsMap(request.Body)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
+				m := util.AssertAsMap(request.Body)
 				tmp := util.AnyifyMapValue(openapiutil.Query(m))
 				request_.Body = tea.ToReader(util.ToFormString(tmp))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
@@ -379,8 +379,13 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				request_.Query["SignatureMethod"] = tea.String("HMAC-SHA1")
 				request_.Query["SignatureVersion"] = tea.String("1.0")
 				request_.Query["AccessKeyId"] = accessKeyId
+				var t map[string]interface{}
+				if !tea.BoolValue(util.IsUnset(request.Body)) {
+					t = util.AssertAsMap(request.Body)
+				}
+
 				signedParam := tea.Merge(request_.Query,
-					openapiutil.Query(m))
+					openapiutil.Query(t))
 				request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, accessKeySecret)
 			}
 
