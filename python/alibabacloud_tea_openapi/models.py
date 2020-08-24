@@ -12,51 +12,50 @@ class Config(TeaModel):
                  endpoint=None, no_proxy=None, max_idle_conns=None, network=None, user_agent=None, suffix=None,
                  socks_5proxy=None, socks_5net_work=None, endpoint_type=None, open_platform_endpoint=None, type=None):
         # accesskey id
-        self.access_key_id = access_key_id
+        self.access_key_id = access_key_id  # type: str
         # accesskey secret
-        self.access_key_secret = access_key_secret
+        self.access_key_secret = access_key_secret  # type: str
         # security token
-        self.security_token = security_token
+        self.security_token = security_token  # type: str
         # http protocol
-        self.protocol = protocol
+        self.protocol = protocol  # type: str
         # region id
-        self.region_id = region_id
+        self.region_id = region_id  # type: str
         # read timeout
-        self.read_timeout = read_timeout
+        self.read_timeout = read_timeout  # type: int
         # connect timeout
-        self.connect_timeout = connect_timeout
+        self.connect_timeout = connect_timeout  # type: int
         # http proxy
-        self.http_proxy = http_proxy
+        self.http_proxy = http_proxy  # type: str
         # https proxy
-        self.https_proxy = https_proxy
+        self.https_proxy = https_proxy  # type: str
         # credential
-        self.credential = credential
+        self.credential = credential  # type: Credential
         # endpoint
-        self.endpoint = endpoint
+        self.endpoint = endpoint  # type: str
         # proxy white list
-        self.no_proxy = no_proxy
+        self.no_proxy = no_proxy  # type: str
         # max idle conns
-        self.max_idle_conns = max_idle_conns
+        self.max_idle_conns = max_idle_conns  # type: int
         # network for endpoint
-        self.network = network
+        self.network = network  # type: str
         # user agent
-        self.user_agent = user_agent
+        self.user_agent = user_agent  # type: str
         # suffix for endpoint
-        self.suffix = suffix
+        self.suffix = suffix  # type: str
         # socks5 proxy
-        self.socks_5proxy = socks_5proxy
+        self.socks_5proxy = socks_5proxy  # type: str
         # socks5 network
-        self.socks_5net_work = socks_5net_work
+        self.socks_5net_work = socks_5net_work  # type: str
         # endpoint type
-        self.endpoint_type = endpoint_type
+        self.endpoint_type = endpoint_type  # type: str
         # OpenPlatform endpoint
-        self.open_platform_endpoint = open_platform_endpoint
+        self.open_platform_endpoint = open_platform_endpoint  # type: str
         # credential type
-        self.type = type
+        self.type = type  # type: str
 
     def validate(self):
-        if self.credential:
-            self.credential.validate()
+        pass
 
     def to_map(self):
         result = {}
@@ -110,9 +109,9 @@ class Config(TeaModel):
 
 class OpenApiRequest(TeaModel):
     def __init__(self, headers=None, query=None, body=None):
-        self.headers = headers
-        self.query = query
-        self.body = body
+        self.headers = headers  # type: dict
+        self.query = query  # type: dict
+        self.body = body  # type: any
 
     def validate(self):
         pass
