@@ -26,28 +26,28 @@ class Client(object):
         """
         Init client with Config
 
-        :param config: config contains the necessary information to create a client
+        @param config: config contains the necessary information to create a client
         """
-        self._endpoint = _endpoint
-        self._region_id = _region_id
-        self._protocol = _protocol
-        self._user_agent = _user_agent
-        self._endpoint_rule = _endpoint_rule
-        self._endpoint_map = _endpoint_map
-        self._suffix = _suffix
-        self._read_timeout = _read_timeout
-        self._connect_timeout = _connect_timeout
-        self._http_proxy = _http_proxy
-        self._https_proxy = _https_proxy
-        self._socks_5proxy = _socks_5proxy
-        self._socks_5net_work = _socks_5net_work
-        self._no_proxy = _no_proxy
-        self._network = _network
-        self._product_id = _product_id
-        self._max_idle_conns = _max_idle_conns
-        self._endpoint_type = _endpoint_type
-        self._open_platform_endpoint = _open_platform_endpoint
-        self._credential = _credential
+        self._endpoint = _endpoint  # type: str
+        self._region_id = _region_id  # type: str
+        self._protocol = _protocol  # type: str
+        self._user_agent = _user_agent  # type: str
+        self._endpoint_rule = _endpoint_rule  # type: str
+        self._endpoint_map = _endpoint_map  # type: dict
+        self._suffix = _suffix  # type: str
+        self._read_timeout = _read_timeout  # type: int
+        self._connect_timeout = _connect_timeout  # type: int
+        self._http_proxy = _http_proxy  # type: str
+        self._https_proxy = _https_proxy  # type: str
+        self._socks_5proxy = _socks_5proxy  # type: str
+        self._socks_5net_work = _socks_5net_work  # type: str
+        self._no_proxy = _no_proxy  # type: str
+        self._network = _network  # type: str
+        self._product_id = _product_id  # type: str
+        self._max_idle_conns = _max_idle_conns  # type: int
+        self._endpoint_type = _endpoint_type  # type: str
+        self._open_platform_endpoint = _open_platform_endpoint  # type: str
+        self._credential = _credential  # type: Credential
         if UtilClient.is_unset(config):
             raise TeaException({
                 "code": "ParameterMissing",
@@ -84,29 +84,30 @@ class Client(object):
         """
         Encapsulate the request and invoke the network
 
-        :type action: str
-        :param action: api name
+        @type action: str
+        @param action: api name
 
-        :type version: str
-        :param version: product version
+        @type version: str
+        @param version: product version
 
-        :type protocol: str
-        :param protocol: http or https
+        @type protocol: str
+        @param protocol: http or https
 
-        :type method: str
-        :param method: e.g. GET
+        @type method: str
+        @param method: e.g. GET
 
-        :type auth_type: str
-        :param auth_type: authorization type e.g. AK
+        @type auth_type: str
+        @param auth_type: authorization type e.g. AK
 
-        :type body_type: str
-        :param body_type: response body type e.g. String
+        @type body_type: str
+        @param body_type: response body type e.g. String
 
-        :param request: object of OpenApiRequest
+        @param request: object of OpenApiRequest
 
-        :param runtime: which controls some details of call api, such as retry times
+        @param runtime: which controls some details of call api, such as retry times
 
-        :return: the response
+        @rtype: dict
+        @return: the response
         """
         request.validate()
         runtime.validate()
@@ -158,7 +159,8 @@ class Client(object):
                     "user-agent": self.get_user_agent()
                 }
                 if not UtilClient.is_unset(request.body):
-                    tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(request.body))
+                    m = UtilClient.assert_as_map(request.body)
+                    tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers["content-type"] = "application/x-www-form-urlencoded"
                 if not UtilClient.equal_string(auth_type, "Anonymous"):
@@ -170,8 +172,11 @@ class Client(object):
                     _request.query["SignatureMethod"] = "HMAC-SHA1"
                     _request.query["SignatureVersion"] = "1.0"
                     _request.query["AccessKeyId"] = access_key_id
+                    t = None
+                    if not UtilClient.is_unset(request.body):
+                        t = UtilClient.assert_as_map(request.body)
                     signed_param = TeaCore.merge(_request.query,
-                        OpenApiUtilClient.query(request.body))
+                        OpenApiUtilClient.query(t))
                     _request.query["Signature"] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
@@ -223,32 +228,33 @@ class Client(object):
         """
         Encapsulate the request and invoke the network
 
-        :type action: str
-        :param action: api name
+        @type action: str
+        @param action: api name
 
-        :type version: str
-        :param version: product version
+        @type version: str
+        @param version: product version
 
-        :type protocol: str
-        :param protocol: http or https
+        @type protocol: str
+        @param protocol: http or https
 
-        :type method: str
-        :param method: e.g. GET
+        @type method: str
+        @param method: e.g. GET
 
-        :type auth_type: str
-        :param auth_type: authorization type e.g. AK
+        @type auth_type: str
+        @param auth_type: authorization type e.g. AK
 
-        :type pathname: str
-        :param pathname: pathname of every api
+        @type pathname: str
+        @param pathname: pathname of every api
 
-        :type body_type: str
-        :param body_type: response body type e.g. String
+        @type body_type: str
+        @param body_type: response body type e.g. String
 
-        :param request: object of OpenApiRequest
+        @param request: object of OpenApiRequest
 
-        :param runtime: which controls some details of call api, such as retry times
+        @param runtime: which controls some details of call api, such as retry times
 
-        :return: the response
+        @rtype: dict
+        @return: the response
         """
         request.validate()
         runtime.validate()
@@ -298,7 +304,7 @@ class Client(object):
                 }, request.headers)
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
-                    _request.headers["content-type"] = "application/json; charset=UTF-8;"
+                    _request.headers["content-type"] = "application/json; charset=utf-8"
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
                 if not UtilClient.equal_string(auth_type, "Anonymous"):
@@ -364,32 +370,33 @@ class Client(object):
         """
         Encapsulate the request and invoke the network with form body
 
-        :type action: str
-        :param action: api name
+        @type action: str
+        @param action: api name
 
-        :type version: str
-        :param version: product version
+        @type version: str
+        @param version: product version
 
-        :type protocol: str
-        :param protocol: http or https
+        @type protocol: str
+        @param protocol: http or https
 
-        :type method: str
-        :param method: e.g. GET
+        @type method: str
+        @param method: e.g. GET
 
-        :type auth_type: str
-        :param auth_type: authorization type e.g. AK
+        @type auth_type: str
+        @param auth_type: authorization type e.g. AK
 
-        :type pathname: str
-        :param pathname: pathname of every api
+        @type pathname: str
+        @param pathname: pathname of every api
 
-        :type body_type: str
-        :param body_type: response body type e.g. String
+        @type body_type: str
+        @param body_type: response body type e.g. String
 
-        :param request: object of OpenApiRequest
+        @param request: object of OpenApiRequest
 
-        :param runtime: which controls some details of call api, such as retry times
+        @param runtime: which controls some details of call api, such as retry times
 
-        :return: the response
+        @rtype: dict
+        @return: the response
         """
         request.validate()
         runtime.validate()
@@ -438,7 +445,8 @@ class Client(object):
                     "user-agent": UtilClient.get_user_agent(self._user_agent)
                 }, request.headers)
                 if not UtilClient.is_unset(request.body):
-                    _request.body = OpenApiUtilClient.to_form(request.body)
+                    m = UtilClient.assert_as_map(request.body)
+                    _request.body = OpenApiUtilClient.to_form(m)
                     _request.headers["content-type"] = "application/x-www-form-urlencoded"
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
@@ -505,7 +513,8 @@ class Client(object):
         """
         Get user agent
 
-        :return: user agent
+        @rtype: str
+        @return: user agent
         """
         user_agent = UtilClient.get_user_agent(self._user_agent)
         return user_agent
@@ -514,7 +523,8 @@ class Client(object):
         """
         Get accesskey id by using credential
 
-        :return: accesskey id
+        @rtype: str
+        @return: accesskey id
         """
         if UtilClient.is_unset(self._credential):
             return ''
@@ -525,7 +535,8 @@ class Client(object):
         """
         Get accesskey secret by using credential
 
-        :return: accesskey secret
+        @rtype: str
+        @return: accesskey secret
         """
         if UtilClient.is_unset(self._credential):
             return ''
@@ -536,7 +547,8 @@ class Client(object):
         """
         Get security token by using credential
 
-        :return: security token
+        @rtype: str
+        @return: security token
         """
         if UtilClient.is_unset(self._credential):
             return ''
@@ -548,13 +560,11 @@ class Client(object):
         """
         If inputValue is not null, return it or return defaultValue
 
-        :type input_value: any
-        :param input_value:  users input value
+        @param input_value:  users input value
 
-        :type default_value: any
-        :param default_value: default value
+        @param default_value: default value
 
-        :return: the final result
+        @return: the final result
         """
         if UtilClient.is_unset(input_value):
             return default_value
@@ -564,7 +574,7 @@ class Client(object):
         """
         If the endpointRule and config.endpoint are empty, throw error
 
-        :param config: config contains the necessary information to create a client
+        @param config: config contains the necessary information to create a client
         """
         if UtilClient.empty(self._endpoint_rule) and UtilClient.empty(config.endpoint):
             raise TeaException({
