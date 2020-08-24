@@ -167,7 +167,8 @@ namespace AlibabaCloud.OpenApiClient
                     };
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
-                        Dictionary<string, object> tmp = AlibabaCloud.TeaUtil.Common.AnyifyMapValue(AlibabaCloud.OpenApiUtil.Client.Query(request.Body));
+                        Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        Dictionary<string, object> tmp = AlibabaCloud.TeaUtil.Common.AnyifyMapValue(AlibabaCloud.OpenApiUtil.Client.Query(m));
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
@@ -183,10 +184,15 @@ namespace AlibabaCloud.OpenApiClient
                         request_.Query["SignatureMethod"] = "HMAC-SHA1";
                         request_.Query["SignatureVersion"] = "1.0";
                         request_.Query["AccessKeyId"] = accessKeyId;
+                        Dictionary<string, object> t = null;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                        {
+                            t = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        }
                         Dictionary<string, string> signedParam = TeaConverter.merge<string>
                         (
                             request_.Query,
-                            AlibabaCloud.OpenApiUtil.Client.Query(request.Body)
+                            AlibabaCloud.OpenApiUtil.Client.Query(t)
                         );
                         request_.Query["Signature"] = AlibabaCloud.OpenApiUtil.Client.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                     }
@@ -343,7 +349,8 @@ namespace AlibabaCloud.OpenApiClient
                     };
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
-                        Dictionary<string, object> tmp = AlibabaCloud.TeaUtil.Common.AnyifyMapValue(AlibabaCloud.OpenApiUtil.Client.Query(request.Body));
+                        Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        Dictionary<string, object> tmp = AlibabaCloud.TeaUtil.Common.AnyifyMapValue(AlibabaCloud.OpenApiUtil.Client.Query(m));
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
@@ -359,10 +366,15 @@ namespace AlibabaCloud.OpenApiClient
                         request_.Query["SignatureMethod"] = "HMAC-SHA1";
                         request_.Query["SignatureVersion"] = "1.0";
                         request_.Query["AccessKeyId"] = accessKeyId;
+                        Dictionary<string, object> t = null;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                        {
+                            t = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        }
                         Dictionary<string, string> signedParam = TeaConverter.merge<string>
                         (
                             request_.Query,
-                            AlibabaCloud.OpenApiUtil.Client.Query(request.Body)
+                            AlibabaCloud.OpenApiUtil.Client.Query(t)
                         );
                         request_.Query["Signature"] = AlibabaCloud.OpenApiUtil.Client.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                     }
@@ -517,7 +529,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body));
-                        request_.Headers["content-type"] = "application/json; charset=UTF-8;";
+                        request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Query))
                     {
@@ -694,7 +706,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body));
-                        request_.Headers["content-type"] = "application/json; charset=UTF-8;";
+                        request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Query))
                     {
@@ -870,7 +882,8 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
-                        request_.Body = TeaCore.BytesReadable(AlibabaCloud.OpenApiUtil.Client.ToForm(request.Body));
+                        Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        request_.Body = TeaCore.BytesReadable(AlibabaCloud.OpenApiUtil.Client.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Query))
@@ -1047,7 +1060,8 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
-                        request_.Body = TeaCore.BytesReadable(AlibabaCloud.OpenApiUtil.Client.ToForm(request.Body));
+                        Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                        request_.Body = TeaCore.BytesReadable(AlibabaCloud.OpenApiUtil.Client.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Query))
