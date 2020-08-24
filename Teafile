@@ -15,8 +15,8 @@
     "Credential": "alibabacloud:Credential:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.1.1",
-    "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.0.2",
+    "ts": "@alicloud/openapi-client:^0.1.2",
+    "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.0.3",
     "csharp": "AlibabaCloud.OpenApiClient:0.0.2",
     "java": "com.aliyun:tea-openapi:0.0.2",
     "php": "alibabacloud/darabonba-openapi:^0.1.0",

@@ -245,8 +245,9 @@ export default class Client {
           'x-acs-action': action,
           'user-agent': this.getUserAgent(),
         };
+        let m = Util.assertAsMap(request.body);
         if (!Util.isUnset(request.body)) {
-          let tmp = Util.anyifyMapValue(OpenApiUtil.query(Util.toMap(request.body)));
+          let tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
           request_.body = new $tea.BytesReadable(Util.toFormString(tmp));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
@@ -264,7 +265,7 @@ export default class Client {
           request_.query["AccessKeyId"] = accessKeyId;
           let signedParam = {
             ...request_.query,
-            ...OpenApiUtil.query(Util.toMap(request.body)),
+            ...OpenApiUtil.query(m),
           };
           request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
         }
@@ -532,7 +533,8 @@ export default class Client {
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
-          request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(Util.toMap(request.body)));
+          let m = Util.assertAsMap(request.body);
+          request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(m));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 

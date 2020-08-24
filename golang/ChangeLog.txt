@@ -1,3 +1,6 @@
+2020-08-24 Version: v0.0.3
+- Rm ToMap.
+
 2020-08-23 Version: v0.0.2
 - Fix content-type.
 
