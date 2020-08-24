@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.aliyun</groupId>
     <artifactId>tea-openapi</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>jar</packaging>
     <name>tea-openapi</name>
     <description>
@@ -42,9 +42,9 @@
         </repository>
     </distributionManagement>
     <scm>
-        <connection></connection>
-        <developerConnection></developerConnection>
-        <url></url>
+        <connection/>
+        <developerConnection/>
+        <url/>
     </scm>
     <dependencies>
         <dependency>
@@ -56,6 +56,12 @@
             <groupId>com.aliyun</groupId>
             <artifactId>credentials-java</artifactId>
             <version>0.2.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.aliyun</groupId>
+                    <artifactId>tea</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.aliyun</groupId>
@@ -65,7 +71,7 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>tea</artifactId>
-            <version>[1.0.2, 2.0.0)</version>
+            <version>[1.0.3, 2.0.0)</version>
         </dependency>
     </dependencies>
     <build>
