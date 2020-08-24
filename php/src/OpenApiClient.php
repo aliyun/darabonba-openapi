@@ -177,8 +177,9 @@ class OpenApiClient
                     'x-acs-action'  => $action,
                     'user-agent'    => $this->getUserAgent(),
                 ];
+                $m = Utils::assertAsMap($request->body);
                 if (!Utils::isUnset($request->body)) {
-                    $tmp                               = Utils::anyifyMapValue(OpenApiUtilClient::query($request->body));
+                    $tmp                               = Utils::anyifyMapValue(OpenApiUtilClient::query($m));
                     $_request->body                    = Utils::toFormString($tmp);
                     $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
                 }
@@ -192,7 +193,7 @@ class OpenApiClient
                     $_request->query['SignatureMethod']  = 'HMAC-SHA1';
                     $_request->query['SignatureVersion'] = '1.0';
                     $_request->query['AccessKeyId']      = $accessKeyId;
-                    $signedParam                         = Tea::merge($_request->query, OpenApiUtilClient::query($request->body));
+                    $signedParam                         = Tea::merge($_request->query, OpenApiUtilClient::query($m));
                     $_request->query['Signature']        = OpenApiUtilClient::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
                 }
                 $_lastRequest = $_request;
@@ -333,7 +334,7 @@ class OpenApiClient
                 ], $request->headers);
                 if (!Utils::isUnset($request->body)) {
                     $_request->body                    = Utils::toJSONString($request->body);
-                    $_request->headers['content-type'] = 'application/json; charset=UTF-8;';
+                    $_request->headers['content-type'] = 'application/json; charset=utf-8';
                 }
                 if (!Utils::isUnset($request->query)) {
                     $_request->query = $request->query;
@@ -491,7 +492,8 @@ class OpenApiClient
                     'user-agent'              => Utils::getUserAgent($this->_userAgent),
                 ], $request->headers);
                 if (!Utils::isUnset($request->body)) {
-                    $_request->body                    = OpenApiUtilClient::toForm($request->body);
+                    $m                                 = Utils::assertAsMap($request->body);
+                    $_request->body                    = OpenApiUtilClient::toForm($m);
                     $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
                 }
                 if (!Utils::isUnset($request->query)) {
