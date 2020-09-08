@@ -282,9 +282,9 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            message: err["Message"],
+            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
-            code: err["Code"],
           });
         }
 
@@ -427,9 +427,9 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            message: err["Message"],
+            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
-            code: err["Code"],
           });
         }
 
@@ -573,9 +573,9 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            message: err["Message"],
+            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
-            code: err["Code"],
           });
         }
 
