@@ -205,9 +205,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -387,9 +387,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -564,9 +564,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -741,9 +741,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -919,9 +919,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -1097,9 +1097,9 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"message", err.Get("Message")},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
-                            {"code", err.Get("Code")},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
