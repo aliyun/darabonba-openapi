@@ -401,9 +401,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 				err := util.AssertAsMap(_res)
 				_err = tea.NewSDKError(map[string]interface{}{
-					"message": err["Message"],
+					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])) + "Error",
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " requestid: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":    err,
-					"code":    err["Code"],
 				})
 				return _result, _err
 			}
@@ -589,9 +589,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				err := util.AssertAsMap(_res)
 				_err = tea.NewSDKError(map[string]interface{}{
-					"message": err["Message"],
+					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])) + "Error",
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " requestid: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":    err,
-					"code":    err["Code"],
 				})
 				return _result, _err
 			}
@@ -778,9 +778,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				err := util.AssertAsMap(_res)
 				_err = tea.NewSDKError(map[string]interface{}{
-					"message": err["Message"],
+					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])) + "Error",
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " requestid: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":    err,
-					"code":    err["Code"],
 				})
 				return _result, _err
 			}
