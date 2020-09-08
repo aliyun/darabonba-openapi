@@ -1,3 +1,6 @@
+### 2020-09-08 Version 0.0.4
+* Improve throw exception.
+
 ### 2020-09-01 Version 0.0.3
 * Improve dependency.
 
