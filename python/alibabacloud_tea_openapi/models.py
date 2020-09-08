@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from Tea.model import TeaModel
+from typing import Dict, Any
 
 
 class Config(TeaModel):
@@ -18,31 +19,31 @@ class Config(TeaModel):
         # security token
         self.security_token = security_token  # type: str
         # http protocol
-        self.protocol = protocol  # type: str
+        self.protocol = protocol        # type: str
         # region id
-        self.region_id = region_id  # type: str
+        self.region_id = region_id      # type: str
         # read timeout
         self.read_timeout = read_timeout  # type: int
         # connect timeout
         self.connect_timeout = connect_timeout  # type: int
         # http proxy
-        self.http_proxy = http_proxy  # type: str
+        self.http_proxy = http_proxy    # type: str
         # https proxy
         self.https_proxy = https_proxy  # type: str
         # credential
-        self.credential = credential  # type: Credential
+        self.credential = credential
         # endpoint
-        self.endpoint = endpoint  # type: str
+        self.endpoint = endpoint        # type: str
         # proxy white list
-        self.no_proxy = no_proxy  # type: str
+        self.no_proxy = no_proxy        # type: str
         # max idle conns
         self.max_idle_conns = max_idle_conns  # type: int
         # network for endpoint
-        self.network = network  # type: str
+        self.network = network          # type: str
         # user agent
-        self.user_agent = user_agent  # type: str
+        self.user_agent = user_agent    # type: str
         # suffix for endpoint
-        self.suffix = suffix  # type: str
+        self.suffix = suffix            # type: str
         # socks5 proxy
         self.socks_5proxy = socks_5proxy  # type: str
         # socks5 network
@@ -52,7 +53,7 @@ class Config(TeaModel):
         # OpenPlatform endpoint
         self.open_platform_endpoint = open_platform_endpoint  # type: str
         # credential type
-        self.type = type  # type: str
+        self.type = type                # type: str
 
     def validate(self):
         pass
@@ -109,9 +110,9 @@ class Config(TeaModel):
 
 class OpenApiRequest(TeaModel):
     def __init__(self, headers=None, query=None, body=None):
-        self.headers = headers  # type: dict
-        self.query = query  # type: dict
-        self.body = body  # type: any
+        self.headers = headers          # type: Dict[str, str]
+        self.query = query              # type: Dict[str, str]
+        self.body = body                # type: Any
 
     def validate(self):
         pass
