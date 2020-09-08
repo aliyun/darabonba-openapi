@@ -161,9 +161,9 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("message", err.get("Message")),
-                        new TeaPair("data", err),
-                        new TeaPair("code", err.get("Code"))
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("data", err)
                     ));
                 }
 
@@ -295,9 +295,9 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("message", err.get("Message")),
-                        new TeaPair("data", err),
-                        new TeaPair("code", err.get("Code"))
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("data", err)
                     ));
                 }
 
@@ -430,9 +430,9 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("message", err.get("Message")),
-                        new TeaPair("data", err),
-                        new TeaPair("code", err.get("Code"))
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("data", err)
                     ));
                 }
 
