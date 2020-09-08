@@ -207,9 +207,9 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'message' => $err['Message'],
+                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
+                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
                         'data'    => $err,
-                        'code'    => $err['Code'],
                     ]);
                 }
                 if (Utils::equalString($bodyType, 'binary')) {
@@ -366,9 +366,9 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'message' => $err['Message'],
+                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
+                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
                         'data'    => $err,
-                        'code'    => $err['Code'],
                     ]);
                 }
                 if (Utils::equalString($bodyType, 'binary')) {
@@ -526,9 +526,9 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'message' => $err['Message'],
+                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
+                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
                         'data'    => $err,
-                        'code'    => $err['Code'],
                     ]);
                 }
                 if (Utils::equalString($bodyType, 'binary')) {
