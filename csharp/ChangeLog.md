@@ -1,4 +1,7 @@
 
+### 2020-09-08 Version 0.0.4
+* Get Err by `DefaultAny()`
+
 ### 2020-08-24 Version 0.0.3
 * Recodegen 
 
