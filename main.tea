@@ -169,8 +169,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     throw {
-      code = `${defaultAny(err.Code, err.code)}Error`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} requestid: ${defaultAny(err.RequestId, err.requestId)}`,
+      code = `${defaultAny(err.Code, err.code)}`,
+      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
       data = err,
     };
   }
@@ -285,8 +285,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     throw {
-      code = `${defaultAny(err.Code, err.code)}Error`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} requestid: ${defaultAny(err.RequestId, err.requestId)}`,
+      code = `${defaultAny(err.Code, err.code)}`,
+      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
       data = err,
     };
   }
@@ -403,8 +403,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     throw {
-      code = `${defaultAny(err.Code, err.code)}Error`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} requestid: ${defaultAny(err.RequestId, err.requestId)}`,
+      code = `${defaultAny(err.Code, err.code)}`,
+      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
       data = err,
     };
   }
