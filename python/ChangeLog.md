@@ -1,3 +1,6 @@
+### 2020-09-25 Version 0.0.5
+* Support Array.
+
 ### 2020-09-08 Version 0.0.4
 * Improve throw exception.
 
