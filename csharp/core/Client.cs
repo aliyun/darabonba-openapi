@@ -205,8 +205,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -244,6 +244,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }
@@ -387,8 +396,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -426,6 +435,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }
@@ -564,8 +582,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -603,6 +621,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }
@@ -741,8 +768,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -780,6 +807,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }
@@ -919,8 +955,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -958,6 +994,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }
@@ -1097,8 +1142,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code")) + "Error"},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " requestid: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -1136,6 +1181,15 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
                             {"headers", response_.Headers},
                         };
                     }

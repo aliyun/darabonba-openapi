@@ -199,6 +199,12 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       body = res,
       headers = __response.headers
     };
+  } else if (Util.equalString(bodyType, 'array')){
+    var arr = Util.readAsJSON(__response.body);
+    return {
+      body = arr,
+      headers = __response.headers
+    };
   } else {
     return {
       headers = __response.headers
@@ -313,6 +319,12 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     var res = Util.assertAsMap(obj);
     return {
       body = res,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'array')){
+    var arr = Util.readAsJSON(__response.body);
+    return {
+      body = arr,
       headers = __response.headers
     };
   } else {
@@ -431,6 +443,12 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     var res = Util.assertAsMap(obj);
     return {
       body = res,
+      headers = __response.headers
+    };
+  } else if (Util.equalString(bodyType, 'array')){
+    var arr = Util.readAsJSON(__response.body);
+    return {
+      body = arr,
       headers = __response.headers
     };
   } else {

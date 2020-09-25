@@ -161,8 +161,8 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
-                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("data", err)
                     ));
                 }
@@ -190,6 +190,12 @@ public class Client {
                     java.util.Map<String, Object> res = com.aliyun.teautil.Common.assertAsMap(obj);
                     return TeaConverter.buildMap(
                         new TeaPair("body", res),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(bodyType, "array")) {
+                    Object arr = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", arr),
                         new TeaPair("headers", response_.headers)
                     );
                 } else {
@@ -295,8 +301,8 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
-                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("data", err)
                     ));
                 }
@@ -324,6 +330,12 @@ public class Client {
                     java.util.Map<String, Object> res = com.aliyun.teautil.Common.assertAsMap(obj);
                     return TeaConverter.buildMap(
                         new TeaPair("body", res),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(bodyType, "array")) {
+                    Object arr = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", arr),
                         new TeaPair("headers", response_.headers)
                     );
                 } else {
@@ -430,8 +442,8 @@ public class Client {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + "Error"),
-                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " requestid: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("data", err)
                     ));
                 }
@@ -459,6 +471,12 @@ public class Client {
                     java.util.Map<String, Object> res = com.aliyun.teautil.Common.assertAsMap(obj);
                     return TeaConverter.buildMap(
                         new TeaPair("body", res),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(bodyType, "array")) {
+                    Object arr = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", arr),
                         new TeaPair("headers", response_.headers)
                     );
                 } else {

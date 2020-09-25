@@ -282,8 +282,8 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
+            code: `${Client.defaultAny(err["Code"], err["code"])}`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
           });
         }
@@ -311,6 +311,12 @@ export default class Client {
           let res = Util.assertAsMap(obj);
           return {
             body: res,
+            headers: response_.headers,
+          };
+        } else if (Util.equalString(bodyType, "array")) {
+          let arr = await Util.readAsJSON(response_.body);
+          return {
+            body: arr,
             headers: response_.headers,
           };
         } else {
@@ -427,8 +433,8 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
+            code: `${Client.defaultAny(err["Code"], err["code"])}`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
           });
         }
@@ -456,6 +462,12 @@ export default class Client {
           let res = Util.assertAsMap(obj);
           return {
             body: res,
+            headers: response_.headers,
+          };
+        } else if (Util.equalString(bodyType, "array")) {
+          let arr = await Util.readAsJSON(response_.body);
+          return {
+            body: arr,
             headers: response_.headers,
           };
         } else {
@@ -573,8 +585,8 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}Error`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} requestid: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
+            code: `${Client.defaultAny(err["Code"], err["code"])}`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
           });
         }
@@ -602,6 +614,12 @@ export default class Client {
           let res = Util.assertAsMap(obj);
           return {
             body: res,
+            headers: response_.headers,
+          };
+        } else if (Util.equalString(bodyType, "array")) {
+          let arr = await Util.readAsJSON(response_.body);
+          return {
+            body: arr,
             headers: response_.headers,
           };
         } else {
