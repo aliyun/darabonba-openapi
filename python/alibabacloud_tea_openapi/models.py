@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from Tea.model import TeaModel
-from typing import Dict, Any
+try:
+    from typing import Dict, Any
+except ImportError:
+    pass
 
 
 class Config(TeaModel):
