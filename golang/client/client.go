@@ -452,6 +452,18 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"headers": response_.Headers,
 				}, &_result)
 				return _result, _err
+			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
+				arr, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    arr,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
 			} else {
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]map[string]*string{
@@ -637,6 +649,18 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":    res,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
+				arr, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    arr,
 					"headers": response_.Headers,
 				}, &_result)
 				return _result, _err
@@ -826,6 +850,18 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":    res,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
+				arr, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    arr,
 					"headers": response_.Headers,
 				}, &_result)
 				return _result, _err

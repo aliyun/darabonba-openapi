@@ -2,14 +2,14 @@
 # This file is auto-generated, don't edit it. Thanks.
 import time
 
-from Tea.exceptions import TeaException, UnretryableException
-from Tea.request import TeaRequest
-from Tea.core import TeaCore
-
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_tea_util.client import Client as UtilClient
+from Tea.exceptions import TeaException
 from alibabacloud_credentials import models as credential_models
+from Tea.request import TeaRequest
+from Tea.core import TeaCore
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
+from Tea.exceptions import UnretryableException
 
 
 class Client(object):
@@ -25,25 +25,25 @@ class Client(object):
 
         @param config: config contains the necessary information to create a client
         """
-        self._endpoint = _endpoint      # type: str
-        self._region_id = _region_id    # type: str
-        self._protocol = _protocol      # type: str
-        self._user_agent = _user_agent  # type: str
-        self._endpoint_rule = _endpoint_rule  # type: str
-        self._endpoint_map = _endpoint_map  # type: dict
-        self._suffix = _suffix          # type: str
-        self._read_timeout = _read_timeout  # type: int
-        self._connect_timeout = _connect_timeout  # type: int
-        self._http_proxy = _http_proxy  # type: str
-        self._https_proxy = _https_proxy  # type: str
-        self._socks_5proxy = _socks_5proxy  # type: str
-        self._socks_5net_work = _socks_5net_work  # type: str
-        self._no_proxy = _no_proxy      # type: str
-        self._network = _network        # type: str
-        self._product_id = _product_id  # type: str
-        self._max_idle_conns = _max_idle_conns  # type: int
-        self._endpoint_type = _endpoint_type  # type: str
-        self._open_platform_endpoint = _open_platform_endpoint  # type: str
+        self._endpoint = _endpoint
+        self._region_id = _region_id
+        self._protocol = _protocol
+        self._user_agent = _user_agent
+        self._endpoint_rule = _endpoint_rule
+        self._endpoint_map = _endpoint_map
+        self._suffix = _suffix
+        self._read_timeout = _read_timeout
+        self._connect_timeout = _connect_timeout
+        self._http_proxy = _http_proxy
+        self._https_proxy = _https_proxy
+        self._socks_5proxy = _socks_5proxy
+        self._socks_5net_work = _socks_5net_work
+        self._no_proxy = _no_proxy
+        self._network = _network
+        self._product_id = _product_id
+        self._max_idle_conns = _max_idle_conns
+        self._endpoint_type = _endpoint_type
+        self._open_platform_endpoint = _open_platform_endpoint
         self._credential = _credential
         if UtilClient.is_unset(config):
             raise TeaException({
@@ -181,8 +181,8 @@ class Client(object):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "Error",
-                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " requestid: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
+                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "",
+                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " request id: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
                         "data": err
                     })
                 if UtilClient.equal_string(body_type, "binary"):
@@ -208,6 +208,12 @@ class Client(object):
                     res = UtilClient.assert_as_map(obj)
                     return {
                         "body": res,
+                        "headers": _response.headers
+                    }
+                elif UtilClient.equal_string(body_type, "array"):
+                    arr = UtilClient.read_as_json(_response.body)
+                    return {
+                        "body": arr,
                         "headers": _response.headers
                     }
                 else:
@@ -323,8 +329,8 @@ class Client(object):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "Error",
-                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " requestid: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
+                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "",
+                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " request id: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
                         "data": err
                     })
                 if UtilClient.equal_string(body_type, "binary"):
@@ -350,6 +356,12 @@ class Client(object):
                     res = UtilClient.assert_as_map(obj)
                     return {
                         "body": res,
+                        "headers": _response.headers
+                    }
+                elif UtilClient.equal_string(body_type, "array"):
+                    arr = UtilClient.read_as_json(_response.body)
+                    return {
+                        "body": arr,
                         "headers": _response.headers
                     }
                 else:
@@ -466,8 +478,8 @@ class Client(object):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "Error",
-                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " requestid: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
+                        "code": "" + str(self.default_any(err.get('Code'), err.get('code'))) + "",
+                        "message": "code: " + str(_response.status_code) + ", " + str(self.default_any(err.get('Message'), err.get('message'))) + " request id: " + str(self.default_any(err.get('RequestId'), err.get('requestId'))) + "",
                         "data": err
                     })
                 if UtilClient.equal_string(body_type, "binary"):
@@ -493,6 +505,12 @@ class Client(object):
                     res = UtilClient.assert_as_map(obj)
                     return {
                         "body": res,
+                        "headers": _response.headers
+                    }
+                elif UtilClient.equal_string(body_type, "array"):
+                    arr = UtilClient.read_as_json(_response.body)
+                    return {
+                        "body": arr,
                         "headers": _response.headers
                     }
                 else:
