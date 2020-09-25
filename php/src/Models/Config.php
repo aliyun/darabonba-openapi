@@ -4,6 +4,7 @@
 
 namespace Darabonba\OpenApi\Models;
 
+use AlibabaCloud\Credentials\Credential;
 use AlibabaCloud\Tea\Model;
 
 /**

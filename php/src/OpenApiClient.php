@@ -207,8 +207,8 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
-                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
+                        'code'    => '' . (string) (self::defaultAny($err['Code'], $err['code'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny($err['Message'], $err['message'])) . ' request id: ' . (string) (self::defaultAny($err['RequestId'], $err['requestId'])) . '',
                         'data'    => $err,
                     ]);
                 }
@@ -242,6 +242,14 @@ class OpenApiClient
 
                     return [
                         'body'    => $res,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($bodyType, 'array')) {
+                    $arr = Utils::readAsJSON($_response->body);
+
+                    return [
+                        'body'    => $arr,
                         'headers' => $_response->headers,
                     ];
                 }
@@ -366,8 +374,8 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
-                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
+                        'code'    => '' . (string) (self::defaultAny($err['Code'], $err['code'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny($err['Message'], $err['message'])) . ' request id: ' . (string) (self::defaultAny($err['RequestId'], $err['requestId'])) . '',
                         'data'    => $err,
                     ]);
                 }
@@ -401,6 +409,14 @@ class OpenApiClient
 
                     return [
                         'body'    => $res,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($bodyType, 'array')) {
+                    $arr = Utils::readAsJSON($_response->body);
+
+                    return [
+                        'body'    => $arr,
                         'headers' => $_response->headers,
                     ];
                 }
@@ -526,8 +542,8 @@ class OpenApiClient
                     $err  = Utils::assertAsMap($_res);
 
                     throw new TeaError([
-                        'code'    => '' . self::defaultAny($err['Code'], $err['code']) . 'Error',
-                        'message' => 'code: ' . $_response->statusCode . ', ' . self::defaultAny($err['Message'], $err['message']) . ' requestid: ' . self::defaultAny($err['RequestId'], $err['requestId']) . '',
+                        'code'    => '' . (string) (self::defaultAny($err['Code'], $err['code'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny($err['Message'], $err['message'])) . ' request id: ' . (string) (self::defaultAny($err['RequestId'], $err['requestId'])) . '',
                         'data'    => $err,
                     ]);
                 }
@@ -561,6 +577,14 @@ class OpenApiClient
 
                     return [
                         'body'    => $res,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($bodyType, 'array')) {
+                    $arr = Utils::readAsJSON($_response->body);
+
+                    return [
+                        'body'    => $arr,
                         'headers' => $_response->headers,
                     ];
                 }
