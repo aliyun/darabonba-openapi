@@ -1,3 +1,6 @@
+2020-10-30 Version: v0.0.8
+- Update mod.
+
 2020-09-25 Version: v0.0.7
 - Support Array.
 
