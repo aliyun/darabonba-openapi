@@ -350,11 +350,11 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequest(
       if (!Darabonba_Util::Client::equalString(
               authType, make_shared<string>("Anonymous"))) {
         shared_ptr<string> accessKeyId =
-            make_shared<string>(_credential.getAccessKeyId());
+            make_shared<string>(_credential->getAccessKeyId());
         shared_ptr<string> accessKeySecret =
-            make_shared<string>(_credential.getAccessKeySecret());
+            make_shared<string>(_credential->getAccessKeySecret());
         shared_ptr<string> securityToken =
-            make_shared<string>(_credential.getSecurityToken());
+            make_shared<string>(_credential->getSecurityToken());
         if (!Darabonba_Util::Client::empty(securityToken)) {
           request_->headers.insert(
               pair<string, string>("x-acs-accesskey-id", *accessKeyId));
@@ -548,11 +548,11 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequestWithForm(
       if (!Darabonba_Util::Client::equalString(
               authType, make_shared<string>("Anonymous"))) {
         shared_ptr<string> accessKeyId =
-            make_shared<string>(_credential.getAccessKeyId());
+            make_shared<string>(_credential->getAccessKeyId());
         shared_ptr<string> accessKeySecret =
-            make_shared<string>(_credential.getAccessKeySecret());
+            make_shared<string>(_credential->getAccessKeySecret());
         shared_ptr<string> securityToken =
-            make_shared<string>(_credential.getSecurityToken());
+            make_shared<string>(_credential->getSecurityToken());
         if (!Darabonba_Util::Client::empty(securityToken)) {
           request_->headers.insert(
               pair<string, string>("x-acs-accesskey-id", *accessKeyId));
@@ -668,7 +668,7 @@ string Alibabacloud_OpenApi::Client::getAccessKeyId() {
     return string("");
   }
   shared_ptr<string> accessKeyId =
-      make_shared<string>(_credential.getAccessKeyId());
+      make_shared<string>(_credential->getAccessKeyId());
   return *accessKeyId;
 }
 
@@ -678,7 +678,7 @@ string Alibabacloud_OpenApi::Client::getAccessKeySecret() {
     return string("");
   }
   shared_ptr<string> secret =
-      make_shared<string>(_credential.getAccessKeySecret());
+      make_shared<string>(_credential->getAccessKeySecret());
   return *secret;
 }
 
@@ -688,7 +688,7 @@ string Alibabacloud_OpenApi::Client::getSecurityToken() {
     return string("");
   }
   shared_ptr<string> token =
-      make_shared<string>(_credential.getSecurityToken());
+      make_shared<string>(_credential->getSecurityToken());
   return *token;
 }
 
