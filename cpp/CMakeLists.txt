@@ -41,39 +41,11 @@ set_target_properties(${PROJECT_NAME}
         MACOSX_RPATH ON
         WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-if (ENABLE_UNIT_TESTS)
-    OPTION(ENABLE_COVERAGE "Use gcov" OFF)
-    message(STATUS "Enable coverage: ${ENABLE_COVERAGE}")
-    if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        set(CMAKE_BUILD_TYPE "Coverage")
-        set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-        include(CodeCoverage)
-        setup_target_for_coverage(${PROJECT_NAME}_coverage ${PROJECT_NAME}_test coverage)
-    endif ()
-    include(CTest)
-    enable_testing()
-    add_executable(tests_alibabacloud_open_api
-            tests/main.cpp)
-endif ()
-
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< External set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
 add_subdirectory(external)
 find_package(Boost REQUIRED COMPONENTS random system thread filesystem chrono atomic date_time regex)
 find_library(CPPREST_LIB cpprest)
 target_link_libraries(${PROJECT_NAME} PRIVATE crypto darabonba_util alibabacloud_credential alibabacloud_open_api_util darabonba_core ${Boost_LIBRARIES} ${CPPREST_LIB})
-
-if (ENABLE_UNIT_TESTS)
-    target_include_directories(tests_alibabacloud_open_api
-            PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(tests_alibabacloud_open_api
-            PRIVATE
-            ${PROJECT_NAME}
-            gtest_main
-            gmock_main crypto darabonba_util alibabacloud_credential alibabacloud_open_api_util darabonba_core ${Boost_LIBRARIES} ${CPPREST_LIB})
-    add_test(NAME google_test
-            COMMAND $<TARGET_FILE:tests_alibabacloud_open_api>)
-endif ()
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Install set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
 message(STATUS "${PROJECT_NAME} : Project will be installed to ${CMAKE_INSTALL_PREFIX}")

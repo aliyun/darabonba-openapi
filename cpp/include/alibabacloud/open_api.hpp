@@ -17,7 +17,8 @@ namespace Alibabacloud_OpenApi {
 class Config : public Darabonba::Model {
 public:
   Config() {}
-  explicit Config(const std::map<string, boost::any> &config) : Darabonba::Model(config) {
+  explicit Config(const std::map<string, boost::any> &config)
+      : Darabonba::Model(config) {
     fromMap(config);
   };
 
@@ -90,13 +91,16 @@ public:
 
   void fromMap(map<string, boost::any> m) override {
     if (m.find("accessKeyId") != m.end()) {
-      accessKeyId = make_shared<string>(boost::any_cast<string>(m["accessKeyId"]));
+      accessKeyId =
+          make_shared<string>(boost::any_cast<string>(m["accessKeyId"]));
     }
     if (m.find("accessKeySecret") != m.end()) {
-      accessKeySecret = make_shared<string>(boost::any_cast<string>(m["accessKeySecret"]));
+      accessKeySecret =
+          make_shared<string>(boost::any_cast<string>(m["accessKeySecret"]));
     }
     if (m.find("securityToken") != m.end()) {
-      securityToken = make_shared<string>(boost::any_cast<string>(m["securityToken"]));
+      securityToken =
+          make_shared<string>(boost::any_cast<string>(m["securityToken"]));
     }
     if (m.find("protocol") != m.end()) {
       protocol = make_shared<string>(boost::any_cast<string>(m["protocol"]));
@@ -108,13 +112,15 @@ public:
       readTimeout = make_shared<int>(boost::any_cast<int>(m["readTimeout"]));
     }
     if (m.find("connectTimeout") != m.end()) {
-      connectTimeout = make_shared<int>(boost::any_cast<int>(m["connectTimeout"]));
+      connectTimeout =
+          make_shared<int>(boost::any_cast<int>(m["connectTimeout"]));
     }
     if (m.find("httpProxy") != m.end()) {
       httpProxy = make_shared<string>(boost::any_cast<string>(m["httpProxy"]));
     }
     if (m.find("httpsProxy") != m.end()) {
-      httpsProxy = make_shared<string>(boost::any_cast<string>(m["httpsProxy"]));
+      httpsProxy =
+          make_shared<string>(boost::any_cast<string>(m["httpsProxy"]));
     }
     if (m.find("endpoint") != m.end()) {
       endpoint = make_shared<string>(boost::any_cast<string>(m["endpoint"]));
@@ -135,16 +141,20 @@ public:
       suffix = make_shared<string>(boost::any_cast<string>(m["suffix"]));
     }
     if (m.find("socks5Proxy") != m.end()) {
-      socks5Proxy = make_shared<string>(boost::any_cast<string>(m["socks5Proxy"]));
+      socks5Proxy =
+          make_shared<string>(boost::any_cast<string>(m["socks5Proxy"]));
     }
     if (m.find("socks5NetWork") != m.end()) {
-      socks5NetWork = make_shared<string>(boost::any_cast<string>(m["socks5NetWork"]));
+      socks5NetWork =
+          make_shared<string>(boost::any_cast<string>(m["socks5NetWork"]));
     }
     if (m.find("endpointType") != m.end()) {
-      endpointType = make_shared<string>(boost::any_cast<string>(m["endpointType"]));
+      endpointType =
+          make_shared<string>(boost::any_cast<string>(m["endpointType"]));
     }
     if (m.find("openPlatformEndpoint") != m.end()) {
-      openPlatformEndpoint = make_shared<string>(boost::any_cast<string>(m["openPlatformEndpoint"]));
+      openPlatformEndpoint = make_shared<string>(
+          boost::any_cast<string>(m["openPlatformEndpoint"]));
     }
     if (m.find("type") != m.end()) {
       type = make_shared<string>(boost::any_cast<string>(m["type"]));
@@ -178,7 +188,8 @@ public:
 class OpenApiRequest : public Darabonba::Model {
 public:
   OpenApiRequest() {}
-  explicit OpenApiRequest(const std::map<string, boost::any> &config) : Darabonba::Model(config) {
+  explicit OpenApiRequest(const std::map<string, boost::any> &config)
+      : Darabonba::Model(config) {
     fromMap(config);
   };
 
@@ -200,18 +211,20 @@ public:
 
   void fromMap(map<string, boost::any> m) override {
     if (m.find("headers") != m.end()) {
-      map<string, boost::any> map1 = boost::any_cast<map<string, boost::any>>(m["headers"]);
+      map<string, string> map1 =
+          boost::any_cast<map<string, string>>(m["headers"]);
       map<string, string> toMap1;
-      for (auto item:map1) {
-         toMap1[item.first] = boost::any_cast<string>(item.second);
+      for (auto item : map1) {
+        toMap1[item.first] = item.second;
       }
       headers = make_shared<map<string, string>>(toMap1);
     }
     if (m.find("query") != m.end()) {
-      map<string, boost::any> map1 = boost::any_cast<map<string, boost::any>>(m["query"]);
+      map<string, string> map1 =
+          boost::any_cast<map<string, string>>(m["query"]);
       map<string, string> toMap1;
-      for (auto item:map1) {
-         toMap1[item.first] = boost::any_cast<string>(item.second);
+      for (auto item : map1) {
+        toMap1[item.first] = item.second;
       }
       query = make_shared<map<string, string>>(toMap1);
     }
@@ -248,38 +261,32 @@ public:
   shared_ptr<string> _endpointType{};
   shared_ptr<string> _openPlatformEndpoint{};
   shared_ptr<Alibabacloud_Credential::Client> _credential{};
-  explicit Client(const shared_ptr<Config>& config);
-  map<string, boost::any> doRPCRequest(shared_ptr<string> action,
-                                       shared_ptr<string> version,
-                                       shared_ptr<string> protocol,
-                                       shared_ptr<string> method,
-                                       shared_ptr<string> authType,
-                                       shared_ptr<string> bodyType,
-                                       shared_ptr<OpenApiRequest> request,
-                                       shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
-  map<string, boost::any> doROARequest(shared_ptr<string> action,
-                                       shared_ptr<string> version,
-                                       shared_ptr<string> protocol,
-                                       shared_ptr<string> method,
-                                       shared_ptr<string> authType,
-                                       shared_ptr<string> pathname,
-                                       shared_ptr<string> bodyType,
-                                       shared_ptr<OpenApiRequest> request,
-                                       shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
-  map<string, boost::any> doROARequestWithForm(shared_ptr<string> action,
-                                               shared_ptr<string> version,
-                                               shared_ptr<string> protocol,
-                                               shared_ptr<string> method,
-                                               shared_ptr<string> authType,
-                                               shared_ptr<string> pathname,
-                                               shared_ptr<string> bodyType,
-                                               shared_ptr<OpenApiRequest> request,
-                                               shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
+  explicit Client(const shared_ptr<Config> &config);
+  map<string, boost::any>
+  doRPCRequest(shared_ptr<string> action, shared_ptr<string> version,
+               shared_ptr<string> protocol, shared_ptr<string> method,
+               shared_ptr<string> authType, shared_ptr<string> bodyType,
+               shared_ptr<OpenApiRequest> request,
+               shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
+  map<string, boost::any>
+  doROARequest(shared_ptr<string> action, shared_ptr<string> version,
+               shared_ptr<string> protocol, shared_ptr<string> method,
+               shared_ptr<string> authType, shared_ptr<string> pathname,
+               shared_ptr<string> bodyType, shared_ptr<OpenApiRequest> request,
+               shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
+  map<string, boost::any>
+  doROARequestWithForm(shared_ptr<string> action, shared_ptr<string> version,
+                       shared_ptr<string> protocol, shared_ptr<string> method,
+                       shared_ptr<string> authType, shared_ptr<string> pathname,
+                       shared_ptr<string> bodyType,
+                       shared_ptr<OpenApiRequest> request,
+                       shared_ptr<Darabonba_Util::RuntimeOptions> runtime);
   string getUserAgent();
   string getAccessKeyId();
   string getAccessKeySecret();
   string getSecurityToken();
-  static boost::any defaultAny(const boost::any &inputValue, const boost::any &defaultValue);
+  static boost::any defaultAny(const boost::any &inputValue,
+                               const boost::any &defaultValue);
   void checkConfig(shared_ptr<Config> config);
 
   ~Client() = default;

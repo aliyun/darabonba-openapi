@@ -5,7 +5,7 @@ English | [简体中文](/README-CN.md)
 
 ![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
-The Alibabacloud OpenApi SDK is based on the `[Darabonba DSL](https://github.com/aliyun/darabonba)` solution, which is a domain specific language for OpenAPI applications. It can be used to generate multilingual SDKs, code samples, test cases, interface choreography, etc. for any style of API.
+The Alibabacloud OpenApi SDK is based on the [`Darabonba DSL`](https://github.com/aliyun/darabonba) solution, which is a domain specific language for OpenAPI applications. It can be used to generate multilingual SDKs, code samples, test cases, interface choreography, etc. for any style of API.
 
 ## Required Dependency Libraries
 

@@ -5,7 +5,7 @@
 
 ![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
-Alibabacloud OpenApi SDK 是基于 `[Darabonba DSL](https://github.com/aliyun/darabonba)` 解决方案的，它是一种 OpenAPI 应用领域的特定语言。可以利用它为任意风格的接口生成多语言的 SDK、代码示例、测试用例、接口编排等。
+Alibabacloud OpenApi SDK 是基于 [`Darabonba DSL`](https://github.com/aliyun/darabonba) 解决方案的，它是一种 OpenAPI 应用领域的特定语言。可以利用它为任意风格的接口生成多语言的 SDK、代码示例、测试用例、接口编排等。
 
 ## 必备的依赖库
 
