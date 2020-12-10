@@ -24,56 +24,55 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi.
 
-Created on 10/08/2020
+Created on 10/12/2020
 
 @author: Alibaba Cloud SDK
 """
 
 PACKAGE = "alibabacloud_tea_openapi"
-NAME = "alibabacloud_tea_openapi"
+NAME = "alibabacloud_tea_openapi" or "alibabacloud-package"
 DESCRIPTION = "Alibaba Cloud openapi SDK Library for Python"
 AUTHOR = "Alibaba Cloud SDK"
 AUTHOR_EMAIL = "sdk-team@alibabacloud.com"
 URL = "https://github.com/aliyun/darabonba-openapi"
-
-TOPDIR = os.path.dirname(__file__) or "."
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
-    "alibabacloud_tea_util>=0.1.2, <1.0.0",
-    "alibabacloud_credentials>=0.0.5, <1.0.0",
-    "alibabacloud_openapi_util>=0.0.1, <1.0.0"
+    "alibabacloud_tea_util>=0.3.1, <1.0.0",
+    "alibabacloud_credentials>=0.1.1, <1.0.0",
+    "alibabacloud_openapi_util>=0.0.2, <1.0.0"
 ]
 
-with open("README.md", encoding='utf-8') as fp:
-    LONG_DESCRIPTION = fp.read()
+LONG_DESCRIPTION = ''
+if os.path.exists('./README.md'):
+    with open("README.md", encoding='utf-8') as fp:
+        LONG_DESCRIPTION = fp.read()
 
 setup(
     name=NAME,
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     license="Apache License 2.0",
     url=URL,
-    keywords=["alibabacloud_tea_openapi"],
+    keywords=["alibabacloud","tea","openapi"],
     packages=find_packages(exclude=["tests*"]),
     include_package_data=True,
     platforms="any",
     install_requires=REQUIRES,
+    python_requires=">=3.6",
     classifiers=(
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         "Topic :: Software Development"
     )
 )
