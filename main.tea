@@ -269,9 +269,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var accessKeyId = @credential.getAccessKeyId();
-    var accessKeySecret = @credential.getAccessKeySecret();
-    var securityToken = @credential.getSecurityToken();
+    var accessKeyId = getAccessKeyId();
+    var accessKeySecret = getAccessKeySecret();
+    var securityToken = getSecurityToken();
     if (!Util.empty(securityToken)) {
       __request.headers.x-acs-accesskey-id = accessKeyId;
       __request.headers.x-acs-security-token = securityToken;
@@ -393,9 +393,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var accessKeyId = @credential.getAccessKeyId();
-    var accessKeySecret = @credential.getAccessKeySecret();
-    var securityToken = @credential.getSecurityToken();
+    var accessKeyId = getAccessKeyId();
+    var accessKeySecret = getAccessKeySecret();
+    var securityToken = getSecurityToken();
     if (!Util.empty(securityToken)) {
       __request.headers.x-acs-accesskey-id = accessKeyId;
       __request.headers.x-acs-security-token = securityToken;

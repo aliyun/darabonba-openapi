@@ -178,8 +178,8 @@ class Client:
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -322,8 +322,8 @@ class Client:
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -445,14 +445,14 @@ class Client:
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = self._credential.get_access_key_id()
-                    access_key_secret = self._credential.get_access_key_secret()
-                    security_token = self._credential.get_security_token()
+                    access_key_id = self.get_access_key_id()
+                    access_key_secret = self.get_access_key_secret()
+                    security_token = self.get_security_token()
                     if not UtilClient.empty(security_token):
                         _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = 'acs %s:%s' % (access_key_id, OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret))
+                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -463,8 +463,8 @@ class Client:
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -586,14 +586,14 @@ class Client:
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = await self._credential.get_access_key_id_async()
-                    access_key_secret = await self._credential.get_access_key_secret_async()
-                    security_token = await self._credential.get_security_token_async()
+                    access_key_id = await self.get_access_key_id_async()
+                    access_key_secret = await self.get_access_key_secret_async()
+                    security_token = await self.get_security_token_async()
                     if not UtilClient.empty(security_token):
                         _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = 'acs %s:%s' % (access_key_id, OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret))
+                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -604,8 +604,8 @@ class Client:
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -728,14 +728,14 @@ class Client:
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = self._credential.get_access_key_id()
-                    access_key_secret = self._credential.get_access_key_secret()
-                    security_token = self._credential.get_security_token()
+                    access_key_id = self.get_access_key_id()
+                    access_key_secret = self.get_access_key_secret()
+                    security_token = self.get_security_token()
                     if not UtilClient.empty(security_token):
                         _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = 'acs %s:%s' % (access_key_id, OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret))
+                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -746,8 +746,8 @@ class Client:
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -870,14 +870,14 @@ class Client:
                 if not UtilClient.is_unset(request.query):
                     _request.query = request.query
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = await self._credential.get_access_key_id_async()
-                    access_key_secret = await self._credential.get_access_key_secret_async()
-                    security_token = await self._credential.get_security_token_async()
+                    access_key_id = await self.get_access_key_id_async()
+                    access_key_secret = await self.get_access_key_secret_async()
+                    security_token = await self.get_security_token_async()
                     if not UtilClient.empty(security_token):
                         _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = 'acs %s:%s' % (access_key_id, OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret))
+                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -888,8 +888,8 @@ class Client:
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     raise TeaException({
-                        'code': '%s' % self.default_any(err.get('Code'), err.get('code')),
-                        'message': 'code: %s, %s request id: %s' % (_response.status_code, self.default_any(err.get('Message'), err.get('message')), self.default_any(err.get('RequestId'), err.get('requestId'))),
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):

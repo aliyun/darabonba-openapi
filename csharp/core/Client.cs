@@ -205,8 +205,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -396,8 +396,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -555,9 +555,9 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
-                        string accessKeyId = this._credential.GetAccessKeyId();
-                        string accessKeySecret = this._credential.GetAccessKeySecret();
-                        string securityToken = this._credential.GetSecurityToken();
+                        string accessKeyId = GetAccessKeyId();
+                        string accessKeySecret = GetAccessKeySecret();
+                        string securityToken = GetSecurityToken();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
                             request_.Headers["x-acs-accesskey-id"] = accessKeyId;
@@ -582,8 +582,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -741,9 +741,9 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
-                        string accessKeyId = await this._credential.GetAccessKeyIdAsync();
-                        string accessKeySecret = await this._credential.GetAccessKeySecretAsync();
-                        string securityToken = await this._credential.GetSecurityTokenAsync();
+                        string accessKeyId = await GetAccessKeyIdAsync();
+                        string accessKeySecret = await GetAccessKeySecretAsync();
+                        string securityToken = await GetSecurityTokenAsync();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
                             request_.Headers["x-acs-accesskey-id"] = accessKeyId;
@@ -768,8 +768,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -928,9 +928,9 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
-                        string accessKeyId = this._credential.GetAccessKeyId();
-                        string accessKeySecret = this._credential.GetAccessKeySecret();
-                        string securityToken = this._credential.GetSecurityToken();
+                        string accessKeyId = GetAccessKeyId();
+                        string accessKeySecret = GetAccessKeySecret();
+                        string securityToken = GetSecurityToken();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
                             request_.Headers["x-acs-accesskey-id"] = accessKeyId;
@@ -955,8 +955,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
@@ -1115,9 +1115,9 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
-                        string accessKeyId = await this._credential.GetAccessKeyIdAsync();
-                        string accessKeySecret = await this._credential.GetAccessKeySecretAsync();
-                        string securityToken = await this._credential.GetSecurityTokenAsync();
+                        string accessKeyId = await GetAccessKeyIdAsync();
+                        string accessKeySecret = await GetAccessKeySecretAsync();
+                        string securityToken = await GetSecurityTokenAsync();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
                             request_.Headers["x-acs-accesskey-id"] = accessKeyId;
@@ -1142,8 +1142,8 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", Client.DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + Client.DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + Client.DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
                     }
