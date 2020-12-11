@@ -208,7 +208,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
@@ -276,9 +276,9 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String accessKeyId = _credential.getAccessKeyId();
-                    String accessKeySecret = _credential.getAccessKeySecret();
-                    String securityToken = _credential.getSecurityToken();
+                    String accessKeyId = this.getAccessKeyId();
+                    String accessKeySecret = this.getAccessKeySecret();
+                    String securityToken = this.getSecurityToken();
                     if (!com.aliyun.teautil.Common.empty(securityToken)) {
                         request_.headers.put("x-acs-accesskey-id", accessKeyId);
                         request_.headers.put("x-acs-security-token", securityToken);
@@ -348,7 +348,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
@@ -417,9 +417,9 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String accessKeyId = _credential.getAccessKeyId();
-                    String accessKeySecret = _credential.getAccessKeySecret();
-                    String securityToken = _credential.getSecurityToken();
+                    String accessKeyId = this.getAccessKeyId();
+                    String accessKeySecret = this.getAccessKeySecret();
+                    String securityToken = this.getSecurityToken();
                     if (!com.aliyun.teautil.Common.empty(securityToken)) {
                         request_.headers.put("x-acs-accesskey-id", accessKeyId);
                         request_.headers.put("x-acs-security-token", securityToken);
@@ -489,7 +489,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
