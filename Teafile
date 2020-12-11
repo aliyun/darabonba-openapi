@@ -11,6 +11,7 @@
   ],
   "libraries": {
     "Util": "darabonba:Util:*",
+    "String": "darabonba:String:*",
     "OpenApiUtil": "alibabacloud:OpenApiUtil:*",
     "Credential": "alibabacloud:Credential:*"
   },
@@ -28,6 +29,11 @@
   },
   "java": {
     "package": "com.aliyun.teaopenapi"
+  },
+  "go": {
+    "package": [
+      "io"
+    ]
   },
   "php": {
     "package": "Darabonba.OpenApi",
