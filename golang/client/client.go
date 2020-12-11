@@ -5,10 +5,12 @@
 package client
 
 import (
+	string_ "github.com/alibabacloud-go/darabonba-string/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
+	"io"
 )
 
 /**
@@ -58,6 +60,8 @@ type Config struct {
 	// Deprecated
 	// credential type
 	Type *string `json:"type,omitempty" xml:"type,omitempty"`
+	// Signature Algorithm
+	SignatureAlgorithm *string `json:"signatureAlgorithm,omitempty" xml:"signatureAlgorithm,omitempty"`
 }
 
 func (s Config) String() string {
@@ -173,10 +177,16 @@ func (s *Config) SetType(v string) *Config {
 	return s
 }
 
+func (s *Config) SetSignatureAlgorithm(v string) *Config {
+	s.SignatureAlgorithm = &v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query   map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
 	Body    interface{}        `json:"body,omitempty" xml:"body,omitempty"`
+	Stream  io.Reader          `json:"stream,omitempty" xml:"stream,omitempty"`
 }
 
 func (s OpenApiRequest) String() string {
@@ -202,6 +212,76 @@ func (s *OpenApiRequest) SetBody(v interface{}) *OpenApiRequest {
 	return s
 }
 
+func (s *OpenApiRequest) SetStream(v io.Reader) *OpenApiRequest {
+	s.Stream = v
+	return s
+}
+
+type Params struct {
+	Action      *string `json:"action,omitempty" xml:"action,omitempty" require:"true"`
+	Version     *string `json:"version,omitempty" xml:"version,omitempty" require:"true"`
+	Protocol    *string `json:"protocol,omitempty" xml:"protocol,omitempty" require:"true"`
+	Pathname    *string `json:"pathname,omitempty" xml:"pathname,omitempty" require:"true"`
+	Method      *string `json:"method,omitempty" xml:"method,omitempty" require:"true"`
+	AuthType    *string `json:"authType,omitempty" xml:"authType,omitempty" require:"true"`
+	BodyType    *string `json:"bodyType,omitempty" xml:"bodyType,omitempty" require:"true"`
+	ReqBodyType *string `json:"reqBodyType,omitempty" xml:"reqBodyType,omitempty" require:"true"`
+	Style       *string `json:"style,omitempty" xml:"style,omitempty"`
+}
+
+func (s Params) String() string {
+	return tea.Prettify(s)
+}
+
+func (s Params) GoString() string {
+	return s.String()
+}
+
+func (s *Params) SetAction(v string) *Params {
+	s.Action = &v
+	return s
+}
+
+func (s *Params) SetVersion(v string) *Params {
+	s.Version = &v
+	return s
+}
+
+func (s *Params) SetProtocol(v string) *Params {
+	s.Protocol = &v
+	return s
+}
+
+func (s *Params) SetPathname(v string) *Params {
+	s.Pathname = &v
+	return s
+}
+
+func (s *Params) SetMethod(v string) *Params {
+	s.Method = &v
+	return s
+}
+
+func (s *Params) SetAuthType(v string) *Params {
+	s.AuthType = &v
+	return s
+}
+
+func (s *Params) SetBodyType(v string) *Params {
+	s.BodyType = &v
+	return s
+}
+
+func (s *Params) SetReqBodyType(v string) *Params {
+	s.ReqBodyType = &v
+	return s
+}
+
+func (s *Params) SetStyle(v string) *Params {
+	s.Style = &v
+	return s
+}
+
 type Client struct {
 	Endpoint             *string
 	RegionId             *string
@@ -223,6 +303,7 @@ type Client struct {
 	EndpointType         *string
 	OpenPlatformEndpoint *string
 	Credential           credential.Credential
+	SignatureAlgorithm   *string
 }
 
 /**
@@ -278,6 +359,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Socks5Proxy = config.Socks5Proxy
 	client.Socks5NetWork = config.Socks5NetWork
 	client.MaxIdleConns = config.MaxIdleConns
+	client.SignatureAlgorithm = config.SignatureAlgorithm
 	return nil
 }
 
@@ -880,6 +962,286 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 	}
 
 	return _resp, _err
+}
+
+/**
+ * Encapsulate the request and invoke the network
+ * @param action api name
+ * @param version product version
+ * @param protocol http or https
+ * @param method e.g. GET
+ * @param authType authorization type e.g. AK
+ * @param bodyType response body type e.g. String
+ * @param request object of OpenApiRequest
+ * @param runtime which controls some details of call api, such as retry times
+ * @return the response
+ */
+func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	_err = tea.Validate(params)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = tea.Validate(request)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = tea.Validate(runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_runtime := map[string]interface{}{
+		"timeouted":      "retry",
+		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
+		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
+		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),
+		"httpsProxy":     tea.StringValue(util.DefaultString(runtime.HttpsProxy, client.HttpsProxy)),
+		"noProxy":        tea.StringValue(util.DefaultString(runtime.NoProxy, client.NoProxy)),
+		"maxIdleConns":   tea.IntValue(util.DefaultNumber(runtime.MaxIdleConns, client.MaxIdleConns)),
+		"retry": map[string]interface{}{
+			"retryable":   tea.BoolValue(runtime.Autoretry),
+			"maxAttempts": tea.IntValue(util.DefaultNumber(runtime.MaxAttempts, tea.Int(3))),
+		},
+		"backoff": map[string]interface{}{
+			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
+			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
+		},
+		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+	}
+
+	_resp := make(map[string]interface{})
+	for _retryTimes := 0; tea.BoolValue(tea.AllowRetry(_runtime["retry"], tea.Int(_retryTimes))); _retryTimes++ {
+		if _retryTimes > 0 {
+			_backoffTime := tea.GetBackoffTime(_runtime["backoff"], tea.Int(_retryTimes))
+			if tea.IntValue(_backoffTime) > 0 {
+				tea.Sleep(_backoffTime)
+			}
+		}
+
+		_resp, _err = func() (map[string]interface{}, error) {
+			request_ := tea.NewRequest()
+			request_.Protocol = util.DefaultString(client.Protocol, params.Protocol)
+			request_.Method = params.Method
+			request_.Pathname = openapiutil.GetEncodePath(params.Pathname)
+			request_.Query = request.Query
+			// endpoint is setted in product client
+			request_.Headers = tea.Merge(map[string]*string{
+				"host":          client.GetEndpoint(client.Endpoint, request_.Protocol),
+				"x-acs-version": params.Version,
+				"x-acs-action":  params.Action,
+				"user-agent":    client.GetUserAgent(),
+				"x-acs-date":    openapiutil.GetTimestamp(),
+				"accept":        tea.String("application/json"),
+			}, request.Headers)
+			if tea.BoolValue(util.EqualString(request_.Protocol, tea.String("http"))) || tea.BoolValue(util.EqualString(request_.Protocol, tea.String("HTTP"))) {
+				request_.Headers["x-acs-signature-nonce"] = util.GetNonce()
+			}
+
+			signatureAlgorithm := util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256"))
+			hashedRequestPayload := openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(tea.String("")), signatureAlgorithm))
+			if !tea.BoolValue(util.IsUnset(request.Body)) {
+				if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
+					jsonObj := util.ToJSONString(request.Body)
+					hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(jsonObj), signatureAlgorithm))
+					request_.Body = tea.ToReader(jsonObj)
+				} else {
+					m := util.AssertAsMap(request.Body)
+					formObj := openapiutil.ToForm(m)
+					hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(formObj), signatureAlgorithm))
+					request_.Body = tea.ToReader(formObj)
+					request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
+				}
+
+			}
+
+			if !tea.BoolValue(util.IsUnset(request.Stream)) {
+				tmp, _err := util.ReadAsBytes(request.Stream)
+				if _err != nil {
+					return _result, _err
+				}
+
+				hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(tmp, signatureAlgorithm))
+				request_.Body = tea.ToReader(tmp)
+			}
+
+			request_.Headers["x-acs-content-sha256"] = hashedRequestPayload
+			if !tea.BoolValue(util.EqualString(params.AuthType, tea.String("Anonymous"))) {
+				accessKeyId, _err := client.GetAccessKeyId()
+				if _err != nil {
+					return _result, _err
+				}
+
+				accessKeySecret, _err := client.GetAccessKeySecret()
+				if _err != nil {
+					return _result, _err
+				}
+
+				securityToken, _err := client.GetSecurityToken()
+				if _err != nil {
+					return _result, _err
+				}
+
+				if !tea.BoolValue(util.Empty(securityToken)) {
+					request_.Headers["x-acs-security-token"] = securityToken
+				}
+
+				request_.Headers["Authorization"] = openapiutil.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret)
+			}
+
+			response_, _err := tea.DoRequest(request_, _runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			if tea.BoolValue(util.Is4xx(response_.StatusCode)) || tea.BoolValue(util.Is5xx(response_.StatusCode)) {
+				_res, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				err := util.AssertAsMap(_res)
+				_err = tea.NewSDKError(map[string]interface{}{
+					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"data":    err,
+				})
+				return _result, _err
+			}
+
+			if tea.BoolValue(util.EqualString(params.BodyType, tea.String("binary"))) {
+				resp := map[string]interface{}{
+					"body":    response_.Body,
+					"headers": response_.Headers,
+				}
+				_result = resp
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("byte"))) {
+				byt, _err := util.ReadAsBytes(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    byt,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("string"))) {
+				str, _err := util.ReadAsString(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    tea.StringValue(str),
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("json"))) {
+				obj, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				res := util.AssertAsMap(obj)
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    res,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("array"))) {
+				arr, _err := util.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]interface{}{
+					"body":    arr,
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			} else {
+				_result = make(map[string]interface{})
+				_err = tea.Convert(map[string]map[string]*string{
+					"headers": response_.Headers,
+				}, &_result)
+				return _result, _err
+			}
+
+		}()
+		if !tea.BoolValue(tea.Retryable(_err)) {
+			break
+		}
+	}
+
+	return _resp, _err
+}
+
+func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	if tea.BoolValue(util.IsUnset(tea.ToMap(params))) {
+		_err = tea.NewSDKError(map[string]interface{}{
+			"code":    "ParameterMissing",
+			"message": "'params' can not be unset",
+		})
+		return _result, _err
+	}
+
+	if tea.BoolValue(util.IsUnset(client.SignatureAlgorithm)) || !tea.BoolValue(util.EqualString(client.SignatureAlgorithm, tea.String("v2"))) {
+		_result = make(map[string]interface{})
+		_body, _err := client.DoRequest(params, request, runtime)
+		if _err != nil {
+			return _result, _err
+		}
+		_result = _body
+		return _result, _err
+	} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) && tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
+		_result = make(map[string]interface{})
+		_body, _err := client.DoROARequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+		if _err != nil {
+			return _result, _err
+		}
+		_result = _body
+		return _result, _err
+	} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) {
+		_result = make(map[string]interface{})
+		_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+		if _err != nil {
+			return _result, _err
+		}
+		_result = _body
+		return _result, _err
+	} else {
+		_result = make(map[string]interface{})
+		_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+		if _err != nil {
+			return _result, _err
+		}
+		_result = _body
+		return _result, _err
+	}
+
+}
+
+/**
+ * Add port into endpoint
+ * @return endpoint
+ */
+func (client *Client) GetEndpoint(endpoint *string, protocol *string) (_result *string) {
+	if !tea.BoolValue(util.EqualNumber(string_.Index(endpoint, tea.String(":")), tea.Int(-1))) {
+		_result = endpoint
+		return _result
+	}
+
+	if tea.BoolValue(util.EqualString(string_.ToLower(protocol), tea.String("https"))) {
+		_result = tea.String(tea.StringValue(endpoint) + ":443")
+		return _result
+	} else {
+		_result = tea.String(tea.StringValue(endpoint) + ":80")
+		return _result
+	}
+
 }
 
 /**
