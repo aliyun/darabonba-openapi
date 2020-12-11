@@ -557,17 +557,17 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
-				accessKeyId, _err := client.Credential.GetAccessKeyId()
+				accessKeyId, _err := client.GetAccessKeyId()
 				if _err != nil {
 					return _result, _err
 				}
 
-				accessKeySecret, _err := client.Credential.GetAccessKeySecret()
+				accessKeySecret, _err := client.GetAccessKeySecret()
 				if _err != nil {
 					return _result, _err
 				}
 
-				securityToken, _err := client.Credential.GetSecurityToken()
+				securityToken, _err := client.GetSecurityToken()
 				if _err != nil {
 					return _result, _err
 				}
@@ -758,17 +758,17 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
-				accessKeyId, _err := client.Credential.GetAccessKeyId()
+				accessKeyId, _err := client.GetAccessKeyId()
 				if _err != nil {
 					return _result, _err
 				}
 
-				accessKeySecret, _err := client.Credential.GetAccessKeySecret()
+				accessKeySecret, _err := client.GetAccessKeySecret()
 				if _err != nil {
 					return _result, _err
 				}
 
-				securityToken, _err := client.Credential.GetSecurityToken()
+				securityToken, _err := client.GetSecurityToken()
 				if _err != nil {
 					return _result, _err
 				}
@@ -898,6 +898,7 @@ func (client *Client) GetUserAgent() (_result *string) {
  */
 func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
+		_result = tea.String("")
 		return _result, _err
 	}
 
@@ -916,6 +917,7 @@ func (client *Client) GetAccessKeyId() (_result *string, _err error) {
  */
 func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
+		_result = tea.String("")
 		return _result, _err
 	}
 
@@ -934,6 +936,7 @@ func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
  */
 func (client *Client) GetSecurityToken() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
+		_result = tea.String("")
 		return _result, _err
 	}
 
