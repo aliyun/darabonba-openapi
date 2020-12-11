@@ -5,6 +5,7 @@
 namespace Darabonba\OpenApi;
 
 use AlibabaCloud\Credentials\Credential;
+use AlibabaCloud\Credentials\Credential\Config;
 use AlibabaCloud\OpenApiUtil\OpenApiUtilClient;
 use AlibabaCloud\Tea\Exception\TeaError;
 use AlibabaCloud\Tea\Exception\TeaUnableRetryError;
@@ -12,7 +13,6 @@ use AlibabaCloud\Tea\Request;
 use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Utils\Utils;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
-use Darabonba\OpenApi\Models\Config;
 use Darabonba\OpenApi\Models\OpenApiRequest;
 use Exception;
 
@@ -81,7 +81,7 @@ class OpenApiClient
             } else {
                 $config->type = 'access_key';
             }
-            $credentialConfig = new \AlibabaCloud\Credentials\Credential\Config([
+            $credentialConfig = new Config([
                 'accessKeyId'     => $config->accessKeyId,
                 'type'            => $config->type,
                 'accessKeySecret' => $config->accessKeySecret,
@@ -352,9 +352,9 @@ class OpenApiClient
                     $_request->query = $request->query;
                 }
                 if (!Utils::equalString($authType, 'Anonymous')) {
-                    $accessKeyId     = $this->_credential->getAccessKeyId();
-                    $accessKeySecret = $this->_credential->getAccessKeySecret();
-                    $securityToken   = $this->_credential->getSecurityToken();
+                    $accessKeyId     = $this->getAccessKeyId();
+                    $accessKeySecret = $this->getAccessKeySecret();
+                    $securityToken   = $this->getSecurityToken();
                     if (!Utils::empty_($securityToken)) {
                         $_request->headers['x-acs-accesskey-id']   = $accessKeyId;
                         $_request->headers['x-acs-security-token'] = $securityToken;
@@ -520,9 +520,9 @@ class OpenApiClient
                     $_request->query = $request->query;
                 }
                 if (!Utils::equalString($authType, 'Anonymous')) {
-                    $accessKeyId     = $this->_credential->getAccessKeyId();
-                    $accessKeySecret = $this->_credential->getAccessKeySecret();
-                    $securityToken   = $this->_credential->getSecurityToken();
+                    $accessKeyId     = $this->getAccessKeyId();
+                    $accessKeySecret = $this->getAccessKeySecret();
+                    $securityToken   = $this->getSecurityToken();
                     if (!Utils::empty_($securityToken)) {
                         $_request->headers['x-acs-accesskey-id']   = $accessKeyId;
                         $_request->headers['x-acs-security-token'] = $securityToken;
@@ -681,7 +681,7 @@ class OpenApiClient
     /**
      * If the endpointRule and config.endpoint are empty, throw error.
      *
-     * @param Config $config config contains the necessary information to create a client
+     * @param \Darabonba\OpenApi\Models\Config $config config contains the necessary information to create a client
      *
      * @throws TeaError
      */
