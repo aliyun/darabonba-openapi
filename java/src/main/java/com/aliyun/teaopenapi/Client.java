@@ -208,7 +208,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
@@ -348,7 +348,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
@@ -489,7 +489,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
