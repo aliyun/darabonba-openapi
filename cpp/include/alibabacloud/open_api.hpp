@@ -4,7 +4,6 @@
 #define ALIBABACLOUD_OPENAPI_H_
 
 #include <alibabacloud/credential.hpp>
-#include <alibabacloud/open_api_util.hpp>
 #include <boost/any.hpp>
 #include <darabonba/core.hpp>
 #include <darabonba/util.hpp>
@@ -16,7 +15,30 @@ using namespace std;
 namespace Alibabacloud_OpenApi {
 class Config : public Darabonba::Model {
 public:
+  shared_ptr<string> accessKeyId{};
+  shared_ptr<string> accessKeySecret{};
+  shared_ptr<string> securityToken{};
+  shared_ptr<string> protocol{};
+  shared_ptr<string> regionId{};
+  shared_ptr<int> readTimeout{};
+  shared_ptr<int> connectTimeout{};
+  shared_ptr<string> httpProxy{};
+  shared_ptr<string> httpsProxy{};
+  shared_ptr<Alibabacloud_Credential::Client> credential{};
+  shared_ptr<string> endpoint{};
+  shared_ptr<string> noProxy{};
+  shared_ptr<int> maxIdleConns{};
+  shared_ptr<string> network{};
+  shared_ptr<string> userAgent{};
+  shared_ptr<string> suffix{};
+  shared_ptr<string> socks5Proxy{};
+  shared_ptr<string> socks5NetWork{};
+  shared_ptr<string> endpointType{};
+  shared_ptr<string> openPlatformEndpoint{};
+  shared_ptr<string> type{};
+
   Config() {}
+
   explicit Config(const std::map<string, boost::any> &config)
       : Darabonba::Model(config) {
     fromMap(config);
@@ -90,104 +112,88 @@ public:
   }
 
   void fromMap(map<string, boost::any> m) override {
-    if (m.find("accessKeyId") != m.end()) {
+    if (m.find("accessKeyId") != m.end() && !m["accessKeyId"].empty()) {
       accessKeyId =
           make_shared<string>(boost::any_cast<string>(m["accessKeyId"]));
     }
-    if (m.find("accessKeySecret") != m.end()) {
+    if (m.find("accessKeySecret") != m.end() && !m["accessKeySecret"].empty()) {
       accessKeySecret =
           make_shared<string>(boost::any_cast<string>(m["accessKeySecret"]));
     }
-    if (m.find("securityToken") != m.end()) {
+    if (m.find("securityToken") != m.end() && !m["securityToken"].empty()) {
       securityToken =
           make_shared<string>(boost::any_cast<string>(m["securityToken"]));
     }
-    if (m.find("protocol") != m.end()) {
+    if (m.find("protocol") != m.end() && !m["protocol"].empty()) {
       protocol = make_shared<string>(boost::any_cast<string>(m["protocol"]));
     }
-    if (m.find("regionId") != m.end()) {
+    if (m.find("regionId") != m.end() && !m["regionId"].empty()) {
       regionId = make_shared<string>(boost::any_cast<string>(m["regionId"]));
     }
-    if (m.find("readTimeout") != m.end()) {
+    if (m.find("readTimeout") != m.end() && !m["readTimeout"].empty()) {
       readTimeout = make_shared<int>(boost::any_cast<int>(m["readTimeout"]));
     }
-    if (m.find("connectTimeout") != m.end()) {
+    if (m.find("connectTimeout") != m.end() && !m["connectTimeout"].empty()) {
       connectTimeout =
           make_shared<int>(boost::any_cast<int>(m["connectTimeout"]));
     }
-    if (m.find("httpProxy") != m.end()) {
+    if (m.find("httpProxy") != m.end() && !m["httpProxy"].empty()) {
       httpProxy = make_shared<string>(boost::any_cast<string>(m["httpProxy"]));
     }
-    if (m.find("httpsProxy") != m.end()) {
+    if (m.find("httpsProxy") != m.end() && !m["httpsProxy"].empty()) {
       httpsProxy =
           make_shared<string>(boost::any_cast<string>(m["httpsProxy"]));
     }
-    if (m.find("endpoint") != m.end()) {
+    if (m.find("endpoint") != m.end() && !m["endpoint"].empty()) {
       endpoint = make_shared<string>(boost::any_cast<string>(m["endpoint"]));
     }
-    if (m.find("noProxy") != m.end()) {
+    if (m.find("noProxy") != m.end() && !m["noProxy"].empty()) {
       noProxy = make_shared<string>(boost::any_cast<string>(m["noProxy"]));
     }
-    if (m.find("maxIdleConns") != m.end()) {
+    if (m.find("maxIdleConns") != m.end() && !m["maxIdleConns"].empty()) {
       maxIdleConns = make_shared<int>(boost::any_cast<int>(m["maxIdleConns"]));
     }
-    if (m.find("network") != m.end()) {
+    if (m.find("network") != m.end() && !m["network"].empty()) {
       network = make_shared<string>(boost::any_cast<string>(m["network"]));
     }
-    if (m.find("userAgent") != m.end()) {
+    if (m.find("userAgent") != m.end() && !m["userAgent"].empty()) {
       userAgent = make_shared<string>(boost::any_cast<string>(m["userAgent"]));
     }
-    if (m.find("suffix") != m.end()) {
+    if (m.find("suffix") != m.end() && !m["suffix"].empty()) {
       suffix = make_shared<string>(boost::any_cast<string>(m["suffix"]));
     }
-    if (m.find("socks5Proxy") != m.end()) {
+    if (m.find("socks5Proxy") != m.end() && !m["socks5Proxy"].empty()) {
       socks5Proxy =
           make_shared<string>(boost::any_cast<string>(m["socks5Proxy"]));
     }
-    if (m.find("socks5NetWork") != m.end()) {
+    if (m.find("socks5NetWork") != m.end() && !m["socks5NetWork"].empty()) {
       socks5NetWork =
           make_shared<string>(boost::any_cast<string>(m["socks5NetWork"]));
     }
-    if (m.find("endpointType") != m.end()) {
+    if (m.find("endpointType") != m.end() && !m["endpointType"].empty()) {
       endpointType =
           make_shared<string>(boost::any_cast<string>(m["endpointType"]));
     }
-    if (m.find("openPlatformEndpoint") != m.end()) {
+    if (m.find("openPlatformEndpoint") != m.end() &&
+        !m["openPlatformEndpoint"].empty()) {
       openPlatformEndpoint = make_shared<string>(
           boost::any_cast<string>(m["openPlatformEndpoint"]));
     }
-    if (m.find("type") != m.end()) {
+    if (m.find("type") != m.end() && !m["type"].empty()) {
       type = make_shared<string>(boost::any_cast<string>(m["type"]));
     }
   }
 
-  shared_ptr<string> accessKeyId{};
-  shared_ptr<string> accessKeySecret{};
-  shared_ptr<string> securityToken{};
-  shared_ptr<string> protocol{};
-  shared_ptr<string> regionId{};
-  shared_ptr<int> readTimeout{};
-  shared_ptr<int> connectTimeout{};
-  shared_ptr<string> httpProxy{};
-  shared_ptr<string> httpsProxy{};
-  shared_ptr<Alibabacloud_Credential::Client> credential{};
-  shared_ptr<string> endpoint{};
-  shared_ptr<string> noProxy{};
-  shared_ptr<int> maxIdleConns{};
-  shared_ptr<string> network{};
-  shared_ptr<string> userAgent{};
-  shared_ptr<string> suffix{};
-  shared_ptr<string> socks5Proxy{};
-  shared_ptr<string> socks5NetWork{};
-  shared_ptr<string> endpointType{};
-  shared_ptr<string> openPlatformEndpoint{};
-  shared_ptr<string> type{};
-
-  ~Config() = default;
+  virtual ~Config() = default;
 };
 class OpenApiRequest : public Darabonba::Model {
 public:
+  shared_ptr<map<string, string>> headers{};
+  shared_ptr<map<string, string>> query{};
+  shared_ptr<boost::any> body{};
+
   OpenApiRequest() {}
+
   explicit OpenApiRequest(const std::map<string, boost::any> &config)
       : Darabonba::Model(config) {
     fromMap(config);
@@ -210,7 +216,7 @@ public:
   }
 
   void fromMap(map<string, boost::any> m) override {
-    if (m.find("headers") != m.end()) {
+    if (m.find("headers") != m.end() && !m["headers"].empty()) {
       map<string, string> map1 =
           boost::any_cast<map<string, string>>(m["headers"]);
       map<string, string> toMap1;
@@ -219,7 +225,7 @@ public:
       }
       headers = make_shared<map<string, string>>(toMap1);
     }
-    if (m.find("query") != m.end()) {
+    if (m.find("query") != m.end() && !m["query"].empty()) {
       map<string, string> map1 =
           boost::any_cast<map<string, string>>(m["query"]);
       map<string, string> toMap1;
@@ -228,16 +234,12 @@ public:
       }
       query = make_shared<map<string, string>>(toMap1);
     }
-    if (m.find("body") != m.end()) {
+    if (m.find("body") != m.end() && !m["body"].empty()) {
       body = make_shared<boost::any>(boost::any_cast<boost::any>(m["body"]));
     }
   }
 
-  shared_ptr<map<string, string>> headers{};
-  shared_ptr<map<string, string>> query{};
-  shared_ptr<boost::any> body{};
-
-  ~OpenApiRequest() = default;
+  virtual ~OpenApiRequest() = default;
 };
 class Client {
 public:
@@ -289,7 +291,7 @@ public:
                                const boost::any &defaultValue);
   void checkConfig(shared_ptr<Config> config);
 
-  ~Client() = default;
+  virtual ~Client() = default;
 };
 } // namespace Alibabacloud_OpenApi
 

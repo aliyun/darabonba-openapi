@@ -193,24 +193,22 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRPCRequest(
             make_shared<map<string, boost::any>>(
                 Darabonba_Util::Client::assertAsMap(_res));
         BOOST_THROW_EXCEPTION(Darabonba::Error(map<string, boost::any>(
-            {{"code", boost::any(string(string(
-                          "" +
+            {{"code", boost::any(string(
                           Darabonba::Converter::toString(Client::defaultAny(
                               make_shared<boost::any>((*err)["Code"]),
-                              make_shared<boost::any>((*err)["code"]))) +
-                          "")))},
+                              make_shared<boost::any>((*err)["code"])))))},
              {"message",
-              boost::any(string(string(
-                  "code: " +
-                  boost::lexical_cast<string>(response_->statusCode) + ", " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+              boost::any(
+                  string("code: ") +
+                  string(boost::lexical_cast<string>(response_->statusCode)) +
+                  string(", ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["Message"]),
-                      make_shared<boost::any>((*err)["message"]))) +
-                  " request id: " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+                      make_shared<boost::any>((*err)["message"])))) +
+                  string(" request id: ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["RequestId"]),
-                      make_shared<boost::any>((*err)["requestId"]))) +
-                  "")))},
+                      make_shared<boost::any>((*err)["requestId"])))))},
              {"data", !err ? boost::any() : boost::any(*err)}})));
       }
       if (Darabonba_Util::Client::equalString(bodyType,
@@ -349,12 +347,11 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequest(
       }
       if (!Darabonba_Util::Client::equalString(
               authType, make_shared<string>("Anonymous"))) {
-        shared_ptr<string> accessKeyId =
-            make_shared<string>(_credential->getAccessKeyId());
+        shared_ptr<string> accessKeyId = make_shared<string>(getAccessKeyId());
         shared_ptr<string> accessKeySecret =
-            make_shared<string>(_credential->getAccessKeySecret());
+            make_shared<string>(getAccessKeySecret());
         shared_ptr<string> securityToken =
-            make_shared<string>(_credential->getSecurityToken());
+            make_shared<string>(getSecurityToken());
         if (!Darabonba_Util::Client::empty(securityToken)) {
           request_->headers.insert(
               pair<string, string>("x-acs-accesskey-id", *accessKeyId));
@@ -365,10 +362,9 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequest(
             Alibabacloud_OpenApiUtil::Client::getStringToSign(request_));
         request_->headers.insert(pair<string, string>(
             "authorization",
-            string("acs " + *accessKeyId + ":" +
-                   Alibabacloud_OpenApiUtil::Client::getROASignature(
-                       stringToSign, accessKeySecret) +
-                   "")));
+            string("acs ") + string(*accessKeyId) + string(":") +
+                string(Alibabacloud_OpenApiUtil::Client::getROASignature(
+                    stringToSign, accessKeySecret))));
       }
       _lastRequest = request_;
       shared_ptr<Darabonba::Response> response_ =
@@ -388,24 +384,22 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequest(
             make_shared<map<string, boost::any>>(
                 Darabonba_Util::Client::assertAsMap(_res));
         BOOST_THROW_EXCEPTION(Darabonba::Error(map<string, boost::any>(
-            {{"code", boost::any(string(string(
-                          "" +
+            {{"code", boost::any(string(
                           Darabonba::Converter::toString(Client::defaultAny(
                               make_shared<boost::any>((*err)["Code"]),
-                              make_shared<boost::any>((*err)["code"]))) +
-                          "")))},
+                              make_shared<boost::any>((*err)["code"])))))},
              {"message",
-              boost::any(string(string(
-                  "code: " +
-                  boost::lexical_cast<string>(response_->statusCode) + ", " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+              boost::any(
+                  string("code: ") +
+                  string(boost::lexical_cast<string>(response_->statusCode)) +
+                  string(", ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["Message"]),
-                      make_shared<boost::any>((*err)["message"]))) +
-                  " request id: " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+                      make_shared<boost::any>((*err)["message"])))) +
+                  string(" request id: ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["RequestId"]),
-                      make_shared<boost::any>((*err)["requestId"]))) +
-                  "")))},
+                      make_shared<boost::any>((*err)["requestId"])))))},
              {"data", !err ? boost::any() : boost::any(*err)}})));
       }
       if (Darabonba_Util::Client::equalString(bodyType,
@@ -547,12 +541,11 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequestWithForm(
       }
       if (!Darabonba_Util::Client::equalString(
               authType, make_shared<string>("Anonymous"))) {
-        shared_ptr<string> accessKeyId =
-            make_shared<string>(_credential->getAccessKeyId());
+        shared_ptr<string> accessKeyId = make_shared<string>(getAccessKeyId());
         shared_ptr<string> accessKeySecret =
-            make_shared<string>(_credential->getAccessKeySecret());
+            make_shared<string>(getAccessKeySecret());
         shared_ptr<string> securityToken =
-            make_shared<string>(_credential->getSecurityToken());
+            make_shared<string>(getSecurityToken());
         if (!Darabonba_Util::Client::empty(securityToken)) {
           request_->headers.insert(
               pair<string, string>("x-acs-accesskey-id", *accessKeyId));
@@ -563,10 +556,9 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequestWithForm(
             Alibabacloud_OpenApiUtil::Client::getStringToSign(request_));
         request_->headers.insert(pair<string, string>(
             "authorization",
-            string("acs " + *accessKeyId + ":" +
-                   Alibabacloud_OpenApiUtil::Client::getROASignature(
-                       stringToSign, accessKeySecret) +
-                   "")));
+            string("acs ") + string(*accessKeyId) + string(":") +
+                string(Alibabacloud_OpenApiUtil::Client::getROASignature(
+                    stringToSign, accessKeySecret))));
       }
       _lastRequest = request_;
       shared_ptr<Darabonba::Response> response_ =
@@ -586,24 +578,22 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequestWithForm(
             make_shared<map<string, boost::any>>(
                 Darabonba_Util::Client::assertAsMap(_res));
         BOOST_THROW_EXCEPTION(Darabonba::Error(map<string, boost::any>(
-            {{"code", boost::any(string(string(
-                          "" +
+            {{"code", boost::any(string(
                           Darabonba::Converter::toString(Client::defaultAny(
                               make_shared<boost::any>((*err)["Code"]),
-                              make_shared<boost::any>((*err)["code"]))) +
-                          "")))},
+                              make_shared<boost::any>((*err)["code"])))))},
              {"message",
-              boost::any(string(string(
-                  "code: " +
-                  boost::lexical_cast<string>(response_->statusCode) + ", " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+              boost::any(
+                  string("code: ") +
+                  string(boost::lexical_cast<string>(response_->statusCode)) +
+                  string(", ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["Message"]),
-                      make_shared<boost::any>((*err)["message"]))) +
-                  " request id: " +
-                  Darabonba::Converter::toString(Client::defaultAny(
+                      make_shared<boost::any>((*err)["message"])))) +
+                  string(" request id: ") +
+                  string(Darabonba::Converter::toString(Client::defaultAny(
                       make_shared<boost::any>((*err)["RequestId"]),
-                      make_shared<boost::any>((*err)["requestId"]))) +
-                  "")))},
+                      make_shared<boost::any>((*err)["requestId"])))))},
              {"data", !err ? boost::any() : boost::any(*err)}})));
       }
       if (Darabonba_Util::Client::equalString(bodyType,
