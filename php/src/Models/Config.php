@@ -196,6 +196,15 @@ class Config extends Model
      * @var string
      */
     public $type;
+
+    /**
+     * @description Signature Algorithm
+     *
+     * @example ACS3-HMAC-SHA256
+     *
+     * @var string
+     */
+    public $signatureAlgorithm;
     protected $_default = [
         'accessKeyId'          => '',
         'accessKeySecret'      => '',
@@ -218,6 +227,7 @@ class Config extends Model
         'endpointType'         => '',
         'openPlatformEndpoint' => '',
         'type'                 => '',
+        'signatureAlgorithm'   => '',
     ];
 
     public function validate()
@@ -289,6 +299,9 @@ class Config extends Model
         }
         if (null !== $this->type) {
             $res['type'] = $this->type;
+        }
+        if (null !== $this->signatureAlgorithm) {
+            $res['signatureAlgorithm'] = $this->signatureAlgorithm;
         }
 
         return $res;
@@ -364,6 +377,9 @@ class Config extends Model
         }
         if (isset($map['type'])) {
             $model->type = $map['type'];
+        }
+        if (isset($map['signatureAlgorithm'])) {
+            $model->signatureAlgorithm = $map['signatureAlgorithm'];
         }
 
         return $model;

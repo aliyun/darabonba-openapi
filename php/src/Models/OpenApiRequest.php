@@ -14,6 +14,8 @@ class OpenApiRequest extends Model
 
     public $body;
 
+    public $stream;
+
     public function validate()
     {
     }
@@ -29,6 +31,9 @@ class OpenApiRequest extends Model
         }
         if (null !== $this->body) {
             $res['body'] = $this->body;
+        }
+        if (null !== $this->stream) {
+            $res['stream'] = $this->stream;
         }
 
         return $res;
@@ -50,6 +55,9 @@ class OpenApiRequest extends Model
         }
         if (isset($map['body'])) {
             $model->body = $map['body'];
+        }
+        if (isset($map['stream'])) {
+            $model->stream = $map['stream'];
         }
 
         return $model;
