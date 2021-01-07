@@ -1,3 +1,6 @@
+### 2020-01-07 Version 0.2.0
+* Support pop s3.
+
 ### 2020-12-11 Version 0.1.0
 * Support async io.
 * Drop support for python3.4.
