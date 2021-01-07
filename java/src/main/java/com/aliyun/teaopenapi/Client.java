@@ -26,6 +26,7 @@ public class Client {
     public String _endpointType;
     public String _openPlatformEndpoint;
     public com.aliyun.credentials.Client _credential;
+    public String _signatureAlgorithm;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -68,6 +69,7 @@ public class Client {
         this._socks5Proxy = config.socks5Proxy;
         this._socks5NetWork = config.socks5NetWork;
         this._maxIdleConns = config.maxIdleConns;
+        this._signatureAlgorithm = config.signatureAlgorithm;
     }
 
     public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
@@ -208,7 +210,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
@@ -348,7 +350,7 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
@@ -489,11 +491,182 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw e;
+                throw new RuntimeException(e);
             }
         }
 
         throw new TeaUnretryableException(_lastRequest);
+    }
+
+    public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        TeaModel.validateParams(params, "params");
+        TeaModel.validateParams(request, "request");
+        java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
+            new TeaPair("timeouted", "retry"),
+            new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
+            new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
+            new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
+            new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("retry", TeaConverter.buildMap(
+                new TeaPair("retryable", runtime.autoretry),
+                new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
+            )),
+            new TeaPair("backoff", TeaConverter.buildMap(
+                new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
+                new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
+            )),
+            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+        );
+
+        TeaRequest _lastRequest = null;
+        long _now = System.currentTimeMillis();
+        int _retryTimes = 0;
+        while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
+            if (_retryTimes > 0) {
+                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                if (backoffTime > 0) {
+                    Tea.sleep(backoffTime);
+                }
+            }
+            _retryTimes = _retryTimes + 1;
+            try {
+                TeaRequest request_ = new TeaRequest();
+                request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, params.protocol);
+                request_.method = params.method;
+                request_.pathname = com.aliyun.openapiutil.Client.getEncodePath(params.pathname);
+                request_.query = request.query;
+                // endpoint is setted in product client
+                request_.headers = TeaConverter.merge(String.class,
+                    TeaConverter.buildMap(
+                        new TeaPair("host", _endpoint),
+                        new TeaPair("x-acs-version", params.version),
+                        new TeaPair("x-acs-action", params.action),
+                        new TeaPair("user-agent", this.getUserAgent()),
+                        new TeaPair("x-acs-date", com.aliyun.openapiutil.Client.getTimestamp()),
+                        new TeaPair("accept", "application/json")
+                    ),
+                    request.headers
+                );
+                if (com.aliyun.teautil.Common.equalString(request_.protocol, "http") || com.aliyun.teautil.Common.equalString(request_.protocol, "HTTP")) {
+                    request_.headers.put("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce());
+                }
+
+                String signatureAlgorithm = com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+                String hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(""), signatureAlgorithm));
+                if (!com.aliyun.teautil.Common.isUnset(request.body)) {
+                    if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
+                        String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
+                        hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
+                        request_.body = Tea.toReadable(jsonObj);
+                    } else {
+                        java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
+                        String formObj = com.aliyun.openapiutil.Client.toForm(m);
+                        hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(formObj), signatureAlgorithm));
+                        request_.body = Tea.toReadable(formObj);
+                        request_.headers.put("content-type", "application/x-www-form-urlencoded");
+                    }
+
+                }
+
+                if (!com.aliyun.teautil.Common.isUnset(request.stream)) {
+                    byte[] tmp = com.aliyun.teautil.Common.readAsBytes(request.stream);
+                    hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(tmp, signatureAlgorithm));
+                    request_.body = Tea.toReadable(tmp);
+                }
+
+                request_.headers.put("x-acs-content-sha256", hashedRequestPayload);
+                if (!com.aliyun.teautil.Common.equalString(params.authType, "Anonymous")) {
+                    String accessKeyId = this.getAccessKeyId();
+                    String accessKeySecret = this.getAccessKeySecret();
+                    String securityToken = this.getSecurityToken();
+                    if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                        request_.headers.put("x-acs-security-token", securityToken);
+                    }
+
+                    request_.headers.put("Authorization", com.aliyun.openapiutil.Client.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret));
+                }
+
+                _lastRequest = request_;
+                TeaResponse response_ = Tea.doAction(request_, runtime_);
+
+                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
+                    Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
+                    throw new TeaException(TeaConverter.buildMap(
+                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("data", err)
+                    ));
+                }
+
+                if (com.aliyun.teautil.Common.equalString(params.bodyType, "binary")) {
+                    java.util.Map<String, Object> resp = TeaConverter.buildMap(
+                        new TeaPair("body", response_.body),
+                        new TeaPair("headers", response_.headers)
+                    );
+                    return resp;
+                } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "byte")) {
+                    byte[] byt = com.aliyun.teautil.Common.readAsBytes(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", byt),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "string")) {
+                    String str = com.aliyun.teautil.Common.readAsString(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", str),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "json")) {
+                    Object obj = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    java.util.Map<String, Object> res = com.aliyun.teautil.Common.assertAsMap(obj);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", res),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "array")) {
+                    Object arr = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                    return TeaConverter.buildMap(
+                        new TeaPair("body", arr),
+                        new TeaPair("headers", response_.headers)
+                    );
+                } else {
+                    return TeaConverter.buildMap(
+                        new TeaPair("headers", response_.headers)
+                    );
+                }
+
+            } catch (Exception e) {
+                if (Tea.isRetryable(e)) {
+                    continue;
+                }
+                throw new RuntimeException(e);
+            }
+        }
+
+        throw new TeaUnretryableException(_lastRequest);
+    }
+
+    public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(params))) {
+            throw new TeaException(TeaConverter.buildMap(
+                new TeaPair("code", "ParameterMissing"),
+                new TeaPair("message", "'params' can not be unset")
+            ));
+        }
+
+        if (com.aliyun.teautil.Common.isUnset(_signatureAlgorithm) || !com.aliyun.teautil.Common.equalString(_signatureAlgorithm, "v2")) {
+            return this.doRequest(params, request, runtime);
+        } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA") && com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
+            return this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+        } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA")) {
+            return this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+        } else {
+            return this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+        }
+
     }
 
     /**

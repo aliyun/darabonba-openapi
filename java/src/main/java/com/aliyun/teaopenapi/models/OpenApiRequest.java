@@ -13,6 +13,9 @@ public class OpenApiRequest extends TeaModel {
     @NameInMap("body")
     public Object body;
 
+    @NameInMap("stream")
+    public java.io.InputStream stream;
+
     public static OpenApiRequest build(java.util.Map<String, ?> map) throws Exception {
         OpenApiRequest self = new OpenApiRequest();
         return TeaModel.build(map, self);
@@ -40,6 +43,14 @@ public class OpenApiRequest extends TeaModel {
     }
     public Object getBody() {
         return this.body;
+    }
+
+    public OpenApiRequest setStream(java.io.InputStream stream) {
+        this.stream = stream;
+        return this;
+    }
+    public java.io.InputStream getStream() {
+        return this.stream;
     }
 
 }

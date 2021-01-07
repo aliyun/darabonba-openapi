@@ -92,6 +92,10 @@ public class Config extends TeaModel {
     @Deprecated
     public String type;
 
+    // Signature Algorithm
+    @NameInMap("signatureAlgorithm")
+    public String signatureAlgorithm;
+
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
         return TeaModel.build(map, self);
@@ -263,6 +267,14 @@ public class Config extends TeaModel {
     }
     public String getType() {
         return this.type;
+    }
+
+    public Config setSignatureAlgorithm(String signatureAlgorithm) {
+        this.signatureAlgorithm = signatureAlgorithm;
+        return this;
+    }
+    public String getSignatureAlgorithm() {
+        return this.signatureAlgorithm;
     }
 
 }
