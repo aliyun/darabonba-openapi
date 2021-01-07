@@ -5,7 +5,6 @@
 import Util;
 import Credential;
 import OpenApiUtil;
-import String;
 
 type @endpoint = string
 type @regionId = string
@@ -529,7 +528,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
 
   // endpoint is setted in product client
   __request.headers = {
-    host = getEndpoint(@endpoint, __request.protocol),
+    host = @endpoint,
     x-acs-version = params.version,
     x-acs-action = params.action,
     user-agent = getUserAgent(),
@@ -639,22 +638,6 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
   ignoreSSL = runtime.ignoreSSL
-}
-
-/**
- * Add port into endpoint
- * @return endpoint
- */
-function getEndpoint(endpoint: string, protocol: string): string {
-  if (!Util.equalNumber(String.index(endpoint, ':'), -1)) {
-    return endpoint;
-  }
-
-  if (Util.equalString(String.toLower(protocol), 'https')) {
-    return `${endpoint}:443`;
-  } else {
-    return `${endpoint}:80`;
-  }
 }
 
 /**
