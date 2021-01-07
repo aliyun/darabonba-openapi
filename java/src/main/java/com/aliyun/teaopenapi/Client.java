@@ -36,7 +36,7 @@ public class Client {
      * Init client with Config
      * @param config config contains the necessary information to create a client
      */
-    public Client(Config config) throws Exception {
+    public Client(com.aliyun.teaopenapi.models.Config config) throws Exception {
         if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(config))) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),
@@ -740,7 +740,7 @@ public class Client {
      * If the endpointRule and config.endpoint are empty, throw error
      * @param config config contains the necessary information to create a client
      */
-    public void checkConfig(Config config) throws Exception {
+    public void checkConfig(com.aliyun.teaopenapi.models.Config config) throws Exception {
         if (com.aliyun.teautil.Common.empty(_endpointRule) && com.aliyun.teautil.Common.empty(config.endpoint)) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),
