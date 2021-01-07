@@ -5,12 +5,12 @@
 package client
 
 import (
-	string_ "github.com/alibabacloud-go/darabonba-string/client"
+	"io"
+
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 /**
@@ -1025,7 +1025,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			request_.Query = request.Query
 			// endpoint is setted in product client
 			request_.Headers = tea.Merge(map[string]*string{
-				"host":          client.GetEndpoint(client.Endpoint, request_.Protocol),
+				"host":          client.Endpoint,
 				"x-acs-version": params.Version,
 				"x-acs-action":  params.Action,
 				"user-agent":    client.GetUserAgent(),
@@ -1220,26 +1220,6 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 		}
 		_result = _body
 		return _result, _err
-	}
-
-}
-
-/**
- * Add port into endpoint
- * @return endpoint
- */
-func (client *Client) GetEndpoint(endpoint *string, protocol *string) (_result *string) {
-	if !tea.BoolValue(util.EqualNumber(string_.Index(endpoint, tea.String(":")), tea.Int(-1))) {
-		_result = endpoint
-		return _result
-	}
-
-	if tea.BoolValue(util.EqualString(string_.ToLower(protocol), tea.String("https"))) {
-		_result = tea.String(tea.StringValue(endpoint) + ":443")
-		return _result
-	} else {
-		_result = tea.String(tea.StringValue(endpoint) + ":80")
-		return _result
 	}
 
 }

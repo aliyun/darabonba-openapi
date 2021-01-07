@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/alibabacloud-go/darabonba-string v1.0.0
-	github.com/alibabacloud-go/openapi-util v0.0.4
+	github.com/alibabacloud-go/openapi-util v0.0.5
 	github.com/alibabacloud-go/tea v1.1.11
 	github.com/alibabacloud-go/tea-utils v1.3.8
 	github.com/aliyun/credentials-go v1.1.2
