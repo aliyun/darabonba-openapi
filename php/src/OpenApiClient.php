@@ -14,6 +14,7 @@ use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Utils\Utils;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\OpenApiRequest;
+use Darabonba\OpenApi\Models\Params;
 use Exception;
 
 /**
@@ -61,6 +62,8 @@ class OpenApiClient
 
     protected $_credential;
 
+    protected $_signatureAlgorithm;
+
     /**
      * Init client with Config.
      *
@@ -91,18 +94,19 @@ class OpenApiClient
         } elseif (!Utils::isUnset($config->credential)) {
             $this->_credential = $config->credential;
         }
-        $this->_endpoint       = $config->endpoint;
-        $this->_protocol       = $config->protocol;
-        $this->_regionId       = $config->regionId;
-        $this->_userAgent      = $config->userAgent;
-        $this->_readTimeout    = $config->readTimeout;
-        $this->_connectTimeout = $config->connectTimeout;
-        $this->_httpProxy      = $config->httpProxy;
-        $this->_httpsProxy     = $config->httpsProxy;
-        $this->_noProxy        = $config->noProxy;
-        $this->_socks5Proxy    = $config->socks5Proxy;
-        $this->_socks5NetWork  = $config->socks5NetWork;
-        $this->_maxIdleConns   = $config->maxIdleConns;
+        $this->_endpoint           = $config->endpoint;
+        $this->_protocol           = $config->protocol;
+        $this->_regionId           = $config->regionId;
+        $this->_userAgent          = $config->userAgent;
+        $this->_readTimeout        = $config->readTimeout;
+        $this->_connectTimeout     = $config->connectTimeout;
+        $this->_httpProxy          = $config->httpProxy;
+        $this->_httpsProxy         = $config->httpsProxy;
+        $this->_noProxy            = $config->noProxy;
+        $this->_socks5Proxy        = $config->socks5Proxy;
+        $this->_socks5NetWork      = $config->socks5NetWork;
+        $this->_maxIdleConns       = $config->maxIdleConns;
+        $this->_signatureAlgorithm = $config->signatureAlgorithm;
     }
 
     /**
@@ -607,6 +611,207 @@ class OpenApiClient
         }
 
         throw new TeaUnableRetryError($_lastRequest, $_lastException);
+    }
+
+    /**
+     * Encapsulate the request and invoke the network.
+     *
+     * @param Params         $params
+     * @param OpenApiRequest $request object of OpenApiRequest
+     * @param RuntimeOptions $runtime which controls some details of call api, such as retry times
+     *
+     * @throws TeaError
+     * @throws Exception
+     * @throws TeaUnableRetryError
+     *
+     * @return array the response
+     */
+    public function doRequest($params, $request, $runtime)
+    {
+        $params->validate();
+        $request->validate();
+        $runtime->validate();
+        $_runtime = [
+            'timeouted'      => 'retry',
+            'readTimeout'    => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
+            'connectTimeout' => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
+            'httpProxy'      => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
+            'httpsProxy'     => Utils::defaultString($runtime->httpsProxy, $this->_httpsProxy),
+            'noProxy'        => Utils::defaultString($runtime->noProxy, $this->_noProxy),
+            'maxIdleConns'   => Utils::defaultNumber($runtime->maxIdleConns, $this->_maxIdleConns),
+            'retry'          => [
+                'retryable'   => $runtime->autoretry,
+                'maxAttempts' => Utils::defaultNumber($runtime->maxAttempts, 3),
+            ],
+            'backoff' => [
+                'policy' => Utils::defaultString($runtime->backoffPolicy, 'no'),
+                'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
+            ],
+            'ignoreSSL' => $runtime->ignoreSSL,
+        ];
+        $_lastRequest   = null;
+        $_lastException = null;
+        $_now           = time();
+        $_retryTimes    = 0;
+        while (Tea::allowRetry(@$_runtime['retry'], $_retryTimes, $_now)) {
+            if ($_retryTimes > 0) {
+                $_backoffTime = Tea::getBackoffTime(@$_runtime['backoff'], $_retryTimes);
+                if ($_backoffTime > 0) {
+                    Tea::sleep($_backoffTime);
+                }
+            }
+            $_retryTimes = $_retryTimes + 1;
+
+            try {
+                $_request           = new Request();
+                $_request->protocol = Utils::defaultString($this->_protocol, $params->protocol);
+                $_request->method   = $params->method;
+                $_request->pathname = OpenApiUtilClient::getEncodePath($params->pathname);
+                $_request->query    = $request->query;
+                // endpoint is setted in product client
+                $_request->headers = Tea::merge([
+                    'host'          => $this->_endpoint,
+                    'x-acs-version' => $params->version,
+                    'x-acs-action'  => $params->action,
+                    'user-agent'    => $this->getUserAgent(),
+                    'x-acs-date'    => OpenApiUtilClient::getTimestamp(),
+                    'accept'        => 'application/json',
+                ], $request->headers);
+                if (Utils::equalString($_request->protocol, 'http') || Utils::equalString($_request->protocol, 'HTTP')) {
+                    $_request->headers['x-acs-signature-nonce'] = Utils::getNonce();
+                }
+                $signatureAlgorithm   = Utils::defaultString($this->_signatureAlgorithm, 'ACS3-HMAC-SHA256');
+                $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes(''), $signatureAlgorithm));
+                if (!Utils::isUnset($request->body)) {
+                    if (Utils::equalString($params->reqBodyType, 'json')) {
+                        $jsonObj              = Utils::toJSONString($request->body);
+                        $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($jsonObj), $signatureAlgorithm));
+                        $_request->body       = $jsonObj;
+                    } else {
+                        $m                                 = Utils::assertAsMap($request->body);
+                        $formObj                           = OpenApiUtilClient::toForm($m);
+                        $hashedRequestPayload              = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($formObj), $signatureAlgorithm));
+                        $_request->body                    = $formObj;
+                        $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
+                    }
+                }
+                if (!Utils::isUnset($request->stream)) {
+                    $tmp                  = Utils::readAsBytes($request->stream);
+                    $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash($tmp, $signatureAlgorithm));
+                    $_request->body       = $tmp;
+                }
+                $_request->headers['x-acs-content-sha256'] = $hashedRequestPayload;
+                if (!Utils::equalString($params->authType, 'Anonymous')) {
+                    $accessKeyId     = $this->getAccessKeyId();
+                    $accessKeySecret = $this->getAccessKeySecret();
+                    $securityToken   = $this->getSecurityToken();
+                    if (!Utils::empty_($securityToken)) {
+                        $_request->headers['x-acs-security-token'] = $securityToken;
+                    }
+                    $_request->headers['Authorization'] = OpenApiUtilClient::getAuthorization($_request, $signatureAlgorithm, $hashedRequestPayload, $accessKeyId, $accessKeySecret);
+                }
+                $_lastRequest = $_request;
+                $_response    = Tea::send($_request, $_runtime);
+                if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
+                    $_res = Utils::readAsJSON($_response->body);
+                    $err  = Utils::assertAsMap($_res);
+
+                    throw new TeaError([
+                        'code'    => '' . (string) (self::defaultAny(@$err['Code'], @$err['code'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny(@$err['Message'], @$err['message'])) . ' request id: ' . (string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])) . '',
+                        'data'    => $err,
+                    ]);
+                }
+                if (Utils::equalString($params->bodyType, 'binary')) {
+                    $resp = [
+                        'body'    => $_response->body,
+                        'headers' => $_response->headers,
+                    ];
+
+                    return $resp;
+                }
+                if (Utils::equalString($params->bodyType, 'byte')) {
+                    $byt = Utils::readAsBytes($_response->body);
+
+                    return [
+                        'body'    => $byt,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($params->bodyType, 'string')) {
+                    $str = Utils::readAsString($_response->body);
+
+                    return [
+                        'body'    => $str,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($params->bodyType, 'json')) {
+                    $obj = Utils::readAsJSON($_response->body);
+                    $res = Utils::assertAsMap($obj);
+
+                    return [
+                        'body'    => $res,
+                        'headers' => $_response->headers,
+                    ];
+                }
+                if (Utils::equalString($params->bodyType, 'array')) {
+                    $arr = Utils::readAsJSON($_response->body);
+
+                    return [
+                        'body'    => $arr,
+                        'headers' => $_response->headers,
+                    ];
+                }
+
+                return [
+                    'headers' => $_response->headers,
+                ];
+            } catch (Exception $e) {
+                if (!($e instanceof TeaError)) {
+                    $e = new TeaError([], $e->getMessage(), $e->getCode(), $e);
+                }
+                if (Tea::isRetryable($e)) {
+                    $_lastException = $e;
+
+                    continue;
+                }
+
+                throw $e;
+            }
+        }
+
+        throw new TeaUnableRetryError($_lastRequest, $_lastException);
+    }
+
+    /**
+     * @param Params         $params
+     * @param OpenApiRequest $request
+     * @param RuntimeOptions $runtime
+     *
+     * @throws TeaError
+     *
+     * @return array
+     */
+    public function callApi($params, $request, $runtime)
+    {
+        if (Utils::isUnset($params)) {
+            throw new TeaError([
+                'code'    => 'ParameterMissing',
+                'message' => "'params' can not be unset",
+            ]);
+        }
+        if (Utils::isUnset($this->_signatureAlgorithm) || !Utils::equalString($this->_signatureAlgorithm, 'v2')) {
+            return $this->doRequest($params, $request, $runtime);
+        }
+        if (Utils::equalString($params->style, 'ROA') && Utils::equalString($params->reqBodyType, 'json')) {
+            return $this->doROARequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+        }
+        if (Utils::equalString($params->style, 'ROA')) {
+            return $this->doROARequestWithForm($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+        }
+
+        return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
     }
 
     /**
