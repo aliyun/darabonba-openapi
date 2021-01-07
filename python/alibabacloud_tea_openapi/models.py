@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from Tea.model import TeaModel
-from typing import Dict, Any
+from typing import Dict, Any, BinaryIO
 
 from alibabacloud_credentials.client import Client as CredentialClient
 
@@ -33,6 +33,7 @@ class Config(TeaModel):
         endpoint_type: str = None,
         open_platform_endpoint: str = None,
         type: str = None,
+        signature_algorithm: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -76,6 +77,8 @@ class Config(TeaModel):
         self.open_platform_endpoint = open_platform_endpoint
         # credential type
         self.type = type
+        # Signature Algorithm
+        self.signature_algorithm = signature_algorithm
 
     def validate(self):
         pass
@@ -124,6 +127,8 @@ class Config(TeaModel):
             result['openPlatformEndpoint'] = self.open_platform_endpoint
         if self.type is not None:
             result['type'] = self.type
+        if self.signature_algorithm is not None:
+            result['signatureAlgorithm'] = self.signature_algorithm
         return result
 
     def from_map(self, m: dict = None):
@@ -170,6 +175,8 @@ class Config(TeaModel):
             self.open_platform_endpoint = m.get('openPlatformEndpoint')
         if m.get('type') is not None:
             self.type = m.get('type')
+        if m.get('signatureAlgorithm') is not None:
+            self.signature_algorithm = m.get('signatureAlgorithm')
         return self
 
 
@@ -179,10 +186,12 @@ class OpenApiRequest(TeaModel):
         headers: Dict[str, str] = None,
         query: Dict[str, str] = None,
         body: Any = None,
+        stream: BinaryIO = None,
     ):
         self.headers = headers
         self.query = query
         self.body = body
+        self.stream = stream
 
     def validate(self):
         pass
@@ -195,6 +204,8 @@ class OpenApiRequest(TeaModel):
             result['query'] = self.query
         if self.body is not None:
             result['body'] = self.body
+        if self.stream is not None:
+            result['stream'] = self.stream
         return result
 
     def from_map(self, m: dict = None):
@@ -205,6 +216,86 @@ class OpenApiRequest(TeaModel):
             self.query = m.get('query')
         if m.get('body') is not None:
             self.body = m.get('body')
+        if m.get('stream') is not None:
+            self.stream = m.get('stream')
+        return self
+
+
+class Params(TeaModel):
+    def __init__(
+        self,
+        action: str = None,
+        version: str = None,
+        protocol: str = None,
+        pathname: str = None,
+        method: str = None,
+        auth_type: str = None,
+        body_type: str = None,
+        req_body_type: str = None,
+        style: str = None,
+    ):
+        self.action = action
+        self.version = version
+        self.protocol = protocol
+        self.pathname = pathname
+        self.method = method
+        self.auth_type = auth_type
+        self.body_type = body_type
+        self.req_body_type = req_body_type
+        self.style = style
+
+    def validate(self):
+        self.validate_required(self.action, 'action')
+        self.validate_required(self.version, 'version')
+        self.validate_required(self.protocol, 'protocol')
+        self.validate_required(self.pathname, 'pathname')
+        self.validate_required(self.method, 'method')
+        self.validate_required(self.auth_type, 'auth_type')
+        self.validate_required(self.body_type, 'body_type')
+        self.validate_required(self.req_body_type, 'req_body_type')
+
+    def to_map(self):
+        result = dict()
+        if self.action is not None:
+            result['action'] = self.action
+        if self.version is not None:
+            result['version'] = self.version
+        if self.protocol is not None:
+            result['protocol'] = self.protocol
+        if self.pathname is not None:
+            result['pathname'] = self.pathname
+        if self.method is not None:
+            result['method'] = self.method
+        if self.auth_type is not None:
+            result['authType'] = self.auth_type
+        if self.body_type is not None:
+            result['bodyType'] = self.body_type
+        if self.req_body_type is not None:
+            result['reqBodyType'] = self.req_body_type
+        if self.style is not None:
+            result['style'] = self.style
+        return result
+
+    def from_map(self, m: dict = None):
+        m = m or dict()
+        if m.get('action') is not None:
+            self.action = m.get('action')
+        if m.get('version') is not None:
+            self.version = m.get('version')
+        if m.get('protocol') is not None:
+            self.protocol = m.get('protocol')
+        if m.get('pathname') is not None:
+            self.pathname = m.get('pathname')
+        if m.get('method') is not None:
+            self.method = m.get('method')
+        if m.get('authType') is not None:
+            self.auth_type = m.get('authType')
+        if m.get('bodyType') is not None:
+            self.body_type = m.get('bodyType')
+        if m.get('reqBodyType') is not None:
+            self.req_body_type = m.get('reqBodyType')
+        if m.get('style') is not None:
+            self.style = m.get('style')
         return self
 
 

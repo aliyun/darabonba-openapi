@@ -39,6 +39,7 @@ class Client:
     _endpoint_type: str = None
     _open_platform_endpoint: str = None
     _credential: CredentialClient = None
+    _signature_algorithm: str = None
 
     def __init__(
         self, 
@@ -79,6 +80,7 @@ class Client:
         self._socks_5proxy = config.socks_5proxy
         self._socks_5net_work = config.socks_5net_work
         self._max_idle_conns = config.max_idle_conns
+        self._signature_algorithm = config.signature_algorithm
 
     def do_rpcrequest(
         self,
@@ -933,6 +935,332 @@ class Client:
                     continue
                 raise e
         raise UnretryableException(_last_request, _last_exception)
+
+    def do_request(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        """
+        Encapsulate the request and invoke the network
+        @param action: api name
+        @param version: product version
+        @param protocol: http or https
+        @param method: e.g. GET
+        @param auth_type: authorization type e.g. AK
+        @param body_type: response body type e.g. String
+        @param request: object of OpenApiRequest
+        @param runtime: which controls some details of call api, such as retry times
+        @return: the response
+        """
+        params.validate()
+        request.validate()
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': runtime.ignore_ssl
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request.method = params.method
+                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.query = request.query
+                # endpoint is setted in product client
+                _request.headers = TeaCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': self.get_user_agent(),
+                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'accept': 'application/json'
+                }, request.headers)
+                if UtilClient.equal_string(_request.protocol, 'http') or UtilClient.equal_string(_request.protocol, 'HTTP'):
+                    _request.headers['x-acs-signature-nonce'] = UtilClient.get_nonce()
+                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
+                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
+                if not UtilClient.is_unset(request.body):
+                    if UtilClient.equal_string(params.req_body_type, 'json'):
+                        json_obj = UtilClient.to_jsonstring(request.body)
+                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                        _request.body = json_obj
+                    else:
+                        m = UtilClient.assert_as_map(request.body)
+                        form_obj = OpenApiUtilClient.to_form(m)
+                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                        _request.body = form_obj
+                        _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                if not UtilClient.is_unset(request.stream):
+                    tmp = UtilClient.read_as_bytes(request.stream)
+                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    _request.body = tmp
+                _request.headers['x-acs-content-sha256'] = hashed_request_payload
+                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    access_key_id = self.get_access_key_id()
+                    access_key_secret = self.get_access_key_secret()
+                    security_token = self.get_security_token()
+                    if not UtilClient.empty(security_token):
+                        _request.headers['x-acs-security-token'] = security_token
+                    _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                _last_request = _request
+                _response = TeaCore.do_action(_request, _runtime)
+                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                    _res = UtilClient.read_as_json(_response.body)
+                    err = UtilClient.assert_as_map(_res)
+                    raise TeaException({
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'data': err
+                    })
+                if UtilClient.equal_string(params.body_type, 'binary'):
+                    resp = {
+                        'body': _response.body,
+                        'headers': _response.headers
+                    }
+                    return resp
+                elif UtilClient.equal_string(params.body_type, 'byte'):
+                    byt = UtilClient.read_as_bytes(_response.body)
+                    return {
+                        'body': byt,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'string'):
+                    str = UtilClient.read_as_string(_response.body)
+                    return {
+                        'body': str,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'json'):
+                    obj = UtilClient.read_as_json(_response.body)
+                    res = UtilClient.assert_as_map(obj)
+                    return {
+                        'body': res,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'array'):
+                    arr = UtilClient.read_as_json(_response.body)
+                    return {
+                        'body': arr,
+                        'headers': _response.headers
+                    }
+                else:
+                    return {
+                        'headers': _response.headers
+                    }
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+        raise UnretryableException(_last_request, _last_exception)
+
+    async def do_request_async(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        """
+        Encapsulate the request and invoke the network
+        @param action: api name
+        @param version: product version
+        @param protocol: http or https
+        @param method: e.g. GET
+        @param auth_type: authorization type e.g. AK
+        @param body_type: response body type e.g. String
+        @param request: object of OpenApiRequest
+        @param runtime: which controls some details of call api, such as retry times
+        @return: the response
+        """
+        params.validate()
+        request.validate()
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': runtime.ignore_ssl
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request.method = params.method
+                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.query = request.query
+                # endpoint is setted in product client
+                _request.headers = TeaCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': self.get_user_agent(),
+                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'accept': 'application/json'
+                }, request.headers)
+                if UtilClient.equal_string(_request.protocol, 'http') or UtilClient.equal_string(_request.protocol, 'HTTP'):
+                    _request.headers['x-acs-signature-nonce'] = UtilClient.get_nonce()
+                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
+                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
+                if not UtilClient.is_unset(request.body):
+                    if UtilClient.equal_string(params.req_body_type, 'json'):
+                        json_obj = UtilClient.to_jsonstring(request.body)
+                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                        _request.body = json_obj
+                    else:
+                        m = UtilClient.assert_as_map(request.body)
+                        form_obj = OpenApiUtilClient.to_form(m)
+                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                        _request.body = form_obj
+                        _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                if not UtilClient.is_unset(request.stream):
+                    tmp = await UtilClient.read_as_bytes_async(request.stream)
+                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    _request.body = tmp
+                _request.headers['x-acs-content-sha256'] = hashed_request_payload
+                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    access_key_id = await self.get_access_key_id_async()
+                    access_key_secret = await self.get_access_key_secret_async()
+                    security_token = await self.get_security_token_async()
+                    if not UtilClient.empty(security_token):
+                        _request.headers['x-acs-security-token'] = security_token
+                    _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                _last_request = _request
+                _response = await TeaCore.async_do_action(_request, _runtime)
+                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                    _res = await UtilClient.read_as_json_async(_response.body)
+                    err = UtilClient.assert_as_map(_res)
+                    raise TeaException({
+                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'data': err
+                    })
+                if UtilClient.equal_string(params.body_type, 'binary'):
+                    resp = {
+                        'body': _response.body,
+                        'headers': _response.headers
+                    }
+                    return resp
+                elif UtilClient.equal_string(params.body_type, 'byte'):
+                    byt = await UtilClient.read_as_bytes_async(_response.body)
+                    return {
+                        'body': byt,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'string'):
+                    str = await UtilClient.read_as_string_async(_response.body)
+                    return {
+                        'body': str,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'json'):
+                    obj = await UtilClient.read_as_json_async(_response.body)
+                    res = UtilClient.assert_as_map(obj)
+                    return {
+                        'body': res,
+                        'headers': _response.headers
+                    }
+                elif UtilClient.equal_string(params.body_type, 'array'):
+                    arr = await UtilClient.read_as_json_async(_response.body)
+                    return {
+                        'body': arr,
+                        'headers': _response.headers
+                    }
+                else:
+                    return {
+                        'headers': _response.headers
+                    }
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+        raise UnretryableException(_last_request, _last_exception)
+
+    def call_api(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        if UtilClient.is_unset(params):
+            raise TeaException({
+                'code': 'ParameterMissing',
+                'message': "'params' can not be unset"
+            })
+        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+            return self.do_request(params, request, runtime)
+        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+            return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        elif UtilClient.equal_string(params.style, 'ROA'):
+            return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        else:
+            return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+
+    async def call_api_async(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        if UtilClient.is_unset(params):
+            raise TeaException({
+                'code': 'ParameterMissing',
+                'message': "'params' can not be unset"
+            })
+        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+            return await self.do_request_async(params, request, runtime)
+        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+            return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        elif UtilClient.equal_string(params.style, 'ROA'):
+            return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        else:
+            return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
 
     def get_user_agent(self) -> str:
         """
