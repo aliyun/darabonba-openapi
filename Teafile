@@ -28,7 +28,8 @@
     "namespace": "AlibabaCloud.OpenApiClient"
   },
   "java": {
-    "package": "com.aliyun.teaopenapi"
+    "package": "com.aliyun.teaopenapi",
+    "NoException": false
   },
   "go": {
     "package": [

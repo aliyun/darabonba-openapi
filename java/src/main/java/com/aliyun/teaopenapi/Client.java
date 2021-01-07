@@ -3,6 +3,11 @@ package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
 import com.aliyun.teaopenapi.models.*;
+import com.aliyun.teautil.*;
+import com.aliyun.teautil.models.*;
+import com.aliyun.credentials.*;
+import com.aliyun.credentials.models.*;
+import com.aliyun.openapiutil.*;
 
 public class Client {
 
@@ -72,7 +77,7 @@ public class Client {
         this._signatureAlgorithm = config.signatureAlgorithm;
     }
 
-    public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -210,14 +215,14 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
         throw new TeaUnretryableException(_lastRequest);
     }
 
-    public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -350,14 +355,14 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
         throw new TeaUnretryableException(_lastRequest);
     }
 
-    public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -491,14 +496,14 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
         throw new TeaUnretryableException(_lastRequest);
     }
 
-    public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(params, "params");
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -642,14 +647,14 @@ public class Client {
                 if (Tea.isRetryable(e)) {
                     continue;
                 }
-                throw new RuntimeException(e);
+                throw e;
             }
         }
 
         throw new TeaUnretryableException(_lastRequest);
     }
 
-    public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
         if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(params))) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),
