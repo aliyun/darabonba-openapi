@@ -21,6 +21,10 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public object Body { get; set; }
 
+        [NameInMap("stream")]
+        [Validation(Required=false)]
+        public Stream Stream { get; set; }
+
     }
 
 }

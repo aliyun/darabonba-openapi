@@ -35,6 +35,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _endpointType;
         protected string _openPlatformEndpoint;
         protected Aliyun.Credentials.Client _credential;
+        protected string _signatureAlgorithm;
 
         /**
          * Init client with Config
@@ -85,6 +86,7 @@ namespace AlibabaCloud.OpenApiClient
             this._socks5Proxy = config.Socks5Proxy;
             this._socks5NetWork = config.Socks5NetWork;
             this._maxIdleConns = config.MaxIdleConns;
+            this._signatureAlgorithm = config.SignatureAlgorithm;
         }
 
         /**
@@ -1213,6 +1215,456 @@ namespace AlibabaCloud.OpenApiClient
             }
 
             throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        /**
+         * Encapsulate the request and invoke the network
+         * @param action api name
+         * @param version product version
+         * @param protocol http or https
+         * @param method e.g. GET
+         * @param authType authorization type e.g. AK
+         * @param bodyType response body type e.g. String
+         * @param request object of OpenApiRequest
+         * @param runtime which controls some details of call api, such as retry times
+         * @return the response
+         */
+        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            params_.Validate();
+            request.Validate();
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", runtime.IgnoreSSL},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
+                    request_.Method = params_.Method;
+                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Query = request.Query;
+                    // endpoint is setted in product client
+                    request_.Headers = TeaConverter.merge<string>
+                    (
+                        new Dictionary<string, string>()
+                        {
+                            {"host", _endpoint},
+                            {"x-acs-version", params_.Version},
+                            {"x-acs-action", params_.Action},
+                            {"user-agent", GetUserAgent()},
+                            {"x-acs-date", AlibabaCloud.OpenApiUtil.Client.GetTimestamp()},
+                            {"accept", "application/json"},
+                        },
+                        request.Headers
+                    );
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "http") || AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "HTTP"))
+                    {
+                        request_.Headers["x-acs-signature-nonce"] = AlibabaCloud.TeaUtil.Common.GetNonce();
+                    }
+                    string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+                    string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                    {
+                        if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                        {
+                            string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
+                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
+                            request_.Body = TeaCore.BytesReadable(jsonObj);
+                        }
+                        else
+                        {
+                            Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                            string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
+                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
+                            request_.Body = TeaCore.BytesReadable(formObj);
+                            request_.Headers["content-type"] = "application/x-www-form-urlencoded";
+                        }
+                    }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))
+                    {
+                        byte[] tmp = AlibabaCloud.TeaUtil.Common.ReadAsBytes(request.Stream);
+                        hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(tmp, signatureAlgorithm));
+                        request_.Body = TeaCore.BytesReadable(tmp);
+                    }
+                    request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
+                    if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
+                    {
+                        string accessKeyId = GetAccessKeyId();
+                        string accessKeySecret = GetAccessKeySecret();
+                        string securityToken = GetSecurityToken();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                        {
+                            request_.Headers["x-acs-security-token"] = securityToken;
+                        }
+                        request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                    }
+                    _lastRequest = request_;
+                    TeaResponse response_ = TeaCore.DoAction(request_, runtime_);
+
+                    if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
+                    {
+                        object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        throw new TeaException(new Dictionary<string, object>
+                        {
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"data", err},
+                        });
+                    }
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "binary"))
+                    {
+                        Dictionary<string, object> resp = new Dictionary<string, object>
+                        {
+                            {"body", response_.Body},
+                            {"headers", response_.Headers},
+                        };
+                        return resp;
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "byte"))
+                    {
+                        byte[] byt = AlibabaCloud.TeaUtil.Common.ReadAsBytes(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", byt},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "string"))
+                    {
+                        string str = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", str},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "json"))
+                    {
+                        object obj = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        Dictionary<string, object> res = AlibabaCloud.TeaUtil.Common.AssertAsMap(obj);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else
+                    {
+                        return new Dictionary<string, object>
+                        {
+                            {"headers", response_.Headers},
+                        };
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        /**
+         * Encapsulate the request and invoke the network
+         * @param action api name
+         * @param version product version
+         * @param protocol http or https
+         * @param method e.g. GET
+         * @param authType authorization type e.g. AK
+         * @param bodyType response body type e.g. String
+         * @param request object of OpenApiRequest
+         * @param runtime which controls some details of call api, such as retry times
+         * @return the response
+         */
+        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            params_.Validate();
+            request.Validate();
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", runtime.IgnoreSSL},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
+                    request_.Method = params_.Method;
+                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Query = request.Query;
+                    // endpoint is setted in product client
+                    request_.Headers = TeaConverter.merge<string>
+                    (
+                        new Dictionary<string, string>()
+                        {
+                            {"host", _endpoint},
+                            {"x-acs-version", params_.Version},
+                            {"x-acs-action", params_.Action},
+                            {"user-agent", GetUserAgent()},
+                            {"x-acs-date", AlibabaCloud.OpenApiUtil.Client.GetTimestamp()},
+                            {"accept", "application/json"},
+                        },
+                        request.Headers
+                    );
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "http") || AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "HTTP"))
+                    {
+                        request_.Headers["x-acs-signature-nonce"] = AlibabaCloud.TeaUtil.Common.GetNonce();
+                    }
+                    string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+                    string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                    {
+                        if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                        {
+                            string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
+                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
+                            request_.Body = TeaCore.BytesReadable(jsonObj);
+                        }
+                        else
+                        {
+                            Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                            string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
+                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
+                            request_.Body = TeaCore.BytesReadable(formObj);
+                            request_.Headers["content-type"] = "application/x-www-form-urlencoded";
+                        }
+                    }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))
+                    {
+                        byte[] tmp = AlibabaCloud.TeaUtil.Common.ReadAsBytes(request.Stream);
+                        hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(tmp, signatureAlgorithm));
+                        request_.Body = TeaCore.BytesReadable(tmp);
+                    }
+                    request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
+                    if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
+                    {
+                        string accessKeyId = await GetAccessKeyIdAsync();
+                        string accessKeySecret = await GetAccessKeySecretAsync();
+                        string securityToken = await GetSecurityTokenAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                        {
+                            request_.Headers["x-acs-security-token"] = securityToken;
+                        }
+                        request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                    }
+                    _lastRequest = request_;
+                    TeaResponse response_ = await TeaCore.DoActionAsync(request_, runtime_);
+
+                    if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
+                    {
+                        object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        throw new TeaException(new Dictionary<string, object>
+                        {
+                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"data", err},
+                        });
+                    }
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "binary"))
+                    {
+                        Dictionary<string, object> resp = new Dictionary<string, object>
+                        {
+                            {"body", response_.Body},
+                            {"headers", response_.Headers},
+                        };
+                        return resp;
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "byte"))
+                    {
+                        byte[] byt = AlibabaCloud.TeaUtil.Common.ReadAsBytes(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", byt},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "string"))
+                    {
+                        string str = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", str},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "json"))
+                    {
+                        object obj = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        Dictionary<string, object> res = AlibabaCloud.TeaUtil.Common.AssertAsMap(obj);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", res},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "array"))
+                    {
+                        object arr = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                        return new Dictionary<string, object>
+                        {
+                            {"body", arr},
+                            {"headers", response_.Headers},
+                        };
+                    }
+                    else
+                    {
+                        return new Dictionary<string, object>
+                        {
+                            {"headers", response_.Headers},
+                        };
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_.ToMap()))
+            {
+                throw new TeaException(new Dictionary<string, string>
+                {
+                    {"code", "ParameterMissing"},
+                    {"message", "'params' can not be unset"},
+                });
+            }
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+            {
+                return DoRequest(params_, request, runtime);
+            }
+            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+            {
+                return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+            }
+            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
+            {
+                return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+            }
+            else
+            {
+                return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+            }
+        }
+
+        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_.ToMap()))
+            {
+                throw new TeaException(new Dictionary<string, string>
+                {
+                    {"code", "ParameterMissing"},
+                    {"message", "'params' can not be unset"},
+                });
+            }
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+            {
+                return await DoRequestAsync(params_, request, runtime);
+            }
+            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+            {
+                return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+            }
+            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
+            {
+                return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+            }
+            else
+            {
+                return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+            }
         }
 
         /**

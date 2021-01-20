@@ -163,6 +163,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Obsolete]
         public string Type { get; set; }
 
+        /// <summary>
+        /// Signature Algorithm
+        /// </summary>
+        [NameInMap("signatureAlgorithm")]
+        [Validation(Required=false)]
+        public string SignatureAlgorithm { get; set; }
+
     }
 
 }
