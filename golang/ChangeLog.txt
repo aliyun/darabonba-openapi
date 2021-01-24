@@ -1,3 +1,6 @@
+2021-01-24 Version: v0.1.0
+- Update go.mod.
+
 2021-01-07 Version: v0.0.10
 - Support POP S3.
 

@@ -533,13 +533,10 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     x-acs-action = params.action,
     user-agent = getUserAgent(),
     x-acs-date= OpenApiUtil.getTimestamp(),
+    x-acs-signature-nonce = Util.getNonce(),
     accept = 'application/json',
     ...request.headers,
   };
-
-  if (Util.equalString(__request.protocol, 'http') || Util.equalString(__request.protocol, 'HTTP')) {
-    __request.headers.x-acs-signature-nonce = Util.getNonce();
-  }
 
   var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');
   var hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(''), signatureAlgorithm));
