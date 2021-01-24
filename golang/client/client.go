@@ -1025,17 +1025,14 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			request_.Query = request.Query
 			// endpoint is setted in product client
 			request_.Headers = tea.Merge(map[string]*string{
-				"host":          client.Endpoint,
-				"x-acs-version": params.Version,
-				"x-acs-action":  params.Action,
-				"user-agent":    client.GetUserAgent(),
-				"x-acs-date":    openapiutil.GetTimestamp(),
-				"accept":        tea.String("application/json"),
+				"host":                  client.Endpoint,
+				"x-acs-version":         params.Version,
+				"x-acs-action":          params.Action,
+				"user-agent":            client.GetUserAgent(),
+				"x-acs-date":            openapiutil.GetTimestamp(),
+				"x-acs-signature-nonce": util.GetNonce(),
+				"accept":                tea.String("application/json"),
 			}, request.Headers)
-			if tea.BoolValue(util.EqualString(request_.Protocol, tea.String("http"))) || tea.BoolValue(util.EqualString(request_.Protocol, tea.String("HTTP"))) {
-				request_.Headers["x-acs-signature-nonce"] = util.GetNonce()
-			}
-
 			signatureAlgorithm := util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256"))
 			hashedRequestPayload := openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(tea.String("")), signatureAlgorithm))
 			if !tea.BoolValue(util.IsUnset(request.Body)) {

@@ -3,6 +3,7 @@ libraries
 ts/node_modules
 ts/dist
 go.sum
+.DS_Store
 
 **/csharp/**/bin/
 **/csharp/**/obj/
