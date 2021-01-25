@@ -717,17 +717,9 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRequest(
                {"x-acs-action", !params->action ? string() : *params->action},
                {"user-agent", getUserAgent()},
                {"x-acs-date", Alibabacloud_OpenApiUtil::Client::getTimestamp()},
+               {"x-acs-signature-nonce", Darabonba_Util::Client::getNonce()},
                {"accept", "application/json"}}),
           !request->headers ? map<string, string>() : *request->headers);
-      if (Darabonba_Util::Client::equalString(
-              make_shared<string>(request_->protocol),
-              make_shared<string>("http")) ||
-          Darabonba_Util::Client::equalString(
-              make_shared<string>(request_->protocol),
-              make_shared<string>("HTTP"))) {
-        request_->headers.insert(pair<string, string>(
-            "x-acs-signature-nonce", Darabonba_Util::Client::getNonce()));
-      }
       shared_ptr<string> signatureAlgorithm =
           make_shared<string>(Darabonba_Util::Client::defaultString(
               _signatureAlgorithm, make_shared<string>("ACS3-HMAC-SHA256")));
