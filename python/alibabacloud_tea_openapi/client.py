@@ -998,10 +998,9 @@ class Client:
                     'x-acs-action': params.action,
                     'user-agent': self.get_user_agent(),
                     'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'x-acs-signature-nonce': UtilClient.get_nonce(),
                     'accept': 'application/json'
                 }, request.headers)
-                if UtilClient.equal_string(_request.protocol, 'http') or UtilClient.equal_string(_request.protocol, 'HTTP'):
-                    _request.headers['x-acs-signature-nonce'] = UtilClient.get_nonce()
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.body):
@@ -1141,10 +1140,9 @@ class Client:
                     'x-acs-action': params.action,
                     'user-agent': self.get_user_agent(),
                     'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'x-acs-signature-nonce': UtilClient.get_nonce(),
                     'accept': 'application/json'
                 }, request.headers)
-                if UtilClient.equal_string(_request.protocol, 'http') or UtilClient.equal_string(_request.protocol, 'HTTP'):
-                    _request.headers['x-acs-signature-nonce'] = UtilClient.get_nonce()
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.body):
