@@ -1,3 +1,6 @@
+2021-01-27 Version: v0.1.1
+- Update go.mod.
+
 2021-01-24 Version: v0.1.0
 - Update go.mod.
 
