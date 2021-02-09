@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -15,7 +15,7 @@
     "Credential": "alibabacloud:Credential:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.2.1",
+    "ts": "@alicloud/openapi-client:^0.3.0",
     "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.1.1",
     "csharp": "AlibabaCloud.OpenApiClient:0.0.7",
     "java": "com.aliyun:tea-openapi:0.0.8",

@@ -22,7 +22,7 @@
     "@alicloud/tea-typescript": "latest",
     "@alicloud/tea-util": "^1.4.0",
     "@alicloud/credentials": "^2",
-    "@alicloud/openapi-util": "^0.1.3"
+    "@alicloud/openapi-util": "^0.2.0"
   },
   "files": [
     "dist",
