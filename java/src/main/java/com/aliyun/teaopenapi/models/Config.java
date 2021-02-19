@@ -29,11 +29,11 @@ public class Config extends TeaModel {
 
     // read timeout
     @NameInMap("readTimeout")
-    public Number readTimeout;
+    public Integer readTimeout;
 
     // connect timeout
     @NameInMap("connectTimeout")
-    public Number connectTimeout;
+    public Integer connectTimeout;
 
     // http proxy
     @NameInMap("httpProxy")
@@ -57,7 +57,7 @@ public class Config extends TeaModel {
 
     // max idle conns
     @NameInMap("maxIdleConns")
-    public Number maxIdleConns;
+    public Integer maxIdleConns;
 
     // network for endpoint
     @NameInMap("network")
@@ -141,19 +141,19 @@ public class Config extends TeaModel {
         return this.regionId;
     }
 
-    public Config setReadTimeout(Number readTimeout) {
+    public Config setReadTimeout(Integer readTimeout) {
         this.readTimeout = readTimeout;
         return this;
     }
-    public Number getReadTimeout() {
+    public Integer getReadTimeout() {
         return this.readTimeout;
     }
 
-    public Config setConnectTimeout(Number connectTimeout) {
+    public Config setConnectTimeout(Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
         return this;
     }
-    public Number getConnectTimeout() {
+    public Integer getConnectTimeout() {
         return this.connectTimeout;
     }
 
@@ -197,11 +197,11 @@ public class Config extends TeaModel {
         return this.noProxy;
     }
 
-    public Config setMaxIdleConns(Number maxIdleConns) {
+    public Config setMaxIdleConns(Integer maxIdleConns) {
         this.maxIdleConns = maxIdleConns;
         return this;
     }
-    public Number getMaxIdleConns() {
+    public Integer getMaxIdleConns() {
         return this.maxIdleConns;
     }
 

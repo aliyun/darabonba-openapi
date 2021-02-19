@@ -13,8 +13,8 @@ type @userAgent = string
 type @endpointRule = string
 type @endpointMap = map[string]string
 type @suffix = string
-type @readTimeout = number
-type @connectTimeout = number
+type @readTimeout = integer
+type @connectTimeout = integer
 type @httpProxy = string
 type @httpsProxy = string
 type @socks5Proxy = string
@@ -22,7 +22,7 @@ type @socks5NetWork = string
 type @noProxy = string
 type @network = string
 type @productId = string
-type @maxIdleConns = number
+type @maxIdleConns = integer
 type @endpointType = string
 type @openPlatformEndpoint = string
 type @credential = Credential
@@ -37,14 +37,14 @@ model Config {
   securityToken?: string(description='security token',example='a.txt',default=''),
   protocol?: string(description='http protocol',example='http',default='http'),
   regionId?: string(description='region id',example='cn-hangzhou',default=''),
-  readTimeout?: number(description='read timeout',example='10',default=''),
-  connectTimeout?: number(description='connect timeout',example='10',default=''),
+  readTimeout?: integer(description='read timeout',example='10',default=''),
+  connectTimeout?: integer(description='connect timeout',example='10',default=''),
   httpProxy?: string(description='http proxy',example='http://localhost',default=''),
   httpsProxy?: string(description='https proxy',example='https://localhost',default=''),
   credential?: Credential(description='credential',example='',default=''),
   endpoint?: string(description='endpoint',example='cs.aliyuncs.com',default=''),
   noProxy?: string(description='proxy white list',example='http://localhost',default=''),
-  maxIdleConns?: number(description='max idle conns',example='3',default=''),
+  maxIdleConns?: integer(description='max idle conns',example='3',default=''),
   network?: string(description='network for endpoint',example='public',default=''),
   userAgent?: string(description='user agent',example='Alibabacloud/1',default=''),
   suffix?: string(description='suffix for endpoint',example='aliyun',default=''),

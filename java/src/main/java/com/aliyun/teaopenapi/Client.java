@@ -18,8 +18,8 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
-    public Number _readTimeout;
-    public Number _connectTimeout;
+    public Integer _readTimeout;
+    public Integer _connectTimeout;
     public String _httpProxy;
     public String _httpsProxy;
     public String _socks5Proxy;
@@ -27,7 +27,7 @@ public class Client {
     public String _noProxy;
     public String _network;
     public String _productId;
-    public Number _maxIdleConns;
+    public Integer _maxIdleConns;
     public String _endpointType;
     public String _openPlatformEndpoint;
     public com.aliyun.credentials.Client _credential;
