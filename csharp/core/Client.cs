@@ -207,7 +207,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -398,7 +398,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -584,7 +584,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -770,7 +770,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -957,7 +957,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -1144,7 +1144,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -1287,14 +1287,11 @@ namespace AlibabaCloud.OpenApiClient
                             {"x-acs-action", params_.Action},
                             {"user-agent", GetUserAgent()},
                             {"x-acs-date", AlibabaCloud.OpenApiUtil.Client.GetTimestamp()},
+                            {"x-acs-signature-nonce", AlibabaCloud.TeaUtil.Common.GetNonce()},
                             {"accept", "application/json"},
                         },
                         request.Headers
                     );
-                    if (AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "http") || AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "HTTP"))
-                    {
-                        request_.Headers["x-acs-signature-nonce"] = AlibabaCloud.TeaUtil.Common.GetNonce();
-                    }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -1341,7 +1338,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });
@@ -1484,14 +1481,11 @@ namespace AlibabaCloud.OpenApiClient
                             {"x-acs-action", params_.Action},
                             {"user-agent", GetUserAgent()},
                             {"x-acs-date", AlibabaCloud.OpenApiUtil.Client.GetTimestamp()},
+                            {"x-acs-signature-nonce", AlibabaCloud.TeaUtil.Common.GetNonce()},
                             {"accept", "application/json"},
                         },
                         request.Headers
                     );
-                    if (AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "http") || AlibabaCloud.TeaUtil.Common.EqualString(request_.Protocol, "HTTP"))
-                    {
-                        request_.Headers["x-acs-signature-nonce"] = AlibabaCloud.TeaUtil.Common.GetNonce();
-                    }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -1538,7 +1532,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", DefaultAny(err.Get("Code"), err.Get("code"))},
+                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                         });

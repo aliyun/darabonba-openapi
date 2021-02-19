@@ -18,8 +18,8 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
-    public Integer _readTimeout;
-    public Integer _connectTimeout;
+    public Number _readTimeout;
+    public Number _connectTimeout;
     public String _httpProxy;
     public String _httpsProxy;
     public String _socks5Proxy;
@@ -27,7 +27,7 @@ public class Client {
     public String _noProxy;
     public String _network;
     public String _productId;
-    public Integer _maxIdleConns;
+    public Number _maxIdleConns;
     public String _endpointType;
     public String _openPlatformEndpoint;
     public com.aliyun.credentials.Client _credential;
@@ -99,6 +99,7 @@ public class Client {
         );
 
         TeaRequest _lastRequest = null;
+        Exception _lastException = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -213,13 +214,14 @@ public class Client {
 
             } catch (Exception e) {
                 if (Tea.isRetryable(e)) {
+                    _lastException = e;
                     continue;
                 }
                 throw e;
             }
         }
 
-        throw new TeaUnretryableException(_lastRequest);
+        throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
     public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
@@ -244,6 +246,7 @@ public class Client {
         );
 
         TeaRequest _lastRequest = null;
+        Exception _lastException = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -353,13 +356,14 @@ public class Client {
 
             } catch (Exception e) {
                 if (Tea.isRetryable(e)) {
+                    _lastException = e;
                     continue;
                 }
                 throw e;
             }
         }
 
-        throw new TeaUnretryableException(_lastRequest);
+        throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
     public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
@@ -384,6 +388,7 @@ public class Client {
         );
 
         TeaRequest _lastRequest = null;
+        Exception _lastException = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -494,13 +499,14 @@ public class Client {
 
             } catch (Exception e) {
                 if (Tea.isRetryable(e)) {
+                    _lastException = e;
                     continue;
                 }
                 throw e;
             }
         }
 
-        throw new TeaUnretryableException(_lastRequest);
+        throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
     public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
@@ -526,6 +532,7 @@ public class Client {
         );
 
         TeaRequest _lastRequest = null;
+        Exception _lastException = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -550,14 +557,11 @@ public class Client {
                         new TeaPair("x-acs-action", params.action),
                         new TeaPair("user-agent", this.getUserAgent()),
                         new TeaPair("x-acs-date", com.aliyun.openapiutil.Client.getTimestamp()),
+                        new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("accept", "application/json")
                     ),
                     request.headers
                 );
-                if (com.aliyun.teautil.Common.equalString(request_.protocol, "http") || com.aliyun.teautil.Common.equalString(request_.protocol, "HTTP")) {
-                    request_.headers.put("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce());
-                }
-
                 String signatureAlgorithm = com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                 String hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(""), signatureAlgorithm));
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -645,13 +649,14 @@ public class Client {
 
             } catch (Exception e) {
                 if (Tea.isRetryable(e)) {
+                    _lastException = e;
                     continue;
                 }
                 throw e;
             }
         }
 
-        throw new TeaUnretryableException(_lastRequest);
+        throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
     public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
