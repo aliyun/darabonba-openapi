@@ -5,12 +5,11 @@
 package client
 
 import (
-	"io"
-
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
+	"io"
 )
 
 /**

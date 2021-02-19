@@ -670,16 +670,14 @@ class OpenApiClient
                 $_request->query    = $request->query;
                 // endpoint is setted in product client
                 $_request->headers = Tea::merge([
-                    'host'          => $this->_endpoint,
-                    'x-acs-version' => $params->version,
-                    'x-acs-action'  => $params->action,
-                    'user-agent'    => $this->getUserAgent(),
-                    'x-acs-date'    => OpenApiUtilClient::getTimestamp(),
-                    'accept'        => 'application/json',
+                    'host'                  => $this->_endpoint,
+                    'x-acs-version'         => $params->version,
+                    'x-acs-action'          => $params->action,
+                    'user-agent'            => $this->getUserAgent(),
+                    'x-acs-date'            => OpenApiUtilClient::getTimestamp(),
+                    'x-acs-signature-nonce' => Utils::getNonce(),
+                    'accept'                => 'application/json',
                 ], $request->headers);
-                if (Utils::equalString($_request->protocol, 'http') || Utils::equalString($_request->protocol, 'HTTP')) {
-                    $_request->headers['x-acs-signature-nonce'] = Utils::getNonce();
-                }
                 $signatureAlgorithm   = Utils::defaultString($this->_signatureAlgorithm, 'ACS3-HMAC-SHA256');
                 $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes(''), $signatureAlgorithm));
                 if (!Utils::isUnset($request->body)) {

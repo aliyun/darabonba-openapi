@@ -13,7 +13,6 @@ from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
-from alibabacloud_darabonba_string.client import Client as StringClient
 
 
 class Client(object):
@@ -590,15 +589,14 @@ class Client(object):
                 _request.query = request.query
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
-                    'host': self.get_endpoint(self._endpoint, _request.protocol),
+                    'host': self._endpoint,
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
                     'user-agent': self.get_user_agent(),
                     'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'x-acs-signature-nonce': UtilClient.get_nonce(),
                     'accept': 'application/json'
                 }, request.headers)
-                if UtilClient.equal_string(_request.protocol, 'http') or UtilClient.equal_string(_request.protocol, 'HTTP'):
-                    _request.headers['x-acs-signature-nonce'] = UtilClient.get_nonce()
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.body):
@@ -682,7 +680,7 @@ class Client(object):
                 'code': 'ParameterMissing',
                 'message': "'params' can not be unset"
             })
-        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'old'):
+        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
             return self.do_request(params, request, runtime)
         elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
             return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
@@ -690,20 +688,6 @@ class Client(object):
             return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
         else:
             return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
-
-    def get_endpoint(self, endpoint, protocol):
-        """
-        Add port into endpoint
-
-        @rtype: unicode
-        @return: endpoint
-        """
-        if not UtilClient.equal_number(StringClient.index(endpoint, ':'), -1):
-            return endpoint
-        if UtilClient.equal_string(StringClient.to_lower(protocol), 'https'):
-            return '%s:443' % TeaConverter.to_unicode(endpoint)
-        else:
-            return '%s:80' % TeaConverter.to_unicode(endpoint)
 
     def get_user_agent(self):
         """
