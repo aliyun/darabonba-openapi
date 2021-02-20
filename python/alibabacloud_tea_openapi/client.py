@@ -40,6 +40,7 @@ class Client:
     _open_platform_endpoint: str = None
     _credential: CredentialClient = None
     _signature_algorithm: str = None
+    _headers: Dict[str, str] = None
 
     def __init__(
         self, 
@@ -147,13 +148,22 @@ class Client:
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
                 }, request.query)
-                # endpoint is setted in product client
-                _request.headers = {
-                    'host': self._endpoint,
-                    'x-acs-version': version,
-                    'x-acs-action': action,
-                    'user-agent': self.get_user_agent()
-                }
+                headers = self.get_rpc_headers()
+                if UtilClient.is_unset(headers):
+                    # endpoint is setted in product client
+                    _request.headers = {
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }
+                else:
+                    _request.headers = TeaCore.merge({
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }, headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -291,13 +301,22 @@ class Client:
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
                 }, request.query)
-                # endpoint is setted in product client
-                _request.headers = {
-                    'host': self._endpoint,
-                    'x-acs-version': version,
-                    'x-acs-action': action,
-                    'user-agent': self.get_user_agent()
-                }
+                headers = self.get_rpc_headers()
+                if UtilClient.is_unset(headers):
+                    # endpoint is setted in product client
+                    _request.headers = {
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }
+                else:
+                    _request.headers = TeaCore.merge({
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }, headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -1356,3 +1375,21 @@ class Client:
                 'code': 'ParameterMissing',
                 'message': "'config.endpoint' can not be empty"
             })
+
+    def set_rpc_headers(
+        self,
+        headers: Dict[str, str],
+    ) -> None:
+        """
+        set RPC header for debug
+        @param headers: headers for debug, this header can be used only once.
+        """
+        self._headers = headers
+
+    def get_rpc_headers(self) -> Dict[str, str]:
+        """
+        get RPC header for debug
+        """
+        headers = self._headers
+        self._headers = None
+        return headers

@@ -36,6 +36,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _openPlatformEndpoint;
         protected Aliyun.Credentials.Client _credential;
         protected string _signatureAlgorithm;
+        protected Dictionary<string, string> _headers;
 
         /**
          * Init client with Config
@@ -159,14 +160,32 @@ namespace AlibabaCloud.OpenApiClient
                         },
                         request.Query
                     );
-                    // endpoint is setted in product client
-                    request_.Headers = new Dictionary<string, string>
+                    Dictionary<string, string> headers = GetRpcHeaders();
+                    if (AlibabaCloud.TeaUtil.Common.IsUnset(headers))
                     {
-                        {"host", _endpoint},
-                        {"x-acs-version", version},
-                        {"x-acs-action", action},
-                        {"user-agent", GetUserAgent()},
-                    };
+                        // endpoint is setted in product client
+                        request_.Headers = new Dictionary<string, string>
+                        {
+                            {"host", _endpoint},
+                            {"x-acs-version", version},
+                            {"x-acs-action", action},
+                            {"user-agent", GetUserAgent()},
+                        };
+                    }
+                    else
+                    {
+                        request_.Headers = TeaConverter.merge<string>
+                        (
+                            new Dictionary<string, string>()
+                            {
+                                {"host", _endpoint},
+                                {"x-acs-version", version},
+                                {"x-acs-action", action},
+                                {"user-agent", GetUserAgent()},
+                            },
+                            headers
+                        );
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
@@ -350,14 +369,32 @@ namespace AlibabaCloud.OpenApiClient
                         },
                         request.Query
                     );
-                    // endpoint is setted in product client
-                    request_.Headers = new Dictionary<string, string>
+                    Dictionary<string, string> headers = GetRpcHeaders();
+                    if (AlibabaCloud.TeaUtil.Common.IsUnset(headers))
                     {
-                        {"host", _endpoint},
-                        {"x-acs-version", version},
-                        {"x-acs-action", action},
-                        {"user-agent", GetUserAgent()},
-                    };
+                        // endpoint is setted in product client
+                        request_.Headers = new Dictionary<string, string>
+                        {
+                            {"host", _endpoint},
+                            {"x-acs-version", version},
+                            {"x-acs-action", action},
+                            {"user-agent", GetUserAgent()},
+                        };
+                    }
+                    else
+                    {
+                        request_.Headers = TeaConverter.merge<string>
+                        (
+                            new Dictionary<string, string>()
+                            {
+                                {"host", _endpoint},
+                                {"x-acs-version", version},
+                                {"x-acs-action", action},
+                                {"user-agent", GetUserAgent()},
+                            },
+                            headers
+                        );
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
@@ -1784,6 +1821,25 @@ namespace AlibabaCloud.OpenApiClient
                     {"message", "'config.endpoint' can not be empty"},
                 });
             }
+        }
+
+        /**
+         * set RPC header for debug
+         * @param headers headers for debug, this header can be used only once.
+         */
+        public void SetRpcHeaders(Dictionary<string, string> headers)
+        {
+            this._headers = headers;
+        }
+
+        /**
+         * get RPC header for debug
+         */
+        public Dictionary<string, string> GetRpcHeaders()
+        {
+            Dictionary<string, string> headers = _headers;
+            this._headers = null;
+            return headers;
         }
 
     }

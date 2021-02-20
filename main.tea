@@ -27,6 +27,7 @@ type @endpointType = string
 type @openPlatformEndpoint = string
 type @credential = Credential
 type @signatureAlgorithm = string
+type @headers = map[string]string
 
 /**
  * Model for initing client
@@ -131,13 +132,26 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     ...request.query
   };
 
-  // endpoint is setted in product client
-  __request.headers = {
-    host = @endpoint,
-    x-acs-version = version,
-    x-acs-action = action,
-    user-agent = getUserAgent(),
-  };
+  var headers = getRpcHeaders();
+  if(Util.isUnset(headers)){
+    // endpoint is setted in product client
+    __request.headers = {
+      host = @endpoint,
+      x-acs-version = version,
+      x-acs-action = action,
+      user-agent = getUserAgent(),
+    };
+  } else {
+    __request.headers = {
+      host = @endpoint,
+      x-acs-version = version,
+      x-acs-action = action,
+      user-agent = getUserAgent(),
+      ...headers
+    };
+  }
+
+  
 
   if (!Util.isUnset(request.body)) {
     var m = Util.assertAsMap(request.body);
@@ -708,3 +722,19 @@ function checkConfig(config: Config)throws : void {
   }
 }
 
+/**
+ * set RPC header for debug
+ * @param headers headers for debug, this header can be used only once.
+ */
+function setRpcHeaders(headers: map[string] string)throws : void {
+  @headers = headers;
+}
+
+/**
+ * get RPC header for debug
+ */
+function getRpcHeaders() throws : map[string] string {
+  var headers: map[string] string = @headers;
+  @headers = null;
+  return headers;
+}

@@ -1,3 +1,7 @@
+### 2021-02-20 Version 0.0.9
+
+- add rpc header for debug
+
 ### 2021-02-19 Version 0.0.8
 
 - Recodegen

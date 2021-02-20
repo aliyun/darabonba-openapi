@@ -64,6 +64,8 @@ class OpenApiClient
 
     protected $_signatureAlgorithm;
 
+    protected $_headers;
+
     /**
      * Init client with Config.
      *
@@ -174,13 +176,23 @@ class OpenApiClient
                     'Timestamp'      => OpenApiUtilClient::getTimestamp(),
                     'SignatureNonce' => Utils::getNonce(),
                 ], $request->query);
-                // endpoint is setted in product client
-                $_request->headers = [
-                    'host'          => $this->_endpoint,
-                    'x-acs-version' => $version,
-                    'x-acs-action'  => $action,
-                    'user-agent'    => $this->getUserAgent(),
-                ];
+                $headers = $this->getRpcHeaders();
+                if (Utils::isUnset($headers)) {
+                    // endpoint is setted in product client
+                    $_request->headers = [
+                        'host'          => $this->_endpoint,
+                        'x-acs-version' => $version,
+                        'x-acs-action'  => $action,
+                        'user-agent'    => $this->getUserAgent(),
+                    ];
+                } else {
+                    $_request->headers = Tea::merge([
+                        'host'          => $this->_endpoint,
+                        'x-acs-version' => $version,
+                        'x-acs-action'  => $action,
+                        'user-agent'    => $this->getUserAgent(),
+                    ], $headers);
+                }
                 if (!Utils::isUnset($request->body)) {
                     $m                                 = Utils::assertAsMap($request->body);
                     $tmp                               = Utils::anyifyMapValue(OpenApiUtilClient::query($m));
@@ -896,5 +908,28 @@ class OpenApiClient
                 'message' => "'config.endpoint' can not be empty",
             ]);
         }
+    }
+
+    /**
+     * set RPC header for debug.
+     *
+     * @param string[] $headers headers for debug, this header can be used only once
+     */
+    public function setRpcHeaders($headers)
+    {
+        $this->_headers = $headers;
+    }
+
+    /**
+     * get RPC header for debug.
+     *
+     * @return array
+     */
+    public function getRpcHeaders()
+    {
+        $headers        = $this->_headers;
+        $this->_headers = null;
+
+        return $headers;
     }
 }
