@@ -187,6 +187,7 @@ export default class Client {
   _openPlatformEndpoint: string;
   _credential: Credential;
   _signatureAlgorithm: string;
+  _headers: {[key: string ]: string};
 
   /**
    * Init client with Config
@@ -290,13 +291,25 @@ export default class Client {
           SignatureNonce: Util.getNonce(),
           ...request.query,
         };
-        // endpoint is setted in product client
-        request_.headers = {
-          host: this._endpoint,
-          'x-acs-version': version,
-          'x-acs-action': action,
-          'user-agent': this.getUserAgent(),
-        };
+        let headers = this.getRpcHeaders();
+        if (Util.isUnset(headers)) {
+          // endpoint is setted in product client
+          request_.headers = {
+            host: this._endpoint,
+            'x-acs-version': version,
+            'x-acs-action': action,
+            'user-agent': this.getUserAgent(),
+          };
+        } else {
+          request_.headers = {
+            host: this._endpoint,
+            'x-acs-version': version,
+            'x-acs-action': action,
+            'user-agent': this.getUserAgent(),
+            ...headers,
+          };
+        }
+
         if (!Util.isUnset(request.body)) {
           let m = Util.assertAsMap(request.body);
           let tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
@@ -942,6 +955,23 @@ export default class Client {
       });
     }
 
+  }
+
+  /**
+   * set RPC header for debug
+   * @param headers headers for debug, this header can be used only once.
+   */
+  setRpcHeaders(headers: {[key: string ]: string}): void {
+    this._headers = headers;
+  }
+
+  /**
+   * get RPC header for debug
+   */
+  getRpcHeaders(): {[key: string ]: string} {
+    let headers : {[key: string ]: string} = this._headers;
+    this._headers = null;
+    return headers;
   }
 
 }

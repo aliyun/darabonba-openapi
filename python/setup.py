@@ -24,7 +24,7 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi.
 
-Created on 19/02/2021
+Created on 20/02/2021
 
 @author: Alibaba Cloud SDK
 """
@@ -39,7 +39,7 @@ VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
     "alibabacloud_tea_util>=0.3.3, <1.0.0",
     "alibabacloud_credentials>=0.1.2, <1.0.0",
-    "alibabacloud_openapi_util>=0.1.3, <1.0.0"
+    "alibabacloud_openapi_util>=0.1.4, <1.0.0"
 ]
 
 LONG_DESCRIPTION = ''

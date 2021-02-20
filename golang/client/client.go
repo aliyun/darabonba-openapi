@@ -303,6 +303,7 @@ type Client struct {
 	OpenPlatformEndpoint *string
 	Credential           credential.Credential
 	SignatureAlgorithm   *string
+	Headers              map[string]*string
 }
 
 /**
@@ -423,13 +424,28 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"Timestamp":      openapiutil.GetTimestamp(),
 				"SignatureNonce": util.GetNonce(),
 			}, request.Query)
-			// endpoint is setted in product client
-			request_.Headers = map[string]*string{
-				"host":          client.Endpoint,
-				"x-acs-version": version,
-				"x-acs-action":  action,
-				"user-agent":    client.GetUserAgent(),
+			headers, _err := client.GetRpcHeaders()
+			if _err != nil {
+				return _result, _err
 			}
+
+			if tea.BoolValue(util.IsUnset(headers)) {
+				// endpoint is setted in product client
+				request_.Headers = map[string]*string{
+					"host":          client.Endpoint,
+					"x-acs-version": version,
+					"x-acs-action":  action,
+					"user-agent":    client.GetUserAgent(),
+				}
+			} else {
+				request_.Headers = tea.Merge(map[string]*string{
+					"host":          client.Endpoint,
+					"x-acs-version": version,
+					"x-acs-action":  action,
+					"user-agent":    client.GetUserAgent(),
+				}, headers)
+			}
+
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m := util.AssertAsMap(request.Body)
 				tmp := util.AnyifyMapValue(openapiutil.Query(m))
@@ -1317,4 +1333,23 @@ func (client *Client) CheckConfig(config *Config) (_err error) {
 	}
 
 	return _err
+}
+
+/**
+ * set RPC header for debug
+ * @param headers headers for debug, this header can be used only once.
+ */
+func (client *Client) SetRpcHeaders(headers map[string]*string) (_err error) {
+	client.Headers = headers
+	return _err
+}
+
+/**
+ * get RPC header for debug
+ */
+func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
+	headers := client.Headers
+	client.Headers = nil
+	_result = headers
+	return _result, _err
 }
