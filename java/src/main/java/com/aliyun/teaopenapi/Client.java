@@ -32,6 +32,7 @@ public class Client {
     public String _openPlatformEndpoint;
     public com.aliyun.credentials.Client _credential;
     public String _signatureAlgorithm;
+    public java.util.Map<String, String> _headers;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -125,13 +126,27 @@ public class Client {
                     ),
                     request.query
                 );
-                // endpoint is setted in product client
-                request_.headers = TeaConverter.buildMap(
-                    new TeaPair("host", _endpoint),
-                    new TeaPair("x-acs-version", version),
-                    new TeaPair("x-acs-action", action),
-                    new TeaPair("user-agent", this.getUserAgent())
-                );
+                java.util.Map<String, String> headers = this.getRpcHeaders();
+                if (com.aliyun.teautil.Common.isUnset(headers)) {
+                    // endpoint is setted in product client
+                    request_.headers = TeaConverter.buildMap(
+                        new TeaPair("host", _endpoint),
+                        new TeaPair("x-acs-version", version),
+                        new TeaPair("x-acs-action", action),
+                        new TeaPair("user-agent", this.getUserAgent())
+                    );
+                } else {
+                    request_.headers = TeaConverter.merge(String.class,
+                        TeaConverter.buildMap(
+                            new TeaPair("host", _endpoint),
+                            new TeaPair("x-acs-version", version),
+                            new TeaPair("x-acs-action", action),
+                            new TeaPair("user-agent", this.getUserAgent())
+                        ),
+                        headers
+                    );
+                }
+
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
                     java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                     java.util.Map<String, Object> tmp = com.aliyun.teautil.Common.anyifyMapValue(com.aliyun.openapiutil.Client.query(m));
@@ -753,5 +768,22 @@ public class Client {
             ));
         }
 
+    }
+
+    /**
+     * set RPC header for debug
+     * @param headers headers for debug, this header can be used only once.
+     */
+    public void setRpcHeaders(java.util.Map<String, String> headers) throws Exception {
+        this._headers = headers;
+    }
+
+    /**
+     * get RPC header for debug
+     */
+    public java.util.Map<String, String> getRpcHeaders() throws Exception {
+        java.util.Map<String, String> headers = _headers;
+        this._headers = null;
+        return headers;
     }
 }
