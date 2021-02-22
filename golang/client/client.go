@@ -497,9 +497,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				}
 
 				err := util.AssertAsMap(_res)
+				requestId := DefaultAny(err["RequestId"], err["requestId"])
+				requestId = DefaultAny(requestId, err["requestid"])
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
 					"data":    err,
 				})
 				return _result, _err
@@ -697,9 +699,11 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				}
 
 				err := util.AssertAsMap(_res)
+				requestId := DefaultAny(err["RequestId"], err["requestId"])
+				requestId = DefaultAny(requestId, err["requestid"])
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
 					"data":    err,
 				})
 				return _result, _err

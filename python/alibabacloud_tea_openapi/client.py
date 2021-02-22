@@ -189,9 +189,11 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -342,9 +344,11 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -483,9 +487,11 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -624,9 +630,11 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
