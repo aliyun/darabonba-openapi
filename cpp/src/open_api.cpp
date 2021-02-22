@@ -131,11 +131,23 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRPCRequest(
                {"Timestamp", Alibabacloud_OpenApiUtil::Client::getTimestamp()},
                {"SignatureNonce", Darabonba_Util::Client::getNonce()}}),
           !request->query ? map<string, string>() : *request->query);
-      // endpoint is setted in product client
-      request_->headers = {{"host", !_endpoint ? string() : *_endpoint},
-                           {"x-acs-version", !version ? string() : *version},
-                           {"x-acs-action", !action ? string() : *action},
-                           {"user-agent", getUserAgent()}};
+      shared_ptr<map<string, string>> headers =
+          make_shared<map<string, string>>(getRpcHeaders());
+      if (Darabonba_Util::Client::isUnset<map<string, string>>(headers)) {
+        // endpoint is setted in product client
+        request_->headers = {{"host", !_endpoint ? string() : *_endpoint},
+                             {"x-acs-version", !version ? string() : *version},
+                             {"x-acs-action", !action ? string() : *action},
+                             {"user-agent", getUserAgent()}};
+      } else {
+        request_->headers = Darabonba::Converter::merge(
+            map<string, string>(
+                {{"host", !_endpoint ? string() : *_endpoint},
+                 {"x-acs-version", !version ? string() : *version},
+                 {"x-acs-action", !action ? string() : *action},
+                 {"user-agent", getUserAgent()}}),
+            !headers ? map<string, string>() : *headers);
+      }
       if (!Darabonba_Util::Client::isUnset<boost::any>(request->body)) {
         shared_ptr<map<string, boost::any>> m =
             make_shared<map<string, boost::any>>(
@@ -771,7 +783,7 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRequest(
                 make_shared<vector<uint8_t>>(
                     Alibabacloud_OpenApiUtil::Client::hash(
                         tmp, signatureAlgorithm))));
-        request_->body = tmp;
+        request_->body = Darabonba::Converter::toStream(*tmp);
       }
       request_->headers.insert(
           pair<string, string>("x-acs-content-sha256", *hashedRequestPayload));
@@ -957,4 +969,15 @@ void Alibabacloud_OpenApi::Client::checkConfig(shared_ptr<Config> config) {
         {{"code", "ParameterMissing"},
          {"message", "'config.endpoint' can not be empty"}})));
   }
+}
+
+void Alibabacloud_OpenApi::Client::setRpcHeaders(
+    shared_ptr<map<string, string>> headers) {
+  _headers = headers;
+}
+
+map<string, string> Alibabacloud_OpenApi::Client::getRpcHeaders() {
+  shared_ptr<map<string, string>> headers = _headers;
+  _headers = nullptr;
+  return *headers;
 }

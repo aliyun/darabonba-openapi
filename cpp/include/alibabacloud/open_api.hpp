@@ -401,6 +401,7 @@ public:
   shared_ptr<string> _openPlatformEndpoint{};
   shared_ptr<Alibabacloud_Credential::Client> _credential{};
   shared_ptr<string> _signatureAlgorithm{};
+  shared_ptr<map<string, string>> _headers{};
   explicit Client(const shared_ptr<Config> &config);
   map<string, boost::any>
   doRPCRequest(shared_ptr<string> action, shared_ptr<string> version,
@@ -434,6 +435,8 @@ public:
   static boost::any defaultAny(const boost::any &inputValue,
                                const boost::any &defaultValue);
   void checkConfig(shared_ptr<Config> config);
+  void setRpcHeaders(shared_ptr<map<string, string>> headers);
+  map<string, string> getRpcHeaders();
 
   virtual ~Client() = default;
 };
