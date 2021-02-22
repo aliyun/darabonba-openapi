@@ -219,12 +219,14 @@ class OpenApiClient
                 $_lastRequest = $_request;
                 $_response    = Tea::send($_request, $_runtime);
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-                    $_res = Utils::readAsJSON($_response->body);
-                    $err  = Utils::assertAsMap($_res);
+                    $_res      = Utils::readAsJSON($_response->body);
+                    $err       = Utils::assertAsMap($_res);
+                    $requestId = self::defaultAny(@$err['RequestId'], @$err['requestId']);
+                    $requestId = self::defaultAny($requestId, @$err['requestid']);
 
                     throw new TeaError([
                         'code'    => '' . (string) (self::defaultAny(@$err['Code'], @$err['code'])) . '',
-                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny(@$err['Message'], @$err['message'])) . ' request id: ' . (string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny(@$err['Message'], @$err['message'])) . ' request id: ' . (string) ($requestId) . '',
                         'data'    => $err,
                     ]);
                 }
@@ -386,12 +388,14 @@ class OpenApiClient
                     ];
                 }
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-                    $_res = Utils::readAsJSON($_response->body);
-                    $err  = Utils::assertAsMap($_res);
+                    $_res      = Utils::readAsJSON($_response->body);
+                    $err       = Utils::assertAsMap($_res);
+                    $requestId = self::defaultAny(@$err['RequestId'], @$err['requestId']);
+                    $requestId = self::defaultAny($requestId, @$err['requestid']);
 
                     throw new TeaError([
                         'code'    => '' . (string) (self::defaultAny(@$err['Code'], @$err['code'])) . '',
-                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny(@$err['Message'], @$err['message'])) . ' request id: ' . (string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])) . '',
+                        'message' => 'code: ' . (string) ($_response->statusCode) . ', ' . (string) (self::defaultAny(@$err['Message'], @$err['message'])) . ' request id: ' . (string) ($requestId) . '',
                         'data'    => $err,
                     ]);
                 }

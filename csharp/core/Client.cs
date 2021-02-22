@@ -224,10 +224,12 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                         });
                     }
@@ -433,10 +435,12 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                         });
                     }
@@ -619,10 +623,12 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                         });
                     }
@@ -805,10 +811,12 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                         });
                     }

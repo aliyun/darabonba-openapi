@@ -1,3 +1,7 @@
+### 2021-02-22 Version 0.0.10
+
+- add requestid in error message
+
 ### 2021-02-20 Version 0.0.9
 
 - add rpc header for debug
