@@ -19,27 +19,28 @@ class Client(object):
     """
     This is for OpenApi SDK
     """
-    _endpoint = None  # type: unicode
-    _region_id = None  # type: unicode
-    _protocol = None  # type: unicode
-    _user_agent = None  # type: unicode
-    _endpoint_rule = None  # type: unicode
-    _endpoint_map = None  # type: dict[unicode, unicode]
-    _suffix = None  # type: unicode
+    _endpoint = None  # type: str
+    _region_id = None  # type: str
+    _protocol = None  # type: str
+    _user_agent = None  # type: str
+    _endpoint_rule = None  # type: str
+    _endpoint_map = None  # type: dict[str, str]
+    _suffix = None  # type: str
     _read_timeout = None  # type: int
     _connect_timeout = None  # type: int
-    _http_proxy = None  # type: unicode
-    _https_proxy = None  # type: unicode
-    _socks_5proxy = None  # type: unicode
-    _socks_5net_work = None  # type: unicode
-    _no_proxy = None  # type: unicode
-    _network = None  # type: unicode
-    _product_id = None  # type: unicode
+    _http_proxy = None  # type: str
+    _https_proxy = None  # type: str
+    _socks_5proxy = None  # type: str
+    _socks_5net_work = None  # type: str
+    _no_proxy = None  # type: str
+    _network = None  # type: str
+    _product_id = None  # type: str
     _max_idle_conns = None  # type: int
-    _endpoint_type = None  # type: unicode
-    _open_platform_endpoint = None  # type: unicode
+    _endpoint_type = None  # type: str
+    _open_platform_endpoint = None  # type: str
     _credential = None  # type: CredentialClient
-    _signature_algorithm = None  # type: unicode
+    _signature_algorithm = None  # type: str
+    _headers = None  # type: dict[str, str]
 
     def __init__(self, config):
         """
@@ -84,22 +85,22 @@ class Client(object):
         """
         Encapsulate the request and invoke the network
 
-        @type action: unicode
+        @type action: str
         @param action: api name
 
-        @type version: unicode
+        @type version: str
         @param version: product version
 
-        @type protocol: unicode
+        @type protocol: str
         @param protocol: http or https
 
-        @type method: unicode
+        @type method: str
         @param method: e.g. GET
 
-        @type auth_type: unicode
+        @type auth_type: str
         @param auth_type: authorization type e.g. AK
 
-        @type body_type: unicode
+        @type body_type: str
         @param body_type: response body type e.g. String
 
         @param request: object of OpenApiRequest
@@ -151,13 +152,22 @@ class Client(object):
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
                 }, request.query)
-                # endpoint is setted in product client
-                _request.headers = {
-                    'host': self._endpoint,
-                    'x-acs-version': version,
-                    'x-acs-action': action,
-                    'user-agent': self.get_user_agent()
-                }
+                headers = self.get_rpc_headers()
+                if UtilClient.is_unset(headers):
+                    # endpoint is setted in product client
+                    _request.headers = {
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }
+                else:
+                    _request.headers = TeaCore.merge({
+                        'host': self._endpoint,
+                        'x-acs-version': version,
+                        'x-acs-action': action,
+                        'user-agent': self.get_user_agent()
+                    }, headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -183,9 +193,11 @@ class Client(object):
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
-                        'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),
+                        'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(request_id)),
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -234,25 +246,25 @@ class Client(object):
         """
         Encapsulate the request and invoke the network
 
-        @type action: unicode
+        @type action: str
         @param action: api name
 
-        @type version: unicode
+        @type version: str
         @param version: product version
 
-        @type protocol: unicode
+        @type protocol: str
         @param protocol: http or https
 
-        @type method: unicode
+        @type method: str
         @param method: e.g. GET
 
-        @type auth_type: unicode
+        @type auth_type: str
         @param auth_type: authorization type e.g. AK
 
-        @type pathname: unicode
+        @type pathname: str
         @param pathname: pathname of every api
 
-        @type body_type: unicode
+        @type body_type: str
         @param body_type: response body type e.g. String
 
         @param request: object of OpenApiRequest
@@ -331,9 +343,11 @@ class Client(object):
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
-                        'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),
+                        'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(request_id)),
                         'data': err
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
@@ -382,25 +396,25 @@ class Client(object):
         """
         Encapsulate the request and invoke the network with form body
 
-        @type action: unicode
+        @type action: str
         @param action: api name
 
-        @type version: unicode
+        @type version: str
         @param version: product version
 
-        @type protocol: unicode
+        @type protocol: str
         @param protocol: http or https
 
-        @type method: unicode
+        @type method: str
         @param method: e.g. GET
 
-        @type auth_type: unicode
+        @type auth_type: str
         @param auth_type: authorization type e.g. AK
 
-        @type pathname: unicode
+        @type pathname: str
         @param pathname: pathname of every api
 
-        @type body_type: unicode
+        @type body_type: str
         @param body_type: response body type e.g. String
 
         @param request: object of OpenApiRequest
@@ -693,7 +707,7 @@ class Client(object):
         """
         Get user agent
 
-        @rtype: unicode
+        @rtype: str
         @return: user agent
         """
         user_agent = UtilClient.get_user_agent(self._user_agent)
@@ -703,7 +717,7 @@ class Client(object):
         """
         Get accesskey id by using credential
 
-        @rtype: unicode
+        @rtype: str
         @return: accesskey id
         """
         if UtilClient.is_unset(self._credential):
@@ -715,7 +729,7 @@ class Client(object):
         """
         Get accesskey secret by using credential
 
-        @rtype: unicode
+        @rtype: str
         @return: accesskey secret
         """
         if UtilClient.is_unset(self._credential):
@@ -727,7 +741,7 @@ class Client(object):
         """
         Get security token by using credential
 
-        @rtype: unicode
+        @rtype: str
         @return: security token
         """
         if UtilClient.is_unset(self._credential):
@@ -761,3 +775,20 @@ class Client(object):
                 'code': 'ParameterMissing',
                 'message': "'config.endpoint' can not be empty"
             })
+
+    def set_rpc_headers(self, headers):
+        """
+        set RPC header for debug
+
+        @type headers: dict
+        @param headers: headers for debug, this header can be used only once.
+        """
+        self._headers = headers
+
+    def get_rpc_headers(self):
+        """
+        get RPC header for debug
+        """
+        headers = self._headers
+        self._headers = None
+        return headers

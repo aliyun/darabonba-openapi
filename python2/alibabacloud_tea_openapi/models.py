@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from Tea.model import TeaModel
-from Tea.converter import TeaConverter
 
 from alibabacloud_credentials.client import Client as CredentialClient
 
@@ -16,49 +15,49 @@ class Config(TeaModel):
                  socks_5proxy=None, socks_5net_work=None, endpoint_type=None, open_platform_endpoint=None, type=None,
                  signature_algorithm=None):
         # accesskey id
-        self.access_key_id = TeaConverter.to_unicode(access_key_id)  # type: unicode
+        self.access_key_id = access_key_id  # type: str
         # accesskey secret
-        self.access_key_secret = TeaConverter.to_unicode(access_key_secret)  # type: unicode
+        self.access_key_secret = access_key_secret  # type: str
         # security token
-        self.security_token = TeaConverter.to_unicode(security_token)  # type: unicode
+        self.security_token = security_token  # type: str
         # http protocol
-        self.protocol = TeaConverter.to_unicode(protocol)  # type: unicode
+        self.protocol = protocol  # type: str
         # region id
-        self.region_id = TeaConverter.to_unicode(region_id)  # type: unicode
+        self.region_id = region_id  # type: str
         # read timeout
         self.read_timeout = read_timeout  # type: int
         # connect timeout
         self.connect_timeout = connect_timeout  # type: int
         # http proxy
-        self.http_proxy = TeaConverter.to_unicode(http_proxy)  # type: unicode
+        self.http_proxy = http_proxy  # type: str
         # https proxy
-        self.https_proxy = TeaConverter.to_unicode(https_proxy)  # type: unicode
+        self.https_proxy = https_proxy  # type: str
         # credential
         self.credential = credential  # type: CredentialClient
         # endpoint
-        self.endpoint = TeaConverter.to_unicode(endpoint)  # type: unicode
+        self.endpoint = endpoint  # type: str
         # proxy white list
-        self.no_proxy = TeaConverter.to_unicode(no_proxy)  # type: unicode
+        self.no_proxy = no_proxy  # type: str
         # max idle conns
         self.max_idle_conns = max_idle_conns  # type: int
         # network for endpoint
-        self.network = TeaConverter.to_unicode(network)  # type: unicode
+        self.network = network  # type: str
         # user agent
-        self.user_agent = TeaConverter.to_unicode(user_agent)  # type: unicode
+        self.user_agent = user_agent  # type: str
         # suffix for endpoint
-        self.suffix = TeaConverter.to_unicode(suffix)  # type: unicode
+        self.suffix = suffix  # type: str
         # socks5 proxy
-        self.socks_5proxy = TeaConverter.to_unicode(socks_5proxy)  # type: unicode
+        self.socks_5proxy = socks_5proxy  # type: str
         # socks5 network
-        self.socks_5net_work = TeaConverter.to_unicode(socks_5net_work)  # type: unicode
+        self.socks_5net_work = socks_5net_work  # type: str
         # endpoint type
-        self.endpoint_type = TeaConverter.to_unicode(endpoint_type)  # type: unicode
+        self.endpoint_type = endpoint_type  # type: str
         # OpenPlatform endpoint
-        self.open_platform_endpoint = TeaConverter.to_unicode(open_platform_endpoint)  # type: unicode
+        self.open_platform_endpoint = open_platform_endpoint  # type: str
         # credential type
-        self.type = TeaConverter.to_unicode(type)  # type: unicode
+        self.type = type  # type: str
         # Signature Algorithm
-        self.signature_algorithm = TeaConverter.to_unicode(signature_algorithm)  # type: unicode
+        self.signature_algorithm = signature_algorithm  # type: str
 
     def validate(self):
         pass
@@ -162,8 +161,8 @@ class Config(TeaModel):
 
 class OpenApiRequest(TeaModel):
     def __init__(self, headers=None, query=None, body=None, stream=None):
-        self.headers = headers  # type: dict[unicode, unicode]
-        self.query = query  # type: dict[unicode, unicode]
+        self.headers = headers  # type: dict[str, str]
+        self.query = query  # type: dict[str, str]
         self.body = body  # type: any
         self.stream = stream  # type: READABLE
 
@@ -198,15 +197,15 @@ class OpenApiRequest(TeaModel):
 class Params(TeaModel):
     def __init__(self, action=None, version=None, protocol=None, pathname=None, method=None, auth_type=None,
                  body_type=None, req_body_type=None, style=None):
-        self.action = TeaConverter.to_unicode(action)  # type: unicode
-        self.version = TeaConverter.to_unicode(version)  # type: unicode
-        self.protocol = TeaConverter.to_unicode(protocol)  # type: unicode
-        self.pathname = TeaConverter.to_unicode(pathname)  # type: unicode
-        self.method = TeaConverter.to_unicode(method)  # type: unicode
-        self.auth_type = TeaConverter.to_unicode(auth_type)  # type: unicode
-        self.body_type = TeaConverter.to_unicode(body_type)  # type: unicode
-        self.req_body_type = TeaConverter.to_unicode(req_body_type)  # type: unicode
-        self.style = TeaConverter.to_unicode(style)  # type: unicode
+        self.action = action  # type: str
+        self.version = version  # type: str
+        self.protocol = protocol  # type: str
+        self.pathname = pathname  # type: str
+        self.method = method  # type: str
+        self.auth_type = auth_type  # type: str
+        self.body_type = body_type  # type: str
+        self.req_body_type = req_body_type  # type: str
+        self.style = style  # type: str
 
     def validate(self):
         self.validate_required(self.action, 'action')
