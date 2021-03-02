@@ -19,12 +19,13 @@
 """
 
 import os
+import sys
 from setuptools import setup, find_packages
 
 """
 setup module for alibabacloud_tea_openapi_py2.
 
-Created on 19/02/2021
+Created on 02/03/2021
 
 @author: Alibaba Cloud SDK
 """
@@ -37,15 +38,20 @@ AUTHOR_EMAIL = "sdk-team@alibabacloud.com"
 URL = "https://github.com/aliyun/darabonba-openapi"
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
-    "alibabacloud_tea_util_py2>=0.0.2, <1.0.0",
+    "alibabacloud_tea_util_py2>=0.0.1, <1.0.0",
     "alibabacloud_credentials_py2>=0.0.1, <1.0.0",
-    "alibabacloud_openapi_util_py2>=0.0.3, <1.0.0"
+    "alibabacloud_openapi_util_py2>=0.0.1, <1.0.0"
 ]
 
 LONG_DESCRIPTION = ''
+
 if os.path.exists('./README.md'):
-    with open("README.md") as fp:
-        LONG_DESCRIPTION = fp.read()
+    if sys.version_info.major == 2:
+        with open("README.md") as fp:
+            LONG_DESCRIPTION = fp.read()
+    else:
+        with open("README.md", encoding="utf-8") as fp:
+            LONG_DESCRIPTION = fp.read()
 
 setup(
     name=NAME,
@@ -69,6 +75,7 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Topic :: Software Development"
     )
 )
