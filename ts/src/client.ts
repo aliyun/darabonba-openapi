@@ -220,6 +220,7 @@ export default class Client {
     }
 
     this._endpoint = config.endpoint;
+    this._endpointType = config.endpointType;
     this._protocol = config.protocol;
     this._regionId = config.regionId;
     this._userAgent = config.userAgent;
@@ -347,7 +348,6 @@ export default class Client {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
           let requestId = Client.defaultAny(err["RequestId"], err["requestId"]);
-          requestId = Client.defaultAny(requestId, err["requestid"]);
           throw $tea.newError({
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,

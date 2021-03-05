@@ -70,6 +70,7 @@ class Client:
         elif not UtilClient.is_unset(config.credential):
             self._credential = config.credential
         self._endpoint = config.endpoint
+        self._endpoint_type = config.endpoint_type
         self._protocol = config.protocol
         self._region_id = config.region_id
         self._user_agent = config.user_agent
@@ -190,7 +191,6 @@ class Client:
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
@@ -345,7 +345,6 @@ class Client:
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    request_id = self.default_any(request_id, err.get('requestid'))
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
