@@ -76,6 +76,7 @@ namespace AlibabaCloud.OpenApiClient
                 this._credential = config.Credential;
             }
             this._endpoint = config.Endpoint;
+            this._endpointType = config.EndpointType;
             this._protocol = config.Protocol;
             this._regionId = config.RegionId;
             this._userAgent = config.UserAgent;
@@ -225,7 +226,6 @@ namespace AlibabaCloud.OpenApiClient
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
-                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -436,7 +436,6 @@ namespace AlibabaCloud.OpenApiClient
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
-                        requestId = DefaultAny(requestId, err.Get("requestid"));
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},

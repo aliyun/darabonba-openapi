@@ -24,7 +24,7 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi.
 
-Created on 22/02/2021
+Created on 05/03/2021
 
 @author: Alibaba Cloud SDK
 """
