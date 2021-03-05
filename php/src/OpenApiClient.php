@@ -97,6 +97,7 @@ class OpenApiClient
             $this->_credential = $config->credential;
         }
         $this->_endpoint           = $config->endpoint;
+        $this->_endpointType       = $config->endpointType;
         $this->_protocol           = $config->protocol;
         $this->_regionId           = $config->regionId;
         $this->_userAgent          = $config->userAgent;
@@ -222,7 +223,6 @@ class OpenApiClient
                     $_res      = Utils::readAsJSON($_response->body);
                     $err       = Utils::assertAsMap($_res);
                     $requestId = self::defaultAny(@$err['RequestId'], @$err['requestId']);
-                    $requestId = self::defaultAny($requestId, @$err['requestid']);
 
                     throw new TeaError([
                         'code'    => '' . (string) (self::defaultAny(@$err['Code'], @$err['code'])) . '',
