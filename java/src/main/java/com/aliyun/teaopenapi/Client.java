@@ -64,6 +64,7 @@ public class Client {
         }
 
         this._endpoint = config.endpoint;
+        this._endpointType = config.endpointType;
         this._protocol = config.protocol;
         this._regionId = config.regionId;
         this._userAgent = config.userAgent;

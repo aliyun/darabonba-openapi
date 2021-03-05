@@ -188,7 +188,6 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
-    requestId = defaultAny(requestId, err.requestid);
     throw {
       code = `${defaultAny(err.Code, err.code)}`,
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
