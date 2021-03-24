@@ -97,7 +97,7 @@ sh scripts/install.sh
 
 Copyright (c) 2009-present, Alibaba Cloud All rights reserved.
 
-[open-api]: https://api.aliyun.com
+[open-api]: https://next.api.aliyun.com
 [latest-release]: https://github.com/alibabacloud-sdk-cpp/dara-openapi/releases
 [console]: https://home.console.aliyun.com
 [aliyun]: https://www.aliyun.com
