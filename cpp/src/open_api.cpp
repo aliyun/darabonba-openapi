@@ -223,7 +223,7 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRPCRequest(
                       make_shared<boost::any>((*err)["Message"]),
                       make_shared<boost::any>((*err)["message"])))) +
                   string(" request id: ") +
-                  string(*Darabonba::Converter::toString(requestId)))},
+                  string(Darabonba::Converter::toString(requestId)))},
              {"data", !err ? boost::any() : boost::any(*err)}})));
       }
       if (Darabonba_Util::Client::equalString(bodyType,
@@ -417,7 +417,7 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doROARequest(
                       make_shared<boost::any>((*err)["Message"]),
                       make_shared<boost::any>((*err)["message"])))) +
                   string(" request id: ") +
-                  string(*Darabonba::Converter::toString(requestId)))},
+                  string(Darabonba::Converter::toString(requestId)))},
              {"data", !err ? boost::any() : boost::any(*err)}})));
       }
       if (Darabonba_Util::Client::equalString(bodyType,
