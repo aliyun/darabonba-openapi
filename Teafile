@@ -25,7 +25,17 @@
     "cpp": "alibabacloud-sdk-cpp/dara-openapi:master"
   },
   "csharp": {
-    "namespace": "AlibabaCloud.OpenApiClient"
+    "namespace": "AlibabaCloud.OpenApiClient",
+    "packageInfo": {
+      "description": "Alibaba Cloud OpenApi SDK Library for .NET",
+      "company": "Alibaba Cloud",
+      "property": {
+        "PackageTags": "Alibaba Aliyun OpenApi SDK",
+        "Copyright": "©2009-present Alibaba Cloud",
+        "PackageProjectUrl": "https://github.com/aliyun/darabonba-openapi",
+        "PackageIconUrl": "https://www.alibabacloud.com/favicon.ico"
+      }
+    }
   },
   "java": {
     "package": "com.aliyun.teaopenapi",
