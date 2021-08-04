@@ -16,6 +16,10 @@ import (
  * Model for initing client
  */
 type Config struct {
+  // source ip
+  SourceIp *string `json:"sourceIp,omitempty" xml:"sourceIp,omitempty"`
+  // security transport
+  SecurityTransport *bool `json:"securityTransport,omitempty" xml:"securityTransport,omitempty"`
   // accesskey id
   AccessKeyId *string `json:"accessKeyId,omitempty" xml:"accessKeyId,omitempty"`
   // accesskey secret
@@ -69,6 +73,16 @@ func (s Config) String() string {
 
 func (s Config) GoString() string {
   return s.String()
+}
+
+func (s *Config) SetSourceIp(v string) *Config {
+  s.SourceIp = &v
+  return s
+}
+
+func (s *Config) SetSecurityTransport(v bool) *Config {
+  s.SecurityTransport = &v
+  return s
 }
 
 func (s *Config) SetAccessKeyId(v string) *Config {
@@ -282,6 +296,8 @@ func (s *Params) SetStyle(v string) *Params {
 }
 
 type Client struct {
+  SourceIp  *string
+  SecurityTransport  *bool
   Endpoint  *string
   RegionId  *string
   Protocol  *string
@@ -347,6 +363,8 @@ func (client *Client)Init(config *Config)(_err error) {
     client.Credential = config.Credential
   }
 
+  client.SourceIp = config.SourceIp
+  client.SecurityTransport = config.SecurityTransport
   client.Network = config.Network
   client.Endpoint = config.Endpoint
   client.EndpointType = config.EndpointType
