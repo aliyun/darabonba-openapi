@@ -69,6 +69,7 @@ class Client:
             self._credential = CredentialClient(credential_config)
         elif not UtilClient.is_unset(config.credential):
             self._credential = config.credential
+        self._network = config.network
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
         self._protocol = config.protocol

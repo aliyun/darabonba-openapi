@@ -63,6 +63,7 @@ public class Client {
             this._credential = config.credential;
         }
 
+        this._network = config.network;
         this._endpoint = config.endpoint;
         this._endpointType = config.endpointType;
         this._protocol = config.protocol;

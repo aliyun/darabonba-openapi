@@ -85,6 +85,7 @@ init(config: Config) {
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
   }
+  @network = config.network;
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
   @protocol = config.protocol;

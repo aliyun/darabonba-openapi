@@ -75,6 +75,7 @@ namespace AlibabaCloud.OpenApiClient
             {
                 this._credential = config.Credential;
             }
+            this._network = config.Network;
             this._endpoint = config.Endpoint;
             this._endpointType = config.EndpointType;
             this._protocol = config.Protocol;

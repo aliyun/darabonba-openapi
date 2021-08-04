@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from Tea.model import TeaModel
+from typing import Dict, Any, BinaryIO
 
 from alibabacloud_credentials.client import Client as CredentialClient
 
@@ -9,60 +10,84 @@ class Config(TeaModel):
     """
     Model for initing client
     """
-    def __init__(self, access_key_id=None, access_key_secret=None, security_token=None, protocol=None,
-                 region_id=None, read_timeout=None, connect_timeout=None, http_proxy=None, https_proxy=None, credential=None,
-                 endpoint=None, no_proxy=None, max_idle_conns=None, network=None, user_agent=None, suffix=None,
-                 socks_5proxy=None, socks_5net_work=None, endpoint_type=None, open_platform_endpoint=None, type=None,
-                 signature_algorithm=None):
+    def __init__(
+        self,
+        access_key_id: str = None,
+        access_key_secret: str = None,
+        security_token: str = None,
+        protocol: str = None,
+        region_id: str = None,
+        read_timeout: int = None,
+        connect_timeout: int = None,
+        http_proxy: str = None,
+        https_proxy: str = None,
+        credential: CredentialClient = None,
+        endpoint: str = None,
+        no_proxy: str = None,
+        max_idle_conns: int = None,
+        network: str = None,
+        user_agent: str = None,
+        suffix: str = None,
+        socks_5proxy: str = None,
+        socks_5net_work: str = None,
+        endpoint_type: str = None,
+        open_platform_endpoint: str = None,
+        type: str = None,
+        signature_algorithm: str = None,
+    ):
         # accesskey id
-        self.access_key_id = access_key_id  # type: str
+        self.access_key_id = access_key_id
         # accesskey secret
-        self.access_key_secret = access_key_secret  # type: str
+        self.access_key_secret = access_key_secret
         # security token
-        self.security_token = security_token  # type: str
+        self.security_token = security_token
         # http protocol
-        self.protocol = protocol  # type: str
+        self.protocol = protocol
         # region id
-        self.region_id = region_id  # type: str
+        self.region_id = region_id
         # read timeout
-        self.read_timeout = read_timeout  # type: int
+        self.read_timeout = read_timeout
         # connect timeout
-        self.connect_timeout = connect_timeout  # type: int
+        self.connect_timeout = connect_timeout
         # http proxy
-        self.http_proxy = http_proxy  # type: str
+        self.http_proxy = http_proxy
         # https proxy
-        self.https_proxy = https_proxy  # type: str
+        self.https_proxy = https_proxy
         # credential
-        self.credential = credential  # type: CredentialClient
+        self.credential = credential
         # endpoint
-        self.endpoint = endpoint  # type: str
+        self.endpoint = endpoint
         # proxy white list
-        self.no_proxy = no_proxy  # type: str
+        self.no_proxy = no_proxy
         # max idle conns
-        self.max_idle_conns = max_idle_conns  # type: int
+        self.max_idle_conns = max_idle_conns
         # network for endpoint
-        self.network = network  # type: str
+        self.network = network
         # user agent
-        self.user_agent = user_agent  # type: str
+        self.user_agent = user_agent
         # suffix for endpoint
-        self.suffix = suffix  # type: str
+        self.suffix = suffix
         # socks5 proxy
-        self.socks_5proxy = socks_5proxy  # type: str
+        self.socks_5proxy = socks_5proxy
         # socks5 network
-        self.socks_5net_work = socks_5net_work  # type: str
+        self.socks_5net_work = socks_5net_work
         # endpoint type
-        self.endpoint_type = endpoint_type  # type: str
+        self.endpoint_type = endpoint_type
         # OpenPlatform endpoint
-        self.open_platform_endpoint = open_platform_endpoint  # type: str
+        self.open_platform_endpoint = open_platform_endpoint
         # credential type
-        self.type = type  # type: str
+        self.type = type
         # Signature Algorithm
-        self.signature_algorithm = signature_algorithm  # type: str
+        self.signature_algorithm = signature_algorithm
 
     def validate(self):
         pass
 
     def to_map(self):
+        _map = super().to_map()
+        if _map is not None:
+            return _map
+
         result = dict()
         if self.access_key_id is not None:
             result['accessKeyId'] = self.access_key_id
@@ -110,7 +135,7 @@ class Config(TeaModel):
             result['signatureAlgorithm'] = self.signature_algorithm
         return result
 
-    def from_map(self, m=None):
+    def from_map(self, m: dict = None):
         m = m or dict()
         if m.get('accessKeyId') is not None:
             self.access_key_id = m.get('accessKeyId')
@@ -160,16 +185,26 @@ class Config(TeaModel):
 
 
 class OpenApiRequest(TeaModel):
-    def __init__(self, headers=None, query=None, body=None, stream=None):
-        self.headers = headers  # type: dict[str, str]
-        self.query = query  # type: dict[str, str]
-        self.body = body  # type: any
-        self.stream = stream  # type: READABLE
+    def __init__(
+        self,
+        headers: Dict[str, str] = None,
+        query: Dict[str, str] = None,
+        body: Any = None,
+        stream: BinaryIO = None,
+    ):
+        self.headers = headers
+        self.query = query
+        self.body = body
+        self.stream = stream
 
     def validate(self):
         pass
 
     def to_map(self):
+        _map = super().to_map()
+        if _map is not None:
+            return _map
+
         result = dict()
         if self.headers is not None:
             result['headers'] = self.headers
@@ -181,7 +216,7 @@ class OpenApiRequest(TeaModel):
             result['stream'] = self.stream
         return result
 
-    def from_map(self, m=None):
+    def from_map(self, m: dict = None):
         m = m or dict()
         if m.get('headers') is not None:
             self.headers = m.get('headers')
@@ -195,17 +230,27 @@ class OpenApiRequest(TeaModel):
 
 
 class Params(TeaModel):
-    def __init__(self, action=None, version=None, protocol=None, pathname=None, method=None, auth_type=None,
-                 body_type=None, req_body_type=None, style=None):
-        self.action = action  # type: str
-        self.version = version  # type: str
-        self.protocol = protocol  # type: str
-        self.pathname = pathname  # type: str
-        self.method = method  # type: str
-        self.auth_type = auth_type  # type: str
-        self.body_type = body_type  # type: str
-        self.req_body_type = req_body_type  # type: str
-        self.style = style  # type: str
+    def __init__(
+        self,
+        action: str = None,
+        version: str = None,
+        protocol: str = None,
+        pathname: str = None,
+        method: str = None,
+        auth_type: str = None,
+        body_type: str = None,
+        req_body_type: str = None,
+        style: str = None,
+    ):
+        self.action = action
+        self.version = version
+        self.protocol = protocol
+        self.pathname = pathname
+        self.method = method
+        self.auth_type = auth_type
+        self.body_type = body_type
+        self.req_body_type = req_body_type
+        self.style = style
 
     def validate(self):
         self.validate_required(self.action, 'action')
@@ -218,6 +263,10 @@ class Params(TeaModel):
         self.validate_required(self.req_body_type, 'req_body_type')
 
     def to_map(self):
+        _map = super().to_map()
+        if _map is not None:
+            return _map
+
         result = dict()
         if self.action is not None:
             result['action'] = self.action
@@ -239,7 +288,7 @@ class Params(TeaModel):
             result['style'] = self.style
         return result
 
-    def from_map(self, m=None):
+    def from_map(self, m: dict = None):
         m = m or dict()
         if m.get('action') is not None:
             self.action = m.get('action')
