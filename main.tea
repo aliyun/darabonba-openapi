@@ -6,6 +6,8 @@ import Util;
 import Credential;
 import OpenApiUtil;
 
+type @sourceIp = string
+type @securityTransport = string
 type @endpoint = string
 type @regionId = string
 type @protocol = string
@@ -33,6 +35,8 @@ type @headers = map[string]string
  * Model for initing client
  */
 model Config {
+  sourceIp?: string(description='source ip', default=''),
+  securityTransport?: string(description='security transport', default=''),
   accessKeyId?: string(description='accesskey id',default=''),
   accessKeySecret?: string(description='accesskey secret',default=''),
   securityToken?: string(description='security token',example='a.txt',default=''),
@@ -85,6 +89,8 @@ init(config: Config) {
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
   }
+  @sourceIp = config.sourceIp;
+  @securityTransport = config.securityTransport;
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
   @protocol = config.protocol;
@@ -125,6 +131,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   __request.method = method;
   __request.pathname = '/';
   __request.query = {
+    SourceIp = @sourceIp,
+    SecurityTransport = @securityTransport,
     Action = action,
     Format = 'json',
     Version = version,
@@ -267,6 +275,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   __request.method = method;
   __request.pathname = pathname;
   __request.headers = {
+    x-acs-source-ip = @sourceIp,
+    x-acs-security-transport = @securityTransport,
     date = Util.getDateUTCString(),
     host = @endpoint,
     accept = 'application/json',
@@ -391,6 +401,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   __request.method = method;
   __request.pathname = pathname;
   __request.headers = {
+    x-acs-source-ip = @sourceIp,
+    x-acs-security-transport = @securityTransport,
     date = Util.getDateUTCString(),
     host = @endpoint,
     accept = 'application/json',

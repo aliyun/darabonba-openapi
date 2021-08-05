@@ -5,17 +5,22 @@
 package client
 
 import (
+	"io"
+
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 /**
  * Model for initing client
  */
 type Config struct {
+	// source ip
+	SourceIp *string `json:"sourceIp,omitempty" xml:"sourceIp,omitempty"`
+	// security transport
+	SecurityTransport *string `json:"securityTransport,omitempty" xml:"securityTransport,omitempty"`
 	// accesskey id
 	AccessKeyId *string `json:"accessKeyId,omitempty" xml:"accessKeyId,omitempty"`
 	// accesskey secret
@@ -69,6 +74,16 @@ func (s Config) String() string {
 
 func (s Config) GoString() string {
 	return s.String()
+}
+
+func (s *Config) SetSourceIp(v string) *Config {
+	s.SourceIp = &v
+	return s
+}
+
+func (s *Config) SetSecurityTransport(v string) *Config {
+	s.SecurityTransport = &v
+	return s
 }
 
 func (s *Config) SetAccessKeyId(v string) *Config {
@@ -282,6 +297,8 @@ func (s *Params) SetStyle(v string) *Params {
 }
 
 type Client struct {
+	SourceIp             *string
+	SecurityTransport    *string
 	Endpoint             *string
 	RegionId             *string
 	Protocol             *string
@@ -347,6 +364,8 @@ func (client *Client) Init(config *Config) (_err error) {
 		client.Credential = config.Credential
 	}
 
+	client.SourceIp = config.SourceIp
+	client.SecurityTransport = config.SecurityTransport
 	client.Endpoint = config.Endpoint
 	client.EndpointType = config.EndpointType
 	client.Protocol = config.Protocol
@@ -419,11 +438,13 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			request_.Method = method
 			request_.Pathname = tea.String("/")
 			request_.Query = tea.Merge(map[string]*string{
-				"Action":         action,
-				"Format":         tea.String("json"),
-				"Version":        version,
-				"Timestamp":      openapiutil.GetTimestamp(),
-				"SignatureNonce": util.GetNonce(),
+				"SourceIp":          client.SourceIp,
+				"SecurityTransport": client.SecurityTransport,
+				"Action":            action,
+				"Format":            tea.String("json"),
+				"Version":           version,
+				"Timestamp":         openapiutil.GetTimestamp(),
+				"SignatureNonce":    util.GetNonce(),
 			}, request.Query)
 			headers, _err := client.GetRpcHeaders()
 			if _err != nil {
@@ -636,15 +657,17 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			request_.Method = method
 			request_.Pathname = pathname
 			request_.Headers = tea.Merge(map[string]*string{
-				"date":                    util.GetDateUTCString(),
-				"host":                    client.Endpoint,
-				"accept":                  tea.String("application/json"),
-				"x-acs-signature-nonce":   util.GetNonce(),
-				"x-acs-signature-method":  tea.String("HMAC-SHA1"),
-				"x-acs-signature-version": tea.String("1.0"),
-				"x-acs-version":           version,
-				"x-acs-action":            action,
-				"user-agent":              util.GetUserAgent(client.UserAgent),
+				"x-acs-source-ip":          client.SourceIp,
+				"x-acs-security-transport": client.SecurityTransport,
+				"date":                     util.GetDateUTCString(),
+				"host":                     client.Endpoint,
+				"accept":                   tea.String("application/json"),
+				"x-acs-signature-nonce":    util.GetNonce(),
+				"x-acs-signature-method":   tea.String("HMAC-SHA1"),
+				"x-acs-signature-version":  tea.String("1.0"),
+				"x-acs-version":            version,
+				"x-acs-action":             action,
+				"user-agent":               util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
@@ -838,15 +861,17 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			request_.Method = method
 			request_.Pathname = pathname
 			request_.Headers = tea.Merge(map[string]*string{
-				"date":                    util.GetDateUTCString(),
-				"host":                    client.Endpoint,
-				"accept":                  tea.String("application/json"),
-				"x-acs-signature-nonce":   util.GetNonce(),
-				"x-acs-signature-method":  tea.String("HMAC-SHA1"),
-				"x-acs-signature-version": tea.String("1.0"),
-				"x-acs-version":           version,
-				"x-acs-action":            action,
-				"user-agent":              util.GetUserAgent(client.UserAgent),
+				"x-acs-source-ip":          client.SourceIp,
+				"x-acs-security-transport": client.SecurityTransport,
+				"date":                     util.GetDateUTCString(),
+				"host":                     client.Endpoint,
+				"accept":                   tea.String("application/json"),
+				"x-acs-signature-nonce":    util.GetNonce(),
+				"x-acs-signature-method":   tea.String("HMAC-SHA1"),
+				"x-acs-signature-version":  tea.String("1.0"),
+				"x-acs-version":            version,
+				"x-acs-action":             action,
+				"user-agent":               util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m := util.AssertAsMap(request.Body)
