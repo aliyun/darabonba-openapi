@@ -982,6 +982,9 @@ void Alibabacloud_OpenApi::Client::setRpcHeaders(
 }
 
 map<string, string> Alibabacloud_OpenApi::Client::getRpcHeaders() {
+  if (_headers == nullptr) {
+    return map<string, string>();
+  }
   shared_ptr<map<string, string>> headers = _headers;
   _headers = nullptr;
   return *headers;
