@@ -249,7 +249,7 @@ public:
       query = make_shared<map<string, string>>(toMap1);
     }
     if (m.find("body") != m.end() && !m["body"].empty()) {
-      body = make_shared<boost::any>(boost::any_cast<boost::any>(m["body"]));
+      body = make_shared<boost::any>(m["body"]);
     }
     if (m.find("stream") != m.end() && !m["stream"].empty()) {
       stream = make_shared<Darabonba::Stream>(
