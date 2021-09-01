@@ -102,6 +102,7 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
+        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -180,6 +181,7 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_);
+                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
@@ -235,9 +237,14 @@ public class Client {
                     continue;
                 }
                 throw e;
+            } finally {
+                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
+                    _lastResponse.response.close();
+                }
             }
         }
-
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
@@ -264,6 +271,7 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
+        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -317,6 +325,7 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_);
+                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
                     return TeaConverter.buildMap(
@@ -379,9 +388,14 @@ public class Client {
                     continue;
                 }
                 throw e;
+            } finally {
+                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
+                    _lastResponse.response.close();
+                }
             }
         }
-
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
@@ -408,6 +422,7 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
+        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -462,6 +477,7 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_);
+                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
                     return TeaConverter.buildMap(
@@ -522,9 +538,14 @@ public class Client {
                     continue;
                 }
                 throw e;
+            } finally {
+                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
+                    _lastResponse.response.close();
+                }
             }
         }
-
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
@@ -552,6 +573,7 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
+        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -618,6 +640,7 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_);
+                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
@@ -672,9 +695,14 @@ public class Client {
                     continue;
                 }
                 throw e;
+            } finally {
+                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
+                    _lastResponse.response.close();
+                }
             }
         }
-
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
