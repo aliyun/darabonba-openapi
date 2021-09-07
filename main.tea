@@ -541,7 +541,7 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
 api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
   __request.protocol = Util.defaultString(@protocol, params.protocol);
   __request.method = params.method;
-  __request.pathname = OpenApiUtil.getEncodePath(params.pathname);
+  __request.pathname = params.pathname;
   __request.query = request.query;
 
   // endpoint is setted in product client

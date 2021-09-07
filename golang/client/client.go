@@ -1040,7 +1040,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			request_ := tea.NewRequest()
 			request_.Protocol = util.DefaultString(client.Protocol, params.Protocol)
 			request_.Method = params.Method
-			request_.Pathname = openapiutil.GetEncodePath(params.Pathname)
+			request_.Pathname = params.Pathname
 			request_.Query = request.Query
 			// endpoint is setted in product client
 			request_.Headers = tea.Merge(map[string]*string{
