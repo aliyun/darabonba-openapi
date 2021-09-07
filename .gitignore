@@ -5,6 +5,10 @@ ts/dist
 go.sum
 .DS_Store
 
+.classpath
+.settings/
+.project
+
 **/csharp/**/bin/
 **/csharp/**/obj/
 **/csharp/**/.vs/

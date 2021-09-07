@@ -1015,7 +1015,7 @@ class Client:
                 _request = TeaRequest()
                 _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
                 _request.method = params.method
-                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.pathname = params.pathname
                 _request.query = request.query
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
@@ -1157,7 +1157,7 @@ class Client:
                 _request = TeaRequest()
                 _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
                 _request.method = params.method
-                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.pathname = params.pathname
                 _request.query = request.query
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({

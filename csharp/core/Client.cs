@@ -1319,7 +1319,7 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
-                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Pathname = params_.Pathname;
                     request_.Query = request.Query;
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>
@@ -1513,7 +1513,7 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
-                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Pathname = params_.Pathname;
                     request_.Query = request.Query;
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>

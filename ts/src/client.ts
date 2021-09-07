@@ -756,7 +756,7 @@ export default class Client {
         let request_ = new $tea.Request();
         request_.protocol = Util.defaultString(this._protocol, params.protocol);
         request_.method = params.method;
-        request_.pathname = OpenApiUtil.getEncodePath(params.pathname);
+        request_.pathname = params.pathname;
         request_.query = request.query;
         // endpoint is setted in product client
         request_.headers = {

@@ -682,7 +682,7 @@ class OpenApiClient
                 $_request           = new Request();
                 $_request->protocol = Utils::defaultString($this->_protocol, $params->protocol);
                 $_request->method   = $params->method;
-                $_request->pathname = OpenApiUtilClient::getEncodePath($params->pathname);
+                $_request->pathname = $params->pathname;
                 $_request->query    = $request->query;
                 // endpoint is setted in product client
                 $_request->headers = Tea::merge([

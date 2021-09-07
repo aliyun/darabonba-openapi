@@ -588,7 +588,7 @@ public class Client {
                 TeaRequest request_ = new TeaRequest();
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, params.protocol);
                 request_.method = params.method;
-                request_.pathname = com.aliyun.openapiutil.Client.getEncodePath(params.pathname);
+                request_.pathname = params.pathname;
                 request_.query = request.query;
                 // endpoint is setted in product client
                 request_.headers = TeaConverter.merge(String.class,
