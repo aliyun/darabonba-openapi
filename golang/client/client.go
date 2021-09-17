@@ -1059,6 +1059,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					jsonObj := util.ToJSONString(request.Body)
 					hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(jsonObj), signatureAlgorithm))
 					request_.Body = tea.ToReader(jsonObj)
+					request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
 				} else {
 					m := util.AssertAsMap(request.Body)
 					formObj := openapiutil.ToForm(m)

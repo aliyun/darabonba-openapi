@@ -701,6 +701,7 @@ class OpenApiClient
                         $jsonObj              = Utils::toJSONString($request->body);
                         $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($jsonObj), $signatureAlgorithm));
                         $_request->body       = $jsonObj;
+                        $_request->headers["content-type"] = "application/json; charset=utf-8";
                     } else {
                         $m                                 = Utils::assertAsMap($request->body);
                         $formObj                           = OpenApiUtilClient::toForm($m);

@@ -776,6 +776,7 @@ export default class Client {
             let jsonObj = Util.toJSONString(request.body);
             hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
             request_.body = new $tea.BytesReadable(jsonObj);
+            request_.headers["content-type"] = "application/json; charset=utf-8";
           } else {
             let m = Util.assertAsMap(request.body);
             let formObj = OpenApiUtil.toForm(m);
