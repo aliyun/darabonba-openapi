@@ -1,3 +1,7 @@
+### 2021-09-17 Version 0.0.15
+
+- Add contentType in DoRequest.
+
 ### 2021-06-11 Version 0.0.13
 
 - Recodegen.
