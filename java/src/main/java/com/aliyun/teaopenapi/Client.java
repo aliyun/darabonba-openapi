@@ -610,6 +610,7 @@ public class Client {
                         String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
                         hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
                         request_.body = Tea.toReadable(jsonObj);
+                        request_.headers.put("content-type", "application/json; charset=utf-8");
                     } else {
                         java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                         String formObj = com.aliyun.openapiutil.Client.toForm(m);

@@ -563,6 +563,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       var jsonObj = Util.toJSONString(request.body);
       hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
       __request.body = jsonObj;
+      __request.headers.content-type = 'application/json; charset=utf-8';
     } else {
       var m = Util.assertAsMap(request.body);
       var formObj = OpenApiUtil.toForm(m);

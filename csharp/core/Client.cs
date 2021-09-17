@@ -1345,6 +1345,7 @@ namespace AlibabaCloud.OpenApiClient
                             string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                             hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
                             request_.Body = TeaCore.BytesReadable(jsonObj);
+                            request_.Headers["content-type"] = "application/json; charset=utf-8";
                         }
                         else
                         {
@@ -1539,6 +1540,7 @@ namespace AlibabaCloud.OpenApiClient
                             string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                             hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
                             request_.Body = TeaCore.BytesReadable(jsonObj);
+                            request_.Headers["content-type"] = "application/json; charset=utf-8";
                         }
                         else
                         {
