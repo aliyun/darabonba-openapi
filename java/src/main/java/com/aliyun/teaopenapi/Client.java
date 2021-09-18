@@ -2,6 +2,7 @@
 package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
+import com.aliyun.tea.interceptor.*;
 import com.aliyun.teaopenapi.models.*;
 import com.aliyun.teautil.*;
 import com.aliyun.teautil.models.*;
@@ -10,6 +11,8 @@ import com.aliyun.credentials.models.*;
 import com.aliyun.openapiutil.*;
 
 public class Client {
+
+    private final static InterceptorChain interceptorChain = InterceptorChain.create();
 
     public String _endpoint;
     public String _regionId;
@@ -180,7 +183,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
@@ -324,7 +327,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
@@ -476,7 +479,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
@@ -640,7 +643,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
@@ -705,6 +708,18 @@ public class Client {
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
+    }
+
+    public void addRuntimeOptionsInterceptor(RuntimeOptionsInterceptor interceptor) {
+        interceptorChain.addRuntimeOptionsInterceptor(interceptor);
+    }
+
+    public void addRequestInterceptor(RequestInterceptor interceptor) {
+        interceptorChain.addRequestInterceptor(interceptor);
+    }
+
+    public void addResponseInterceptor(ResponseInterceptor interceptor) {
+        interceptorChain.addResponseInterceptor(interceptor);
     }
 
     public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
