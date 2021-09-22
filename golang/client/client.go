@@ -5,17 +5,22 @@
 package client
 
 import (
+	"io"
+
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 /**
  * Model for initing client
  */
 type Config struct {
+	// source ip
+	SourceIp *string `json:"sourceIp,omitempty" xml:"sourceIp,omitempty"`
+	// secure transport
+	SecureTransport *string `json:"secureTransport,omitempty" xml:"secureTransport,omitempty"`
 	// accesskey id
 	AccessKeyId *string `json:"accessKeyId,omitempty" xml:"accessKeyId,omitempty"`
 	// accesskey secret
@@ -69,6 +74,16 @@ func (s Config) String() string {
 
 func (s Config) GoString() string {
 	return s.String()
+}
+
+func (s *Config) SetSourceIp(v string) *Config {
+	s.SourceIp = &v
+	return s
+}
+
+func (s *Config) SetSecureTransport(v string) *Config {
+	s.SecureTransport = &v
+	return s
 }
 
 func (s *Config) SetAccessKeyId(v string) *Config {
@@ -282,6 +297,8 @@ func (s *Params) SetStyle(v string) *Params {
 }
 
 type Client struct {
+	SourceIp             *string
+	SecureTransport      *string
 	Endpoint             *string
 	RegionId             *string
 	Protocol             *string
@@ -347,6 +364,8 @@ func (client *Client) Init(config *Config) (_err error) {
 		client.Credential = config.Credential
 	}
 
+	client.SourceIp = config.SourceIp
+	client.SecureTransport = config.SecureTransport
 	client.Endpoint = config.Endpoint
 	client.EndpointType = config.EndpointType
 	client.Protocol = config.Protocol
@@ -428,6 +447,14 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			headers, _err := client.GetRpcHeaders()
 			if _err != nil {
 				return _result, _err
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.SourceIp)) {
+				request_.Query["sourceIp"] = client.SourceIp
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.SecureTransport)) {
+				request_.Query["secureTransport"] = client.SecureTransport
 			}
 
 			if tea.BoolValue(util.IsUnset(headers)) {
@@ -646,6 +673,14 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
+			if !tea.BoolValue(util.IsUnset(client.SourceIp)) {
+				request_.Headers["sourceIp"] = client.SourceIp
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.SecureTransport)) {
+				request_.Headers["secureTransport"] = client.SecureTransport
+			}
+
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
 				request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
@@ -848,6 +883,14 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
+			if !tea.BoolValue(util.IsUnset(client.SourceIp)) {
+				request_.Headers["sourceIp"] = client.SourceIp
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.SecureTransport)) {
+				request_.Headers["secureTransport"] = client.SecureTransport
+			}
+
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m := util.AssertAsMap(request.Body)
 				request_.Body = tea.ToReader(openapiutil.ToForm(m))

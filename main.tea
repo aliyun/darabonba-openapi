@@ -6,6 +6,8 @@ import Util;
 import Credential;
 import OpenApiUtil;
 
+type @sourceIp = string
+type @secureTransport = string
 type @endpoint = string
 type @regionId = string
 type @protocol = string
@@ -33,6 +35,8 @@ type @headers = map[string]string
  * Model for initing client
  */
 model Config {
+  sourceIp?: string(description='source ip', default=''),
+  secureTransport?: string(description='secure transport', default=''),
   accessKeyId?: string(description='accesskey id',default=''),
   accessKeySecret?: string(description='accesskey secret',default=''),
   securityToken?: string(description='security token',example='a.txt',default=''),
@@ -85,6 +89,8 @@ init(config: Config) {
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
   }
+  @sourceIp = config.sourceIp;
+  @secureTransport = config.secureTransport;
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
   @protocol = config.protocol;
@@ -134,6 +140,13 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   };
 
   var headers = getRpcHeaders();
+  if (!Util.isUnset(@sourceIp)) {
+    __request.query.sourceIp = @sourceIp;
+  }
+  if (!Util.isUnset(@secureTransport)) {
+    __request.query.secureTransport = @secureTransport;
+  }
+
   if(Util.isUnset(headers)){
     // endpoint is setted in product client
     __request.headers = {
@@ -279,6 +292,13 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     ...request.headers
   };
 
+  if (!Util.isUnset(@sourceIp)) {
+    __request.headers.x-acs-source-ip = @sourceIp;
+  }
+  if (!Util.isUnset(@secureTransport)) {
+    __request.headers.x-acs-secure-transport = @secureTransport;
+  }
+
   if (!Util.isUnset(request.body)) {
     __request.body = Util.toJSONString(request.body);
     __request.headers.content-type = 'application/json; charset=utf-8';
@@ -402,6 +422,13 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     user-agent = Util.getUserAgent(@userAgent),
     ...request.headers
   };
+
+  if (!Util.isUnset(@sourceIp)) {
+    __request.headers.x-acs-source-ip = @sourceIp;
+  }
+  if (!Util.isUnset(@secureTransport)) {
+    __request.headers.x-acs-secure-transport = @secureTransport;
+  }
 
   if (!Util.isUnset(request.body)) {
     var m = Util.assertAsMap(request.body);
