@@ -1319,7 +1319,7 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
-                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Pathname = params_.Pathname;
                     request_.Query = request.Query;
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>
@@ -1345,6 +1345,7 @@ namespace AlibabaCloud.OpenApiClient
                             string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                             hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
                             request_.Body = TeaCore.BytesReadable(jsonObj);
+                            request_.Headers["content-type"] = "application/json; charset=utf-8";
                         }
                         else
                         {
@@ -1513,7 +1514,7 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
-                    request_.Pathname = AlibabaCloud.OpenApiUtil.Client.GetEncodePath(params_.Pathname);
+                    request_.Pathname = params_.Pathname;
                     request_.Query = request.Query;
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>
@@ -1539,6 +1540,7 @@ namespace AlibabaCloud.OpenApiClient
                             string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                             hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
                             request_.Body = TeaCore.BytesReadable(jsonObj);
+                            request_.Headers["content-type"] = "application/json; charset=utf-8";
                         }
                         else
                         {

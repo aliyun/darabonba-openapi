@@ -756,7 +756,7 @@ export default class Client {
         let request_ = new $tea.Request();
         request_.protocol = Util.defaultString(this._protocol, params.protocol);
         request_.method = params.method;
-        request_.pathname = OpenApiUtil.getEncodePath(params.pathname);
+        request_.pathname = params.pathname;
         request_.query = request.query;
         // endpoint is setted in product client
         request_.headers = {
@@ -776,6 +776,7 @@ export default class Client {
             let jsonObj = Util.toJSONString(request.body);
             hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
             request_.body = new $tea.BytesReadable(jsonObj);
+            request_.headers["content-type"] = "application/json; charset=utf-8";
           } else {
             let m = Util.assertAsMap(request.body);
             let formObj = OpenApiUtil.toForm(m);

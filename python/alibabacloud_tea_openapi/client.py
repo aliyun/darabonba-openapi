@@ -1015,7 +1015,7 @@ class Client:
                 _request = TeaRequest()
                 _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
                 _request.method = params.method
-                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.pathname = params.pathname
                 _request.query = request.query
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
@@ -1034,6 +1034,7 @@ class Client:
                         json_obj = UtilClient.to_jsonstring(request.body)
                         hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
                         _request.body = json_obj
+                        _request.headers['content-type'] = 'application/json; charset=utf-8'
                     else:
                         m = UtilClient.assert_as_map(request.body)
                         form_obj = OpenApiUtilClient.to_form(m)
@@ -1157,7 +1158,7 @@ class Client:
                 _request = TeaRequest()
                 _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
                 _request.method = params.method
-                _request.pathname = OpenApiUtilClient.get_encode_path(params.pathname)
+                _request.pathname = params.pathname
                 _request.query = request.query
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
@@ -1176,6 +1177,7 @@ class Client:
                         json_obj = UtilClient.to_jsonstring(request.body)
                         hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
                         _request.body = json_obj
+                        _request.headers['content-type'] = 'application/json; charset=utf-8'
                     else:
                         m = UtilClient.assert_as_map(request.body)
                         form_obj = OpenApiUtilClient.to_form(m)

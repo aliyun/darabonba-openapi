@@ -722,8 +722,7 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRequest(
       request_->protocol =
           Darabonba_Util::Client::defaultString(_protocol, params->protocol);
       request_->method = *params->method;
-      request_->pathname =
-          Alibabacloud_OpenApiUtil::Client::getEncodePath(params->pathname);
+      request_->pathname = *params->pathname;
       request_->query = *request->query;
       // endpoint is setted in product client
       request_->headers = Darabonba::Converter::merge(

@@ -2,6 +2,7 @@
 package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
+import com.aliyun.tea.interceptor.*;
 import com.aliyun.teaopenapi.models.*;
 import com.aliyun.teautil.*;
 import com.aliyun.teautil.models.*;
@@ -10,6 +11,8 @@ import com.aliyun.credentials.models.*;
 import com.aliyun.openapiutil.*;
 
 public class Client {
+
+    private final static InterceptorChain interceptorChain = InterceptorChain.create();
 
     public String _endpoint;
     public String _regionId;
@@ -180,7 +183,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
@@ -324,7 +327,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
@@ -476,7 +479,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
@@ -588,7 +591,7 @@ public class Client {
                 TeaRequest request_ = new TeaRequest();
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, params.protocol);
                 request_.method = params.method;
-                request_.pathname = com.aliyun.openapiutil.Client.getEncodePath(params.pathname);
+                request_.pathname = params.pathname;
                 request_.query = request.query;
                 // endpoint is setted in product client
                 request_.headers = TeaConverter.merge(String.class,
@@ -610,6 +613,7 @@ public class Client {
                         String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
                         hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
                         request_.body = Tea.toReadable(jsonObj);
+                        request_.headers.put("content-type", "application/json; charset=utf-8");
                     } else {
                         java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                         String formObj = com.aliyun.openapiutil.Client.toForm(m);
@@ -639,7 +643,7 @@ public class Client {
                 }
 
                 _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_);
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
@@ -704,6 +708,18 @@ public class Client {
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
+    }
+
+    public void addRuntimeOptionsInterceptor(RuntimeOptionsInterceptor interceptor) {
+        interceptorChain.addRuntimeOptionsInterceptor(interceptor);
+    }
+
+    public void addRequestInterceptor(RequestInterceptor interceptor) {
+        interceptorChain.addRequestInterceptor(interceptor);
+    }
+
+    public void addResponseInterceptor(ResponseInterceptor interceptor) {
+        interceptorChain.addResponseInterceptor(interceptor);
     }
 
     public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
