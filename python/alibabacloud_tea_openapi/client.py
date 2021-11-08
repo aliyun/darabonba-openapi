@@ -1045,6 +1045,7 @@ class Client:
                     tmp = UtilClient.read_as_bytes(request.stream)
                     hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
                     _request.body = tmp
+                    _request.headers['content-type'] = 'application/octet-stream'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
                     access_key_id = self.get_access_key_id()

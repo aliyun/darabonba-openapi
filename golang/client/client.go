@@ -1078,6 +1078,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 				hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(tmp, signatureAlgorithm))
 				request_.Body = tea.ToReader(tmp)
+				request_.Headers["content-type"] = tea.String("application/octet-stream")
 			}
 
 			request_.Headers["x-acs-content-sha256"] = hashedRequestPayload

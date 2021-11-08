@@ -788,6 +788,8 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRequest(
                     Alibabacloud_OpenApiUtil::Client::hash(
                         tmp, signatureAlgorithm))));
         request_->body = Darabonba::Converter::toStream(*tmp);
+        request_->headers.insert(pair<string, string>(
+              "content-type", "application/octet-stream"));
       }
       request_->headers.insert(
           pair<string, string>("x-acs-content-sha256", *hashedRequestPayload));

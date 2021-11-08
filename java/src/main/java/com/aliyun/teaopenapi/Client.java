@@ -628,6 +628,7 @@ public class Client {
                     byte[] tmp = com.aliyun.teautil.Common.readAsBytes(request.stream);
                     hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(tmp, signatureAlgorithm));
                     request_.body = Tea.toReadable(tmp);
+                    request_.headers.put("content-type", "application/octet-stream");
                 }
 
                 request_.headers.put("x-acs-content-sha256", hashedRequestPayload);

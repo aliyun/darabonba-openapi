@@ -791,6 +791,7 @@ export default class Client {
           let tmp = await Util.readAsBytes(request.stream);
           hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
           request_.body = new $tea.BytesReadable(tmp);
+          request_.headers["content-type"] = "application/octet-stream";
         }
 
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
