@@ -1361,6 +1361,7 @@ namespace AlibabaCloud.OpenApiClient
                         byte[] tmp = AlibabaCloud.TeaUtil.Common.ReadAsBytes(request.Stream);
                         hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(tmp, signatureAlgorithm));
                         request_.Body = TeaCore.BytesReadable(tmp);
+                        request_.Headers["content-type"] = "application/octet-stream";
                     }
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))

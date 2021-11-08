@@ -714,6 +714,7 @@ class OpenApiClient
                     $tmp                  = Utils::readAsBytes($request->stream);
                     $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash($tmp, $signatureAlgorithm));
                     $_request->body       = $tmp;
+                    $_request->headers['content-type'] = 'application/octet-stream';
                 }
                 $_request->headers['x-acs-content-sha256'] = $hashedRequestPayload;
                 if (!Utils::equalString($params->authType, 'Anonymous')) {
