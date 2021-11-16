@@ -5,6 +5,7 @@
 import Util;
 import Credential;
 import OpenApiUtil;
+import SPI;
 
 type @endpoint = string
 type @regionId = string
@@ -28,6 +29,7 @@ type @openPlatformEndpoint = string
 type @credential = Credential
 type @signatureAlgorithm = string
 type @headers = map[string]string
+type @spi = SPI
 
 /**
  * Model for initing client
@@ -640,6 +642,58 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       headers = __response.headers
     };
   }
+} runtime {
+  timeouted = 'retry',
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = runtime.ignoreSSL
+}
+
+
+/**
+ * Encapsulate the request and invoke the network
+ * @param action api name
+ * @param version product version
+ * @param protocol http or https
+ * @param method e.g. GET
+ * @param authType authorization type e.g. AK
+ * @param bodyType response body type e.g. String
+ * @param request object of OpenApiRequest
+ * @param runtime which controls some details of call api, such as retry times
+ * @return the response
+ */
+api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
+  // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+  /**
+   * 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+   */
+
+  /**
+   * 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+   */
+
+  // tea.doAction
+  
+} returns {
+
+  // response
+
+  /**
+   * 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+   */
+
 } runtime {
   timeouted = 'retry',
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
