@@ -2,10 +2,7 @@
 package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
-import com.aliyun.tea.interceptor.InterceptorChain;
-import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
-import com.aliyun.tea.interceptor.RequestInterceptor;
-import com.aliyun.tea.interceptor.ResponseInterceptor;
+import com.aliyun.tea.interceptor.*;
 import com.aliyun.teaopenapi.models.*;
 import com.aliyun.teautil.*;
 import com.aliyun.teautil.models.*;
@@ -783,6 +780,7 @@ public class Client {
                     new TeaPair("endpoint", _endpoint),
                     new TeaPair("endpointRule", _endpointRule),
                     new TeaPair("endpointMap", _endpointMap),
+                    new TeaPair("network", _network),
                     new TeaPair("suffix", _suffix)
                 ));
                 InterceptorContext interceptorContext = InterceptorContext.build(TeaConverter.buildMap(

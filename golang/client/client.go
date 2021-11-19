@@ -1301,6 +1301,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				Endpoint:     client.Endpoint,
 				EndpointRule: client.EndpointRule,
 				EndpointMap:  client.EndpointMap,
+				Network:      client.Network,
 				Suffix:       client.Suffix,
 			}
 			interceptorContext := &spi.InterceptorContext{

@@ -951,6 +951,7 @@ export default class Client {
           endpoint: this._endpoint,
           endpointRule: this._endpointRule,
           endpointMap: this._endpointMap,
+          network: this._network,
           suffix: this._suffix,
         });
         let interceptorContext = new $SPI.InterceptorContext({
