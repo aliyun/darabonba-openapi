@@ -16,6 +16,9 @@ public class OpenApiRequest extends TeaModel {
     @NameInMap("stream")
     public java.io.InputStream stream;
 
+    @NameInMap("hostMap")
+    public java.util.Map<String, String> hostMap;
+
     public static OpenApiRequest build(java.util.Map<String, ?> map) throws Exception {
         OpenApiRequest self = new OpenApiRequest();
         return TeaModel.build(map, self);
@@ -51,6 +54,14 @@ public class OpenApiRequest extends TeaModel {
     }
     public java.io.InputStream getStream() {
         return this.stream;
+    }
+
+    public OpenApiRequest setHostMap(java.util.Map<String, String> hostMap) {
+        this.hostMap = hostMap;
+        return this;
+    }
+    public java.util.Map<String, String> getHostMap() {
+        return this.hostMap;
     }
 
 }

@@ -10,6 +10,7 @@ import SPI;
 type @endpoint = string
 type @regionId = string
 type @protocol = string
+type @method = string
 type @userAgent = string
 type @endpointRule = string
 type @endpointMap = map[string]string
@@ -39,6 +40,7 @@ model Config {
   accessKeySecret?: string(description='accesskey secret',default=''),
   securityToken?: string(description='security token',example='a.txt',default=''),
   protocol?: string(description='http protocol',example='http',default='http'),
+  method: string(description='http method',example='GET',default=''),
   regionId?: string(description='region id',example='cn-hangzhou',default=''),
   readTimeout?: integer(description='read timeout',example='10',default=''),
   connectTimeout?: integer(description='connect timeout',example='10',default=''),
@@ -90,6 +92,7 @@ init(config: Config) {
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
   @protocol = config.protocol;
+  @method = config.method;
   @regionId = config.regionId;
   @userAgent = config.userAgent;
   @readTimeout = config.readTimeout;
@@ -108,6 +111,7 @@ model OpenApiRequest {
   query?: map[string]string,
   body?: any,
   stream?: readable,
+  hostMap?: map[string]string,
 }
 
 /**
@@ -676,23 +680,67 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
  */
 api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
-  /**
-   * 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
-   */
+  var requestContext = new SPI.InterceptorContext.request{
+    headers = request.headers,
+    query = request.query,
+    body = request.body,
+    stream = request.stream,
+    hostMap = request.hostMap,
+    pathname = params.pathname,
+    productId = @productId,
+    action = params.action,
+    version = params.version,
+    protocol = Util.defaultString(@protocol, params.protocol),
+    method = Util.defaultString(@protocol, params.protocol),
+    authType = params.authType,
+    bodyType = params.bodyType,
+    reqBodyType = params.reqBodyType,
+    style = params.style,
+    credential = @credential,
+    signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256'),
+    userAgent = getUserAgent()
+  };
+  var configurationContext = new SPI.InterceptorContext.configuration{
+    regionId = @regionId,
+    endpoint = @endpoint,
+    endpointRule = @endpointRule,
+    endpointMap = @endpointMap,
+    suffix = @suffix
+  };
+  var interceptorContext =  new SPI.InterceptorContext{
+    request = requestContext,
+    configuration = configurationContext
+  };
+  var attributeMap = new SPI.AttributeMap{};
 
-  /**
-   * 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
-   */
+  // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+  @spi.modifyConfiguration(interceptorContext, attributeMap);
 
-  // tea.doAction
+  // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+  @spi.modifyRequest(interceptorContext, attributeMap);
+
+  __request.protocol = interceptorContext.request.protocol;
+  __request.method = interceptorContext.request.method;
+  __request.pathname = interceptorContext.request.pathname;
+  __request.query = interceptorContext.request.query;
+  __request.body = interceptorContext.request.stream;
+  __request.headers = interceptorContext.request.headers;
   
 } returns {
+  var responseContext = new SPI.InterceptorContext.response{
+    statusCode = __response.statusCode,
+    headers = __response.headers,
+    body = __response.body
+  };
+  interceptorContext.response = responseContext;
 
-  // response
+  // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+  @spi.modifyResponse(interceptorContext, attributeMap);
 
-  /**
-   * 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
-   */
+  return {
+    headers = interceptorContext.response.headers,
+    body = interceptorContext.response.deserializedBody
+  };
 
 } runtime {
   timeouted = 'retry',

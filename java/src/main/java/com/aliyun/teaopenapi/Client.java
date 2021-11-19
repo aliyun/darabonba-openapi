@@ -2,13 +2,18 @@
 package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
-import com.aliyun.tea.interceptor.*;
+import com.aliyun.tea.interceptor.InterceptorChain;
+import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
+import com.aliyun.tea.interceptor.RequestInterceptor;
+import com.aliyun.tea.interceptor.ResponseInterceptor;
 import com.aliyun.teaopenapi.models.*;
 import com.aliyun.teautil.*;
 import com.aliyun.teautil.models.*;
 import com.aliyun.credentials.*;
 import com.aliyun.credentials.models.*;
 import com.aliyun.openapiutil.*;
+import com.aliyun.gateway.spi.*;
+import com.aliyun.gateway.spi.models.*;
 
 public class Client {
 
@@ -17,6 +22,7 @@ public class Client {
     public String _endpoint;
     public String _regionId;
     public String _protocol;
+    public String _method;
     public String _userAgent;
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
@@ -36,6 +42,7 @@ public class Client {
     public com.aliyun.credentials.Client _credential;
     public String _signatureAlgorithm;
     public java.util.Map<String, String> _headers;
+    public com.aliyun.gateway.spi.Client _spi;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -69,6 +76,7 @@ public class Client {
         this._endpoint = config.endpoint;
         this._endpointType = config.endpointType;
         this._protocol = config.protocol;
+        this._method = config.method;
         this._regionId = config.regionId;
         this._userAgent = config.userAgent;
         this._readTimeout = config.readTimeout;
@@ -708,6 +716,111 @@ public class Client {
                         && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
                     _lastResponse.response.close();
                 }
+            }
+        }
+        throw new TeaUnretryableException(_lastRequest, _lastException);
+    }
+
+    public java.util.Map<String, ?> execute(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+        TeaModel.validateParams(params, "params");
+        TeaModel.validateParams(request, "request");
+        java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
+            new TeaPair("timeouted", "retry"),
+            new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
+            new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
+            new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
+            new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("retry", TeaConverter.buildMap(
+                new TeaPair("retryable", runtime.autoretry),
+                new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
+            )),
+            new TeaPair("backoff", TeaConverter.buildMap(
+                new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
+                new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
+            )),
+            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+        );
+
+        TeaRequest _lastRequest = null;
+        Exception _lastException = null;
+        long _now = System.currentTimeMillis();
+        int _retryTimes = 0;
+        while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
+            if (_retryTimes > 0) {
+                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                if (backoffTime > 0) {
+                    Tea.sleep(backoffTime);
+                }
+            }
+            _retryTimes = _retryTimes + 1;
+            try {
+                TeaRequest request_ = new TeaRequest();
+                // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+                InterceptorContext.InterceptorContextRequest requestContext = InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
+                    new TeaPair("headers", request.headers),
+                    new TeaPair("query", request.query),
+                    new TeaPair("body", request.body),
+                    new TeaPair("stream", request.stream),
+                    new TeaPair("hostMap", request.hostMap),
+                    new TeaPair("pathname", params.pathname),
+                    new TeaPair("productId", _productId),
+                    new TeaPair("action", params.action),
+                    new TeaPair("version", params.version),
+                    new TeaPair("protocol", com.aliyun.teautil.Common.defaultString(_protocol, params.protocol)),
+                    new TeaPair("method", com.aliyun.teautil.Common.defaultString(_protocol, params.protocol)),
+                    new TeaPair("authType", params.authType),
+                    new TeaPair("bodyType", params.bodyType),
+                    new TeaPair("reqBodyType", params.reqBodyType),
+                    new TeaPair("style", params.style),
+                    new TeaPair("credential", _credential),
+                    new TeaPair("signatureAlgorithm", com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256")),
+                    new TeaPair("userAgent", this.getUserAgent())
+                ));
+                InterceptorContext.InterceptorContextConfiguration configurationContext = InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
+                    new TeaPair("regionId", _regionId),
+                    new TeaPair("endpoint", _endpoint),
+                    new TeaPair("endpointRule", _endpointRule),
+                    new TeaPair("endpointMap", _endpointMap),
+                    new TeaPair("suffix", _suffix)
+                ));
+                InterceptorContext interceptorContext = InterceptorContext.build(TeaConverter.buildMap(
+                    new TeaPair("request", requestContext),
+                    new TeaPair("configuration", configurationContext)
+                ));
+                AttributeMap attributeMap = new AttributeMap();
+                // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                _spi.modifyConfiguration(interceptorContext, attributeMap);
+                // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                _spi.modifyRequest(interceptorContext, attributeMap);
+                request_.protocol = interceptorContext.request.protocol;
+                request_.method = interceptorContext.request.method;
+                request_.pathname = interceptorContext.request.pathname;
+                request_.query = interceptorContext.request.query;
+                request_.body = interceptorContext.request.stream;
+                request_.headers = interceptorContext.request.headers;
+                _lastRequest = request_;
+                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
+
+                InterceptorContext.InterceptorContextResponse responseContext = InterceptorContext.InterceptorContextResponse.build(TeaConverter.buildMap(
+                    new TeaPair("statusCode", response_.statusCode),
+                    new TeaPair("headers", response_.headers),
+                    new TeaPair("body", response_.body)
+                ));
+                interceptorContext.response = responseContext;
+                // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                _spi.modifyResponse(interceptorContext, attributeMap);
+                return TeaConverter.buildMap(
+                    new TeaPair("headers", interceptorContext.response.headers),
+                    new TeaPair("body", interceptorContext.response.deserializedBody)
+                );
+            } catch (Exception e) {
+                if (Tea.isRetryable(e)) {
+                    _lastException = e;
+                    continue;
+                }
+                throw e;
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);

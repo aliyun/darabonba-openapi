@@ -23,6 +23,11 @@ public class Config extends TeaModel {
     @NameInMap("protocol")
     public String protocol;
 
+    // http method
+    @NameInMap("method")
+    @Validation(required = true)
+    public String method;
+
     // region id
     @NameInMap("regionId")
     public String regionId;
@@ -131,6 +136,14 @@ public class Config extends TeaModel {
     }
     public String getProtocol() {
         return this.protocol;
+    }
+
+    public Config setMethod(String method) {
+        this.method = method;
+        return this;
+    }
+    public String getMethod() {
+        return this.method;
     }
 
     public Config setRegionId(String regionId) {
