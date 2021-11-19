@@ -5,6 +5,7 @@
 import Util, * as $Util from '@alicloud/tea-util';
 import Credential, * as $Credential from '@alicloud/credentials';
 import OpenApiUtil from '@alicloud/openapi-util';
+import SPI, * as $SPI from '@ali/gateway-spi';
 import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
 
@@ -16,6 +17,7 @@ export class Config extends $tea.Model {
   accessKeySecret?: string;
   securityToken?: string;
   protocol?: string;
+  method: string;
   regionId?: string;
   readTimeout?: number;
   connectTimeout?: number;
@@ -40,6 +42,7 @@ export class Config extends $tea.Model {
       accessKeySecret: 'accessKeySecret',
       securityToken: 'securityToken',
       protocol: 'protocol',
+      method: 'method',
       regionId: 'regionId',
       readTimeout: 'readTimeout',
       connectTimeout: 'connectTimeout',
@@ -67,6 +70,7 @@ export class Config extends $tea.Model {
       accessKeySecret: 'string',
       securityToken: 'string',
       protocol: 'string',
+      method: 'string',
       regionId: 'string',
       readTimeout: 'number',
       connectTimeout: 'number',
@@ -98,12 +102,14 @@ export class OpenApiRequest extends $tea.Model {
   query?: { [key: string]: string };
   body?: any;
   stream?: Readable;
+  hostMap?: { [key: string]: string };
   static names(): { [key: string]: string } {
     return {
       headers: 'headers',
       query: 'query',
       body: 'body',
       stream: 'stream',
+      hostMap: 'hostMap',
     };
   }
 
@@ -113,6 +119,7 @@ export class OpenApiRequest extends $tea.Model {
       query: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
       body: 'any',
       stream: 'Readable',
+      hostMap: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
     };
   }
 
@@ -169,6 +176,7 @@ export default class Client {
   _endpoint: string;
   _regionId: string;
   _protocol: string;
+  _method: string;
   _userAgent: string;
   _endpointRule: string;
   _endpointMap: {[key: string ]: string};
@@ -188,6 +196,7 @@ export default class Client {
   _credential: Credential;
   _signatureAlgorithm: string;
   _headers: {[key: string ]: string};
+  _spi: SPI;
 
   /**
    * Init client with Config
@@ -222,6 +231,7 @@ export default class Client {
     this._endpoint = config.endpoint;
     this._endpointType = config.endpointType;
     this._protocol = config.protocol;
+    this._method = config.method;
     this._regionId = config.regionId;
     this._userAgent = config.userAgent;
     this._readTimeout = config.readTimeout;
@@ -858,6 +868,121 @@ export default class Client {
           };
         }
 
+      } catch (ex) {
+        if ($tea.isRetryable(ex)) {
+          continue;
+        }
+        throw ex;
+      }
+    }
+
+    throw $tea.newUnretryableError(_lastRequest);
+  }
+
+  /**
+   * Encapsulate the request and invoke the network
+   * @param action api name
+   * @param version product version
+   * @param protocol http or https
+   * @param method e.g. GET
+   * @param authType authorization type e.g. AK
+   * @param bodyType response body type e.g. String
+   * @param request object of OpenApiRequest
+   * @param runtime which controls some details of call api, such as retry times
+   * @return the response
+   */
+  async execute(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+    let _runtime: { [key: string]: any } = {
+      timeouted: "retry",
+      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
+      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
+      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
+      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
+      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
+      retry: {
+        retryable: runtime.autoretry,
+        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
+      },
+      backoff: {
+        policy: Util.defaultString(runtime.backoffPolicy, "no"),
+        period: Util.defaultNumber(runtime.backoffPeriod, 1),
+      },
+      ignoreSSL: runtime.ignoreSSL,
+    }
+
+    let _lastRequest = null;
+    let _now = Date.now();
+    let _retryTimes = 0;
+    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
+      if (_retryTimes > 0) {
+        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+        if (_backoffTime > 0) {
+          await $tea.sleep(_backoffTime);
+        }
+      }
+
+      _retryTimes = _retryTimes + 1;
+      try {
+        let request_ = new $tea.Request();
+        // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+        let requestContext = new $SPI.InterceptorContextRequest({
+          headers: request.headers,
+          query: request.query,
+          body: request.body,
+          stream: request.stream,
+          hostMap: request.hostMap,
+          pathname: params.pathname,
+          productId: this._productId,
+          action: params.action,
+          version: params.version,
+          protocol: Util.defaultString(this._protocol, params.protocol),
+          method: Util.defaultString(this._protocol, params.protocol),
+          authType: params.authType,
+          bodyType: params.bodyType,
+          reqBodyType: params.reqBodyType,
+          style: params.style,
+          credential: this._credential,
+          signatureAlgorithm: Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256"),
+          userAgent: this.getUserAgent(),
+        });
+        let configurationContext = new $SPI.InterceptorContextConfiguration({
+          regionId: this._regionId,
+          endpoint: this._endpoint,
+          endpointRule: this._endpointRule,
+          endpointMap: this._endpointMap,
+          suffix: this._suffix,
+        });
+        let interceptorContext = new $SPI.InterceptorContext({
+          request: requestContext,
+          configuration: configurationContext,
+        });
+        let attributeMap = new $SPI.AttributeMap({ });
+        // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+        await this._spi.modifyConfiguration(interceptorContext, attributeMap);
+        // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+        await this._spi.modifyRequest(interceptorContext, attributeMap);
+        request_.protocol = interceptorContext.request.protocol;
+        request_.method = interceptorContext.request.method;
+        request_.pathname = interceptorContext.request.pathname;
+        request_.query = interceptorContext.request.query;
+        request_.body = interceptorContext.request.stream;
+        request_.headers = interceptorContext.request.headers;
+        _lastRequest = request_;
+        let response_ = await $tea.doAction(request_, _runtime);
+
+        let responseContext = new $SPI.InterceptorContextResponse({
+          statusCode: response_.statusCode,
+          headers: response_.headers,
+          body: response_.body,
+        });
+        interceptorContext.response = responseContext;
+        // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+        await this._spi.modifyResponse(interceptorContext, attributeMap);
+        return {
+          headers: interceptorContext.response.headers,
+          body: interceptorContext.response.deserializedBody,
+        };
       } catch (ex) {
         if ($tea.isRetryable(ex)) {
           continue;
