@@ -1276,8 +1276,14 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 		_resp, _err = func() (map[string]interface{}, error) {
 			request_ := tea.NewRequest()
 			// spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+			headers, _err := client.GetRpcHeaders()
+			if _err != nil {
+				return _result, _err
+			}
+
 			requestContext := &spi.InterceptorContextRequest{
-				Headers:            request.Headers,
+				Headers: tea.Merge(request.Headers,
+					headers),
 				Query:              request.Query,
 				Body:               request.Body,
 				Stream:             request.Stream,

@@ -680,8 +680,12 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
  */
 api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+  var headers = getRpcHeaders();
   var requestContext = new SPI.InterceptorContext.request{
-    headers = request.headers,
+    headers = {
+      ...request.headers,
+      ...headers
+    },
     query = request.query,
     body = request.body,
     stream = request.stream,

@@ -926,8 +926,12 @@ export default class Client {
       try {
         let request_ = new $tea.Request();
         // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+        let headers = this.getRpcHeaders();
         let requestContext = new $SPI.InterceptorContextRequest({
-          headers: request.headers,
+          headers: {
+            ...request.headers,
+            ...headers,
+          },
           query: request.query,
           body: request.body,
           stream: request.stream,
