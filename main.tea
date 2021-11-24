@@ -558,26 +558,27 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
 
   var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');
   var hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(''), signatureAlgorithm));
-  if (!Util.isUnset(request.body)) {
-    if (Util.equalString(params.reqBodyType, 'json')) {
-      var jsonObj = Util.toJSONString(request.body);
-      hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
-      __request.body = jsonObj;
-      __request.headers.content-type = 'application/json; charset=utf-8';
-    } else {
-      var m = Util.assertAsMap(request.body);
-      var formObj = OpenApiUtil.toForm(m);
-      hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
-      __request.body = formObj;
-      __request.headers.content-type = 'application/x-www-form-urlencoded';
-    }
-  }
 
   if (!Util.isUnset(request.stream)) {
     var tmp = Util.readAsBytes(request.stream);
     hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
     __request.body = tmp;
     __request.headers.content-type = 'application/octet-stream';
+  } else {
+    if (!Util.isUnset(request.body)) {
+      if (Util.equalString(params.reqBodyType, 'json')) {
+        var jsonObj = Util.toJSONString(request.body);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
+        __request.body = jsonObj;
+        __request.headers.content-type = 'application/json; charset=utf-8';
+      } else {
+        var m = Util.assertAsMap(request.body);
+        var formObj = OpenApiUtil.toForm(m);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
+        __request.body = formObj;
+        __request.headers.content-type = 'application/x-www-form-urlencoded';
+      }
+    }
   }
 
   __request.headers.x-acs-content-sha256 = hashedRequestPayload;
