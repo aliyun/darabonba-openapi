@@ -2,7 +2,10 @@
 package com.aliyun.teaopenapi;
 
 import com.aliyun.tea.*;
-import com.aliyun.tea.interceptor.*;
+import com.aliyun.tea.interceptor.InterceptorChain;
+import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
+import com.aliyun.tea.interceptor.RequestInterceptor;
+import com.aliyun.tea.interceptor.ResponseInterceptor;
 import com.aliyun.teaopenapi.models.*;
 import com.aliyun.teautil.*;
 import com.aliyun.teautil.models.*;
@@ -707,12 +710,6 @@ public class Client {
                     continue;
                 }
                 throw e;
-            } finally {
-                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
-                    _lastResponse.response.close();
-                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
@@ -755,8 +752,12 @@ public class Client {
             try {
                 TeaRequest request_ = new TeaRequest();
                 // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+                java.util.Map<String, String> headers = this.getRpcHeaders();
                 InterceptorContext.InterceptorContextRequest requestContext = InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
-                    new TeaPair("headers", request.headers),
+                    new TeaPair("headers", TeaConverter.merge(String.class,
+                        request.headers,
+                        headers
+                    )),
                     new TeaPair("query", request.query),
                     new TeaPair("body", request.body),
                     new TeaPair("stream", request.stream),
