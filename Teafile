@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -15,13 +15,13 @@
     "Credential": "alibabacloud:Credential:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.3.6",
+    "ts": "@alicloud/openapi-client:^0.3.7",
     "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.1.9",
-    "csharp": "AlibabaCloud.OpenApiClient:0.0.16",
-    "java": "com.aliyun:tea-openapi:0.1.4",
+    "csharp": "AlibabaCloud.OpenApiClient:0.0.17",
+    "java": "com.aliyun:tea-openapi:0.1.5",
     "php": "alibabacloud/darabonba-openapi:^0.2.1",
-    "python": "alibabacloud_tea_openapi:0.2.8",
-    "python2": "alibabacloud_tea_openapi_py2:0.0.7",
+    "python": "alibabacloud_tea_openapi:0.2.9",
+    "python2": "alibabacloud_tea_openapi_py2:0.0.8",
     "cpp": "alibabacloud-sdk-cpp/dara-openapi:master"
   },
   "csharp": {
