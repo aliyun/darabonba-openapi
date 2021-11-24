@@ -5,11 +5,12 @@
 package client
 
 import (
+	"io"
+
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 /**
@@ -1054,22 +1055,6 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			}, request.Headers)
 			signatureAlgorithm := util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256"))
 			hashedRequestPayload := openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(tea.String("")), signatureAlgorithm))
-			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
-					jsonObj := util.ToJSONString(request.Body)
-					hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(jsonObj), signatureAlgorithm))
-					request_.Body = tea.ToReader(jsonObj)
-					request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
-				} else {
-					m := util.AssertAsMap(request.Body)
-					formObj := openapiutil.ToForm(m)
-					hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(formObj), signatureAlgorithm))
-					request_.Body = tea.ToReader(formObj)
-					request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
-				}
-
-			}
-
 			if !tea.BoolValue(util.IsUnset(request.Stream)) {
 				tmp, _err := util.ReadAsBytes(request.Stream)
 				if _err != nil {
@@ -1079,6 +1064,23 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(tmp, signatureAlgorithm))
 				request_.Body = tea.ToReader(tmp)
 				request_.Headers["content-type"] = tea.String("application/octet-stream")
+			} else {
+				if !tea.BoolValue(util.IsUnset(request.Body)) {
+					if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
+						jsonObj := util.ToJSONString(request.Body)
+						hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(jsonObj), signatureAlgorithm))
+						request_.Body = tea.ToReader(jsonObj)
+						request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
+					} else {
+						m := util.AssertAsMap(request.Body)
+						formObj := openapiutil.ToForm(m)
+						hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(formObj), signatureAlgorithm))
+						request_.Body = tea.ToReader(formObj)
+						request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
+					}
+
+				}
+
 			}
 
 			request_.Headers["x-acs-content-sha256"] = hashedRequestPayload

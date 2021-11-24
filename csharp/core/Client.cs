@@ -1338,30 +1338,33 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
-                    {
-                        if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
-                        {
-                            string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
-                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
-                            request_.Body = TeaCore.BytesReadable(jsonObj);
-                            request_.Headers["content-type"] = "application/json; charset=utf-8";
-                        }
-                        else
-                        {
-                            Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
-                            string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
-                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
-                            request_.Body = TeaCore.BytesReadable(formObj);
-                            request_.Headers["content-type"] = "application/x-www-form-urlencoded";
-                        }
-                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))
                     {
                         byte[] tmp = AlibabaCloud.TeaUtil.Common.ReadAsBytes(request.Stream);
                         hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(tmp, signatureAlgorithm));
                         request_.Body = TeaCore.BytesReadable(tmp);
                         request_.Headers["content-type"] = "application/octet-stream";
+                    }
+                    else
+                    {
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                        {
+                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                            {
+                                string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(jsonObj);
+                                request_.Headers["content-type"] = "application/json; charset=utf-8";
+                            }
+                            else
+                            {
+                                Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                                string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(formObj);
+                                request_.Headers["content-type"] = "application/x-www-form-urlencoded";
+                            }
+                        }
                     }
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
@@ -1534,29 +1537,33 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
-                    {
-                        if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
-                        {
-                            string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
-                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
-                            request_.Body = TeaCore.BytesReadable(jsonObj);
-                            request_.Headers["content-type"] = "application/json; charset=utf-8";
-                        }
-                        else
-                        {
-                            Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
-                            string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
-                            hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
-                            request_.Body = TeaCore.BytesReadable(formObj);
-                            request_.Headers["content-type"] = "application/x-www-form-urlencoded";
-                        }
-                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))
                     {
                         byte[] tmp = AlibabaCloud.TeaUtil.Common.ReadAsBytes(request.Stream);
                         hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(tmp, signatureAlgorithm));
                         request_.Body = TeaCore.BytesReadable(tmp);
+                        request_.Headers["content-type"] = "application/octet-stream";
+                    }
+                    else
+                    {
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
+                        {
+                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                            {
+                                string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(jsonObj);
+                                request_.Headers["content-type"] = "application/json; charset=utf-8";
+                            }
+                            else
+                            {
+                                Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
+                                string formObj = AlibabaCloud.OpenApiUtil.Client.ToForm(m);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(formObj), signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(formObj);
+                                request_.Headers["content-type"] = "application/x-www-form-urlencoded";
+                            }
+                        }
                     }
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))

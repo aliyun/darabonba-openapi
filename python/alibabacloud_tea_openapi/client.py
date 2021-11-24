@@ -1029,23 +1029,24 @@ class Client:
                 }, request.headers)
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
-                if not UtilClient.is_unset(request.body):
-                    if UtilClient.equal_string(params.req_body_type, 'json'):
-                        json_obj = UtilClient.to_jsonstring(request.body)
-                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
-                        _request.body = json_obj
-                        _request.headers['content-type'] = 'application/json; charset=utf-8'
-                    else:
-                        m = UtilClient.assert_as_map(request.body)
-                        form_obj = OpenApiUtilClient.to_form(m)
-                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
-                        _request.body = form_obj
-                        _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.is_unset(request.stream):
                     tmp = UtilClient.read_as_bytes(request.stream)
                     hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
                     _request.body = tmp
                     _request.headers['content-type'] = 'application/octet-stream'
+                else:
+                    if not UtilClient.is_unset(request.body):
+                        if UtilClient.equal_string(params.req_body_type, 'json'):
+                            json_obj = UtilClient.to_jsonstring(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                            _request.body = json_obj
+                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                        else:
+                            m = UtilClient.assert_as_map(request.body)
+                            form_obj = OpenApiUtilClient.to_form(m)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            _request.body = form_obj
+                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
                     access_key_id = self.get_access_key_id()
@@ -1173,22 +1174,24 @@ class Client:
                 }, request.headers)
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
-                if not UtilClient.is_unset(request.body):
-                    if UtilClient.equal_string(params.req_body_type, 'json'):
-                        json_obj = UtilClient.to_jsonstring(request.body)
-                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
-                        _request.body = json_obj
-                        _request.headers['content-type'] = 'application/json; charset=utf-8'
-                    else:
-                        m = UtilClient.assert_as_map(request.body)
-                        form_obj = OpenApiUtilClient.to_form(m)
-                        hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
-                        _request.body = form_obj
-                        _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.is_unset(request.stream):
                     tmp = await UtilClient.read_as_bytes_async(request.stream)
                     hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
                     _request.body = tmp
+                    _request.headers['content-type'] = 'application/octet-stream'
+                else:
+                    if not UtilClient.is_unset(request.body):
+                        if UtilClient.equal_string(params.req_body_type, 'json'):
+                            json_obj = UtilClient.to_jsonstring(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                            _request.body = json_obj
+                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                        else:
+                            m = UtilClient.assert_as_map(request.body)
+                            form_obj = OpenApiUtilClient.to_form(m)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            _request.body = form_obj
+                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
                     access_key_id = await self.get_access_key_id_async()

@@ -771,27 +771,28 @@ export default class Client {
         };
         let signatureAlgorithm = Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256");
         let hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(""), signatureAlgorithm));
-        if (!Util.isUnset(request.body)) {
-          if (Util.equalString(params.reqBodyType, "json")) {
-            let jsonObj = Util.toJSONString(request.body);
-            hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
-            request_.body = new $tea.BytesReadable(jsonObj);
-            request_.headers["content-type"] = "application/json; charset=utf-8";
-          } else {
-            let m = Util.assertAsMap(request.body);
-            let formObj = OpenApiUtil.toForm(m);
-            hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
-            request_.body = new $tea.BytesReadable(formObj);
-            request_.headers["content-type"] = "application/x-www-form-urlencoded";
-          }
-
-        }
-
         if (!Util.isUnset(request.stream)) {
           let tmp = await Util.readAsBytes(request.stream);
           hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
           request_.body = new $tea.BytesReadable(tmp);
           request_.headers["content-type"] = "application/octet-stream";
+        } else {
+          if (!Util.isUnset(request.body)) {
+            if (Util.equalString(params.reqBodyType, "json")) {
+              let jsonObj = Util.toJSONString(request.body);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(jsonObj);
+              request_.headers["content-type"] = "application/json; charset=utf-8";
+            } else {
+              let m = Util.assertAsMap(request.body);
+              let formObj = OpenApiUtil.toForm(m);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(formObj);
+              request_.headers["content-type"] = "application/x-www-form-urlencoded";
+            }
+
+          }
+
         }
 
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;

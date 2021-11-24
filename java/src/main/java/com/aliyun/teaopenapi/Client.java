@@ -608,27 +608,28 @@ public class Client {
                 );
                 String signatureAlgorithm = com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                 String hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(""), signatureAlgorithm));
-                if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                    if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
-                        String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
-                        hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
-                        request_.body = Tea.toReadable(jsonObj);
-                        request_.headers.put("content-type", "application/json; charset=utf-8");
-                    } else {
-                        java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
-                        String formObj = com.aliyun.openapiutil.Client.toForm(m);
-                        hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(formObj), signatureAlgorithm));
-                        request_.body = Tea.toReadable(formObj);
-                        request_.headers.put("content-type", "application/x-www-form-urlencoded");
-                    }
-
-                }
-
                 if (!com.aliyun.teautil.Common.isUnset(request.stream)) {
                     byte[] tmp = com.aliyun.teautil.Common.readAsBytes(request.stream);
                     hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(tmp, signatureAlgorithm));
                     request_.body = Tea.toReadable(tmp);
                     request_.headers.put("content-type", "application/octet-stream");
+                } else {
+                    if (!com.aliyun.teautil.Common.isUnset(request.body)) {
+                        if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
+                            String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
+                            hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
+                            request_.body = Tea.toReadable(jsonObj);
+                            request_.headers.put("content-type", "application/json; charset=utf-8");
+                        } else {
+                            java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
+                            String formObj = com.aliyun.openapiutil.Client.toForm(m);
+                            hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(formObj), signatureAlgorithm));
+                            request_.body = Tea.toReadable(formObj);
+                            request_.headers.put("content-type", "application/x-www-form-urlencoded");
+                        }
+
+                    }
+
                 }
 
                 request_.headers.put("x-acs-content-sha256", hashedRequestPayload);

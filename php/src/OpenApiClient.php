@@ -696,25 +696,26 @@ class OpenApiClient
                 ], $request->headers);
                 $signatureAlgorithm   = Utils::defaultString($this->_signatureAlgorithm, 'ACS3-HMAC-SHA256');
                 $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes(''), $signatureAlgorithm));
-                if (!Utils::isUnset($request->body)) {
-                    if (Utils::equalString($params->reqBodyType, 'json')) {
-                        $jsonObj              = Utils::toJSONString($request->body);
-                        $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($jsonObj), $signatureAlgorithm));
-                        $_request->body       = $jsonObj;
-                        $_request->headers["content-type"] = "application/json; charset=utf-8";
-                    } else {
-                        $m                                 = Utils::assertAsMap($request->body);
-                        $formObj                           = OpenApiUtilClient::toForm($m);
-                        $hashedRequestPayload              = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($formObj), $signatureAlgorithm));
-                        $_request->body                    = $formObj;
-                        $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
-                    }
-                }
                 if (!Utils::isUnset($request->stream)) {
                     $tmp                  = Utils::readAsBytes($request->stream);
                     $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash($tmp, $signatureAlgorithm));
                     $_request->body       = $tmp;
                     $_request->headers['content-type'] = 'application/octet-stream';
+                } else {
+                    if (!Utils::isUnset($request->body)) {
+                        if (Utils::equalString($params->reqBodyType, 'json')) {
+                            $jsonObj              = Utils::toJSONString($request->body);
+                            $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($jsonObj), $signatureAlgorithm));
+                            $_request->body       = $jsonObj;
+                            $_request->headers["content-type"] = "application/json; charset=utf-8";
+                        } else {
+                            $m                                 = Utils::assertAsMap($request->body);
+                            $formObj                           = OpenApiUtilClient::toForm($m);
+                            $hashedRequestPayload              = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($formObj), $signatureAlgorithm));
+                            $_request->body                    = $formObj;
+                            $_request->headers['content-type'] = 'application/x-www-form-urlencoded';
+                        }
+                    }
                 }
                 $_request->headers['x-acs-content-sha256'] = $hashedRequestPayload;
                 if (!Utils::equalString($params->authType, 'Anonymous')) {
