@@ -28,6 +28,7 @@ type @maxIdleConns = integer
 type @endpointType = string
 type @openPlatformEndpoint = string
 type @credential = Credential
+type @signatureVersion = string
 type @signatureAlgorithm = string
 type @headers = map[string]string
 type @spi = SPI
@@ -58,6 +59,7 @@ model Config {
   endpointType?: string(description='endpoint type',example='internal',default=''),
   openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
   type?: string(description='credential type',example='access_key',default='',deprecated=true),
+  signatureVersion?: string(description='Signature Version',example='v1',default=''),
   signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
 }
 
@@ -103,6 +105,7 @@ init(config: Config) {
   @socks5Proxy = config.socks5Proxy;
   @socks5NetWork = config.socks5NetWork;
   @maxIdleConns = config.maxIdleConns;
+  @signatureVersion = config.signatureVersion;
   @signatureAlgorithm = config.signatureAlgorithm;
 }
 
@@ -522,7 +525,7 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
       message = '\'params\' can not be unset'
     };
   }
-  if (Util.isUnset(@signatureAlgorithm) || !Util.equalString(@signatureAlgorithm, 'v2')) {
+  if (Util.isUnset(@signatureVersion) || Util.equalString(@signatureVersion, 'v3')) {
     return doRequest(params, request, runtime);
   } else if (Util.equalString(params.style, 'ROA') && Util.equalString(params.reqBodyType, 'json')) {
     return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
@@ -701,7 +704,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     reqBodyType = params.reqBodyType,
     style = params.style,
     credential = @credential,
-    signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256'),
+    signatureVersion = @signatureVersion,
+    signatureAlgorithm = @signatureAlgorithm,
     userAgent = getUserAgent()
   };
   var configurationContext = new SPI.InterceptorContext.configuration{
