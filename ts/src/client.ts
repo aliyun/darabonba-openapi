@@ -801,6 +801,7 @@ export default class Client {
           let accessKeySecret = await this.getAccessKeySecret();
           let securityToken = await this.getSecurityToken();
           if (!Util.empty(securityToken)) {
+            request_.headers["x-acs-accesskey-id"] = accessKeyId;
             request_.headers["x-acs-security-token"] = securityToken;
           }
 

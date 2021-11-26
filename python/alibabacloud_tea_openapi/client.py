@@ -1053,6 +1053,7 @@ class Client:
                     access_key_secret = self.get_access_key_secret()
                     security_token = self.get_security_token()
                     if not UtilClient.empty(security_token):
+                        _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
                 _last_request = _request
@@ -1198,6 +1199,7 @@ class Client:
                     access_key_secret = await self.get_access_key_secret_async()
                     security_token = await self.get_security_token_async()
                     if not UtilClient.empty(security_token):
+                        _request.headers['x-acs-accesskey-id'] = access_key_id
                         _request.headers['x-acs-security-token'] = security_token
                     _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
                 _last_request = _request
