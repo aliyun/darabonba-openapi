@@ -638,6 +638,7 @@ public class Client {
                     String accessKeySecret = this.getAccessKeySecret();
                     String securityToken = this.getSecurityToken();
                     if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                        request_.headers.put("x-acs-accesskey-id", accessKeyId);
                         request_.headers.put("x-acs-security-token", securityToken);
                     }
 

@@ -589,6 +589,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     var securityToken = getSecurityToken();
 
     if (!Util.empty(securityToken)) {
+      __request.headers.x-acs-accesskey-id = accessKeyId;
       __request.headers.x-acs-security-token = securityToken;
     }
     __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);

@@ -1374,6 +1374,7 @@ namespace AlibabaCloud.OpenApiClient
                         string securityToken = GetSecurityToken();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
+                            request_.Headers["x-acs-accesskey-id"] = accessKeyId;
                             request_.Headers["x-acs-security-token"] = securityToken;
                         }
                         request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
@@ -1573,6 +1574,7 @@ namespace AlibabaCloud.OpenApiClient
                         string securityToken = await GetSecurityTokenAsync();
                         if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
                         {
+                            request_.Headers["x-acs-accesskey-id"] = accessKeyId;
                             request_.Headers["x-acs-security-token"] = securityToken;
                         }
                         request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);

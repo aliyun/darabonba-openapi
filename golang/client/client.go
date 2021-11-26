@@ -1101,6 +1101,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				}
 
 				if !tea.BoolValue(util.Empty(securityToken)) {
+					request_.Headers["x-acs-accesskey-id"] = accessKeyId
 					request_.Headers["x-acs-security-token"] = securityToken
 				}
 

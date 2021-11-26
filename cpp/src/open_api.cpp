@@ -802,6 +802,8 @@ map<string, boost::any> Alibabacloud_OpenApi::Client::doRequest(
             make_shared<string>(getSecurityToken());
         if (!Darabonba_Util::Client::empty(securityToken)) {
           request_->headers.insert(
+              pair<string, string>("x-acs-accesskey-id", *accessKeyId));
+          request_->headers.insert(
               pair<string, string>("x-acs-security-token", *securityToken));
         }
         request_->headers.insert(pair<string, string>(

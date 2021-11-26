@@ -723,6 +723,7 @@ class OpenApiClient
                     $accessKeySecret = $this->getAccessKeySecret();
                     $securityToken   = $this->getSecurityToken();
                     if (!Utils::empty_($securityToken)) {
+                        $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
                         $_request->headers['x-acs-security-token'] = $securityToken;
                     }
                     $_request->headers['Authorization'] = OpenApiUtilClient::getAuthorization($_request, $signatureAlgorithm, $hashedRequestPayload, $accessKeyId, $accessKeySecret);
