@@ -11,10 +11,7 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-<<<<<<< HEAD
-=======
-	spi "gitlab.alibaba-inc.com/alicloud-sdk/alibabacloud-gateway-spi/golang/client"
->>>>>>> cf9ffe0 (add execute api)
+	spi "gitlab.alibaba-inc.com/alicloud-sdk/alibabacloud-gateway/alibabacloud-gateway-spi/golang/client"
 )
 
 /**
@@ -66,6 +63,8 @@ type Config struct {
 	// Deprecated
 	// credential type
 	Type *string `json:"type,omitempty" xml:"type,omitempty"`
+	// Signature Version
+	SignatureVersion *string `json:"signatureVersion,omitempty" xml:"signatureVersion,omitempty"`
 	// Signature Algorithm
 	SignatureAlgorithm *string `json:"signatureAlgorithm,omitempty" xml:"signatureAlgorithm,omitempty"`
 }
@@ -185,6 +184,11 @@ func (s *Config) SetOpenPlatformEndpoint(v string) *Config {
 
 func (s *Config) SetType(v string) *Config {
 	s.Type = &v
+	return s
+}
+
+func (s *Config) SetSignatureVersion(v string) *Config {
+	s.SignatureVersion = &v
 	return s
 }
 
@@ -321,9 +325,10 @@ type Client struct {
 	EndpointType         *string
 	OpenPlatformEndpoint *string
 	Credential           credential.Credential
+	SignatureVersion     *string
 	SignatureAlgorithm   *string
 	Headers              map[string]*string
-	Spi                  *spi.Client
+	Spi                  spi.SPI
 }
 
 /**
@@ -381,6 +386,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Socks5Proxy = config.Socks5Proxy
 	client.Socks5NetWork = config.Socks5NetWork
 	client.MaxIdleConns = config.MaxIdleConns
+	client.SignatureVersion = config.SignatureVersion
 	client.SignatureAlgorithm = config.SignatureAlgorithm
 	return nil
 }
@@ -1299,7 +1305,8 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				ReqBodyType:        params.ReqBodyType,
 				Style:              params.Style,
 				Credential:         client.Credential,
-				SignatureAlgorithm: util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256")),
+				SignatureVersion:   client.SignatureVersion,
+				SignatureAlgorithm: client.SignatureAlgorithm,
 				UserAgent:          client.GetUserAgent(),
 			}
 			configurationContext := &spi.InterceptorContextConfiguration{
@@ -1307,6 +1314,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				Endpoint:     client.Endpoint,
 				EndpointRule: client.EndpointRule,
 				EndpointMap:  client.EndpointMap,
+				EndpointType: client.EndpointType,
 				Network:      client.Network,
 				Suffix:       client.Suffix,
 			}
@@ -1370,7 +1378,7 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 		return _result, _err
 	}
 
-	if tea.BoolValue(util.IsUnset(client.SignatureAlgorithm)) || !tea.BoolValue(util.EqualString(client.SignatureAlgorithm, tea.String("v2"))) {
+	if tea.BoolValue(util.IsUnset(client.SignatureVersion)) || tea.BoolValue(util.EqualString(client.SignatureVersion, tea.String("v3"))) {
 		_result = make(map[string]interface{})
 		_body, _err := client.DoRequest(params, request, runtime)
 		if _err != nil {

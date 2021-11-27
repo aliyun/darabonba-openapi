@@ -781,6 +781,7 @@ public class Client {
                     new TeaPair("endpoint", _endpoint),
                     new TeaPair("endpointRule", _endpointRule),
                     new TeaPair("endpointMap", _endpointMap),
+                    new TeaPair("endpointType", _endpointType),
                     new TeaPair("network", _network),
                     new TeaPair("suffix", _suffix)
                 ));
