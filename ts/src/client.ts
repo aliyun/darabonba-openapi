@@ -35,6 +35,7 @@ export class Config extends $tea.Model {
   endpointType?: string;
   openPlatformEndpoint?: string;
   type?: string;
+  signatureVersion?: string;
   signatureAlgorithm?: string;
   static names(): { [key: string]: string } {
     return {
@@ -60,6 +61,7 @@ export class Config extends $tea.Model {
       endpointType: 'endpointType',
       openPlatformEndpoint: 'openPlatformEndpoint',
       type: 'type',
+      signatureVersion: 'signatureVersion',
       signatureAlgorithm: 'signatureAlgorithm',
     };
   }
@@ -88,6 +90,7 @@ export class Config extends $tea.Model {
       endpointType: 'string',
       openPlatformEndpoint: 'string',
       type: 'string',
+      signatureVersion: 'string',
       signatureAlgorithm: 'string',
     };
   }
@@ -194,6 +197,7 @@ export default class Client {
   _endpointType: string;
   _openPlatformEndpoint: string;
   _credential: Credential;
+  _signatureVersion: string;
   _signatureAlgorithm: string;
   _headers: {[key: string ]: string};
   _spi: SPI;
@@ -242,6 +246,7 @@ export default class Client {
     this._socks5Proxy = config.socks5Proxy;
     this._socks5NetWork = config.socks5NetWork;
     this._maxIdleConns = config.maxIdleConns;
+    this._signatureVersion = config.signatureVersion;
     this._signatureAlgorithm = config.signatureAlgorithm;
   }
 
@@ -947,7 +952,8 @@ export default class Client {
           reqBodyType: params.reqBodyType,
           style: params.style,
           credential: this._credential,
-          signatureAlgorithm: Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256"),
+          signatureVersion: this._signatureVersion,
+          signatureAlgorithm: this._signatureAlgorithm,
           userAgent: this.getUserAgent(),
         });
         let configurationContext = new $SPI.InterceptorContextConfiguration({
@@ -955,6 +961,7 @@ export default class Client {
           endpoint: this._endpoint,
           endpointRule: this._endpointRule,
           endpointMap: this._endpointMap,
+          endpointType: this._endpointType,
           network: this._network,
           suffix: this._suffix,
         });
@@ -1007,7 +1014,7 @@ export default class Client {
       });
     }
 
-    if (Util.isUnset(this._signatureAlgorithm) || !Util.equalString(this._signatureAlgorithm, "v2")) {
+    if (Util.isUnset(this._signatureVersion) || Util.equalString(this._signatureVersion, "v3")) {
       return await this.doRequest(params, request, runtime);
     } else if (Util.equalString(params.style, "ROA") && Util.equalString(params.reqBodyType, "json")) {
       return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);

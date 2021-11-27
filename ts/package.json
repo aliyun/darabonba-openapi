@@ -23,7 +23,7 @@
     "@alicloud/tea-util": "^1.4.0",
     "@alicloud/credentials": "^2",
     "@alicloud/openapi-util": "^0.2.4",
-    "@ali/gateway-spi": "^0.0.5"
+    "@ali/gateway-spi": "^0.0.8"
   },
   "files": [
     "dist",
