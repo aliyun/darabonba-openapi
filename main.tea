@@ -93,6 +93,8 @@ init(config: Config) {
   }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
+  @network = config.network;
+  @suffix = config.suffix;
   @protocol = config.protocol;
   @method = config.method;
   @regionId = config.regionId;
@@ -698,7 +700,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     action = params.action,
     version = params.version,
     protocol = Util.defaultString(@protocol, params.protocol),
-    method = Util.defaultString(@protocol, params.protocol),
+    method = Util.defaultString(@protocol, params.method),
     authType = params.authType,
     bodyType = params.bodyType,
     reqBodyType = params.reqBodyType,

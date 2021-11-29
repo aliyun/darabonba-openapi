@@ -75,6 +75,9 @@ public class Client {
 
         this._endpoint = config.endpoint;
         this._endpointType = config.endpointType;
+        this._network = config.network;
+        this._suffix = config.suffix;
+        this._endpointType = config.endpointType;
         this._protocol = config.protocol;
         this._method = config.method;
         this._regionId = config.regionId;
@@ -710,6 +713,11 @@ public class Client {
                     continue;
                 }
                 throw e;
+            } finally {
+                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
+                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
+                    _lastResponse.response.close();
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
@@ -767,7 +775,7 @@ public class Client {
                     new TeaPair("action", params.action),
                     new TeaPair("version", params.version),
                     new TeaPair("protocol", com.aliyun.teautil.Common.defaultString(_protocol, params.protocol)),
-                    new TeaPair("method", com.aliyun.teautil.Common.defaultString(_protocol, params.protocol)),
+                    new TeaPair("method", com.aliyun.teautil.Common.defaultString(_protocol, params.method)),
                     new TeaPair("authType", params.authType),
                     new TeaPair("bodyType", params.bodyType),
                     new TeaPair("reqBodyType", params.reqBodyType),
