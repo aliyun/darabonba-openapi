@@ -234,6 +234,8 @@ export default class Client {
 
     this._endpoint = config.endpoint;
     this._endpointType = config.endpointType;
+    this._network = config.network;
+    this._suffix = config.suffix;
     this._protocol = config.protocol;
     this._method = config.method;
     this._regionId = config.regionId;
@@ -946,7 +948,7 @@ export default class Client {
           action: params.action,
           version: params.version,
           protocol: Util.defaultString(this._protocol, params.protocol),
-          method: Util.defaultString(this._protocol, params.protocol),
+          method: Util.defaultString(this._protocol, params.method),
           authType: params.authType,
           bodyType: params.bodyType,
           reqBodyType: params.reqBodyType,

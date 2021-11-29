@@ -374,6 +374,8 @@ func (client *Client) Init(config *Config) (_err error) {
 
 	client.Endpoint = config.Endpoint
 	client.EndpointType = config.EndpointType
+	client.Network = config.Network
+	client.Suffix = config.Suffix
 	client.Protocol = config.Protocol
 	client.Method = config.Method
 	client.RegionId = config.RegionId
@@ -1299,7 +1301,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				Action:             params.Action,
 				Version:            params.Version,
 				Protocol:           util.DefaultString(client.Protocol, params.Protocol),
-				Method:             util.DefaultString(client.Protocol, params.Protocol),
+				Method:             util.DefaultString(client.Protocol, params.Method),
 				AuthType:           params.AuthType,
 				BodyType:           params.BodyType,
 				ReqBodyType:        params.ReqBodyType,
