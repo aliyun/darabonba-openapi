@@ -7,11 +7,11 @@ package client
 import (
 	"io"
 
+	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	spi "gitlab.alibaba-inc.com/alicloud-sdk/alibabacloud-gateway/alibabacloud-gateway-spi/golang/client"
 )
 
 /**

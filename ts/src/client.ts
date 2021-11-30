@@ -5,7 +5,7 @@
 import Util, * as $Util from '@alicloud/tea-util';
 import Credential, * as $Credential from '@alicloud/credentials';
 import OpenApiUtil from '@alicloud/openapi-util';
-import SPI, * as $SPI from '@ali/gateway-spi';
+import SPI, * as $SPI from '@alicloud/gateway-spi';
 import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
 
