@@ -13,7 +13,7 @@
     "Util": "darabonba:Util:*",
     "OpenApiUtil": "alibabacloud:OpenApiUtil:*",
     "Credential": "alibabacloud:Credential:*",
-    "SPI": "alibabacloud:gateway-spi:*"
+    "SPI": "alibabacloud:GatewaySPI:*"
   },
   "releases": {
     "ts": "@alicloud/openapi-client:^0.3.8",
