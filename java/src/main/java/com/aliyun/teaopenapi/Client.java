@@ -718,6 +718,7 @@ public class Client {
                         && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
                         && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
                     _lastResponse.response.close();
+                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
