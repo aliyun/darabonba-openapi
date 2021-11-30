@@ -1380,7 +1380,7 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 		return _result, _err
 	}
 
-	if tea.BoolValue(util.IsUnset(client.SignatureVersion)) || tea.BoolValue(util.EqualString(client.SignatureVersion, tea.String("v3"))) {
+	if tea.BoolValue(util.IsUnset(client.SignatureAlgorithm)) || !tea.BoolValue(util.EqualString(client.SignatureAlgorithm, tea.String("v2"))) {
 		_result = make(map[string]interface{})
 		_body, _err := client.DoRequest(params, request, runtime)
 		if _err != nil {

@@ -527,7 +527,7 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
       message = '\'params\' can not be unset'
     };
   }
-  if (Util.isUnset(@signatureVersion) || Util.equalString(@signatureVersion, 'v3')) {
+  if (Util.isUnset(@signatureAlgorithm) || !Util.equalString(@signatureAlgorithm, 'v2')) {
     return doRequest(params, request, runtime);
   } else if (Util.equalString(params.style, 'ROA') && Util.equalString(params.reqBodyType, 'json')) {
     return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
