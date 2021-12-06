@@ -16,6 +16,7 @@ class Config(TeaModel):
         access_key_secret: str = None,
         security_token: str = None,
         protocol: str = None,
+        method: str = None,
         region_id: str = None,
         read_timeout: int = None,
         connect_timeout: int = None,
@@ -33,6 +34,7 @@ class Config(TeaModel):
         endpoint_type: str = None,
         open_platform_endpoint: str = None,
         type: str = None,
+        signature_version: str = None,
         signature_algorithm: str = None,
     ):
         # accesskey id
@@ -43,6 +45,8 @@ class Config(TeaModel):
         self.security_token = security_token
         # http protocol
         self.protocol = protocol
+        # http method
+        self.method = method
         # region id
         self.region_id = region_id
         # read timeout
@@ -77,11 +81,13 @@ class Config(TeaModel):
         self.open_platform_endpoint = open_platform_endpoint
         # credential type
         self.type = type
+        # Signature Version
+        self.signature_version = signature_version
         # Signature Algorithm
         self.signature_algorithm = signature_algorithm
 
     def validate(self):
-        pass
+        self.validate_required(self.method, 'method')
 
     def to_map(self):
         _map = super().to_map()
@@ -97,6 +103,8 @@ class Config(TeaModel):
             result['securityToken'] = self.security_token
         if self.protocol is not None:
             result['protocol'] = self.protocol
+        if self.method is not None:
+            result['method'] = self.method
         if self.region_id is not None:
             result['regionId'] = self.region_id
         if self.read_timeout is not None:
@@ -131,6 +139,8 @@ class Config(TeaModel):
             result['openPlatformEndpoint'] = self.open_platform_endpoint
         if self.type is not None:
             result['type'] = self.type
+        if self.signature_version is not None:
+            result['signatureVersion'] = self.signature_version
         if self.signature_algorithm is not None:
             result['signatureAlgorithm'] = self.signature_algorithm
         return result
@@ -145,6 +155,8 @@ class Config(TeaModel):
             self.security_token = m.get('securityToken')
         if m.get('protocol') is not None:
             self.protocol = m.get('protocol')
+        if m.get('method') is not None:
+            self.method = m.get('method')
         if m.get('regionId') is not None:
             self.region_id = m.get('regionId')
         if m.get('readTimeout') is not None:
@@ -179,6 +191,8 @@ class Config(TeaModel):
             self.open_platform_endpoint = m.get('openPlatformEndpoint')
         if m.get('type') is not None:
             self.type = m.get('type')
+        if m.get('signatureVersion') is not None:
+            self.signature_version = m.get('signatureVersion')
         if m.get('signatureAlgorithm') is not None:
             self.signature_algorithm = m.get('signatureAlgorithm')
         return self
@@ -191,11 +205,13 @@ class OpenApiRequest(TeaModel):
         query: Dict[str, str] = None,
         body: Any = None,
         stream: BinaryIO = None,
+        host_map: Dict[str, str] = None,
     ):
         self.headers = headers
         self.query = query
         self.body = body
         self.stream = stream
+        self.host_map = host_map
 
     def validate(self):
         pass
@@ -214,6 +230,8 @@ class OpenApiRequest(TeaModel):
             result['body'] = self.body
         if self.stream is not None:
             result['stream'] = self.stream
+        if self.host_map is not None:
+            result['hostMap'] = self.host_map
         return result
 
     def from_map(self, m: dict = None):
@@ -226,6 +244,8 @@ class OpenApiRequest(TeaModel):
             self.body = m.get('body')
         if m.get('stream') is not None:
             self.stream = m.get('stream')
+        if m.get('hostMap') is not None:
+            self.host_map = m.get('hostMap')
         return self
 
 
