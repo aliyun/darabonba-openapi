@@ -17,7 +17,7 @@ export class Config extends $tea.Model {
   accessKeySecret?: string;
   securityToken?: string;
   protocol?: string;
-  method: string;
+  method?: string;
   regionId?: string;
   readTimeout?: number;
   connectTimeout?: number;

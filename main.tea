@@ -41,7 +41,7 @@ model Config {
   accessKeySecret?: string(description='accesskey secret',default=''),
   securityToken?: string(description='security token',example='a.txt',default=''),
   protocol?: string(description='http protocol',example='http',default='http'),
-  method: string(description='http method',example='GET',default=''),
+  method?: string(description='http method',example='GET',default=''),
   regionId?: string(description='region id',example='cn-hangzhou',default=''),
   readTimeout?: integer(description='read timeout',example='10',default=''),
   connectTimeout?: integer(description='connect timeout',example='10',default=''),

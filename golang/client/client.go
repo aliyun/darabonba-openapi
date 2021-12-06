@@ -27,7 +27,7 @@ type Config struct {
 	// http protocol
 	Protocol *string `json:"protocol,omitempty" xml:"protocol,omitempty"`
 	// http method
-	Method *string `json:"method,omitempty" xml:"method,omitempty" require:"true"`
+	Method *string `json:"method,omitempty" xml:"method,omitempty"`
 	// region id
 	RegionId *string `json:"regionId,omitempty" xml:"regionId,omitempty"`
 	// read timeout

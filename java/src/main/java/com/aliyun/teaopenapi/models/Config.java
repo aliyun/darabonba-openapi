@@ -25,7 +25,6 @@ public class Config extends TeaModel {
 
     // http method
     @NameInMap("method")
-    @Validation(required = true)
     public String method;
 
     // region id
