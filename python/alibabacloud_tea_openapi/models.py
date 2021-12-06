@@ -87,7 +87,7 @@ class Config(TeaModel):
         self.signature_algorithm = signature_algorithm
 
     def validate(self):
-        self.validate_required(self.method, 'method')
+        pass
 
     def to_map(self):
         _map = super().to_map()
