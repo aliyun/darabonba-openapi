@@ -9,11 +9,11 @@ class Config(TeaModel):
     """
     Model for initing client
     """
-    def __init__(self, access_key_id=None, access_key_secret=None, security_token=None, protocol=None,
+    def __init__(self, access_key_id=None, access_key_secret=None, security_token=None, protocol=None, method=None,
                  region_id=None, read_timeout=None, connect_timeout=None, http_proxy=None, https_proxy=None, credential=None,
                  endpoint=None, no_proxy=None, max_idle_conns=None, network=None, user_agent=None, suffix=None,
                  socks_5proxy=None, socks_5net_work=None, endpoint_type=None, open_platform_endpoint=None, type=None,
-                 signature_algorithm=None):
+                 signature_version=None, signature_algorithm=None):
         # accesskey id
         self.access_key_id = access_key_id  # type: str
         # accesskey secret
@@ -22,6 +22,8 @@ class Config(TeaModel):
         self.security_token = security_token  # type: str
         # http protocol
         self.protocol = protocol  # type: str
+        # http method
+        self.method = method  # type: str
         # region id
         self.region_id = region_id  # type: str
         # read timeout
@@ -56,11 +58,13 @@ class Config(TeaModel):
         self.open_platform_endpoint = open_platform_endpoint  # type: str
         # credential type
         self.type = type  # type: str
+        # Signature Version
+        self.signature_version = signature_version  # type: str
         # Signature Algorithm
         self.signature_algorithm = signature_algorithm  # type: str
 
     def validate(self):
-        pass
+        self.validate_required(self.method, 'method')
 
     def to_map(self):
         _map = super(Config, self).to_map()
@@ -76,6 +80,8 @@ class Config(TeaModel):
             result['securityToken'] = self.security_token
         if self.protocol is not None:
             result['protocol'] = self.protocol
+        if self.method is not None:
+            result['method'] = self.method
         if self.region_id is not None:
             result['regionId'] = self.region_id
         if self.read_timeout is not None:
@@ -110,6 +116,8 @@ class Config(TeaModel):
             result['openPlatformEndpoint'] = self.open_platform_endpoint
         if self.type is not None:
             result['type'] = self.type
+        if self.signature_version is not None:
+            result['signatureVersion'] = self.signature_version
         if self.signature_algorithm is not None:
             result['signatureAlgorithm'] = self.signature_algorithm
         return result
@@ -124,6 +132,8 @@ class Config(TeaModel):
             self.security_token = m.get('securityToken')
         if m.get('protocol') is not None:
             self.protocol = m.get('protocol')
+        if m.get('method') is not None:
+            self.method = m.get('method')
         if m.get('regionId') is not None:
             self.region_id = m.get('regionId')
         if m.get('readTimeout') is not None:
@@ -158,17 +168,20 @@ class Config(TeaModel):
             self.open_platform_endpoint = m.get('openPlatformEndpoint')
         if m.get('type') is not None:
             self.type = m.get('type')
+        if m.get('signatureVersion') is not None:
+            self.signature_version = m.get('signatureVersion')
         if m.get('signatureAlgorithm') is not None:
             self.signature_algorithm = m.get('signatureAlgorithm')
         return self
 
 
 class OpenApiRequest(TeaModel):
-    def __init__(self, headers=None, query=None, body=None, stream=None):
+    def __init__(self, headers=None, query=None, body=None, stream=None, host_map=None):
         self.headers = headers  # type: dict[str, str]
         self.query = query  # type: dict[str, str]
         self.body = body  # type: any
         self.stream = stream  # type: READABLE
+        self.host_map = host_map  # type: dict[str, str]
 
     def validate(self):
         pass
@@ -187,6 +200,8 @@ class OpenApiRequest(TeaModel):
             result['body'] = self.body
         if self.stream is not None:
             result['stream'] = self.stream
+        if self.host_map is not None:
+            result['hostMap'] = self.host_map
         return result
 
     def from_map(self, m=None):
@@ -199,6 +214,8 @@ class OpenApiRequest(TeaModel):
             self.body = m.get('body')
         if m.get('stream') is not None:
             self.stream = m.get('stream')
+        if m.get('hostMap') is not None:
+            self.host_map = m.get('hostMap')
         return self
 
 

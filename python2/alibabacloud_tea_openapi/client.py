@@ -10,9 +10,11 @@ from Tea.core import TeaCore
 from Tea.converter import TeaConverter
 
 from alibabacloud_credentials.client import Client as CredentialClient
+from alibabacloud_gateway_spi.client import Client as SPIClient
 from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
+from alibabacloud_gateway_spi import models as spi_models
 
 
 class Client(object):
@@ -22,6 +24,7 @@ class Client(object):
     _endpoint = None  # type: str
     _region_id = None  # type: str
     _protocol = None  # type: str
+    _method = None  # type: str
     _user_agent = None  # type: str
     _endpoint_rule = None  # type: str
     _endpoint_map = None  # type: dict[str, str]
@@ -39,8 +42,10 @@ class Client(object):
     _endpoint_type = None  # type: str
     _open_platform_endpoint = None  # type: str
     _credential = None  # type: CredentialClient
+    _signature_version = None  # type: str
     _signature_algorithm = None  # type: str
     _headers = None  # type: dict[str, str]
+    _spi = None  # type: SPIClient
 
     def __init__(self, config):
         """
@@ -69,7 +74,10 @@ class Client(object):
             self._credential = config.credential
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
+        self._network = config.network
+        self._suffix = config.suffix
         self._protocol = config.protocol
+        self._method = config.method
         self._region_id = config.region_id
         self._user_agent = config.user_agent
         self._read_timeout = config.read_timeout
@@ -80,6 +88,7 @@ class Client(object):
         self._socks_5proxy = config.socks_5proxy
         self._socks_5net_work = config.socks_5net_work
         self._max_idle_conns = config.max_idle_conns
+        self._signature_version = config.signature_version
         self._signature_algorithm = config.signature_algorithm
 
     def do_rpcrequest(self, action, version, protocol, method, auth_type, body_type, request, runtime):
@@ -685,6 +694,131 @@ class Client(object):
                     return {
                         'headers': _response.headers
                     }
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+        raise UnretryableException(_last_request, _last_exception)
+
+    def execute(self, params, request, runtime):
+        """
+        Encapsulate the request and invoke the network
+
+        @param action: api name
+
+        @param version: product version
+
+        @param protocol: http or https
+
+        @param method: e.g. GET
+
+        @param auth_type: authorization type e.g. AK
+
+        @param body_type: response body type e.g. String
+
+        @param request: object of OpenApiRequest
+
+        @param runtime: which controls some details of call api, such as retry times
+
+        @rtype: dict
+        @return: the response
+        """
+        params.validate()
+        request.validate()
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': runtime.ignore_ssl
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                # spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+                headers = self.get_rpc_headers()
+                request_context = spi_models.InterceptorContextRequest(
+                    headers=TeaCore.merge(request.headers,
+                        headers),
+                    query=request.query,
+                    body=request.body,
+                    stream=request.stream,
+                    host_map=request.host_map,
+                    pathname=params.pathname,
+                    product_id=self._product_id,
+                    action=params.action,
+                    version=params.version,
+                    protocol=UtilClient.default_string(self._protocol, params.protocol),
+                    method=UtilClient.default_string(self._protocol, params.method),
+                    auth_type=params.auth_type,
+                    body_type=params.body_type,
+                    req_body_type=params.req_body_type,
+                    style=params.style,
+                    credential=self._credential,
+                    signature_version=self._signature_version,
+                    signature_algorithm=self._signature_algorithm,
+                    user_agent=self.get_user_agent()
+                )
+                configuration_context = spi_models.InterceptorContextConfiguration(
+                    region_id=self._region_id,
+                    endpoint=self._endpoint,
+                    endpoint_rule=self._endpoint_rule,
+                    endpoint_map=self._endpoint_map,
+                    endpoint_type=self._endpoint_type,
+                    network=self._network,
+                    suffix=self._suffix
+                )
+                interceptor_context = spi_models.InterceptorContext(
+                    request=request_context,
+                    configuration=configuration_context
+                )
+                attribute_map = spi_models.AttributeMap()
+                # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                self._spi.modify_configuration(interceptor_context, attribute_map)
+                # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                self._spi.modify_request(interceptor_context, attribute_map)
+                _request.protocol = interceptor_context.request.protocol
+                _request.method = interceptor_context.request.method
+                _request.pathname = interceptor_context.request.pathname
+                _request.query = interceptor_context.request.query
+                _request.body = interceptor_context.request.stream
+                _request.headers = interceptor_context.request.headers
+                _last_request = _request
+                _response = TeaCore.do_action(_request, _runtime)
+                response_context = spi_models.InterceptorContextResponse(
+                    status_code=_response.status_code,
+                    headers=_response.headers,
+                    body=_response.body
+                )
+                interceptor_context.response = response_context
+                # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                self._spi.modify_response(interceptor_context, attribute_map)
+                return {
+                    'headers': interceptor_context.response.headers,
+                    'body': interceptor_context.response.deserialized_body
+                }
             except Exception as e:
                 if TeaCore.is_retryable(e):
                     _last_exception = e
