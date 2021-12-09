@@ -1,3 +1,7 @@
+### 2021-12-09 Version 0.1.0
+
+- Support SPI && execute function.
+
 ### 2021-09-17 Version 0.0.15
 
 - Add contentType in DoRequest.
