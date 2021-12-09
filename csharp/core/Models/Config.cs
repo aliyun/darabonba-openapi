@@ -44,6 +44,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         public string Protocol { get; set; }
 
         /// <summary>
+        /// http method
+        /// </summary>
+        [NameInMap("method")]
+        [Validation(Required=false)]
+        public string Method { get; set; }
+
+        /// <summary>
         /// region id
         /// </summary>
         [NameInMap("regionId")]
@@ -162,6 +169,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         [Obsolete]
         public string Type { get; set; }
+
+        /// <summary>
+        /// Signature Version
+        /// </summary>
+        [NameInMap("signatureVersion")]
+        [Validation(Required=false)]
+        public string SignatureVersion { get; set; }
 
         /// <summary>
         /// Signature Algorithm

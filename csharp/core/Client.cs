@@ -18,6 +18,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _endpoint;
         protected string _regionId;
         protected string _protocol;
+        protected string _method;
         protected string _userAgent;
         protected string _endpointRule;
         protected Dictionary<string, string> _endpointMap;
@@ -35,8 +36,10 @@ namespace AlibabaCloud.OpenApiClient
         protected string _endpointType;
         protected string _openPlatformEndpoint;
         protected Aliyun.Credentials.Client _credential;
+        protected string _signatureVersion;
         protected string _signatureAlgorithm;
         protected Dictionary<string, string> _headers;
+        protected AlibabaCloud.GatewaySpi.Client _spi;
 
         /**
          * Init client with Config
@@ -77,7 +80,10 @@ namespace AlibabaCloud.OpenApiClient
             }
             this._endpoint = config.Endpoint;
             this._endpointType = config.EndpointType;
+            this._network = config.Network;
+            this._suffix = config.Suffix;
             this._protocol = config.Protocol;
+            this._method = config.Method;
             this._regionId = config.RegionId;
             this._userAgent = config.UserAgent;
             this._readTimeout = config.ReadTimeout;
@@ -88,6 +94,7 @@ namespace AlibabaCloud.OpenApiClient
             this._socks5Proxy = config.Socks5Proxy;
             this._socks5NetWork = config.Socks5NetWork;
             this._maxIdleConns = config.MaxIdleConns;
+            this._signatureVersion = config.SignatureVersion;
             this._signatureAlgorithm = config.SignatureAlgorithm;
         }
 
@@ -1646,6 +1653,290 @@ namespace AlibabaCloud.OpenApiClient
                             {"headers", response_.Headers},
                         };
                     }
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        /**
+         * Encapsulate the request and invoke the network
+         * @param action api name
+         * @param version product version
+         * @param protocol http or https
+         * @param method e.g. GET
+         * @param authType authorization type e.g. AK
+         * @param bodyType response body type e.g. String
+         * @param request object of OpenApiRequest
+         * @param runtime which controls some details of call api, such as retry times
+         * @return the response
+         */
+        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            params_.Validate();
+            request.Validate();
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", runtime.IgnoreSSL},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+                    Dictionary<string, string> headers = GetRpcHeaders();
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
+                    {
+                        Headers = TeaConverter.merge<string>
+                        (
+                            request.Headers,
+                            headers
+                        ),
+                        Query = request.Query,
+                        Body = request.Body,
+                        Stream = request.Stream,
+                        HostMap = request.HostMap,
+                        Pathname = params_.Pathname,
+                        ProductId = _productId,
+                        Action = params_.Action,
+                        Version = params_.Version,
+                        Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol),
+                        Method = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Method),
+                        AuthType = params_.AuthType,
+                        BodyType = params_.BodyType,
+                        ReqBodyType = params_.ReqBodyType,
+                        Style = params_.Style,
+                        Credential = _credential,
+                        SignatureVersion = _signatureVersion,
+                        SignatureAlgorithm = _signatureAlgorithm,
+                        UserAgent = GetUserAgent(),
+                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration configurationContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration
+                    {
+                        RegionId = _regionId,
+                        Endpoint = _endpoint,
+                        EndpointRule = _endpointRule,
+                        EndpointMap = _endpointMap,
+                        EndpointType = _endpointType,
+                        Network = _network,
+                        Suffix = _suffix,
+                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext
+                    {
+                        Request = requestContext,
+                        Configuration = configurationContext,
+                    };
+                    AlibabaCloud.GatewaySpi.Models.AttributeMap attributeMap = new AlibabaCloud.GatewaySpi.Models.AttributeMap();
+                    // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    this._spi.ModifyConfiguration(interceptorContext, attributeMap);
+                    // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    this._spi.ModifyRequest(interceptorContext, attributeMap);
+                    request_.Protocol = interceptorContext.Request.Protocol;
+                    request_.Method = interceptorContext.Request.Method;
+                    request_.Pathname = interceptorContext.Request.Pathname;
+                    request_.Query = interceptorContext.Request.Query;
+                    request_.Body = interceptorContext.Request.Stream;
+                    request_.Headers = interceptorContext.Request.Headers;
+                    _lastRequest = request_;
+                    TeaResponse response_ = TeaCore.DoAction(request_, runtime_);
+
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextResponse responseContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextResponse
+                    {
+                        StatusCode = response_.StatusCode,
+                        Headers = response_.Headers,
+                        Body = response_.Body,
+                    };
+                    interceptorContext.Response = responseContext;
+                    // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    this._spi.ModifyResponse(interceptorContext, attributeMap);
+                    return new Dictionary<string, object>
+                    {
+                        {"headers", interceptorContext.Response.Headers},
+                        {"body", interceptorContext.Response.DeserializedBody},
+                    };
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        /**
+         * Encapsulate the request and invoke the network
+         * @param action api name
+         * @param version product version
+         * @param protocol http or https
+         * @param method e.g. GET
+         * @param authType authorization type e.g. AK
+         * @param bodyType response body type e.g. String
+         * @param request object of OpenApiRequest
+         * @param runtime which controls some details of call api, such as retry times
+         * @return the response
+         */
+        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            params_.Validate();
+            request.Validate();
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", runtime.IgnoreSSL},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
+                    Dictionary<string, string> headers = GetRpcHeaders();
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
+                    {
+                        Headers = TeaConverter.merge<string>
+                        (
+                            request.Headers,
+                            headers
+                        ),
+                        Query = request.Query,
+                        Body = request.Body,
+                        Stream = request.Stream,
+                        HostMap = request.HostMap,
+                        Pathname = params_.Pathname,
+                        ProductId = _productId,
+                        Action = params_.Action,
+                        Version = params_.Version,
+                        Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol),
+                        Method = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Method),
+                        AuthType = params_.AuthType,
+                        BodyType = params_.BodyType,
+                        ReqBodyType = params_.ReqBodyType,
+                        Style = params_.Style,
+                        Credential = _credential,
+                        SignatureVersion = _signatureVersion,
+                        SignatureAlgorithm = _signatureAlgorithm,
+                        UserAgent = GetUserAgent(),
+                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration configurationContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration
+                    {
+                        RegionId = _regionId,
+                        Endpoint = _endpoint,
+                        EndpointRule = _endpointRule,
+                        EndpointMap = _endpointMap,
+                        EndpointType = _endpointType,
+                        Network = _network,
+                        Suffix = _suffix,
+                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext
+                    {
+                        Request = requestContext,
+                        Configuration = configurationContext,
+                    };
+                    AlibabaCloud.GatewaySpi.Models.AttributeMap attributeMap = new AlibabaCloud.GatewaySpi.Models.AttributeMap();
+                    // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    await this._spi.ModifyConfigurationAsync(interceptorContext, attributeMap);
+                    // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    await this._spi.ModifyRequestAsync(interceptorContext, attributeMap);
+                    request_.Protocol = interceptorContext.Request.Protocol;
+                    request_.Method = interceptorContext.Request.Method;
+                    request_.Pathname = interceptorContext.Request.Pathname;
+                    request_.Query = interceptorContext.Request.Query;
+                    request_.Body = interceptorContext.Request.Stream;
+                    request_.Headers = interceptorContext.Request.Headers;
+                    _lastRequest = request_;
+                    TeaResponse response_ = await TeaCore.DoActionAsync(request_, runtime_);
+
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextResponse responseContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextResponse
+                    {
+                        StatusCode = response_.StatusCode,
+                        Headers = response_.Headers,
+                        Body = response_.Body,
+                    };
+                    interceptorContext.Response = responseContext;
+                    // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                    await this._spi.ModifyResponseAsync(interceptorContext, attributeMap);
+                    return new Dictionary<string, object>
+                    {
+                        {"headers", interceptorContext.Response.Headers},
+                        {"body", interceptorContext.Response.DeserializedBody},
+                    };
                 }
                 catch (Exception e)
                 {
