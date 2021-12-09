@@ -25,6 +25,10 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public Stream Stream { get; set; }
 
+        [NameInMap("hostMap")]
+        [Validation(Required=false)]
+        public Dictionary<string, string> HostMap { get; set; }
+
     }
 
 }
