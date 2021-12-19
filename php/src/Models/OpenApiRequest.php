@@ -8,14 +8,6 @@ use AlibabaCloud\Tea\Model;
 
 class OpenApiRequest extends Model
 {
-    public $headers;
-
-    public $query;
-
-    public $body;
-
-    public $stream;
-
     public function validate()
     {
     }
@@ -34,6 +26,9 @@ class OpenApiRequest extends Model
         }
         if (null !== $this->stream) {
             $res['stream'] = $this->stream;
+        }
+        if (null !== $this->hostMap) {
+            $res['hostMap'] = $this->hostMap;
         }
 
         return $res;
@@ -59,7 +54,20 @@ class OpenApiRequest extends Model
         if (isset($map['stream'])) {
             $model->stream = $map['stream'];
         }
+        if (isset($map['hostMap'])) {
+            $model->hostMap = $map['hostMap'];
+        }
 
         return $model;
     }
+
+    public $headers;
+
+    public $query;
+
+    public $body;
+
+    public $stream;
+
+    public $hostMap;
 }

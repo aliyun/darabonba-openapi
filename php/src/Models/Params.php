@@ -8,48 +8,6 @@ use AlibabaCloud\Tea\Model;
 
 class Params extends Model
 {
-    /**
-     * @var string
-     */
-    public $action;
-
-    /**
-     * @var string
-     */
-    public $version;
-
-    /**
-     * @var string
-     */
-    public $protocol;
-
-    /**
-     * @var string
-     */
-    public $pathname;
-
-    /**
-     * @var string
-     */
-    public $method;
-
-    /**
-     * @var string
-     */
-    public $authType;
-
-    /**
-     * @var string
-     */
-    public $bodyType;
-
-    /**
-     * @var string
-     */
-    public $reqBodyType;
-
-    public $style;
-
     public function validate()
     {
         Model::validateRequired('action', $this->action, true);
@@ -134,4 +92,46 @@ class Params extends Model
 
         return $model;
     }
+
+    /**
+     * @var string
+     */
+    public $action;
+
+    /**
+     * @var string
+     */
+    public $version;
+
+    /**
+     * @var string
+     */
+    public $protocol;
+
+    /**
+     * @var string
+     */
+    public $pathname;
+
+    /**
+     * @var string
+     */
+    public $method;
+
+    /**
+     * @var string
+     */
+    public $authType;
+
+    /**
+     * @var string
+     */
+    public $bodyType;
+
+    /**
+     * @var string
+     */
+    public $reqBodyType;
+
+    public $style;
 }

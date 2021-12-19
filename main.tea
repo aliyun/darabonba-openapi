@@ -248,6 +248,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
   httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
   noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
     retryable = runtime.autoretry,
@@ -372,6 +374,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
   httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
   noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
     retryable = runtime.autoretry,
@@ -496,6 +500,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
   httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
   noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
     retryable = runtime.autoretry,
@@ -658,6 +664,8 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
   httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
   noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
     retryable = runtime.autoretry,
@@ -761,6 +769,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
   httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
   noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
     retryable = runtime.autoretry,

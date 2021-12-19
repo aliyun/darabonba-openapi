@@ -40,6 +40,7 @@ public class Client {
     public String _endpointType;
     public String _openPlatformEndpoint;
     public com.aliyun.credentials.Client _credential;
+    public String _signatureVersion;
     public String _signatureAlgorithm;
     public java.util.Map<String, String> _headers;
     public com.aliyun.gateway.spi.Client _spi;
@@ -77,7 +78,6 @@ public class Client {
         this._endpointType = config.endpointType;
         this._network = config.network;
         this._suffix = config.suffix;
-        this._endpointType = config.endpointType;
         this._protocol = config.protocol;
         this._method = config.method;
         this._regionId = config.regionId;
@@ -90,6 +90,7 @@ public class Client {
         this._socks5Proxy = config.socks5Proxy;
         this._socks5NetWork = config.socks5NetWork;
         this._maxIdleConns = config.maxIdleConns;
+        this._signatureVersion = config.signatureVersion;
         this._signatureAlgorithm = config.signatureAlgorithm;
     }
 
@@ -102,6 +103,8 @@ public class Client {
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
+            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
@@ -271,6 +274,8 @@ public class Client {
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
+            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
@@ -422,6 +427,8 @@ public class Client {
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
+            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
@@ -573,6 +580,8 @@ public class Client {
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
+            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
@@ -734,6 +743,8 @@ public class Client {
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
+            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
+            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
@@ -782,7 +793,8 @@ public class Client {
                     new TeaPair("reqBodyType", params.reqBodyType),
                     new TeaPair("style", params.style),
                     new TeaPair("credential", _credential),
-                    new TeaPair("signatureAlgorithm", com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256")),
+                    new TeaPair("signatureVersion", _signatureVersion),
+                    new TeaPair("signatureAlgorithm", _signatureAlgorithm),
                     new TeaPair("userAgent", this.getUserAgent())
                 ));
                 InterceptorContext.InterceptorContextConfiguration configurationContext = InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(

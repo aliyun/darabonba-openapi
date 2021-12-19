@@ -129,6 +129,8 @@ class Client(object):
             'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
             'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
             'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
             'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
             'retry': {
                 'retryable': runtime.autoretry,
@@ -292,6 +294,8 @@ class Client(object):
             'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
             'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
             'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
             'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
             'retry': {
                 'retryable': runtime.autoretry,
@@ -442,6 +446,8 @@ class Client(object):
             'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
             'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
             'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
             'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
             'retry': {
                 'retryable': runtime.autoretry,
@@ -583,6 +589,8 @@ class Client(object):
             'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
             'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
             'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
             'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
             'retry': {
                 'retryable': runtime.autoretry,
@@ -734,6 +742,8 @@ class Client(object):
             'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
             'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
             'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
             'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
             'retry': {
                 'retryable': runtime.autoretry,

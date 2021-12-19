@@ -272,6 +272,8 @@ export default class Client {
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
       httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
       noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
       maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
       retry: {
         retryable: runtime.autoretry,
@@ -441,6 +443,8 @@ export default class Client {
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
       httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
       noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
       maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
       retry: {
         retryable: runtime.autoretry,
@@ -594,6 +598,8 @@ export default class Client {
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
       httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
       noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
       maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
       retry: {
         retryable: runtime.autoretry,
@@ -745,6 +751,8 @@ export default class Client {
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
       httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
       noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
       maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
       retry: {
         retryable: runtime.autoretry,
@@ -906,6 +914,8 @@ export default class Client {
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
       httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
       noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
       maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
       retry: {
         retryable: runtime.autoretry,
