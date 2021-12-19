@@ -96,6 +96,10 @@ public class Config extends TeaModel {
     @Deprecated
     public String type;
 
+    // Signature Version
+    @NameInMap("signatureVersion")
+    public String signatureVersion;
+
     // Signature Algorithm
     @NameInMap("signatureAlgorithm")
     public String signatureAlgorithm;
@@ -279,6 +283,14 @@ public class Config extends TeaModel {
     }
     public String getType() {
         return this.type;
+    }
+
+    public Config setSignatureVersion(String signatureVersion) {
+        this.signatureVersion = signatureVersion;
+        return this;
+    }
+    public String getSignatureVersion() {
+        return this.signatureVersion;
     }
 
     public Config setSignatureAlgorithm(String signatureAlgorithm) {

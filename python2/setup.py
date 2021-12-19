@@ -25,7 +25,7 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi_py2.
 
-Created on 06/12/2021
+Created on 19/12/2021
 
 @author: Alibaba Cloud SDK
 """
@@ -40,7 +40,7 @@ VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
     "alibabacloud_tea_util_py2>=0.0.5, <1.0.0",
     "alibabacloud_credentials_py2>=0.0.1, <1.0.0",
-    "alibabacloud_openapi_util_py2>=0.0.7, <1.0.0",
+    "alibabacloud_openapi_util_py2>=0.0.8, <1.0.0",
     "alibabacloud_gateway_spi_py2>=0.0.1, <1.0.0"
 ]
 

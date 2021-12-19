@@ -12,6 +12,200 @@ use AlibabaCloud\Tea\Model;
  */
 class Config extends Model
 {
+    protected $_default = [
+        'accessKeyId' => '',
+        'accessKeySecret' => '',
+        'securityToken' => '',
+        'protocol' => 'http',
+        'method' => '',
+        'regionId' => '',
+        'readTimeout' => '',
+        'connectTimeout' => '',
+        'httpProxy' => '',
+        'httpsProxy' => '',
+        'credential' => '',
+        'endpoint' => '',
+        'noProxy' => '',
+        'maxIdleConns' => '',
+        'network' => '',
+        'userAgent' => '',
+        'suffix' => '',
+        'socks5Proxy' => '',
+        'socks5NetWork' => '',
+        'endpointType' => '',
+        'openPlatformEndpoint' => '',
+        'type' => '',
+        'signatureVersion' => '',
+        'signatureAlgorithm' => '',
+    ];
+
+    public function validate()
+    {
+    }
+
+    public function toMap()
+    {
+        $res = [];
+        if (null !== $this->accessKeyId) {
+            $res['accessKeyId'] = $this->accessKeyId;
+        }
+        if (null !== $this->accessKeySecret) {
+            $res['accessKeySecret'] = $this->accessKeySecret;
+        }
+        if (null !== $this->securityToken) {
+            $res['securityToken'] = $this->securityToken;
+        }
+        if (null !== $this->protocol) {
+            $res['protocol'] = $this->protocol;
+        }
+        if (null !== $this->method) {
+            $res['method'] = $this->method;
+        }
+        if (null !== $this->regionId) {
+            $res['regionId'] = $this->regionId;
+        }
+        if (null !== $this->readTimeout) {
+            $res['readTimeout'] = $this->readTimeout;
+        }
+        if (null !== $this->connectTimeout) {
+            $res['connectTimeout'] = $this->connectTimeout;
+        }
+        if (null !== $this->httpProxy) {
+            $res['httpProxy'] = $this->httpProxy;
+        }
+        if (null !== $this->httpsProxy) {
+            $res['httpsProxy'] = $this->httpsProxy;
+        }
+        if (null !== $this->credential) {
+            $res['credential'] = null !== $this->credential ? $this->credential->toMap() : null;
+        }
+        if (null !== $this->endpoint) {
+            $res['endpoint'] = $this->endpoint;
+        }
+        if (null !== $this->noProxy) {
+            $res['noProxy'] = $this->noProxy;
+        }
+        if (null !== $this->maxIdleConns) {
+            $res['maxIdleConns'] = $this->maxIdleConns;
+        }
+        if (null !== $this->network) {
+            $res['network'] = $this->network;
+        }
+        if (null !== $this->userAgent) {
+            $res['userAgent'] = $this->userAgent;
+        }
+        if (null !== $this->suffix) {
+            $res['suffix'] = $this->suffix;
+        }
+        if (null !== $this->socks5Proxy) {
+            $res['socks5Proxy'] = $this->socks5Proxy;
+        }
+        if (null !== $this->socks5NetWork) {
+            $res['socks5NetWork'] = $this->socks5NetWork;
+        }
+        if (null !== $this->endpointType) {
+            $res['endpointType'] = $this->endpointType;
+        }
+        if (null !== $this->openPlatformEndpoint) {
+            $res['openPlatformEndpoint'] = $this->openPlatformEndpoint;
+        }
+        if (null !== $this->type) {
+            $res['type'] = $this->type;
+        }
+        if (null !== $this->signatureVersion) {
+            $res['signatureVersion'] = $this->signatureVersion;
+        }
+        if (null !== $this->signatureAlgorithm) {
+            $res['signatureAlgorithm'] = $this->signatureAlgorithm;
+        }
+
+        return $res;
+    }
+
+    /**
+     * @param array $map
+     *
+     * @return Config
+     */
+    public static function fromMap($map = [])
+    {
+        $model = new self();
+        if (isset($map['accessKeyId'])) {
+            $model->accessKeyId = $map['accessKeyId'];
+        }
+        if (isset($map['accessKeySecret'])) {
+            $model->accessKeySecret = $map['accessKeySecret'];
+        }
+        if (isset($map['securityToken'])) {
+            $model->securityToken = $map['securityToken'];
+        }
+        if (isset($map['protocol'])) {
+            $model->protocol = $map['protocol'];
+        }
+        if (isset($map['method'])) {
+            $model->method = $map['method'];
+        }
+        if (isset($map['regionId'])) {
+            $model->regionId = $map['regionId'];
+        }
+        if (isset($map['readTimeout'])) {
+            $model->readTimeout = $map['readTimeout'];
+        }
+        if (isset($map['connectTimeout'])) {
+            $model->connectTimeout = $map['connectTimeout'];
+        }
+        if (isset($map['httpProxy'])) {
+            $model->httpProxy = $map['httpProxy'];
+        }
+        if (isset($map['httpsProxy'])) {
+            $model->httpsProxy = $map['httpsProxy'];
+        }
+        if (isset($map['credential'])) {
+            $model->credential = Credential::fromMap($map['credential']);
+        }
+        if (isset($map['endpoint'])) {
+            $model->endpoint = $map['endpoint'];
+        }
+        if (isset($map['noProxy'])) {
+            $model->noProxy = $map['noProxy'];
+        }
+        if (isset($map['maxIdleConns'])) {
+            $model->maxIdleConns = $map['maxIdleConns'];
+        }
+        if (isset($map['network'])) {
+            $model->network = $map['network'];
+        }
+        if (isset($map['userAgent'])) {
+            $model->userAgent = $map['userAgent'];
+        }
+        if (isset($map['suffix'])) {
+            $model->suffix = $map['suffix'];
+        }
+        if (isset($map['socks5Proxy'])) {
+            $model->socks5Proxy = $map['socks5Proxy'];
+        }
+        if (isset($map['socks5NetWork'])) {
+            $model->socks5NetWork = $map['socks5NetWork'];
+        }
+        if (isset($map['endpointType'])) {
+            $model->endpointType = $map['endpointType'];
+        }
+        if (isset($map['openPlatformEndpoint'])) {
+            $model->openPlatformEndpoint = $map['openPlatformEndpoint'];
+        }
+        if (isset($map['type'])) {
+            $model->type = $map['type'];
+        }
+        if (isset($map['signatureVersion'])) {
+            $model->signatureVersion = $map['signatureVersion'];
+        }
+        if (isset($map['signatureAlgorithm'])) {
+            $model->signatureAlgorithm = $map['signatureAlgorithm'];
+        }
+
+        return $model;
+    }
+
     /**
      * @description accesskey id
      *
@@ -43,6 +237,15 @@ class Config extends Model
      * @var string
      */
     public $protocol;
+
+    /**
+     * @description http method
+     *
+     * @example GET
+     *
+     * @var string
+     */
+    public $method;
 
     /**
      * @description region id
@@ -198,6 +401,15 @@ class Config extends Model
     public $type;
 
     /**
+     * @description Signature Version
+     *
+     * @example v1
+     *
+     * @var string
+     */
+    public $signatureVersion;
+
+    /**
      * @description Signature Algorithm
      *
      * @example ACS3-HMAC-SHA256
@@ -205,183 +417,4 @@ class Config extends Model
      * @var string
      */
     public $signatureAlgorithm;
-    protected $_default = [
-        'accessKeyId'          => '',
-        'accessKeySecret'      => '',
-        'securityToken'        => '',
-        'protocol'             => 'http',
-        'regionId'             => '',
-        'readTimeout'          => '',
-        'connectTimeout'       => '',
-        'httpProxy'            => '',
-        'httpsProxy'           => '',
-        'credential'           => '',
-        'endpoint'             => '',
-        'noProxy'              => '',
-        'maxIdleConns'         => '',
-        'network'              => '',
-        'userAgent'            => '',
-        'suffix'               => '',
-        'socks5Proxy'          => '',
-        'socks5NetWork'        => '',
-        'endpointType'         => '',
-        'openPlatformEndpoint' => '',
-        'type'                 => '',
-        'signatureAlgorithm'   => '',
-    ];
-
-    public function validate()
-    {
-    }
-
-    public function toMap()
-    {
-        $res = [];
-        if (null !== $this->accessKeyId) {
-            $res['accessKeyId'] = $this->accessKeyId;
-        }
-        if (null !== $this->accessKeySecret) {
-            $res['accessKeySecret'] = $this->accessKeySecret;
-        }
-        if (null !== $this->securityToken) {
-            $res['securityToken'] = $this->securityToken;
-        }
-        if (null !== $this->protocol) {
-            $res['protocol'] = $this->protocol;
-        }
-        if (null !== $this->regionId) {
-            $res['regionId'] = $this->regionId;
-        }
-        if (null !== $this->readTimeout) {
-            $res['readTimeout'] = $this->readTimeout;
-        }
-        if (null !== $this->connectTimeout) {
-            $res['connectTimeout'] = $this->connectTimeout;
-        }
-        if (null !== $this->httpProxy) {
-            $res['httpProxy'] = $this->httpProxy;
-        }
-        if (null !== $this->httpsProxy) {
-            $res['httpsProxy'] = $this->httpsProxy;
-        }
-        if (null !== $this->credential) {
-            $res['credential'] = null !== $this->credential ? $this->credential->toMap() : null;
-        }
-        if (null !== $this->endpoint) {
-            $res['endpoint'] = $this->endpoint;
-        }
-        if (null !== $this->noProxy) {
-            $res['noProxy'] = $this->noProxy;
-        }
-        if (null !== $this->maxIdleConns) {
-            $res['maxIdleConns'] = $this->maxIdleConns;
-        }
-        if (null !== $this->network) {
-            $res['network'] = $this->network;
-        }
-        if (null !== $this->userAgent) {
-            $res['userAgent'] = $this->userAgent;
-        }
-        if (null !== $this->suffix) {
-            $res['suffix'] = $this->suffix;
-        }
-        if (null !== $this->socks5Proxy) {
-            $res['socks5Proxy'] = $this->socks5Proxy;
-        }
-        if (null !== $this->socks5NetWork) {
-            $res['socks5NetWork'] = $this->socks5NetWork;
-        }
-        if (null !== $this->endpointType) {
-            $res['endpointType'] = $this->endpointType;
-        }
-        if (null !== $this->openPlatformEndpoint) {
-            $res['openPlatformEndpoint'] = $this->openPlatformEndpoint;
-        }
-        if (null !== $this->type) {
-            $res['type'] = $this->type;
-        }
-        if (null !== $this->signatureAlgorithm) {
-            $res['signatureAlgorithm'] = $this->signatureAlgorithm;
-        }
-
-        return $res;
-    }
-
-    /**
-     * @param array $map
-     *
-     * @return Config
-     */
-    public static function fromMap($map = [])
-    {
-        $model = new self();
-        if (isset($map['accessKeyId'])) {
-            $model->accessKeyId = $map['accessKeyId'];
-        }
-        if (isset($map['accessKeySecret'])) {
-            $model->accessKeySecret = $map['accessKeySecret'];
-        }
-        if (isset($map['securityToken'])) {
-            $model->securityToken = $map['securityToken'];
-        }
-        if (isset($map['protocol'])) {
-            $model->protocol = $map['protocol'];
-        }
-        if (isset($map['regionId'])) {
-            $model->regionId = $map['regionId'];
-        }
-        if (isset($map['readTimeout'])) {
-            $model->readTimeout = $map['readTimeout'];
-        }
-        if (isset($map['connectTimeout'])) {
-            $model->connectTimeout = $map['connectTimeout'];
-        }
-        if (isset($map['httpProxy'])) {
-            $model->httpProxy = $map['httpProxy'];
-        }
-        if (isset($map['httpsProxy'])) {
-            $model->httpsProxy = $map['httpsProxy'];
-        }
-        if (isset($map['credential'])) {
-            $model->credential = Credential::fromMap($map['credential']);
-        }
-        if (isset($map['endpoint'])) {
-            $model->endpoint = $map['endpoint'];
-        }
-        if (isset($map['noProxy'])) {
-            $model->noProxy = $map['noProxy'];
-        }
-        if (isset($map['maxIdleConns'])) {
-            $model->maxIdleConns = $map['maxIdleConns'];
-        }
-        if (isset($map['network'])) {
-            $model->network = $map['network'];
-        }
-        if (isset($map['userAgent'])) {
-            $model->userAgent = $map['userAgent'];
-        }
-        if (isset($map['suffix'])) {
-            $model->suffix = $map['suffix'];
-        }
-        if (isset($map['socks5Proxy'])) {
-            $model->socks5Proxy = $map['socks5Proxy'];
-        }
-        if (isset($map['socks5NetWork'])) {
-            $model->socks5NetWork = $map['socks5NetWork'];
-        }
-        if (isset($map['endpointType'])) {
-            $model->endpointType = $map['endpointType'];
-        }
-        if (isset($map['openPlatformEndpoint'])) {
-            $model->openPlatformEndpoint = $map['openPlatformEndpoint'];
-        }
-        if (isset($map['type'])) {
-            $model->type = $map['type'];
-        }
-        if (isset($map['signatureAlgorithm'])) {
-            $model->signatureAlgorithm = $map['signatureAlgorithm'];
-        }
-
-        return $model;
-    }
 }
