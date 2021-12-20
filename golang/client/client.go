@@ -5,12 +5,13 @@
 package client
 
 import (
+	"io"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 /**
@@ -1088,6 +1089,19 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				"x-acs-signature-nonce": util.GetNonce(),
 				"accept":                tea.String("application/json"),
 			}, request.Headers)
+			if tea.BoolValue(util.EqualString(params.Style, tea.String("RPC"))) {
+				headers, _err := client.GetRpcHeaders()
+				if _err != nil {
+					return _result, _err
+				}
+
+				if !tea.BoolValue(util.IsUnset(headers)) {
+					request_.Headers = tea.Merge(request_.Headers,
+						headers)
+				}
+
+			}
+
 			signatureAlgorithm := util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256"))
 			hashedRequestPayload := openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(tea.String("")), signatureAlgorithm))
 			if !tea.BoolValue(util.IsUnset(request.Stream)) {

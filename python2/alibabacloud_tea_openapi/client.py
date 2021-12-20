@@ -628,6 +628,11 @@ class Client(object):
                     'x-acs-signature-nonce': UtilClient.get_nonce(),
                     'accept': 'application/json'
                 }, request.headers)
+                if UtilClient.equal_string(params.style, 'RPC'):
+                    headers = self.get_rpc_headers()
+                    if not UtilClient.is_unset(headers):
+                        _request.headers = TeaCore.merge(_request.headers,
+                            headers)
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.stream):

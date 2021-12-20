@@ -572,6 +572,15 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     accept = 'application/json',
     ...request.headers,
   };
+  if (Util.equalString(params.style, 'RPC')) {
+    var headers = getRpcHeaders();
+    if (!Util.isUnset(headers)) {
+      __request.headers = {
+        ...__request.headers,
+        ...headers
+      };
+    }
+  }
 
   var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');
   var hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(''), signatureAlgorithm));
