@@ -1357,6 +1357,18 @@ namespace AlibabaCloud.OpenApiClient
                         },
                         request.Headers
                     );
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
+                    {
+                        Dictionary<string, string> headers = GetRpcHeaders();
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(headers))
+                        {
+                            request_.Headers = TeaConverter.merge<string>
+                            (
+                                request_.Headers,
+                                headers
+                            );
+                        }
+                    }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))
@@ -1559,6 +1571,18 @@ namespace AlibabaCloud.OpenApiClient
                         },
                         request.Headers
                     );
+                    if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
+                    {
+                        Dictionary<string, string> headers = GetRpcHeaders();
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(headers))
+                        {
+                            request_.Headers = TeaConverter.merge<string>
+                            (
+                                request_.Headers,
+                                headers
+                            );
+                        }
+                    }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Stream))

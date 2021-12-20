@@ -672,6 +672,12 @@ class OpenApiClient
                     'x-acs-signature-nonce' => Utils::getNonce(),
                     'accept' => 'application/json',
                 ], $request->headers);
+                if (Utils::equalString($params->style, 'RPC')) {
+                    $headers = $this->getRpcHeaders();
+                    if (!Utils::isUnset($headers)) {
+                        $_request->headers = Tea::merge($_request->headers, $headers);
+                    }
+                }
                 $signatureAlgorithm = Utils::defaultString($this->_signatureAlgorithm, 'ACS3-HMAC-SHA256');
                 $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes(''), $signatureAlgorithm));
                 if (!Utils::isUnset($request->stream)) {

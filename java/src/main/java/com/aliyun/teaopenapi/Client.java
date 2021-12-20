@@ -626,6 +626,17 @@ public class Client {
                     ),
                     request.headers
                 );
+                if (com.aliyun.teautil.Common.equalString(params.style, "RPC")) {
+                    java.util.Map<String, String> headers = this.getRpcHeaders();
+                    if (!com.aliyun.teautil.Common.isUnset(headers)) {
+                        request_.headers = TeaConverter.merge(String.class,
+                            request_.headers,
+                            headers
+                        );
+                    }
+
+                }
+
                 String signatureAlgorithm = com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                 String hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(""), signatureAlgorithm));
                 if (!com.aliyun.teautil.Common.isUnset(request.stream)) {

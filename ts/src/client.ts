@@ -794,6 +794,17 @@ export default class Client {
           accept: "application/json",
           ...request.headers,
         };
+        if (Util.equalString(params.style, "RPC")) {
+          let headers = this.getRpcHeaders();
+          if (!Util.isUnset(headers)) {
+            request_.headers = {
+              ...request_.headers,
+              ...headers,
+            };
+          }
+
+        }
+
         let signatureAlgorithm = Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256");
         let hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(""), signatureAlgorithm));
         if (!Util.isUnset(request.stream)) {
