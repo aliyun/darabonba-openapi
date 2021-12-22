@@ -969,7 +969,7 @@ export default class Client {
           action: params.action,
           version: params.version,
           protocol: Util.defaultString(this._protocol, params.protocol),
-          method: Util.defaultString(this._protocol, params.method),
+          method: Util.defaultString(this._method, params.method),
           authType: params.authType,
           bodyType: params.bodyType,
           reqBodyType: params.reqBodyType,

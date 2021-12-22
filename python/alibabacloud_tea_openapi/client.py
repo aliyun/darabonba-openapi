@@ -1356,7 +1356,7 @@ class Client:
                     action=params.action,
                     version=params.version,
                     protocol=UtilClient.default_string(self._protocol, params.protocol),
-                    method=UtilClient.default_string(self._protocol, params.method),
+                    method=UtilClient.default_string(self._method, params.method),
                     auth_type=params.auth_type,
                     body_type=params.body_type,
                     req_body_type=params.req_body_type,

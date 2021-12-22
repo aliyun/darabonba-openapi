@@ -1324,7 +1324,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				Action:             params.Action,
 				Version:            params.Version,
 				Protocol:           util.DefaultString(client.Protocol, params.Protocol),
-				Method:             util.DefaultString(client.Protocol, params.Method),
+				Method:             util.DefaultString(client.Method, params.Method),
 				AuthType:           params.AuthType,
 				BodyType:           params.BodyType,
 				ReqBodyType:        params.ReqBodyType,

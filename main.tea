@@ -717,7 +717,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     action = params.action,
     version = params.version,
     protocol = Util.defaultString(@protocol, params.protocol),
-    method = Util.defaultString(@protocol, params.method),
+    method = Util.defaultString(@method, params.method),
     authType = params.authType,
     bodyType = params.bodyType,
     reqBodyType = params.reqBodyType,
