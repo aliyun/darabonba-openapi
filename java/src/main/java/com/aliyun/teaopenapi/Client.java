@@ -798,7 +798,7 @@ public class Client {
                     new TeaPair("action", params.action),
                     new TeaPair("version", params.version),
                     new TeaPair("protocol", com.aliyun.teautil.Common.defaultString(_protocol, params.protocol)),
-                    new TeaPair("method", com.aliyun.teautil.Common.defaultString(_protocol, params.method)),
+                    new TeaPair("method", com.aliyun.teautil.Common.defaultString(_method, params.method)),
                     new TeaPair("authType", params.authType),
                     new TeaPair("bodyType", params.bodyType),
                     new TeaPair("reqBodyType", params.reqBodyType),

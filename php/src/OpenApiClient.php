@@ -839,7 +839,7 @@ class OpenApiClient
                     'action' => $params->action,
                     'version' => $params->version,
                     'protocol' => Utils::defaultString($this->_protocol, $params->protocol),
-                    'method' => Utils::defaultString($this->_protocol, $params->method),
+                    'method' => Utils::defaultString($this->_method, $params->method),
                     'authType' => $params->authType,
                     'bodyType' => $params->bodyType,
                     'reqBodyType' => $params->reqBodyType,
