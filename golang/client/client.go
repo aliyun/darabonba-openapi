@@ -328,7 +328,7 @@ type Client struct {
 	SignatureVersion     *string
 	SignatureAlgorithm   *string
 	Headers              map[string]*string
-	Spi                  spi.Client
+	Spi                  spi.ClientInterface
 }
 
 /**
