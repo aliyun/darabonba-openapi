@@ -19,6 +19,9 @@ public class OpenApiRequest extends TeaModel {
     @NameInMap("hostMap")
     public java.util.Map<String, String> hostMap;
 
+    @NameInMap("endpointOverride")
+    public String endpointOverride;
+
     public static OpenApiRequest build(java.util.Map<String, ?> map) throws Exception {
         OpenApiRequest self = new OpenApiRequest();
         return TeaModel.build(map, self);
@@ -62,6 +65,14 @@ public class OpenApiRequest extends TeaModel {
     }
     public java.util.Map<String, String> getHostMap() {
         return this.hostMap;
+    }
+
+    public OpenApiRequest setEndpointOverride(String endpointOverride) {
+        this.endpointOverride = endpointOverride;
+        return this;
+    }
+    public String getEndpointOverride() {
+        return this.endpointOverride;
     }
 
 }

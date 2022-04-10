@@ -803,7 +803,7 @@ class Client(object):
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
                     region_id=self._region_id,
-                    endpoint=self._endpoint,
+                    endpoint=UtilClient.default_string(request.endpoint_override, self._endpoint),
                     endpoint_rule=self._endpoint_rule,
                     endpoint_map=self._endpoint_map,
                     endpoint_type=self._endpoint_type,

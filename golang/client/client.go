@@ -198,11 +198,12 @@ func (s *Config) SetSignatureAlgorithm(v string) *Config {
 }
 
 type OpenApiRequest struct {
-	Headers map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
-	Query   map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
-	Body    interface{}        `json:"body,omitempty" xml:"body,omitempty"`
-	Stream  io.Reader          `json:"stream,omitempty" xml:"stream,omitempty"`
-	HostMap map[string]*string `json:"hostMap,omitempty" xml:"hostMap,omitempty"`
+	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
+	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
+	Body             interface{}        `json:"body,omitempty" xml:"body,omitempty"`
+	Stream           io.Reader          `json:"stream,omitempty" xml:"stream,omitempty"`
+	HostMap          map[string]*string `json:"hostMap,omitempty" xml:"hostMap,omitempty"`
+	EndpointOverride *string            `json:"endpointOverride,omitempty" xml:"endpointOverride,omitempty"`
 }
 
 func (s OpenApiRequest) String() string {
@@ -235,6 +236,11 @@ func (s *OpenApiRequest) SetStream(v io.Reader) *OpenApiRequest {
 
 func (s *OpenApiRequest) SetHostMap(v map[string]*string) *OpenApiRequest {
 	s.HostMap = v
+	return s
+}
+
+func (s *OpenApiRequest) SetEndpointOverride(v string) *OpenApiRequest {
+	s.EndpointOverride = &v
 	return s
 }
 
@@ -1351,7 +1357,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			}
 			configurationContext := &spi.InterceptorContextConfiguration{
 				RegionId:     client.RegionId,
-				Endpoint:     client.Endpoint,
+				Endpoint:     util.DefaultString(request.EndpointOverride, client.Endpoint),
 				EndpointRule: client.EndpointRule,
 				EndpointMap:  client.EndpointMap,
 				EndpointType: client.EndpointType,

@@ -1378,7 +1378,7 @@ class Client:
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
                     region_id=self._region_id,
-                    endpoint=self._endpoint,
+                    endpoint=UtilClient.default_string(request.endpoint_override, self._endpoint),
                     endpoint_rule=self._endpoint_rule,
                     endpoint_map=self._endpoint_map,
                     endpoint_type=self._endpoint_type,
@@ -1488,7 +1488,7 @@ class Client:
                     action=params.action,
                     version=params.version,
                     protocol=UtilClient.default_string(self._protocol, params.protocol),
-                    method=UtilClient.default_string(self._protocol, params.method),
+                    method=UtilClient.default_string(self._method, params.method),
                     auth_type=params.auth_type,
                     body_type=params.body_type,
                     req_body_type=params.req_body_type,
@@ -1500,7 +1500,7 @@ class Client:
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
                     region_id=self._region_id,
-                    endpoint=self._endpoint,
+                    endpoint=UtilClient.default_string(request.endpoint_override, self._endpoint),
                     endpoint_rule=self._endpoint_rule,
                     endpoint_map=self._endpoint_map,
                     endpoint_type=self._endpoint_type,

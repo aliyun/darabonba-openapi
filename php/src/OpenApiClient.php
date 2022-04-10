@@ -857,7 +857,7 @@ class OpenApiClient
                 ]);
                 $configurationContext = new configuration([
                     'regionId' => $this->_regionId,
-                    'endpoint' => $this->_endpoint,
+                    'endpoint' => Utils::defaultString($request->endpointOverride, $this->_endpoint),
                     'endpointRule' => $this->_endpointRule,
                     'endpointMap' => $this->_endpointMap,
                     'endpointType' => $this->_endpointType,

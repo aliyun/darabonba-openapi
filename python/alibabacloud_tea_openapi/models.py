@@ -206,12 +206,14 @@ class OpenApiRequest(TeaModel):
         body: Any = None,
         stream: BinaryIO = None,
         host_map: Dict[str, str] = None,
+        endpoint_override: str = None,
     ):
         self.headers = headers
         self.query = query
         self.body = body
         self.stream = stream
         self.host_map = host_map
+        self.endpoint_override = endpoint_override
 
     def validate(self):
         pass
@@ -232,6 +234,8 @@ class OpenApiRequest(TeaModel):
             result['stream'] = self.stream
         if self.host_map is not None:
             result['hostMap'] = self.host_map
+        if self.endpoint_override is not None:
+            result['endpointOverride'] = self.endpoint_override
         return result
 
     def from_map(self, m: dict = None):
@@ -246,6 +250,8 @@ class OpenApiRequest(TeaModel):
             self.stream = m.get('stream')
         if m.get('hostMap') is not None:
             self.host_map = m.get('hostMap')
+        if m.get('endpointOverride') is not None:
+            self.endpoint_override = m.get('endpointOverride')
         return self
 
 
