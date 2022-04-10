@@ -1797,7 +1797,7 @@ namespace AlibabaCloud.OpenApiClient
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration configurationContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = _endpoint,
+                        Endpoint = AlibabaCloud.TeaUtil.Common.DefaultString(request.EndpointOverride, _endpoint),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -1941,7 +1941,7 @@ namespace AlibabaCloud.OpenApiClient
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration configurationContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = _endpoint,
+                        Endpoint = AlibabaCloud.TeaUtil.Common.DefaultString(request.EndpointOverride, _endpoint),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,

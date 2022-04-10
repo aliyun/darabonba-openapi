@@ -810,7 +810,7 @@ public class Client {
                 ));
                 InterceptorContext.InterceptorContextConfiguration configurationContext = InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
                     new TeaPair("regionId", _regionId),
-                    new TeaPair("endpoint", _endpoint),
+                    new TeaPair("endpoint", com.aliyun.teautil.Common.defaultString(request.endpointOverride, _endpoint)),
                     new TeaPair("endpointRule", _endpointRule),
                     new TeaPair("endpointMap", _endpointMap),
                     new TeaPair("endpointType", _endpointType),

@@ -106,6 +106,7 @@ export class OpenApiRequest extends $tea.Model {
   body?: any;
   stream?: Readable;
   hostMap?: { [key: string]: string };
+  endpointOverride?: string;
   static names(): { [key: string]: string } {
     return {
       headers: 'headers',
@@ -113,6 +114,7 @@ export class OpenApiRequest extends $tea.Model {
       body: 'body',
       stream: 'stream',
       hostMap: 'hostMap',
+      endpointOverride: 'endpointOverride',
     };
   }
 
@@ -123,6 +125,7 @@ export class OpenApiRequest extends $tea.Model {
       body: 'any',
       stream: 'Readable',
       hostMap: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
+      endpointOverride: 'string',
     };
   }
 
@@ -981,7 +984,7 @@ export default class Client {
         });
         let configurationContext = new $SPI.InterceptorContextConfiguration({
           regionId: this._regionId,
-          endpoint: this._endpoint,
+          endpoint: Util.defaultString(request.endpointOverride, this._endpoint),
           endpointRule: this._endpointRule,
           endpointMap: this._endpointMap,
           endpointType: this._endpointType,

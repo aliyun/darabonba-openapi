@@ -29,6 +29,10 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public Dictionary<string, string> HostMap { get; set; }
 
+        [NameInMap("endpointOverride")]
+        [Validation(Required=false)]
+        public string EndpointOverride { get; set; }
+
     }
 
 }
