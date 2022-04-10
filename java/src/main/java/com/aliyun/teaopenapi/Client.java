@@ -681,8 +681,16 @@ public class Client {
                 _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
-                    Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
-                    java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
+                    java.util.Map<String, Object> err = new java.util.HashMap<>();
+                    if (!com.aliyun.teautil.Common.isUnset(response_.headers.get("content-type")) && com.aliyun.teautil.Common.equalString(response_.headers.get("content-type"), "text/xml;charset=utf-8")) {
+                        String _str = com.aliyun.teautil.Common.readAsString(response_.body);
+                        java.util.Map<String, Object> respMap = com.aliyun.teaxml.Client.parseXml(_str, null);
+                        err = com.aliyun.teautil.Common.assertAsMap(respMap.get("Error"));
+                    } else {
+                        Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
+                        err = com.aliyun.teautil.Common.assertAsMap(_res);
+                    }
+
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
