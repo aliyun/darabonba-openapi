@@ -665,15 +665,21 @@ public class Client {
 
                 request_.headers.put("x-acs-content-sha256", hashedRequestPayload);
                 if (!com.aliyun.teautil.Common.equalString(params.authType, "Anonymous")) {
-                    String accessKeyId = this.getAccessKeyId();
-                    String accessKeySecret = this.getAccessKeySecret();
-                    String securityToken = this.getSecurityToken();
-                    if (!com.aliyun.teautil.Common.empty(securityToken)) {
-                        request_.headers.put("x-acs-accesskey-id", accessKeyId);
-                        request_.headers.put("x-acs-security-token", securityToken);
-                    }
+                    String authType = this.getType();
+                    if (!com.aliyun.teautil.Common.equalString(authType, "bearer")) {
+                        String bearerToken = this.getBearerToken();
+                        request_.headers.put("x-acs-bearer-token", bearerToken);
+                    } else {
+                        String accessKeyId = this.getAccessKeyId();
+                        String accessKeySecret = this.getAccessKeySecret();
+                        String securityToken = this.getSecurityToken();
+                        if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                            request_.headers.put("x-acs-accesskey-id", accessKeyId);
+                            request_.headers.put("x-acs-security-token", securityToken);
+                        }
 
-                    request_.headers.put("Authorization", com.aliyun.openapiutil.Client.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret));
+                        request_.headers.put("Authorization", com.aliyun.openapiutil.Client.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret));
+                    }
                 }
 
                 _lastRequest = request_;
@@ -936,6 +942,32 @@ public class Client {
 
         String token = _credential.getSecurityToken();
         return token;
+    }
+
+    /**
+     * Get bearer token by credential
+     * @return bearer token
+     */
+    public String getBearerToken() throws Exception {
+        if (com.aliyun.teautil.Common.isUnset(_credential)) {
+            return "";
+        }
+
+        String token = _credential.getBearerToken();
+        return token;
+    }
+
+    /**
+     * Get credential type by credential
+     * @return credential type e.g. access_key
+     */
+    public String getType() throws Exception {
+        if (com.aliyun.teautil.Common.isUnset(_credential)) {
+            return "";
+        }
+
+        String authType = _credential.getType();
+        return authType;
     }
 
     /**

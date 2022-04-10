@@ -1402,15 +1402,24 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
-                        string accessKeyId = GetAccessKeyId();
-                        string accessKeySecret = GetAccessKeySecret();
-                        string securityToken = GetSecurityToken();
-                        if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                        string authType = GetType();
+                        if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
-                            request_.Headers["x-acs-accesskey-id"] = accessKeyId;
-                            request_.Headers["x-acs-security-token"] = securityToken;
+                            string bearerToken = GetBearerToken();
+                            request_.Headers["x-acs-bearer-token"] = bearerToken;
                         }
-                        request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                        else
+                        {
+                            string accessKeyId = GetAccessKeyId();
+                            string accessKeySecret = GetAccessKeySecret();
+                            string securityToken = GetSecurityToken();
+                            if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                            {
+                                request_.Headers["x-acs-accesskey-id"] = accessKeyId;
+                                request_.Headers["x-acs-security-token"] = securityToken;
+                            }
+                            request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                        }
                     }
                     _lastRequest = request_;
                     TeaResponse response_ = TeaCore.DoAction(request_, runtime_);
@@ -1616,15 +1625,24 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
-                        string accessKeyId = await GetAccessKeyIdAsync();
-                        string accessKeySecret = await GetAccessKeySecretAsync();
-                        string securityToken = await GetSecurityTokenAsync();
-                        if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                        string authType = await GetTypeAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
-                            request_.Headers["x-acs-accesskey-id"] = accessKeyId;
-                            request_.Headers["x-acs-security-token"] = securityToken;
+                            string bearerToken = await GetBearerTokenAsync();
+                            request_.Headers["x-acs-bearer-token"] = bearerToken;
                         }
-                        request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                        else
+                        {
+                            string accessKeyId = await GetAccessKeyIdAsync();
+                            string accessKeySecret = await GetAccessKeySecretAsync();
+                            string securityToken = await GetSecurityTokenAsync();
+                            if (!AlibabaCloud.TeaUtil.Common.Empty(securityToken))
+                            {
+                                request_.Headers["x-acs-accesskey-id"] = accessKeyId;
+                                request_.Headers["x-acs-security-token"] = securityToken;
+                            }
+                            request_.Headers["Authorization"] = AlibabaCloud.OpenApiUtil.Client.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+                        }
                     }
                     _lastRequest = request_;
                     TeaResponse response_ = await TeaCore.DoActionAsync(request_, runtime_);
@@ -2144,6 +2162,62 @@ namespace AlibabaCloud.OpenApiClient
             }
             string token = await this._credential.GetSecurityTokenAsync();
             return token;
+        }
+
+        /**
+         * Get bearer token by credential
+         * @return bearer token
+         */
+        public string GetBearerToken()
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+            {
+                return "";
+            }
+            string token = this._credential.GetBearerToken();
+            return token;
+        }
+
+        /**
+         * Get bearer token by credential
+         * @return bearer token
+         */
+        public async Task<string> GetBearerTokenAsync()
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+            {
+                return "";
+            }
+            string token = this._credential.GetBearerToken();
+            return token;
+        }
+
+        /**
+         * Get credential type by credential
+         * @return credential type e.g. access_key
+         */
+        public string GetType()
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+            {
+                return "";
+            }
+            string authType = this._credential.GetType();
+            return authType;
+        }
+
+        /**
+         * Get credential type by credential
+         * @return credential type e.g. access_key
+         */
+        public async Task<string> GetTypeAsync()
+        {
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+            {
+                return "";
+            }
+            string authType = this._credential.GetType();
+            return authType;
         }
 
         /**

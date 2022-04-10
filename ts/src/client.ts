@@ -833,15 +833,22 @@ export default class Client {
 
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
         if (!Util.equalString(params.authType, "Anonymous")) {
-          let accessKeyId = await this.getAccessKeyId();
-          let accessKeySecret = await this.getAccessKeySecret();
-          let securityToken = await this.getSecurityToken();
-          if (!Util.empty(securityToken)) {
-            request_.headers["x-acs-accesskey-id"] = accessKeyId;
-            request_.headers["x-acs-security-token"] = securityToken;
+          let authType = await this.getType();
+          if (!Util.equalString(authType, "bearer")) {
+            let bearerToken = await this.getBearerToken();
+            request_.headers["x-acs-bearer-token"] = bearerToken;
+          } else {
+            let accessKeyId = await this.getAccessKeyId();
+            let accessKeySecret = await this.getAccessKeySecret();
+            let securityToken = await this.getSecurityToken();
+            if (!Util.empty(securityToken)) {
+              request_.headers["x-acs-accesskey-id"] = accessKeyId;
+              request_.headers["x-acs-security-token"] = securityToken;
+            }
+
+            request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
           }
 
-          request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
         }
 
         _lastRequest = request_;
@@ -1095,6 +1102,32 @@ export default class Client {
 
     let token = await this._credential.getSecurityToken();
     return token;
+  }
+
+  /**
+   * Get bearer token by credential
+   * @return bearer token
+   */
+  async getBearerToken(): Promise<string> {
+    if (Util.isUnset(this._credential)) {
+      return "";
+    }
+
+    let token = this._credential.getBearerToken();
+    return token;
+  }
+
+  /**
+   * Get credential type by credential
+   * @return credential type e.g. access_key
+   */
+  async getType(): Promise<string> {
+    if (Util.isUnset(this._credential)) {
+      return "";
+    }
+
+    let authType = this._credential.getType();
+    return authType;
   }
 
   /**

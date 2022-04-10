@@ -703,14 +703,20 @@ class OpenApiClient
                 }
                 $_request->headers['x-acs-content-sha256'] = $hashedRequestPayload;
                 if (!Utils::equalString($params->authType, 'Anonymous')) {
-                    $accessKeyId = $this->getAccessKeyId();
-                    $accessKeySecret = $this->getAccessKeySecret();
-                    $securityToken = $this->getSecurityToken();
-                    if (!Utils::empty_($securityToken)) {
-                        $_request->headers['x-acs-accesskey-id'] = $accessKeyId;
-                        $_request->headers['x-acs-security-token'] = $securityToken;
+                    $authType = $this->getType();
+                    if (!Utils::equalString($authType, 'bearer')) {
+                        $bearerToken = $this->getBearerToken();
+                        $_request->headers['x-acs-bearer-token'] = $bearerToken;
+                    } else {
+                        $accessKeyId = $this->getAccessKeyId();
+                        $accessKeySecret = $this->getAccessKeySecret();
+                        $securityToken = $this->getSecurityToken();
+                        if (!Utils::empty_($securityToken)) {
+                            $_request->headers['x-acs-accesskey-id'] = $accessKeyId;
+                            $_request->headers['x-acs-security-token'] = $securityToken;
+                        }
+                        $_request->headers['Authorization'] = OpenApiUtilClient::getAuthorization($_request, $signatureAlgorithm, $hashedRequestPayload, $accessKeyId, $accessKeySecret);
                     }
-                    $_request->headers['Authorization'] = OpenApiUtilClient::getAuthorization($_request, $signatureAlgorithm, $hashedRequestPayload, $accessKeyId, $accessKeySecret);
                 }
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
@@ -982,6 +988,36 @@ class OpenApiClient
         $token = $this->_credential->getSecurityToken();
 
         return $token;
+    }
+
+    /**
+     * Get bearer token by credential.
+     *
+     * @return string bearer token
+     */
+    public function getBearerToken()
+    {
+        if (Utils::isUnset($this->_credential)) {
+            return '';
+        }
+        $token = $this->_credential->getBearerToken();
+
+        return $token;
+    }
+
+    /**
+     * Get credential type by credential.
+     *
+     * @return string credential type e.g. access_key
+     */
+    public function getType()
+    {
+        if (Utils::isUnset($this->_credential)) {
+            return '';
+        }
+        $authType = $this->_credential->getType();
+
+        return $authType;
     }
 
     /**

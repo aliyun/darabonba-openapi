@@ -610,15 +610,21 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   __request.headers.x-acs-content-sha256 = hashedRequestPayload;
 
   if (!Util.equalString(params.authType, 'Anonymous')) {
-    var accessKeyId = getAccessKeyId();
-    var accessKeySecret = getAccessKeySecret();
-    var securityToken = getSecurityToken();
+    var authType = getType();
+    if (!Util.equalString(authType, 'bearer')) {
+      var bearerToken = getBearerToken();
+      __request.headers.x-acs-bearer-token = bearerToken;
+    } else {
+      var accessKeyId = getAccessKeyId();
+      var accessKeySecret = getAccessKeySecret();
+      var securityToken = getSecurityToken();
 
-    if (!Util.empty(securityToken)) {
-      __request.headers.x-acs-accesskey-id = accessKeyId;
-      __request.headers.x-acs-security-token = securityToken;
+      if (!Util.empty(securityToken)) {
+        __request.headers.x-acs-accesskey-id = accessKeyId;
+        __request.headers.x-acs-security-token = securityToken;
+      }
+      __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
     }
-    __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
   }
 } returns {
   if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
@@ -835,6 +841,30 @@ async function getSecurityToken(): string {
   }
   var token = @credential.getSecurityToken();
   return token;
+}
+
+/**
+ * Get bearer token by credential
+ * @return bearer token
+ */
+async function getBearerToken(): string {
+  if (Util.isUnset(@credential)) {
+    return '';
+  }
+  var token = @credential.getBearerToken();
+  return token;
+}
+
+/**
+ * Get credential type by credential
+ * @return credential type e.g. access_key
+ */
+async function getType(): string {
+  if (Util.isUnset(@credential)) {
+    return '';
+  }
+  var authType = @credential.getType();
+  return authType;
 }
 
 /**
