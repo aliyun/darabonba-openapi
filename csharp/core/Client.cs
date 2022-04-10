@@ -1426,8 +1426,18 @@ namespace AlibabaCloud.OpenApiClient
 
                     if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
                     {
-                        object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
-                        Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        Dictionary<string, object> err = new Dictionary<string, object>(){};
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(response_.Headers.Get("content-type")) && AlibabaCloud.TeaUtil.Common.EqualString(response_.Headers.Get("content-type"), "text/xml;charset=utf-8"))
+                        {
+                            string _str = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                            Dictionary<string, object> respMap = AlibabaCloud.TeaXML.Client.ParseXml(_str, null);
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(respMap.Get("Error"));
+                        }
+                        else
+                        {
+                            object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        }
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -1649,8 +1659,18 @@ namespace AlibabaCloud.OpenApiClient
 
                     if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
                     {
-                        object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
-                        Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        Dictionary<string, object> err = new Dictionary<string, object>(){};
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(response_.Headers.Get("content-type")) && AlibabaCloud.TeaUtil.Common.EqualString(response_.Headers.Get("content-type"), "text/xml;charset=utf-8"))
+                        {
+                            string _str = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                            Dictionary<string, object> respMap = AlibabaCloud.TeaXML.Client.ParseXml(_str, null);
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(respMap.Get("Error"));
+                        }
+                        else
+                        {
+                            object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        }
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},

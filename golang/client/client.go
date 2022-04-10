@@ -10,6 +10,7 @@ import (
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/service"
+	xml "github.com/alibabacloud-go/tea-xml/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -1183,12 +1184,24 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				return _result, _err
 			}
 			if tea.BoolValue(util.Is4xx(response_.StatusCode)) || tea.BoolValue(util.Is5xx(response_.StatusCode)) {
-				_res, _err := util.ReadAsJSON(response_.Body)
-				if _err != nil {
-					return _result, _err
+				err := map[string]interface{}{}
+				if !tea.BoolValue(util.IsUnset(response_.Headers["content-type"])) && tea.BoolValue(util.EqualString(response_.Headers["content-type"], tea.String("text/xml;charset=utf-8"))) {
+					_str, _err := util.ReadAsString(response_.Body)
+					if _err != nil {
+						return _result, _err
+					}
+
+					respMap := xml.ParseXml(_str, nil)
+					err = util.AssertAsMap(respMap["Error"])
+				} else {
+					_res, _err := util.ReadAsJSON(response_.Body)
+					if _err != nil {
+						return _result, _err
+					}
+
+					err = util.AssertAsMap(_res)
 				}
 
-				err := util.AssertAsMap(_res)
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),

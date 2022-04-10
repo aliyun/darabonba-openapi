@@ -6,6 +6,7 @@ import Util, * as $Util from '@alicloud/tea-util';
 import Credential, * as $Credential from '@alicloud/credentials';
 import OpenApiUtil from '@alicloud/openapi-util';
 import SPI, * as $SPI from '@alicloud/gateway-spi';
+import XML from '@alicloud/tea-xml';
 import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
 
@@ -858,8 +859,16 @@ export default class Client {
         let response_ = await $tea.doAction(request_, _runtime);
 
         if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
-          let _res = await Util.readAsJSON(response_.body);
-          let err = Util.assertAsMap(_res);
+          let err : {[key: string ]: any} = { };
+          if (!Util.isUnset(response_.headers["content-type"]) && Util.equalString(response_.headers["content-type"], "text/xml;charset=utf-8")) {
+            let _str = await Util.readAsString(response_.body);
+            let respMap = XML.parseXml(_str, null);
+            err = Util.assertAsMap(respMap["Error"]);
+          } else {
+            let _res = await Util.readAsJSON(response_.body);
+            err = Util.assertAsMap(_res);
+          }
+
           throw $tea.newError({
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,

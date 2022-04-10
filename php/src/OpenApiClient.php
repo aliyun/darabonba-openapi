@@ -13,6 +13,7 @@ use AlibabaCloud\Tea\Request;
 use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Utils\Utils;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
+use AlibabaCloud\Tea\XML\XML;
 use Darabonba\GatewaySpi\Models\AttributeMap;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
 use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
@@ -721,8 +722,15 @@ class OpenApiClient
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-                    $_res = Utils::readAsJSON($_response->body);
-                    $err = Utils::assertAsMap($_res);
+                    $err = [];
+                    if (!Utils::isUnset(@$_response->headers['content-type']) && Utils::equalString(@$_response->headers['content-type'], 'text/xml;charset=utf-8')) {
+                        $_str = Utils::readAsString($_response->body);
+                        $respMap = XML::parseXml($_str, null);
+                        $err = Utils::assertAsMap(@$respMap['Error']);
+                    } else {
+                        $_res = Utils::readAsJSON($_response->body);
+                        $err = Utils::assertAsMap($_res);
+                    }
                     throw new TeaError(['code' => ''.(string) (self::defaultAny(@$err['Code'], @$err['code'])).'', 'message' => 'code: '.(string) ($_response->statusCode).', '.(string) (self::defaultAny(@$err['Message'], @$err['message'])).' request id: '.(string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])).'', 'data' => $err]);
                 }
                 if (Utils::equalString($params->bodyType, 'binary')) {

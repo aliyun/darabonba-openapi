@@ -6,6 +6,7 @@ import Util;
 import Credential;
 import OpenApiUtil;
 import SPI;
+import XML;
 
 type @endpoint = string
 type @regionId = string
@@ -629,8 +630,15 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   }
 } returns {
   if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
-    var _res = Util.readAsJSON(__response.body);
-    var err = Util.assertAsMap(_res);
+    var err : map[string]any = {};
+    if (!Util.isUnset(__response.headers.content-type) && Util.equalString(__response.headers.content-type, 'text/xml;charset=utf-8')) {
+      var _str = Util.readAsString(__response.body);
+      var respMap = XML.parseXml(_str, null);
+      err = Util.assertAsMap(respMap.Error);
+    } else {
+      var _res = Util.readAsJSON(__response.body);
+      err = Util.assertAsMap(_res);
+    }
     throw {
       code = `${defaultAny(err.Code, err.code)}`,
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,

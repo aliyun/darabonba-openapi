@@ -14,6 +14,7 @@ from alibabacloud_gateway_spi.client import Client as SPIClient
 from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
+from alibabacloud_tea_xml.client import Client as XMLClient
 from alibabacloud_gateway_spi import models as spi_models
 
 
@@ -670,8 +671,14 @@ class Client(object):
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = UtilClient.read_as_json(_response.body)
-                    err = UtilClient.assert_as_map(_res)
+                    err = {}
+                    if not UtilClient.is_unset(_response.headers.get('content-type')) and UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8'):
+                        _str = UtilClient.read_as_string(_response.body)
+                        resp_map = XMLClient.parse_xml(_str, None)
+                        err = UtilClient.assert_as_map(resp_map.get('Error'))
+                    else:
+                        _res = UtilClient.read_as_json(_response.body)
+                        err = UtilClient.assert_as_map(_res)
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),
