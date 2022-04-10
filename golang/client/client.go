@@ -1134,27 +1134,42 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 			request_.Headers["x-acs-content-sha256"] = hashedRequestPayload
 			if !tea.BoolValue(util.EqualString(params.AuthType, tea.String("Anonymous"))) {
-				accessKeyId, _err := client.GetAccessKeyId()
+				authType, _err := client.GetType()
 				if _err != nil {
 					return _result, _err
 				}
 
-				accessKeySecret, _err := client.GetAccessKeySecret()
-				if _err != nil {
-					return _result, _err
+				if !tea.BoolValue(util.EqualString(authType, tea.String("bearer"))) {
+					bearerToken, _err := client.GetBearerToken()
+					if _err != nil {
+						return _result, _err
+					}
+
+					request_.Headers["x-acs-bearer-token"] = bearerToken
+				} else {
+					accessKeyId, _err := client.GetAccessKeyId()
+					if _err != nil {
+						return _result, _err
+					}
+
+					accessKeySecret, _err := client.GetAccessKeySecret()
+					if _err != nil {
+						return _result, _err
+					}
+
+					securityToken, _err := client.GetSecurityToken()
+					if _err != nil {
+						return _result, _err
+					}
+
+					if !tea.BoolValue(util.Empty(securityToken)) {
+						request_.Headers["x-acs-accesskey-id"] = accessKeyId
+						request_.Headers["x-acs-security-token"] = securityToken
+					}
+
+					request_.Headers["Authorization"] = openapiutil.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret)
 				}
 
-				securityToken, _err := client.GetSecurityToken()
-				if _err != nil {
-					return _result, _err
-				}
-
-				if !tea.BoolValue(util.Empty(securityToken)) {
-					request_.Headers["x-acs-accesskey-id"] = accessKeyId
-					request_.Headers["x-acs-security-token"] = securityToken
-				}
-
-				request_.Headers["Authorization"] = openapiutil.GetAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret)
 			}
 
 			response_, _err := tea.DoRequest(request_, _runtime)
@@ -1503,6 +1518,36 @@ func (client *Client) GetSecurityToken() (_result *string, _err error) {
 	}
 
 	_result = token
+	return _result, _err
+}
+
+/**
+ * Get bearer token by credential
+ * @return bearer token
+ */
+func (client *Client) GetBearerToken() (_result *string, _err error) {
+	if tea.BoolValue(util.IsUnset(client.Credential)) {
+		_result = tea.String("")
+		return _result, _err
+	}
+
+	token := client.Credential.GetBearerToken()
+	_result = token
+	return _result, _err
+}
+
+/**
+ * Get credential type by credential
+ * @return credential type e.g. access_key
+ */
+func (client *Client) GetType() (_result *string, _err error) {
+	if tea.BoolValue(util.IsUnset(client.Credential)) {
+		_result = tea.String("")
+		return _result, _err
+	}
+
+	authType := client.Credential.GetType()
+	_result = authType
 	return _result, _err
 }
 

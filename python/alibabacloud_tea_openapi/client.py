@@ -1077,13 +1077,18 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    access_key_id = self.get_access_key_id()
-                    access_key_secret = self.get_access_key_secret()
-                    security_token = self.get_security_token()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                    auth_type = self.get_type()
+                    if not UtilClient.equal_string(auth_type, 'bearer'):
+                        bearer_token = self.get_bearer_token()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                    else:
+                        access_key_id = self.get_access_key_id()
+                        access_key_secret = self.get_access_key_secret()
+                        security_token = self.get_security_token()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -1230,13 +1235,18 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    access_key_id = await self.get_access_key_id_async()
-                    access_key_secret = await self.get_access_key_secret_async()
-                    security_token = await self.get_security_token_async()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                    auth_type = await self.get_type_async()
+                    if not UtilClient.equal_string(auth_type, 'bearer'):
+                        bearer_token = await self.get_bearer_token_async()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                    else:
+                        access_key_id = await self.get_access_key_id_async()
+                        access_key_secret = await self.get_access_key_secret_async()
+                        security_token = await self.get_security_token_async()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -1640,6 +1650,46 @@ class Client:
             return ''
         token = await self._credential.get_security_token_async()
         return token
+
+    def get_bearer_token(self) -> str:
+        """
+        Get bearer token by credential
+        @return: bearer token
+        """
+        if UtilClient.is_unset(self._credential):
+            return ''
+        token = self._credential.get_bearer_token()
+        return token
+
+    async def get_bearer_token_async(self) -> str:
+        """
+        Get bearer token by credential
+        @return: bearer token
+        """
+        if UtilClient.is_unset(self._credential):
+            return ''
+        token = self._credential.get_bearer_token()
+        return token
+
+    def get_type(self) -> str:
+        """
+        Get credential type by credential
+        @return: credential type e.g. access_key
+        """
+        if UtilClient.is_unset(self._credential):
+            return ''
+        auth_type = self._credential.get_type()
+        return auth_type
+
+    async def get_type_async(self) -> str:
+        """
+        Get credential type by credential
+        @return: credential type e.g. access_key
+        """
+        if UtilClient.is_unset(self._credential):
+            return ''
+        auth_type = self._credential.get_type()
+        return auth_type
 
     @staticmethod
     def default_any(
