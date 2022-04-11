@@ -1,3 +1,9 @@
+2022-04-11 Version: v0.1.17
+- Support bearer token.
+- Support endpointOverride for OpenApiRequest.
+- Support xml response for pop.
+- Add statusCode for error.
+
 2021-02-22 Version: v0.1.4
 - Add requestid  in error message.
 
