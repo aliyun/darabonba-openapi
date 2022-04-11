@@ -639,6 +639,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       var _res = Util.readAsJSON(__response.body);
       err = Util.assertAsMap(_res);
     }
+    err.statusCode = __response.statusCode;
     throw {
       code = `${defaultAny(err.Code, err.code)}`,
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,

@@ -869,6 +869,7 @@ export default class Client {
             err = Util.assertAsMap(_res);
           }
 
+          err["statusCode"] = response_.statusCode;
           throw $tea.newError({
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,

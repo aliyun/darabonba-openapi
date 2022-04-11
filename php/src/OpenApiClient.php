@@ -731,6 +731,7 @@ class OpenApiClient
                         $_res = Utils::readAsJSON($_response->body);
                         $err = Utils::assertAsMap($_res);
                     }
+                    @$err['statusCode'] = $_response->statusCode;
                     throw new TeaError(['code' => ''.(string) (self::defaultAny(@$err['Code'], @$err['code'])).'', 'message' => 'code: '.(string) ($_response->statusCode).', '.(string) (self::defaultAny(@$err['Message'], @$err['message'])).' request id: '.(string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])).'', 'data' => $err]);
                 }
                 if (Utils::equalString($params->bodyType, 'binary')) {
