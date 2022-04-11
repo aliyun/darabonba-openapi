@@ -1101,6 +1101,7 @@ class Client:
                     else:
                         _res = UtilClient.read_as_json(_response.body)
                         err = UtilClient.assert_as_map(_res)
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
@@ -1265,6 +1266,7 @@ class Client:
                     else:
                         _res = await UtilClient.read_as_json_async(_response.body)
                         err = UtilClient.assert_as_map(_res)
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",

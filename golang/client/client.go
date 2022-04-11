@@ -1202,6 +1202,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					err = util.AssertAsMap(_res)
 				}
 
+				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),

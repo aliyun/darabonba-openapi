@@ -679,6 +679,7 @@ class Client(object):
                     else:
                         _res = UtilClient.read_as_json(_response.body)
                         err = UtilClient.assert_as_map(_res)
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),

@@ -696,7 +696,7 @@ public class Client {
                         Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                         err = com.aliyun.teautil.Common.assertAsMap(_res);
                     }
-
+                    err.put("statusCode", response_.statusCode);
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),

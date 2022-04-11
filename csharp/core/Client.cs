@@ -1438,6 +1438,7 @@ namespace AlibabaCloud.OpenApiClient
                             object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                             err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         }
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -1671,6 +1672,7 @@ namespace AlibabaCloud.OpenApiClient
                             object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                             err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         }
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
