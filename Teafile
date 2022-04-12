@@ -17,13 +17,13 @@
     "XML": "darabonba:XML:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.4.2",
-    "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.1.17",
-    "csharp": "AlibabaCloud.OpenApiClient:0.1.2",
-    "java": "com.aliyun:tea-openapi:0.2.3",
-    "php": "alibabacloud/darabonba-openapi:^0.2.6",
-    "python": "alibabacloud_tea_openapi:0.3.2",
-    "python2": "alibabacloud_tea_openapi_py2:0.1.2",
+    "ts": "@alicloud/openapi-client:^0.4.1",
+    "go": "github.com/alibabacloud-go/darabonba-openapi/client:v0.1.18",
+    "csharp": "AlibabaCloud.OpenApiClient:0.1.3",
+    "java": "com.aliyun:tea-openapi:0.2.4",
+    "php": "alibabacloud/darabonba-openapi:^0.2.7",
+    "python": "alibabacloud_tea_openapi:0.3.3",
+    "python2": "alibabacloud_tea_openapi_py2:0.1.3",
     "cpp": "alibabacloud-sdk-cpp/dara-openapi:master"
   },
   "csharp": {
