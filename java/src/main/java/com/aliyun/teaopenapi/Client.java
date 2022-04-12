@@ -666,7 +666,7 @@ public class Client {
                 request_.headers.put("x-acs-content-sha256", hashedRequestPayload);
                 if (!com.aliyun.teautil.Common.equalString(params.authType, "Anonymous")) {
                     String authType = this.getType();
-                    if (!com.aliyun.teautil.Common.equalString(authType, "bearer")) {
+                    if (com.aliyun.teautil.Common.equalString(authType, "bearer")) {
                         String bearerToken = this.getBearerToken();
                         request_.headers.put("x-acs-bearer-token", bearerToken);
                     } else {

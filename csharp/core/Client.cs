@@ -1403,7 +1403,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
                         string authType = GetType();
-                        if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
+                        if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
                             string bearerToken = GetBearerToken();
                             request_.Headers["x-acs-bearer-token"] = bearerToken;
@@ -1637,7 +1637,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
                         string authType = await GetTypeAsync();
-                        if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
+                        if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
                             string bearerToken = await GetBearerTokenAsync();
                             request_.Headers["x-acs-bearer-token"] = bearerToken;

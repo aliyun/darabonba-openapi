@@ -705,7 +705,7 @@ class OpenApiClient
                 $_request->headers['x-acs-content-sha256'] = $hashedRequestPayload;
                 if (!Utils::equalString($params->authType, 'Anonymous')) {
                     $authType = $this->getType();
-                    if (!Utils::equalString($authType, 'bearer')) {
+                    if (Utils::equalString($authType, 'bearer')) {
                         $bearerToken = $this->getBearerToken();
                         $_request->headers['x-acs-bearer-token'] = $bearerToken;
                     } else {

@@ -838,7 +838,7 @@ export default class Client {
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
         if (!Util.equalString(params.authType, "Anonymous")) {
           let authType = await this.getType();
-          if (!Util.equalString(authType, "bearer")) {
+          if (Util.equalString(authType, "bearer")) {
             let bearerToken = await this.getBearerToken();
             request_.headers["x-acs-bearer-token"] = bearerToken;
           } else {
