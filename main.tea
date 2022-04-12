@@ -613,7 +613,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
 
   if (!Util.equalString(params.authType, 'Anonymous')) {
     var authType = getType();
-    if (!Util.equalString(authType, 'bearer')) {
+    if (Util.equalString(authType, 'bearer')) {
       var bearerToken = getBearerToken();
       __request.headers.x-acs-bearer-token = bearerToken;
     } else {

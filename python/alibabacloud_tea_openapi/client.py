@@ -1079,7 +1079,7 @@ class Client:
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
                     auth_type = self.get_type()
-                    if not UtilClient.equal_string(auth_type, 'bearer'):
+                    if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = self.get_bearer_token()
                         _request.headers['x-acs-bearer-token'] = bearer_token
                     else:
@@ -1244,7 +1244,7 @@ class Client:
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
                     auth_type = await self.get_type_async()
-                    if not UtilClient.equal_string(auth_type, 'bearer'):
+                    if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = await self.get_bearer_token_async()
                         _request.headers['x-acs-bearer-token'] = bearer_token
                     else:

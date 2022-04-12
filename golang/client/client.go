@@ -1146,7 +1146,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					return _result, _err
 				}
 
-				if !tea.BoolValue(util.EqualString(authType, tea.String("bearer"))) {
+				if tea.BoolValue(util.EqualString(authType, tea.String("bearer"))) {
 					bearerToken, _err := client.GetBearerToken()
 					if _err != nil {
 						return _result, _err
