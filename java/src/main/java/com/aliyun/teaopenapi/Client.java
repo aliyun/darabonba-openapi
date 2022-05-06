@@ -696,6 +696,7 @@ public class Client {
                         Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                         err = com.aliyun.teautil.Common.assertAsMap(_res);
                     }
+
                     err.put("statusCode", response_.statusCode);
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
@@ -707,37 +708,43 @@ public class Client {
                 if (com.aliyun.teautil.Common.equalString(params.bodyType, "binary")) {
                     java.util.Map<String, Object> resp = TeaConverter.buildMap(
                         new TeaPair("body", response_.body),
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                     return resp;
                 } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "byte")) {
                     byte[] byt = com.aliyun.teautil.Common.readAsBytes(response_.body);
                     return TeaConverter.buildMap(
                         new TeaPair("body", byt),
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                 } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "string")) {
                     String str = com.aliyun.teautil.Common.readAsString(response_.body);
                     return TeaConverter.buildMap(
                         new TeaPair("body", str),
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                 } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "json")) {
                     Object obj = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> res = com.aliyun.teautil.Common.assertAsMap(obj);
                     return TeaConverter.buildMap(
                         new TeaPair("body", res),
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                 } else if (com.aliyun.teautil.Common.equalString(params.bodyType, "array")) {
                     Object arr = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     return TeaConverter.buildMap(
                         new TeaPair("body", arr),
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                 } else {
                     return TeaConverter.buildMap(
-                        new TeaPair("headers", response_.headers)
+                        new TeaPair("headers", response_.headers),
+                        new TeaPair("statusCode", response_.statusCode)
                     );
                 }
 
@@ -859,6 +866,7 @@ public class Client {
                 _spi.modifyResponse(interceptorContext, attributeMap);
                 return TeaConverter.buildMap(
                     new TeaPair("headers", interceptorContext.response.headers),
+                    new TeaPair("statusCode", interceptorContext.response.statusCode),
                     new TeaPair("body", interceptorContext.response.deserializedBody)
                 );
             } catch (Exception e) {

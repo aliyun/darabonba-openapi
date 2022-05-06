@@ -723,14 +723,16 @@ class OpenApiClient
                 $_response = Tea::send($_request, $_runtime);
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
                     $err = [];
-                    if (!Utils::isUnset(@$_response->headers['content-type']) && Utils::equalString(@$_response->headers['content-type'], 'text/xml;charset=utf-8')) {
-                        $_str = Utils::readAsString($_response->body);
-                        $respMap = XML::parseXml($_str, null);
-                        $err = Utils::assertAsMap(@$respMap['Error']);
-                    } else {
-                        $_res = Utils::readAsJSON($_response->body);
-                        $err = Utils::assertAsMap($_res);
-                    }
+                    // if (!Utils::isUnset(@$_response->headers['content-type']) && Utils::equalString(@$_response->headers['content-type'], 'text/xml;charset=utf-8')) {
+                    //     $_str = Utils::readAsString($_response->body);
+                    //     $respMap = XML::parseXml($_str, null);
+                    //     $err = Utils::assertAsMap(@$respMap['Error']);
+                    // } else {
+                    //     $_res = Utils::readAsJSON($_response->body);
+                    //     $err = Utils::assertAsMap($_res);
+                    // }
+                    $_res = Utils::readAsJSON($_response->body);
+                    $err = Utils::assertAsMap($_res);
                     @$err['statusCode'] = $_response->statusCode;
                     throw new TeaError(['code' => ''.(string) (self::defaultAny(@$err['Code'], @$err['code'])).'', 'message' => 'code: '.(string) ($_response->statusCode).', '.(string) (self::defaultAny(@$err['Message'], @$err['message'])).' request id: '.(string) (self::defaultAny(@$err['RequestId'], @$err['requestId'])).'', 'data' => $err]);
                 }
@@ -738,6 +740,7 @@ class OpenApiClient
                     $resp = [
                         'body' => $_response->body,
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
 
                     return $resp;
@@ -747,6 +750,7 @@ class OpenApiClient
                     return [
                         'body' => $byt,
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
                 } elseif (Utils::equalString($params->bodyType, 'string')) {
                     $str = Utils::readAsString($_response->body);
@@ -754,6 +758,7 @@ class OpenApiClient
                     return [
                         'body' => $str,
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
                 } elseif (Utils::equalString($params->bodyType, 'json')) {
                     $obj = Utils::readAsJSON($_response->body);
@@ -762,6 +767,7 @@ class OpenApiClient
                     return [
                         'body' => $res,
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
                 } elseif (Utils::equalString($params->bodyType, 'array')) {
                     $arr = Utils::readAsJSON($_response->body);
@@ -769,10 +775,12 @@ class OpenApiClient
                     return [
                         'body' => $arr,
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
                 } else {
                     return [
                         'headers' => $_response->headers,
+                        'statusCode' => $_response->statusCode,
                     ];
                 }
             } catch (Exception $e) {
@@ -901,6 +909,7 @@ class OpenApiClient
 
                 return [
                     'headers' => $interceptorContext->response->headers,
+                    'statusCode' => $interceptorContext->response->statusCode,
                     'body' => $interceptorContext->response->deserializedBody,
                 ];
             } catch (Exception $e) {

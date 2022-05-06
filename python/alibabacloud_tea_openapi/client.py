@@ -1110,37 +1110,43 @@ class Client:
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(params.body_type, 'byte'):
                     byt = UtilClient.read_as_bytes(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'string'):
                     str = UtilClient.read_as_string(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'json'):
                     obj = UtilClient.read_as_json(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'array'):
                     arr = UtilClient.read_as_json(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -1275,37 +1281,43 @@ class Client:
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(params.body_type, 'byte'):
                     byt = await UtilClient.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'string'):
                     str = await UtilClient.read_as_string_async(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'json'):
                     obj = await UtilClient.read_as_json_async(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(params.body_type, 'array'):
                     arr = await UtilClient.read_as_json_async(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -1427,6 +1439,7 @@ class Client:
                 self._spi.modify_response(interceptor_context, attribute_map)
                 return {
                     'headers': interceptor_context.response.headers,
+                    'statusCode': interceptor_context.response.status_code,
                     'body': interceptor_context.response.deserialized_body
                 }
             except Exception as e:
@@ -1549,6 +1562,7 @@ class Client:
                 await self._spi.modify_response_async(interceptor_context, attribute_map)
                 return {
                     'headers': interceptor_context.response.headers,
+                    'statusCode': interceptor_context.response.status_code,
                     'body': interceptor_context.response.deserialized_body
                 }
             except Exception as e:

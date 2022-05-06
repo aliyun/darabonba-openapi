@@ -881,6 +881,7 @@ export default class Client {
           let resp = {
             body: response_.body,
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
           return resp;
         } else if (Util.equalString(params.bodyType, "byte")) {
@@ -888,12 +889,14 @@ export default class Client {
           return {
             body: byt,
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
         } else if (Util.equalString(params.bodyType, "string")) {
           let str = await Util.readAsString(response_.body);
           return {
             body: str,
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
         } else if (Util.equalString(params.bodyType, "json")) {
           let obj = await Util.readAsJSON(response_.body);
@@ -901,16 +904,19 @@ export default class Client {
           return {
             body: res,
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
         } else if (Util.equalString(params.bodyType, "array")) {
           let arr = await Util.readAsJSON(response_.body);
           return {
             body: arr,
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
         } else {
           return {
             headers: response_.headers,
+            statusCode: response_.statusCode,
           };
         }
 
@@ -1036,6 +1042,7 @@ export default class Client {
         await this._spi.modifyResponse(interceptorContext, attributeMap);
         return {
           headers: interceptorContext.response.headers,
+          statusCode: interceptorContext.response.statusCode,
           body: interceptorContext.response.deserializedBody,
         };
       } catch (ex) {

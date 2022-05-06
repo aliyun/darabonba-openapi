@@ -649,37 +649,43 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   if (Util.equalString(params.bodyType, 'binary')) {
     var resp = {
       body = __response.body,
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
     return resp;
   } else if (Util.equalString(params.bodyType, 'byte')) {
     var byt = Util.readAsBytes(__response.body);
     return {
       body = byt,
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
   } else if (Util.equalString(params.bodyType, 'string')) {
     var str = Util.readAsString(__response.body);
     return {
       body = str,
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
   } else if (Util.equalString(params.bodyType, 'json')){
     var obj = Util.readAsJSON(__response.body);
     var res = Util.assertAsMap(obj);
     return {
       body = res,
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
   } else if (Util.equalString(params.bodyType, 'array')){
     var arr = Util.readAsJSON(__response.body);
     return {
       body = arr,
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
   } else {
     return {
-      headers = __response.headers
+      headers = __response.headers,
+      statusCode = __response.statusCode
     };
   }
 } runtime {
@@ -784,6 +790,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
 
   return {
     headers = interceptorContext.response.headers,
+    statusCode = interceptorContext.response.statusCode,
     body = interceptorContext.response.deserializedBody
   };
 
