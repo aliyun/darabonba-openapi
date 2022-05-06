@@ -1213,8 +1213,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 			if tea.BoolValue(util.EqualString(params.BodyType, tea.String("binary"))) {
 				resp := map[string]interface{}{
-					"body":    response_.Body,
-					"headers": response_.Headers,
+					"body":       response_.Body,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}
 				_result = resp
 				return _result, _err
@@ -1226,8 +1227,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    byt,
-					"headers": response_.Headers,
+					"body":       byt,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("string"))) {
@@ -1238,8 +1240,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    tea.StringValue(str),
-					"headers": response_.Headers,
+					"body":       tea.StringValue(str),
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("json"))) {
@@ -1251,8 +1254,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				res := util.AssertAsMap(obj)
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    res,
-					"headers": response_.Headers,
+					"body":       res,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(params.BodyType, tea.String("array"))) {
@@ -1263,14 +1267,16 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    arr,
-					"headers": response_.Headers,
+					"body":       arr,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else {
 				_result = make(map[string]interface{})
-				_err = tea.Convert(map[string]map[string]*string{
-					"headers": response_.Headers,
+				_err = tea.Convert(map[string]interface{}{
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			}
@@ -1416,8 +1422,9 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			}
 			_result = make(map[string]interface{})
 			_err = tea.Convert(map[string]interface{}{
-				"headers": interceptorContext.Response.Headers,
-				"body":    interceptorContext.Response.DeserializedBody,
+				"headers":    interceptorContext.Response.Headers,
+				"statusCode": tea.IntValue(interceptorContext.Response.StatusCode),
+				"body":       interceptorContext.Response.DeserializedBody,
 			}, &_result)
 			return _result, _err
 		}()

@@ -1452,6 +1452,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -1462,6 +1463,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "string"))
@@ -1471,6 +1473,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "json"))
@@ -1481,6 +1484,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "array"))
@@ -1490,6 +1494,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -1497,6 +1502,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -1686,6 +1692,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -1696,6 +1703,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "string"))
@@ -1705,6 +1713,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "json"))
@@ -1715,6 +1724,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "array"))
@@ -1724,6 +1734,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -1731,6 +1742,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -1875,6 +1887,7 @@ namespace AlibabaCloud.OpenApiClient
                     return new Dictionary<string, object>
                     {
                         {"headers", interceptorContext.Response.Headers},
+                        {"statusCode", interceptorContext.Response.StatusCode},
                         {"body", interceptorContext.Response.DeserializedBody},
                     };
                 }
@@ -2019,6 +2032,7 @@ namespace AlibabaCloud.OpenApiClient
                     return new Dictionary<string, object>
                     {
                         {"headers", interceptorContext.Response.Headers},
+                        {"statusCode", interceptorContext.Response.StatusCode},
                         {"body", interceptorContext.Response.DeserializedBody},
                     };
                 }
