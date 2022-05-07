@@ -118,6 +118,9 @@ class Config extends Model
         if (null !== $this->signatureAlgorithm) {
             $res['signatureAlgorithm'] = $this->signatureAlgorithm;
         }
+        if (null !== $this->globalParameters) {
+            $res['globalParameters'] = null !== $this->globalParameters ? $this->globalParameters->toMap() : null;
+        }
 
         return $res;
     }
@@ -201,6 +204,9 @@ class Config extends Model
         }
         if (isset($map['signatureAlgorithm'])) {
             $model->signatureAlgorithm = $map['signatureAlgorithm'];
+        }
+        if (isset($map['globalParameters'])) {
+            $model->globalParameters = GlobalParameters::fromMap($map['globalParameters']);
         }
 
         return $model;
@@ -417,4 +423,11 @@ class Config extends Model
      * @var string
      */
     public $signatureAlgorithm;
+
+    /**
+     * @description Global Parameters
+     *
+     * @var GlobalParameters
+     */
+    public $globalParameters;
 }

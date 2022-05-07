@@ -104,6 +104,10 @@ public class Config extends TeaModel {
     @NameInMap("signatureAlgorithm")
     public String signatureAlgorithm;
 
+    // Global Parameters
+    @NameInMap("globalParameters")
+    public GlobalParameters globalParameters;
+
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
         return TeaModel.build(map, self);
@@ -299,6 +303,14 @@ public class Config extends TeaModel {
     }
     public String getSignatureAlgorithm() {
         return this.signatureAlgorithm;
+    }
+
+    public Config setGlobalParameters(GlobalParameters globalParameters) {
+        this.globalParameters = globalParameters;
+        return this;
+    }
+    public GlobalParameters getGlobalParameters() {
+        return this.globalParameters;
     }
 
 }

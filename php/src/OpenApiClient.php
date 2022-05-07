@@ -77,6 +77,8 @@ class OpenApiClient
 
     protected $_spi;
 
+    protected $_globalParameters;
+
     /**
      * Init client with Config.
      *
@@ -121,6 +123,7 @@ class OpenApiClient
         $this->_maxIdleConns = $config->maxIdleConns;
         $this->_signatureVersion = $config->signatureVersion;
         $this->_signatureAlgorithm = $config->signatureAlgorithm;
+        $this->_globalParameters = $config->globalParameters;
     }
 
     /**
@@ -662,7 +665,18 @@ class OpenApiClient
                 $_request->protocol = Utils::defaultString($this->_protocol, $params->protocol);
                 $_request->method = $params->method;
                 $_request->pathname = $params->pathname;
-                $_request->query = $request->query;
+                $globalQueries = [];
+                $globalHeaders = [];
+                if (!Utils::isUnset($this->_globalParameters)) {
+                    $globalParams = $this->_globalParameters;
+                    if (!Utils::isUnset($globalParams->queries)) {
+                        $globalQueries = $globalParams->queries;
+                    }
+                    if (!Utils::isUnset($globalParams->headers)) {
+                        $globalHeaders = $globalParams->headers;
+                    }
+                }
+                $_request->query = Tea::merge($globalQueries, $request->query);
                 // endpoint is setted in product client
                 $_request->headers = Tea::merge([
                     'host' => $this->_endpoint,
@@ -672,7 +686,7 @@ class OpenApiClient
                     'x-acs-date' => OpenApiUtilClient::getTimestamp(),
                     'x-acs-signature-nonce' => Utils::getNonce(),
                     'accept' => 'application/json',
-                ], $request->headers);
+                ], $globalHeaders, $request->headers);
                 if (Utils::equalString($params->style, 'RPC')) {
                     $headers = $this->getRpcHeaders();
                     if (!Utils::isUnset($headers)) {
@@ -851,9 +865,20 @@ class OpenApiClient
                 $_request = new Request();
                 // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                 $headers = $this->getRpcHeaders();
+                $globalQueries = [];
+                $globalHeaders = [];
+                if (!Utils::isUnset($this->_globalParameters)) {
+                    $globalParams = $this->_globalParameters;
+                    if (!Utils::isUnset($globalParams->queries)) {
+                        $globalQueries = $globalParams->queries;
+                    }
+                    if (!Utils::isUnset($globalParams->headers)) {
+                        $globalHeaders = $globalParams->headers;
+                    }
+                }
                 $requestContext = new \Darabonba\GatewaySpi\Models\InterceptorContext\request([
-                    'headers' => Tea::merge($request->headers, $headers),
-                    'query' => $request->query,
+                    'headers' => Tea::merge($globalHeaders, $request->headers, $headers),
+                    'query' => Tea::merge($globalQueries, $request->query),
                     'body' => $request->body,
                     'stream' => $request->stream,
                     'hostMap' => $request->hostMap,

@@ -6,6 +6,39 @@ from typing import Dict, Any, BinaryIO
 from alibabacloud_credentials.client import Client as CredentialClient
 
 
+class GlobalParameters(TeaModel):
+    def __init__(
+        self,
+        headers: Dict[str, str] = None,
+        queries: Dict[str, str] = None,
+    ):
+        self.headers = headers
+        self.queries = queries
+
+    def validate(self):
+        pass
+
+    def to_map(self):
+        _map = super().to_map()
+        if _map is not None:
+            return _map
+
+        result = dict()
+        if self.headers is not None:
+            result['headers'] = self.headers
+        if self.queries is not None:
+            result['queries'] = self.queries
+        return result
+
+    def from_map(self, m: dict = None):
+        m = m or dict()
+        if m.get('headers') is not None:
+            self.headers = m.get('headers')
+        if m.get('queries') is not None:
+            self.queries = m.get('queries')
+        return self
+
+
 class Config(TeaModel):
     """
     Model for initing client
@@ -36,6 +69,7 @@ class Config(TeaModel):
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
+        global_parameters: GlobalParameters = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -85,9 +119,12 @@ class Config(TeaModel):
         self.signature_version = signature_version
         # Signature Algorithm
         self.signature_algorithm = signature_algorithm
+        # Global Parameters
+        self.global_parameters = global_parameters
 
     def validate(self):
-        pass
+        if self.global_parameters:
+            self.global_parameters.validate()
 
     def to_map(self):
         _map = super().to_map()
@@ -143,6 +180,8 @@ class Config(TeaModel):
             result['signatureVersion'] = self.signature_version
         if self.signature_algorithm is not None:
             result['signatureAlgorithm'] = self.signature_algorithm
+        if self.global_parameters is not None:
+            result['globalParameters'] = self.global_parameters.to_map()
         return result
 
     def from_map(self, m: dict = None):
@@ -195,6 +234,9 @@ class Config(TeaModel):
             self.signature_version = m.get('signatureVersion')
         if m.get('signatureAlgorithm') is not None:
             self.signature_algorithm = m.get('signatureAlgorithm')
+        if m.get('globalParameters') is not None:
+            temp_model = GlobalParameters()
+            self.global_parameters = temp_model.from_map(m['globalParameters'])
         return self
 
 
