@@ -33,7 +33,12 @@ type @signatureVersion = string
 type @signatureAlgorithm = string
 type @headers = map[string]string
 type @spi = SPI
+type @globalParameters = GlobalParameters
 
+model GlobalParameters {
+  headers?: map[string]string,
+  queries?: map[string]string,
+}
 /**
  * Model for initing client
  */
@@ -62,6 +67,7 @@ model Config {
   type?: string(description='credential type',example='access_key',default='',deprecated=true),
   signatureVersion?: string(description='Signature Version',example='v1',default=''),
   signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
+  globalParameters?: GlobalParameters(description='Global Parameters'),
 }
 
 /**
@@ -110,6 +116,7 @@ init(config: Config) {
   @maxIdleConns = config.maxIdleConns;
   @signatureVersion = config.signatureVersion;
   @signatureAlgorithm = config.signatureAlgorithm;
+  @globalParameters = config.globalParameters;
 }
 
 model OpenApiRequest {
@@ -561,7 +568,21 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   __request.protocol = Util.defaultString(@protocol, params.protocol);
   __request.method = params.method;
   __request.pathname = params.pathname;
-  __request.query = request.query;
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
+  __request.query = {
+    ...globalQueries,
+    ...request.query,
+  };
 
   // endpoint is setted in product client
   __request.headers = {
@@ -572,6 +593,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     x-acs-date= OpenApiUtil.getTimestamp(),
     x-acs-signature-nonce = Util.getNonce(),
     accept = 'application/json',
+    ...globalHeaders,
     ...request.headers,
   };
   if (Util.equalString(params.style, 'RPC')) {
@@ -725,12 +747,27 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
 api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
   var headers = getRpcHeaders();
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
   var requestContext = new SPI.InterceptorContext.request{
     headers = {
+      ...globalHeaders,
       ...request.headers,
       ...headers
     },
-    query = request.query,
+    query = {
+      ...globalQueries,
+      ...request.query,
+    },
     body = request.body,
     stream = request.stream,
     hostMap = request.hostMap,

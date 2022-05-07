@@ -1,6 +1,3 @@
-/**
- * This is for OpenApi SDK
- */
 // This file is auto-generated, don't edit it. Thanks.
 
 using System;
@@ -183,6 +180,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [NameInMap("signatureAlgorithm")]
         [Validation(Required=false)]
         public string SignatureAlgorithm { get; set; }
+
+        /// <summary>
+        /// Global Parameters
+        /// </summary>
+        [NameInMap("globalParameters")]
+        [Validation(Required=false)]
+        public GlobalParameters GlobalParameters { get; set; }
 
     }
 

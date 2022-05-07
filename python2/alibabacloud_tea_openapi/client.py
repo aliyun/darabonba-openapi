@@ -11,6 +11,7 @@ from Tea.converter import TeaConverter
 
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_gateway_spi.client import Client as SPIClient
+from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
@@ -47,6 +48,7 @@ class Client(object):
     _signature_algorithm = None  # type: str
     _headers = None  # type: dict[str, str]
     _spi = None  # type: SPIClient
+    _global_parameters = None  # type: open_api_models.GlobalParameters
 
     def __init__(self, config):
         """
@@ -91,6 +93,7 @@ class Client(object):
         self._max_idle_conns = config.max_idle_conns
         self._signature_version = config.signature_version
         self._signature_algorithm = config.signature_algorithm
+        self._global_parameters = config.global_parameters
 
     def do_rpcrequest(self, action, version, protocol, method, auth_type, body_type, request, runtime):
         """
@@ -618,7 +621,16 @@ class Client(object):
                 _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
                 _request.method = params.method
                 _request.pathname = params.pathname
-                _request.query = request.query
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
+                _request.query = TeaCore.merge(global_queries,
+                    request.query)
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
                     'host': self._endpoint,
@@ -628,7 +640,8 @@ class Client(object):
                     'x-acs-date': OpenApiUtilClient.get_timestamp(),
                     'x-acs-signature-nonce': UtilClient.get_nonce(),
                     'accept': 'application/json'
-                }, request.headers)
+                }, global_headers,
+                    request.headers)
                 if UtilClient.equal_string(params.style, 'RPC'):
                     headers = self.get_rpc_headers()
                     if not UtilClient.is_unset(headers):
@@ -793,10 +806,20 @@ class Client(object):
                 _request = TeaRequest()
                 # spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                 headers = self.get_rpc_headers()
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 request_context = spi_models.InterceptorContextRequest(
-                    headers=TeaCore.merge(request.headers,
+                    headers=TeaCore.merge(global_headers,
+                        request.headers,
                         headers),
-                    query=request.query,
+                    query=TeaCore.merge(global_queries,
+                        request.query),
                     body=request.body,
                     stream=request.stream,
                     host_map=request.host_map,

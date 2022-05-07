@@ -44,6 +44,7 @@ public class Client {
     public String _signatureAlgorithm;
     public java.util.Map<String, String> _headers;
     public com.aliyun.gateway.spi.Client _spi;
+    public GlobalParameters _globalParameters;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -92,6 +93,7 @@ public class Client {
         this._maxIdleConns = config.maxIdleConns;
         this._signatureVersion = config.signatureVersion;
         this._signatureAlgorithm = config.signatureAlgorithm;
+        this._globalParameters = config.globalParameters;
     }
 
     public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
@@ -612,7 +614,23 @@ public class Client {
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, params.protocol);
                 request_.method = params.method;
                 request_.pathname = params.pathname;
-                request_.query = request.query;
+                java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
+                java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                    GlobalParameters globalParams = _globalParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers;
+                    }
+
+                }
+                request_.query = TeaConverter.merge(String.class,
+                    globalQueries,
+                    request.query
+                );
                 // endpoint is setted in product client
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
@@ -624,6 +642,7 @@ public class Client {
                         new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("accept", "application/json")
                     ),
+                    globalHeaders,
                     request.headers
                 );
                 if (com.aliyun.teautil.Common.equalString(params.style, "RPC")) {
@@ -805,12 +824,29 @@ public class Client {
                 TeaRequest request_ = new TeaRequest();
                 // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                 java.util.Map<String, String> headers = this.getRpcHeaders();
+                java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
+                java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                    GlobalParameters globalParams = _globalParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers;
+                    }
+
+                }
                 InterceptorContext.InterceptorContextRequest requestContext = InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
                     new TeaPair("headers", TeaConverter.merge(String.class,
+                        globalHeaders,
                         request.headers,
                         headers
                     )),
-                    new TeaPair("query", request.query),
+                    new TeaPair("query", TeaConverter.merge(String.class,
+                        globalQueries,
+                        request.query
+                    )),
                     new TeaPair("body", request.body),
                     new TeaPair("stream", request.stream),
                     new TeaPair("hostMap", request.hostMap),

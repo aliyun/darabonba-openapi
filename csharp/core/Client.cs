@@ -40,6 +40,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _signatureAlgorithm;
         protected Dictionary<string, string> _headers;
         protected AlibabaCloud.GatewaySpi.Client _spi;
+        protected GlobalParameters _globalParameters;
 
         /**
          * Init client with Config
@@ -96,6 +97,7 @@ namespace AlibabaCloud.OpenApiClient
             this._maxIdleConns = config.MaxIdleConns;
             this._signatureVersion = config.SignatureVersion;
             this._signatureAlgorithm = config.SignatureAlgorithm;
+            this._globalParameters = config.GlobalParameters;
         }
 
         /**
@@ -1341,7 +1343,25 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
-                    request_.Query = request.Query;
+                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
+                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    {
+                        GlobalParameters globalParams = _globalParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
+                        {
+                            globalQueries = globalParams.Queries;
+                        }
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Headers))
+                        {
+                            globalHeaders = globalParams.Headers;
+                        }
+                    }
+                    request_.Query = TeaConverter.merge<string>
+                    (
+                        globalQueries,
+                        request.Query
+                    );
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>
                     (
@@ -1355,6 +1375,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"x-acs-signature-nonce", AlibabaCloud.TeaUtil.Common.GetNonce()},
                             {"accept", "application/json"},
                         },
+                        globalHeaders,
                         request.Headers
                     );
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
@@ -1581,7 +1602,25 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Protocol = AlibabaCloud.TeaUtil.Common.DefaultString(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
-                    request_.Query = request.Query;
+                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
+                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    {
+                        GlobalParameters globalParams = _globalParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
+                        {
+                            globalQueries = globalParams.Queries;
+                        }
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Headers))
+                        {
+                            globalHeaders = globalParams.Headers;
+                        }
+                    }
+                    request_.Query = TeaConverter.merge<string>
+                    (
+                        globalQueries,
+                        request.Query
+                    );
                     // endpoint is setted in product client
                     request_.Headers = TeaConverter.merge<string>
                     (
@@ -1595,6 +1634,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"x-acs-signature-nonce", AlibabaCloud.TeaUtil.Common.GetNonce()},
                             {"accept", "application/json"},
                         },
+                        globalHeaders,
                         request.Headers
                     );
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
@@ -1820,14 +1860,33 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
+                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
+                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    {
+                        GlobalParameters globalParams = _globalParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
+                        {
+                            globalQueries = globalParams.Queries;
+                        }
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Headers))
+                        {
+                            globalHeaders = globalParams.Headers;
+                        }
+                    }
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
                     {
                         Headers = TeaConverter.merge<string>
                         (
+                            globalHeaders,
                             request.Headers,
                             headers
                         ),
-                        Query = request.Query,
+                        Query = TeaConverter.merge<string>
+                        (
+                            globalQueries,
+                            request.Query
+                        ),
                         Body = request.Body,
                         Stream = request.Stream,
                         HostMap = request.HostMap,
@@ -1965,14 +2024,33 @@ namespace AlibabaCloud.OpenApiClient
                     TeaRequest request_ = new TeaRequest();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
+                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
+                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    {
+                        GlobalParameters globalParams = _globalParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
+                        {
+                            globalQueries = globalParams.Queries;
+                        }
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Headers))
+                        {
+                            globalHeaders = globalParams.Headers;
+                        }
+                    }
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
                     {
                         Headers = TeaConverter.merge<string>
                         (
+                            globalHeaders,
                             request.Headers,
                             headers
                         ),
-                        Query = request.Query,
+                        Query = TeaConverter.merge<string>
+                        (
+                            globalQueries,
+                            request.Query
+                        ),
                         Body = request.Body,
                         Stream = request.Stream,
                         HostMap = request.HostMap,

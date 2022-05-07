@@ -10,6 +10,28 @@ import XML from '@alicloud/tea-xml';
 import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
 
+export class GlobalParameters extends $tea.Model {
+  headers?: { [key: string]: string };
+  queries?: { [key: string]: string };
+  static names(): { [key: string]: string } {
+    return {
+      headers: 'headers',
+      queries: 'queries',
+    };
+  }
+
+  static types(): { [key: string]: any } {
+    return {
+      headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
+      queries: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
+    };
+  }
+
+  constructor(map?: { [key: string]: any }) {
+    super(map);
+  }
+}
+
 /**
  * Model for initing client
  */
@@ -38,6 +60,7 @@ export class Config extends $tea.Model {
   type?: string;
   signatureVersion?: string;
   signatureAlgorithm?: string;
+  globalParameters?: GlobalParameters;
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'accessKeyId',
@@ -64,6 +87,7 @@ export class Config extends $tea.Model {
       type: 'type',
       signatureVersion: 'signatureVersion',
       signatureAlgorithm: 'signatureAlgorithm',
+      globalParameters: 'globalParameters',
     };
   }
 
@@ -93,6 +117,7 @@ export class Config extends $tea.Model {
       type: 'string',
       signatureVersion: 'string',
       signatureAlgorithm: 'string',
+      globalParameters: GlobalParameters,
     };
   }
 
@@ -205,6 +230,7 @@ export default class Client {
   _signatureAlgorithm: string;
   _headers: {[key: string ]: string};
   _spi: SPI;
+  _globalParameters: GlobalParameters;
 
   /**
    * Init client with Config
@@ -254,6 +280,7 @@ export default class Client {
     this._maxIdleConns = config.maxIdleConns;
     this._signatureVersion = config.signatureVersion;
     this._signatureAlgorithm = config.signatureAlgorithm;
+    this._globalParameters = config.globalParameters;
   }
 
   /**
@@ -786,7 +813,24 @@ export default class Client {
         request_.protocol = Util.defaultString(this._protocol, params.protocol);
         request_.method = params.method;
         request_.pathname = params.pathname;
-        request_.query = request.query;
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
+        request_.query = {
+          ...globalQueries,
+          ...request.query,
+        };
         // endpoint is setted in product client
         request_.headers = {
           host: this._endpoint,
@@ -796,6 +840,7 @@ export default class Client {
           'x-acs-date': OpenApiUtil.getTimestamp(),
           'x-acs-signature-nonce': Util.getNonce(),
           accept: "application/json",
+          ...globalHeaders,
           ...request.headers,
         };
         if (Util.equalString(params.style, "RPC")) {
@@ -981,12 +1026,30 @@ export default class Client {
         let request_ = new $tea.Request();
         // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
         let headers = this.getRpcHeaders();
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
         let requestContext = new $SPI.InterceptorContextRequest({
           headers: {
+            ...globalHeaders,
             ...request.headers,
             ...headers,
           },
-          query: request.query,
+          query: {
+            ...globalQueries,
+            ...request.query,
+          },
           body: request.body,
           stream: request.stream,
           hostMap: request.hostMap,
