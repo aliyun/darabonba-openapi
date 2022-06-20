@@ -120,7 +120,11 @@ class OpenApiClient
         $this->_socks5NetWork = $config->socks5NetWork;
         $this->_maxIdleConns = $config->maxIdleConns;
         $this->_signatureVersion = $config->signatureVersion;
-        $this->_signatureAlgorithm = $config->signatureAlgorithm;
+        if (Utils::isUnset($config->signatureAlgorithm) || Utils::empty_($config->signatureAlgorithm)) {
+            $this->_signatureAlgorithm = 'ACS3-HMAC-SHA256';
+        } else {
+            $this->_signatureAlgorithm = $config->signatureAlgorithm;
+        }
     }
 
     /**
@@ -679,7 +683,7 @@ class OpenApiClient
                         $_request->headers = Tea::merge($_request->headers, $headers);
                     }
                 }
-                $signatureAlgorithm = Utils::defaultString($this->_signatureAlgorithm, 'ACS3-HMAC-SHA256');
+                $signatureAlgorithm = $this->_signatureAlgorithm;
                 $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes(''), $signatureAlgorithm));
                 if (!Utils::isUnset($request->stream)) {
                     $tmp = Utils::readAsBytes($request->stream);
