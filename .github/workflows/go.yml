@@ -1,0 +1,35 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+defaults:
+  run:
+    shell: bash
+    working-directory: golang
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [1.13, 1.14, 1.15, 1.16]
+    
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
+
+    - name: Export Env
+      run: export GO111MODULE=on
+    - name: Build
+      run: go mod tidy
+    - name: Test
+      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/...
