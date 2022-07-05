@@ -472,6 +472,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
 		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"keepAlive": tea.BoolValue(runtime.KeepAlive),
 	}
 
 	_resp := make(map[string]interface{})
@@ -691,6 +692,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
 		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"keepAlive": tea.BoolValue(runtime.KeepAlive),
 	}
 
 	_resp := make(map[string]interface{})
@@ -895,6 +897,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
 		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"keepAlive": tea.BoolValue(runtime.KeepAlive),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1101,6 +1104,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
 		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"keepAlive": tea.BoolValue(runtime.KeepAlive),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1382,6 +1386,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
 		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"keepAlive": tea.BoolValue(runtime.KeepAlive),
 	}
 
 	_resp := make(map[string]interface{})

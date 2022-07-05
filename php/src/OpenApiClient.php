@@ -167,6 +167,7 @@ class OpenApiClient
                 'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
             ],
             'ignoreSSL' => $runtime->ignoreSSL,
+            'keepAlive' => $runtime->keepAlive,
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -337,6 +338,7 @@ class OpenApiClient
                 'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
             ],
             'ignoreSSL' => $runtime->ignoreSSL,
+            'keepAlive' => $runtime->keepAlive,
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -495,6 +497,7 @@ class OpenApiClient
                 'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
             ],
             'ignoreSSL' => $runtime->ignoreSSL,
+            'keepAlive' => $runtime->keepAlive,
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -647,6 +650,7 @@ class OpenApiClient
                 'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
             ],
             'ignoreSSL' => $runtime->ignoreSSL,
+            'keepAlive' => $runtime->keepAlive,
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -848,6 +852,7 @@ class OpenApiClient
                 'period' => Utils::defaultNumber($runtime->backoffPeriod, 1),
             ],
             'ignoreSSL' => $runtime->ignoreSSL,
+            'keepAlive' => $runtime->keepAlive,
         ];
         $_lastRequest = null;
         $_lastException = null;

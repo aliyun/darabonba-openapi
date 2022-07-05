@@ -137,6 +137,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -349,6 +350,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -562,6 +564,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -752,6 +755,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -942,6 +946,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -1131,6 +1136,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -1320,6 +1326,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -1579,6 +1586,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -1838,6 +1846,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;
@@ -2002,6 +2011,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"keepAlive", runtime.KeepAlive},
             };
 
             TeaRequest _lastRequest = null;

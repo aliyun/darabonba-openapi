@@ -116,7 +116,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("keepAlive", runtime.keepAlive)
         );
 
         TeaRequest _lastRequest = null;
@@ -287,7 +288,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("keepAlive", runtime.keepAlive)
         );
 
         TeaRequest _lastRequest = null;
@@ -440,7 +442,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("keepAlive", runtime.keepAlive)
         );
 
         TeaRequest _lastRequest = null;
@@ -593,7 +596,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("keepAlive", runtime.keepAlive)
         );
 
         TeaRequest _lastRequest = null;
@@ -627,6 +631,7 @@ public class Client {
                     }
 
                 }
+
                 request_.query = TeaConverter.merge(String.class,
                     globalQueries,
                     request.query
@@ -699,6 +704,7 @@ public class Client {
 
                         request_.headers.put("Authorization", com.aliyun.openapiutil.Client.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret));
                     }
+
                 }
 
                 _lastRequest = request_;
@@ -805,7 +811,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("keepAlive", runtime.keepAlive)
         );
 
         TeaRequest _lastRequest = null;
@@ -837,6 +844,7 @@ public class Client {
                     }
 
                 }
+
                 InterceptorContext.InterceptorContextRequest requestContext = InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
                     new TeaPair("headers", TeaConverter.merge(String.class,
                         globalHeaders,
