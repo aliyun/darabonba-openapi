@@ -254,11 +254,23 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -305,11 +317,23 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
@@ -363,11 +387,23 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -417,11 +453,23 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/json; charset=utf-8", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
@@ -476,11 +524,23 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -529,11 +589,23 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/json; charset=utf-8", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
@@ -588,11 +660,23 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -641,11 +725,23 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/json; charset=utf-8", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertNil(t, headers["connection"])
 
 	body := util.AssertAsMap(result["body"])
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+
+	runtime.SetKeepAlive(false)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
+	runtime.SetKeepAlive(true)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	headers = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, headers["connection"])
 }
 
 func TestResponseBodyType(t *testing.T) {

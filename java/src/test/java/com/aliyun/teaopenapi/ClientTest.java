@@ -203,6 +203,7 @@ public class ClientTest {
                 .withHeader("x-acs-action", equalTo("TestAPI"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -210,6 +211,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -252,6 +258,7 @@ public class ClientTest {
                 .withHeader("x-acs-action", equalTo("TestAPI"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -259,6 +266,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -305,6 +317,7 @@ public class ClientTest {
                 .withHeader("x-acs-action", equalTo("TestAPI"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -312,6 +325,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -351,6 +369,7 @@ public class ClientTest {
                 .withHeader("x-acs-action", equalTo("TestAPI"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -358,6 +377,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -406,6 +430,7 @@ public class ClientTest {
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -413,6 +438,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -452,6 +482,7 @@ public class ClientTest {
                 .withHeader("accept", matching("application/json"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -459,6 +490,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -507,6 +543,7 @@ public class ClientTest {
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -514,6 +551,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test
@@ -553,6 +595,7 @@ public class ClientTest {
                 .withHeader("accept", matching("application/json"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.6 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
+                .withHeader("connection", equalTo("keep-alive"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         Map<String, ?> result = client.callApi(params, request, runtime);
@@ -560,6 +603,11 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+
+        runtime.keepAlive = false;
+        client.callApi(params, request, runtime);
+        runtime.keepAlive = true;
+        client.callApi(params, request, runtime);
     }
 
     @Test

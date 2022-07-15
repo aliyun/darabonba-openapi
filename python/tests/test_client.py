@@ -195,6 +195,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -206,6 +207,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v2sign_anonymous_json(self):
@@ -248,6 +254,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -259,6 +266,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_ak_form(self):
@@ -305,6 +317,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -316,6 +329,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_anonymous_json(self):
@@ -358,6 +376,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -369,6 +388,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_ak_form(self):
@@ -418,6 +442,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -429,6 +454,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
@@ -472,6 +502,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -483,6 +514,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_ak_form(self):
@@ -532,6 +568,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -543,6 +580,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_anonymous_json(self):
@@ -586,6 +628,7 @@ class TestClient(unittest.TestCase):
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
+            assert None is request.headers.get('connection')
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
 
@@ -597,6 +640,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+
+        runtime.keep_alive = False
+        client.call_api(params, request, runtime)
+        runtime.keep_alive = True
+        client.call_api(params, request, runtime)
 
     @httpretty.activate(allow_net_connect=False)
     def test_response_body_type(self):
