@@ -315,6 +315,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      keepAlive: runtime.keepAlive,
     }
 
     let _lastRequest = null;
@@ -486,6 +487,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      keepAlive: runtime.keepAlive,
     }
 
     let _lastRequest = null;
@@ -641,6 +643,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      keepAlive: runtime.keepAlive,
     }
 
     let _lastRequest = null;
@@ -794,6 +797,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      keepAlive: runtime.keepAlive,
     }
 
     let _lastRequest = null;
@@ -1008,6 +1012,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      keepAlive: runtime.keepAlive,
     }
 
     let _lastRequest = null;

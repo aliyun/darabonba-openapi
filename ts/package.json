@@ -4,14 +4,18 @@
   "description": "",
   "main": "dist/client.js",
   "scripts": {
-    "test": "mocha --reporter spec --timeout 3000 test/*.test.js",
+    "test": "mocha -r ts-node/register -r source-map-support/register test/**/*.spec.ts --timeout=10000",
     "test-cov": "nyc -e .ts -r=html -r=text -r=lcov npm run test",
+    "ci": "npm run test-cov && codecov",
     "build": "tsc",
     "prepublishOnly": "tsc"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "codecov": "^3.6.1",
+    "mocha": "^6.2.0",
     "@types/node": "^12.12.26",
     "nyc": "^15.0.0",
     "source-map-support": "^0.5.16",
@@ -19,10 +23,10 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@alicloud/tea-typescript": "^1.7.1",
-    "@alicloud/tea-util": "^1.4.0",
+    "@alicloud/tea-typescript": "^1.7.4",
+    "@alicloud/tea-util": "^1.4.4",
     "@alicloud/credentials": "^2.2.2",
-    "@alicloud/openapi-util": "^0.2.7",
+    "@alicloud/openapi-util": "^0.2.9",
     "@alicloud/gateway-spi": "^0.0.8",
     "@alicloud/tea-xml": "0.0.2"
   },

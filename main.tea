@@ -268,7 +268,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  keepAlive = runtime.keepAlive
 }
 
 /**
@@ -394,7 +395,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  keepAlive = runtime.keepAlive
 }
 
 /**
@@ -520,7 +522,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  keepAlive = runtime.keepAlive
 }
 
 model Params = {
@@ -728,7 +731,8 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  keepAlive = runtime.keepAlive
 }
 
 
@@ -849,7 +853,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  keepAlive = runtime.keepAlive
 }
 
 /**
