@@ -91,9 +91,9 @@ init(config: Config) {
     var credentialConfig = new Credential.Config{
       accessKeyId = config.accessKeyId,
       type = config.type,
-      accessKeySecret = config.accessKeySecret,
-      securityToken = config.securityToken
+      accessKeySecret = config.accessKeySecret
     };
+    credentialConfig.securityToken = config.securityToken;
     @credential = new Credential(credentialConfig);
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
@@ -261,14 +261,14 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = runtime.autoretry,
+    retryable = defaultAny(runtime.autoretry, false),
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
 }
 
 /**
@@ -387,14 +387,14 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = runtime.autoretry,
+    retryable = defaultAny(runtime.autoretry, false),
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
 }
 
 /**
@@ -513,14 +513,14 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = runtime.autoretry,
+    retryable = defaultAny(runtime.autoretry, false),
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
 }
 
 model Params = {
@@ -721,14 +721,14 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = runtime.autoretry,
+    retryable = defaultAny(runtime.autoretry, false),
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
 }
 
 
@@ -842,14 +842,14 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = runtime.autoretry,
+    retryable = defaultAny(runtime.autoretry, false),
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
 }
 
 /**

@@ -70,35 +70,35 @@ open class Client {
                 config.type = "access_key"
             }
             var credentialConfig: AlibabaCloudCredentials.Config = AlibabaCloudCredentials.Config([
-                "accessKeyId": config.accessKeyId,
-                "type": config.type,
-                "accessKeySecret": config.accessKeySecret,
-                "securityToken": config.securityToken
+                "accessKeyId": config.accessKeyId ?? "",
+                "type": config.type ?? "",
+                "accessKeySecret": config.accessKeySecret ?? ""
             ])
+            credentialConfig.securityToken = config.securityToken
             self._credential = AlibabaCloudCredentials.Client(credentialConfig)
         }
         else if (!TeaUtils.Client.isUnset(config.credential)) {
-            self._credential = config.credential!
+            self._credential = config.credential
         }
-        self._endpoint = config.endpoint!
-        self._endpointType = config.endpointType!
-        self._network = config.network!
-        self._suffix = config.suffix!
-        self._protocol = config.protocol_!
-        self._method = config.method!
-        self._regionId = config.regionId!
-        self._userAgent = config.userAgent!
-        self._readTimeout = config.readTimeout!
-        self._connectTimeout = config.connectTimeout!
-        self._httpProxy = config.httpProxy!
-        self._httpsProxy = config.httpsProxy!
-        self._noProxy = config.noProxy!
-        self._socks5Proxy = config.socks5Proxy!
-        self._socks5NetWork = config.socks5NetWork!
-        self._maxIdleConns = config.maxIdleConns!
-        self._signatureVersion = config.signatureVersion!
-        self._signatureAlgorithm = config.signatureAlgorithm!
-        self._globalParameters = config.globalParameters!
+        self._endpoint = config.endpoint
+        self._endpointType = config.endpointType
+        self._network = config.network
+        self._suffix = config.suffix
+        self._protocol = config.protocol_
+        self._method = config.method
+        self._regionId = config.regionId
+        self._userAgent = config.userAgent
+        self._readTimeout = config.readTimeout
+        self._connectTimeout = config.connectTimeout
+        self._httpProxy = config.httpProxy
+        self._httpsProxy = config.httpsProxy
+        self._noProxy = config.noProxy
+        self._socks5Proxy = config.socks5Proxy
+        self._socks5NetWork = config.socks5NetWork
+        self._maxIdleConns = config.maxIdleConns
+        self._signatureVersion = config.signatureVersion
+        self._signatureAlgorithm = config.signatureAlgorithm
+        self._globalParameters = config.globalParameters
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -116,14 +116,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": runtime.autoretry,
+                "retryable": Client.defaultAny(runtime.autoretry, false),
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": runtime.ignoreSSL
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -143,26 +143,26 @@ open class Client {
                 _request.method = method as! String
                 _request.pathname = "/"
                 _request.query = Tea.TeaConverter.merge([
-                    "Action": action,
+                    "Action": action as! String,
                     "Format": "json",
-                    "Version": version,
+                    "Version": version as! String,
                     "Timestamp": AlibabaCloudOpenApiUtil.Client.getTimestamp(),
                     "SignatureNonce": TeaUtils.Client.getNonce()
-                ], request.query)
+                ], request.query ?? [:])
                 var headers: [String: String] = try getRpcHeaders()
                 if (TeaUtils.Client.isUnset(headers)) {
                     _request.headers = [
-                        "host": self._endpoint!,
-                        "x-acs-version": version,
-                        "x-acs-action": action,
+                        "host": self._endpoint ?? "",
+                        "x-acs-version": version as! String,
+                        "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
                     ]
                 }
                 else {
                     _request.headers = Tea.TeaConverter.merge([
-                        "host": self._endpoint!,
-                        "x-acs-version": version,
-                        "x-acs-action": action,
+                        "host": self._endpoint ?? "",
+                        "x-acs-version": version as! String,
+                        "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
                     ], headers)
                 }
@@ -211,14 +211,14 @@ open class Client {
                 else if (TeaUtils.Client.equalString(bodyType, "byte")) {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
-                        "body": byt,
+                        "body": byt as! [UInt8],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
-                        "body": str,
+                        "body": str as! String,
                         "headers": _response.headers
                     ]
                 }
@@ -226,14 +226,14 @@ open class Client {
                     var obj: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
-                        "body": res,
+                        "body": res as! [String: Any],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
-                        "body": arr,
+                        "body": arr as! Any,
                         "headers": _response.headers
                     ]
                 }
@@ -269,14 +269,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": runtime.autoretry,
+                "retryable": Client.defaultAny(runtime.autoretry, false),
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": runtime.ignoreSSL
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -297,21 +297,21 @@ open class Client {
                 _request.pathname = pathname as! String
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
-                    "host": self._endpoint!,
+                    "host": self._endpoint ?? "",
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "x-acs-signature-method": "HMAC-SHA1",
                     "x-acs-signature-version": "1.0",
-                    "x-acs-version": version,
-                    "x-acs-action": action,
+                    "x-acs-version": version as! String,
+                    "x-acs-action": action as! String,
                     "user-agent": TeaUtils.Client.getUserAgent(self._userAgent)
-                ], request.headers)
+                ], request.headers ?? [:])
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     _request.body = Tea.TeaCore.toReadable(TeaUtils.Client.toJSONString(request.body))
                     _request.headers["content-type"] = "application/json; charset=utf-8";
                 }
                 if (!TeaUtils.Client.isUnset(request.query)) {
-                    _request.query = request.query!
+                    _request.query = request.query ?? [:]
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
                     var accessKeyId: String = try await getAccessKeyId()
@@ -352,14 +352,14 @@ open class Client {
                 else if (TeaUtils.Client.equalString(bodyType, "byte")) {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
-                        "body": byt,
+                        "body": byt as! [UInt8],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
-                        "body": str,
+                        "body": str as! String,
                         "headers": _response.headers
                     ]
                 }
@@ -367,14 +367,14 @@ open class Client {
                     var obj: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
-                        "body": res,
+                        "body": res as! [String: Any],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
-                        "body": arr,
+                        "body": arr as! Any,
                         "headers": _response.headers
                     ]
                 }
@@ -410,14 +410,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": runtime.autoretry,
+                "retryable": Client.defaultAny(runtime.autoretry, false),
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": runtime.ignoreSSL
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -438,22 +438,22 @@ open class Client {
                 _request.pathname = pathname as! String
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
-                    "host": self._endpoint!,
+                    "host": self._endpoint ?? "",
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "x-acs-signature-method": "HMAC-SHA1",
                     "x-acs-signature-version": "1.0",
-                    "x-acs-version": version,
-                    "x-acs-action": action,
+                    "x-acs-version": version as! String,
+                    "x-acs-action": action as! String,
                     "user-agent": TeaUtils.Client.getUserAgent(self._userAgent)
-                ], request.headers)
+                ], request.headers ?? [:])
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     var m: [String: Any] = try TeaUtils.Client.assertAsMap(request.body)
                     _request.body = Tea.TeaCore.toReadable(AlibabaCloudOpenApiUtil.Client.toForm(m))
                     _request.headers["content-type"] = "application/x-www-form-urlencoded";
                 }
                 if (!TeaUtils.Client.isUnset(request.query)) {
-                    _request.query = request.query!
+                    _request.query = request.query ?? [:]
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
                     var accessKeyId: String = try await getAccessKeyId()
@@ -492,14 +492,14 @@ open class Client {
                 else if (TeaUtils.Client.equalString(bodyType, "byte")) {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
-                        "body": byt,
+                        "body": byt as! [UInt8],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
-                        "body": str,
+                        "body": str as! String,
                         "headers": _response.headers
                     ]
                 }
@@ -507,14 +507,14 @@ open class Client {
                     var obj: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
-                        "body": res,
+                        "body": res as! [String: Any],
                         "headers": _response.headers
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
-                        "body": arr,
+                        "body": arr as! Any,
                         "headers": _response.headers
                     ]
                 }
@@ -551,14 +551,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": runtime.autoretry,
+                "retryable": Client.defaultAny(runtime.autoretry, false),
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": runtime.ignoreSSL
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -575,29 +575,29 @@ open class Client {
             do {
                 var _request: Tea.TeaRequest = Tea.TeaRequest()
                 _request.protocol_ = TeaUtils.Client.defaultString(self._protocol, params.protocol_)
-                _request.method = params.method!
-                _request.pathname = params.pathname!
+                _request.method = params.method ?? ""
+                _request.pathname = params.pathname ?? ""
                 var globalQueries: [String: String] = [:]
                 var globalHeaders: [String: String] = [:]
                 if (!TeaUtils.Client.isUnset(self._globalParameters)) {
                     var globalParams: GlobalParameters = self._globalParameters!
                     if (!TeaUtils.Client.isUnset(globalParams.queries)) {
-                        globalQueries = globalParams.queries!
+                        globalQueries = globalParams.queries ?? [:]
                     }
                     if (!TeaUtils.Client.isUnset(globalParams.headers)) {
-                        globalHeaders = globalParams.headers!
+                        globalHeaders = globalParams.headers ?? [:]
                     }
                 }
-                _request.query = Tea.TeaConverter.merge([:], globalQueries, request.query)
+                _request.query = Tea.TeaConverter.merge([:], globalQueries, request.query ?? [:])
                 _request.headers = Tea.TeaConverter.merge([
-                    "host": self._endpoint!,
-                    "x-acs-version": params.version!,
-                    "x-acs-action": params.action!,
+                    "host": self._endpoint ?? "",
+                    "x-acs-version": params.version ?? "",
+                    "x-acs-action": params.action ?? "",
                     "user-agent": getUserAgent(),
                     "x-acs-date": AlibabaCloudOpenApiUtil.Client.getTimestamp(),
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "accept": "application/json"
-                ], globalHeaders, request.headers)
+                ], globalHeaders, request.headers ?? [:])
                 if (TeaUtils.Client.equalString(params.style, "RPC")) {
                     var headers: [String: String] = try getRpcHeaders()
                     if (!TeaUtils.Client.isUnset(headers)) {
@@ -670,7 +670,7 @@ open class Client {
                 else if (TeaUtils.Client.equalString(params.bodyType, "byte")) {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
-                        "body": byt,
+                        "body": byt as! [UInt8],
                         "headers": _response.headers,
                         "statusCode": _response.statusCode
                     ]
@@ -678,7 +678,7 @@ open class Client {
                 else if (TeaUtils.Client.equalString(params.bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
-                        "body": str,
+                        "body": str as! String,
                         "headers": _response.headers,
                         "statusCode": _response.statusCode
                     ]
@@ -687,7 +687,7 @@ open class Client {
                     var obj: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
-                        "body": res,
+                        "body": res as! [String: Any],
                         "headers": _response.headers,
                         "statusCode": _response.statusCode
                     ]
@@ -695,7 +695,7 @@ open class Client {
                 else if (TeaUtils.Client.equalString(params.bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
-                        "body": arr,
+                        "body": arr as! Any,
                         "headers": _response.headers,
                         "statusCode": _response.statusCode
                     ]
@@ -727,16 +727,16 @@ open class Client {
             ])
         }
         if (TeaUtils.Client.isUnset(self._signatureAlgorithm) || !TeaUtils.Client.equalString(self._signatureAlgorithm, "v2")) {
-            return try await doRequest(params, request, runtime)
+            return try await doRequest(params as! Params, request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
         else if (TeaUtils.Client.equalString(params.style, "ROA") && TeaUtils.Client.equalString(params.reqBodyType, "json")) {
-            return try await doROARequest(params.action!, params.version!, params.protocol_!, params.method!, params.authType!, params.pathname!, params.bodyType!, request, runtime)
+            return try await doROARequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
         else if (TeaUtils.Client.equalString(params.style, "ROA")) {
-            return try await doROARequestWithForm(params.action!, params.version!, params.protocol_!, params.method!, params.authType!, params.pathname!, params.bodyType!, request, runtime)
+            return try await doROARequestWithForm(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
         else {
-            return try await doRPCRequest(params.action!, params.version!, params.protocol_!, params.method!, params.authType!, params.bodyType!, request, runtime)
+            return try await doRPCRequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
     }
 
@@ -807,11 +807,11 @@ open class Client {
     }
 
     public func setRpcHeaders(_ headers: [String: String]) throws -> Void {
-        self._headers = headers as! [String: String]
+        self._headers = headers
     }
 
     public func getRpcHeaders() throws -> [String: String] {
-        var headers: [String: String] = self._headers!
+        var headers: [String: String] = self._headers ?? [:]
         self._headers = nil
         return headers as! [String: String]
     }
