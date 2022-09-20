@@ -70,9 +70,9 @@ class Client:
             credential_config = credential_models.Config(
                 access_key_id=config.access_key_id,
                 type=config.type,
-                access_key_secret=config.access_key_secret,
-                security_token=config.security_token
+                access_key_secret=config.access_key_secret
             )
+            credential_config.security_token = config.security_token
             self._credential = CredentialClient(credential_config)
         elif not UtilClient.is_unset(config.credential):
             self._credential = config.credential
@@ -156,29 +156,39 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = '/'
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.query = TeaCore.merge({
                     'Action': action,
                     'Format': 'json',
                     'Version': version,
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
-                }, request.query)
+                }, global_queries,
+                    request.query)
                 headers = self.get_rpc_headers()
                 if UtilClient.is_unset(headers):
                     # endpoint is setted in product client
-                    _request.headers = {
+                    _request.headers = TeaCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
-                    }
+                    }, global_headers)
                 else:
                     _request.headers = TeaCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
-                    }, headers)
+                    }, global_headers,
+                        headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -312,29 +322,39 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = '/'
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.query = TeaCore.merge({
                     'Action': action,
                     'Format': 'json',
                     'Version': version,
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
-                }, request.query)
+                }, global_queries,
+                    request.query)
                 headers = self.get_rpc_headers()
                 if UtilClient.is_unset(headers):
                     # endpoint is setted in product client
-                    _request.headers = {
+                    _request.headers = TeaCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
-                    }
+                    }, global_headers)
                 else:
                     _request.headers = TeaCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
-                    }, headers)
+                    }, global_headers,
+                        headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -470,6 +490,14 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -480,12 +508,15 @@ class Client:
                     'x-acs-version': version,
                     'x-acs-action': action,
                     'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, request.headers)
+                }, global_headers,
+                    request.headers)
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
+                _request.query = global_queries
                 if not UtilClient.is_unset(request.query):
-                    _request.query = request.query
+                    _request.query = TeaCore.merge(_request.query,
+                        request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
                     access_key_id = self.get_access_key_id()
                     access_key_secret = self.get_access_key_secret()
@@ -615,6 +646,14 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -625,12 +664,15 @@ class Client:
                     'x-acs-version': version,
                     'x-acs-action': action,
                     'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, request.headers)
+                }, global_headers,
+                    request.headers)
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
+                _request.query = global_queries
                 if not UtilClient.is_unset(request.query):
-                    _request.query = request.query
+                    _request.query = TeaCore.merge(_request.query,
+                        request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
                     access_key_id = await self.get_access_key_id_async()
                     access_key_secret = await self.get_access_key_secret_async()
@@ -760,6 +802,14 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -770,13 +820,16 @@ class Client:
                     'x-acs-version': version,
                     'x-acs-action': action,
                     'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, request.headers)
+                }, global_headers,
+                    request.headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                _request.query = global_queries
                 if not UtilClient.is_unset(request.query):
-                    _request.query = request.query
+                    _request.query = TeaCore.merge(_request.query,
+                        request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
                     access_key_id = self.get_access_key_id()
                     access_key_secret = self.get_access_key_secret()
@@ -904,6 +957,14 @@ class Client:
                 _request.protocol = UtilClient.default_string(self._protocol, protocol)
                 _request.method = method
                 _request.pathname = pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -914,13 +975,16 @@ class Client:
                     'x-acs-version': version,
                     'x-acs-action': action,
                     'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, request.headers)
+                }, global_headers,
+                    request.headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                _request.query = global_queries
                 if not UtilClient.is_unset(request.query):
-                    _request.query = request.query
+                    _request.query = TeaCore.merge(_request.query,
+                        request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
                     access_key_id = await self.get_access_key_id_async()
                     access_key_secret = await self.get_access_key_secret_async()

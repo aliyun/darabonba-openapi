@@ -229,9 +229,10 @@ describe('$openapi', function () {
         let result = await client.callApi(params, request, runtime);
         let headers = result["headers"];
         assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
-        let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA1&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
+        let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA1&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
         assert.ok(regexp.test(headers["raw-query"]));
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+        assert.strictEqual(headers["global-key"], "global-value");
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
         assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -269,9 +270,10 @@ describe('$openapi', function () {
         let result = await client.callApi(params, request, runtime);
         let headers = result["headers"];
         assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
-        let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&key1=value&key2=1&key3=true/;
+        let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true/;
         assert.ok(regexp.test(headers["raw-query"]));
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+        assert.strictEqual(headers["global-key"], "global-value");
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
         assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -309,7 +311,7 @@ describe('$openapi', function () {
         let result = await client.callApi(params, request, runtime);
         let headers = result["headers"];
         assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
-        assert.strictEqual(headers["raw-query"], "key1=value&key2=1&key3=true");
+        assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
@@ -319,6 +321,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["pathname"], "/test");
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
+        assert.strictEqual(headers["global-key"], "global-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");
@@ -357,7 +360,7 @@ describe('$openapi', function () {
         let result = await client.callApi(params, request, runtime);
         let headers = result["headers"];
         assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
-        assert.strictEqual(headers["raw-query"], "key1=value&key2=1&key3=true");
+        assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
@@ -367,6 +370,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["pathname"], "/test");
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
+        assert.strictEqual(headers["global-key"], "global-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");

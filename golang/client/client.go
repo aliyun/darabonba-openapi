@@ -399,8 +399,8 @@ func (client *Client) Init(config *Config) (_err error) {
 			AccessKeyId:     config.AccessKeyId,
 			Type:            config.Type,
 			AccessKeySecret: config.AccessKeySecret,
-			SecurityToken:   config.SecurityToken,
 		}
+		credentialConfig.SecurityToken = config.SecurityToken
 		client.Credential, _err = credential.NewCredential(credentialConfig)
 		if _err != nil {
 			return _err
@@ -488,13 +488,28 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			request_.Protocol = util.DefaultString(client.Protocol, protocol)
 			request_.Method = method
 			request_.Pathname = tea.String("/")
+			globalQueries := make(map[string]*string)
+			globalHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+				globalParams := client.GlobalParameters
+				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
+					globalQueries = globalParams.Queries
+				}
+
+				if !tea.BoolValue(util.IsUnset(globalParams.Headers)) {
+					globalHeaders = globalParams.Headers
+				}
+
+			}
+
 			request_.Query = tea.Merge(map[string]*string{
 				"Action":         action,
 				"Format":         tea.String("json"),
 				"Version":        version,
 				"Timestamp":      openapiutil.GetTimestamp(),
 				"SignatureNonce": util.GetNonce(),
-			}, request.Query)
+			}, globalQueries,
+				request.Query)
 			headers, _err := client.GetRpcHeaders()
 			if _err != nil {
 				return _result, _err
@@ -502,19 +517,20 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 			if tea.BoolValue(util.IsUnset(headers)) {
 				// endpoint is setted in product client
-				request_.Headers = map[string]*string{
+				request_.Headers = tea.Merge(map[string]*string{
 					"host":          client.Endpoint,
 					"x-acs-version": version,
 					"x-acs-action":  action,
 					"user-agent":    client.GetUserAgent(),
-				}
+				}, globalHeaders)
 			} else {
 				request_.Headers = tea.Merge(map[string]*string{
 					"host":          client.Endpoint,
 					"x-acs-version": version,
 					"x-acs-action":  action,
 					"user-agent":    client.GetUserAgent(),
-				}, headers)
+				}, globalHeaders,
+					headers)
 			}
 
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
@@ -723,6 +739,20 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			request_.Protocol = util.DefaultString(client.Protocol, protocol)
 			request_.Method = method
 			request_.Pathname = pathname
+			globalQueries := make(map[string]*string)
+			globalHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+				globalParams := client.GlobalParameters
+				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
+					globalQueries = globalParams.Queries
+				}
+
+				if !tea.BoolValue(util.IsUnset(globalParams.Headers)) {
+					globalHeaders = globalParams.Headers
+				}
+
+			}
+
 			request_.Headers = tea.Merge(map[string]*string{
 				"date":                    util.GetDateUTCString(),
 				"host":                    client.Endpoint,
@@ -733,14 +763,17 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				"x-acs-version":           version,
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
-			}, request.Headers)
+			}, globalHeaders,
+				request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
 				request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
 			}
 
+			request_.Query = globalQueries
 			if !tea.BoolValue(util.IsUnset(request.Query)) {
-				request_.Query = request.Query
+				request_.Query = tea.Merge(request_.Query,
+					request.Query)
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
@@ -935,6 +968,20 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			request_.Protocol = util.DefaultString(client.Protocol, protocol)
 			request_.Method = method
 			request_.Pathname = pathname
+			globalQueries := make(map[string]*string)
+			globalHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+				globalParams := client.GlobalParameters
+				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
+					globalQueries = globalParams.Queries
+				}
+
+				if !tea.BoolValue(util.IsUnset(globalParams.Headers)) {
+					globalHeaders = globalParams.Headers
+				}
+
+			}
+
 			request_.Headers = tea.Merge(map[string]*string{
 				"date":                    util.GetDateUTCString(),
 				"host":                    client.Endpoint,
@@ -945,7 +992,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"x-acs-version":           version,
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
-			}, request.Headers)
+			}, globalHeaders,
+				request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m, _err := util.AssertAsMap(request.Body)
 				if _err != nil {
@@ -956,8 +1004,10 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
 
+			request_.Query = globalQueries
 			if !tea.BoolValue(util.IsUnset(request.Query)) {
-				request_.Query = request.Query
+				request_.Query = tea.Merge(request_.Query,
+					request.Query)
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {

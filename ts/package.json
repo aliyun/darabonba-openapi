@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "@alicloud/tea-typescript": "^1.7.1",
-    "@alicloud/tea-util": "^1.4.0",
-    "@alicloud/credentials": "^2.2.2",
-    "@alicloud/openapi-util": "^0.2.7",
+    "@alicloud/tea-util": "^1.4.4",
+    "@alicloud/credentials": "^2",
+    "@alicloud/openapi-util": "^0.2.9",
     "@alicloud/gateway-spi": "^0.0.8",
     "@alicloud/tea-xml": "0.0.2"
   },

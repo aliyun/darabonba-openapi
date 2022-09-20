@@ -255,8 +255,8 @@ export default class Client {
         accessKeyId: config.accessKeyId,
         type: config.type,
         accessKeySecret: config.accessKeySecret,
-        securityToken: config.securityToken,
       });
+      credentialConfig.securityToken = config.securityToken;
       this._credential = new Credential(credentialConfig);
     } else if (!Util.isUnset(config.credential)) {
       this._credential = config.credential;
@@ -334,12 +334,27 @@ export default class Client {
         request_.protocol = Util.defaultString(this._protocol, protocol);
         request_.method = method;
         request_.pathname = "/";
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
         request_.query = {
           Action: action,
           Format: "json",
           Version: version,
           Timestamp: OpenApiUtil.getTimestamp(),
           SignatureNonce: Util.getNonce(),
+          ...globalQueries,
           ...request.query,
         };
         let headers = this.getRpcHeaders();
@@ -350,6 +365,7 @@ export default class Client {
             'x-acs-version': version,
             'x-acs-action': action,
             'user-agent': this.getUserAgent(),
+            ...globalHeaders,
           };
         } else {
           request_.headers = {
@@ -357,6 +373,7 @@ export default class Client {
             'x-acs-version': version,
             'x-acs-action': action,
             'user-agent': this.getUserAgent(),
+            ...globalHeaders,
             ...headers,
           };
         }
@@ -505,6 +522,20 @@ export default class Client {
         request_.protocol = Util.defaultString(this._protocol, protocol);
         request_.method = method;
         request_.pathname = pathname;
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
         request_.headers = {
           date: Util.getDateUTCString(),
           host: this._endpoint,
@@ -515,6 +546,7 @@ export default class Client {
           'x-acs-version': version,
           'x-acs-action': action,
           'user-agent': Util.getUserAgent(this._userAgent),
+          ...globalHeaders,
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
@@ -522,8 +554,12 @@ export default class Client {
           request_.headers["content-type"] = "application/json; charset=utf-8";
         }
 
+        request_.query = globalQueries;
         if (!Util.isUnset(request.query)) {
-          request_.query = request.query;
+          request_.query = {
+            ...request_.query,
+            ...request.query,
+          };
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
@@ -660,6 +696,20 @@ export default class Client {
         request_.protocol = Util.defaultString(this._protocol, protocol);
         request_.method = method;
         request_.pathname = pathname;
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
         request_.headers = {
           date: Util.getDateUTCString(),
           host: this._endpoint,
@@ -670,6 +720,7 @@ export default class Client {
           'x-acs-version': version,
           'x-acs-action': action,
           'user-agent': Util.getUserAgent(this._userAgent),
+          ...globalHeaders,
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
@@ -678,8 +729,12 @@ export default class Client {
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 
+        request_.query = globalQueries;
         if (!Util.isUnset(request.query)) {
-          request_.query = request.query;
+          request_.query = {
+            ...request_.query,
+            ...request.query,
+          };
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
