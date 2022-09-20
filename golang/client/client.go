@@ -9,7 +9,7 @@ import (
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
-	util "github.com/alibabacloud-go/tea-utils/service"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	xml "github.com/alibabacloud-go/tea-xml/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
@@ -518,7 +518,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				m := util.AssertAsMap(request.Body)
+				m, _err := util.AssertAsMap(request.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
 				tmp := util.AnyifyMapValue(openapiutil.Query(m))
 				request_.Body = tea.ToReader(util.ToFormString(tmp))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
@@ -549,7 +553,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				request_.Query["AccessKeyId"] = accessKeyId
 				var t map[string]interface{}
 				if !tea.BoolValue(util.IsUnset(request.Body)) {
-					t = util.AssertAsMap(request.Body)
+					t, _err = util.AssertAsMap(request.Body)
+					if _err != nil {
+						return _result, _err
+					}
+
 				}
 
 				signedParam := tea.Merge(request_.Query,
@@ -567,7 +575,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					return _result, _err
 				}
 
-				err := util.AssertAsMap(_res)
+				err, _err := util.AssertAsMap(_res)
+				if _err != nil {
+					return _result, _err
+				}
+
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
@@ -614,7 +626,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					return _result, _err
 				}
 
-				res := util.AssertAsMap(obj)
+				res, _err := util.AssertAsMap(obj)
+				if _err != nil {
+					return _result, _err
+				}
+
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":    res,
@@ -770,7 +786,11 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 					return _result, _err
 				}
 
-				err := util.AssertAsMap(_res)
+				err, _err := util.AssertAsMap(_res)
+				if _err != nil {
+					return _result, _err
+				}
+
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
 				requestId = DefaultAny(requestId, err["requestid"])
 				_err = tea.NewSDKError(map[string]interface{}{
@@ -818,7 +838,11 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 					return _result, _err
 				}
 
-				res := util.AssertAsMap(obj)
+				res, _err := util.AssertAsMap(obj)
+				if _err != nil {
+					return _result, _err
+				}
+
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":    res,
@@ -923,7 +947,11 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
-				m := util.AssertAsMap(request.Body)
+				m, _err := util.AssertAsMap(request.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
 				request_.Body = tea.ToReader(openapiutil.ToForm(m))
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
@@ -975,7 +1003,11 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					return _result, _err
 				}
 
-				err := util.AssertAsMap(_res)
+				err, _err := util.AssertAsMap(_res)
+				if _err != nil {
+					return _result, _err
+				}
+
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
@@ -1021,7 +1053,11 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					return _result, _err
 				}
 
-				res := util.AssertAsMap(obj)
+				res, _err := util.AssertAsMap(obj)
+				if _err != nil {
+					return _result, _err
+				}
+
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":    res,
@@ -1176,7 +1212,11 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 						request_.Body = tea.ToReader(jsonObj)
 						request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
 					} else {
-						m := util.AssertAsMap(request.Body)
+						m, _err := util.AssertAsMap(request.Body)
+						if _err != nil {
+							return _result, _err
+						}
+
 						formObj := openapiutil.ToForm(m)
 						hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(formObj), signatureAlgorithm))
 						request_.Body = tea.ToReader(formObj)
@@ -1240,14 +1280,22 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					}
 
 					respMap := xml.ParseXml(_str, nil)
-					err = util.AssertAsMap(respMap["Error"])
+					err, _err = util.AssertAsMap(respMap["Error"])
+					if _err != nil {
+						return _result, _err
+					}
+
 				} else {
 					_res, _err := util.ReadAsJSON(response_.Body)
 					if _err != nil {
 						return _result, _err
 					}
 
-					err = util.AssertAsMap(_res)
+					err, _err = util.AssertAsMap(_res)
+					if _err != nil {
+						return _result, _err
+					}
+
 				}
 
 				err["statusCode"] = response_.StatusCode
@@ -1299,7 +1347,11 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					return _result, _err
 				}
 
-				res := util.AssertAsMap(obj)
+				res, _err := util.AssertAsMap(obj)
+				if _err != nil {
+					return _result, _err
+				}
+
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
 					"body":       res,
