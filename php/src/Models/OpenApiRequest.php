@@ -1,7 +1,6 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
-
 namespace Darabonba\OpenApi\Models;
 
 use AlibabaCloud\Tea\Model;
@@ -11,7 +10,6 @@ class OpenApiRequest extends Model
     public function validate()
     {
     }
-
     public function toMap()
     {
         $res = [];
@@ -33,13 +31,10 @@ class OpenApiRequest extends Model
         if (null !== $this->endpointOverride) {
             $res['endpointOverride'] = $this->endpointOverride;
         }
-
         return $res;
     }
-
     /**
      * @param array $map
-     *
      * @return OpenApiRequest
      */
     public static function fromMap($map = [])
@@ -63,10 +58,8 @@ class OpenApiRequest extends Model
         if (isset($map['endpointOverride'])) {
             $model->endpointOverride = $map['endpointOverride'];
         }
-
         return $model;
     }
-
     public $headers;
 
     public $query;

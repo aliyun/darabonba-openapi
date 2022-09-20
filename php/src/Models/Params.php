@@ -1,7 +1,6 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
-
 namespace Darabonba\OpenApi\Models;
 
 use AlibabaCloud\Tea\Model;
@@ -19,7 +18,6 @@ class Params extends Model
         Model::validateRequired('bodyType', $this->bodyType, true);
         Model::validateRequired('reqBodyType', $this->reqBodyType, true);
     }
-
     public function toMap()
     {
         $res = [];
@@ -50,13 +48,10 @@ class Params extends Model
         if (null !== $this->style) {
             $res['style'] = $this->style;
         }
-
         return $res;
     }
-
     /**
      * @param array $map
-     *
      * @return Params
      */
     public static function fromMap($map = [])
@@ -89,10 +84,8 @@ class Params extends Model
         if (isset($map['style'])) {
             $model->style = $map['style'];
         }
-
         return $model;
     }
-
     /**
      * @var string
      */

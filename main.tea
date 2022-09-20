@@ -144,12 +144,24 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   __request.protocol = Util.defaultString(@protocol, protocol);
   __request.method = method;
   __request.pathname = '/';
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
   __request.query = {
     Action = action,
     Format = 'json',
     Version = version,
     Timestamp = OpenApiUtil.getTimestamp(),
     SignatureNonce = Util.getNonce(),
+    ...globalQueries,
     ...request.query
   };
 
@@ -161,6 +173,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-version = version,
       x-acs-action = action,
       user-agent = getUserAgent(),
+      ...globalHeaders
     };
   } else {
     __request.headers = {
@@ -168,6 +181,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-version = version,
       x-acs-action = action,
       user-agent = getUserAgent(),
+      ...globalHeaders,
       ...headers
     };
   }
@@ -261,14 +275,14 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = defaultAny(runtime.autoretry, false),
+    retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
+  ignoreSSL = runtime.ignoreSSL
 }
 
 /**
@@ -288,6 +302,17 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   __request.protocol = Util.defaultString(@protocol, protocol);
   __request.method = method;
   __request.pathname = pathname;
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
   __request.headers = {
     date = Util.getDateUTCString(),
     host = @endpoint,
@@ -298,6 +323,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     x-acs-version = version,
     x-acs-action = action,
     user-agent = Util.getUserAgent(@userAgent),
+    ...globalHeaders,
     ...request.headers
   };
 
@@ -306,8 +332,12 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     __request.headers.content-type = 'application/json; charset=utf-8';
   }
 
+  __request.query = globalQueries;
   if (!Util.isUnset(request.query)) {
-    __request.query = request.query;
+    __request.query = {
+      ...__request.query,
+      ...request.query
+    };
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
@@ -387,14 +417,14 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = defaultAny(runtime.autoretry, false),
+    retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
+  ignoreSSL = runtime.ignoreSSL
 }
 
 /**
@@ -414,6 +444,17 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   __request.protocol = Util.defaultString(@protocol, protocol);
   __request.method = method;
   __request.pathname = pathname;
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
   __request.headers = {
     date = Util.getDateUTCString(),
     host = @endpoint,
@@ -424,6 +465,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     x-acs-version = version,
     x-acs-action = action,
     user-agent = Util.getUserAgent(@userAgent),
+    ...globalHeaders,
     ...request.headers
   };
 
@@ -434,8 +476,12 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
 
+  __request.query = globalQueries;
   if (!Util.isUnset(request.query)) {
-    __request.query = request.query;
+    __request.query = {
+      ...__request.query,
+      ...request.query
+    };
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
@@ -513,14 +559,14 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = defaultAny(runtime.autoretry, false),
+    retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
+  ignoreSSL = runtime.ignoreSSL
 }
 
 model Params = {
@@ -721,14 +767,14 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = defaultAny(runtime.autoretry, false),
+    retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
+  ignoreSSL = runtime.ignoreSSL
 }
 
 
@@ -842,14 +888,14 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
   retry = {
-    retryable = defaultAny(runtime.autoretry, false),
+    retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
   },
   backoff = {
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = defaultAny(runtime.ignoreSSL, false)
+  ignoreSSL = runtime.ignoreSSL
 }
 
 /**

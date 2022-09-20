@@ -1,7 +1,6 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
-
 namespace Darabonba\OpenApi\Models;
 
 use AlibabaCloud\Tea\Model;
@@ -11,7 +10,6 @@ class GlobalParameters extends Model
     public function validate()
     {
     }
-
     public function toMap()
     {
         $res = [];
@@ -21,13 +19,10 @@ class GlobalParameters extends Model
         if (null !== $this->queries) {
             $res['queries'] = $this->queries;
         }
-
         return $res;
     }
-
     /**
      * @param array $map
-     *
      * @return GlobalParameters
      */
     public static function fromMap($map = [])
@@ -39,10 +34,8 @@ class GlobalParameters extends Model
         if (isset($map['queries'])) {
             $model->queries = $map['queries'];
         }
-
         return $model;
     }
-
     public $headers;
 
     public $queries;

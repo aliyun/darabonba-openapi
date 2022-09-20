@@ -7,13 +7,6 @@ import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
 import com.aliyun.tea.interceptor.RequestInterceptor;
 import com.aliyun.tea.interceptor.ResponseInterceptor;
 import com.aliyun.teaopenapi.models.*;
-import com.aliyun.teautil.*;
-import com.aliyun.teautil.models.*;
-import com.aliyun.credentials.*;
-import com.aliyun.credentials.models.*;
-import com.aliyun.openapiutil.*;
-import com.aliyun.gateway.spi.*;
-import com.aliyun.gateway.spi.models.*;
 
 public class Client {
 
@@ -67,9 +60,9 @@ public class Client {
             com.aliyun.credentials.models.Config credentialConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
                 new TeaPair("accessKeyId", config.accessKeyId),
                 new TeaPair("type", config.type),
-                new TeaPair("accessKeySecret", config.accessKeySecret),
-                new TeaPair("securityToken", config.securityToken)
+                new TeaPair("accessKeySecret", config.accessKeySecret)
             ));
+            credentialConfig.securityToken = config.securityToken;
             this._credential = new com.aliyun.credentials.Client(credentialConfig);
         } else if (!com.aliyun.teautil.Common.isUnset(config.credential)) {
             this._credential = config.credential;
@@ -96,7 +89,7 @@ public class Client {
         this._globalParameters = config.globalParameters;
     }
 
-    public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -137,6 +130,20 @@ public class Client {
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, protocol);
                 request_.method = method;
                 request_.pathname = "/";
+                java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
+                java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                    GlobalParameters globalParams = _globalParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers;
+                    }
+
+                }
+
                 request_.query = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("Action", action),
@@ -145,16 +152,20 @@ public class Client {
                         new TeaPair("Timestamp", com.aliyun.openapiutil.Client.getTimestamp()),
                         new TeaPair("SignatureNonce", com.aliyun.teautil.Common.getNonce())
                     ),
+                    globalQueries,
                     request.query
                 );
                 java.util.Map<String, String> headers = this.getRpcHeaders();
                 if (com.aliyun.teautil.Common.isUnset(headers)) {
                     // endpoint is setted in product client
-                    request_.headers = TeaConverter.buildMap(
-                        new TeaPair("host", _endpoint),
-                        new TeaPair("x-acs-version", version),
-                        new TeaPair("x-acs-action", action),
-                        new TeaPair("user-agent", this.getUserAgent())
+                    request_.headers = TeaConverter.merge(String.class,
+                        TeaConverter.buildMap(
+                            new TeaPair("host", _endpoint),
+                            new TeaPair("x-acs-version", version),
+                            new TeaPair("x-acs-action", action),
+                            new TeaPair("user-agent", this.getUserAgent())
+                        ),
+                        globalHeaders
                     );
                 } else {
                     request_.headers = TeaConverter.merge(String.class,
@@ -164,6 +175,7 @@ public class Client {
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
                         ),
+                        globalHeaders,
                         headers
                     );
                 }
@@ -267,7 +279,7 @@ public class Client {
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
-    public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -308,6 +320,20 @@ public class Client {
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, protocol);
                 request_.method = method;
                 request_.pathname = pathname;
+                java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
+                java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                    GlobalParameters globalParams = _globalParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers;
+                    }
+
+                }
+
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
@@ -320,6 +346,7 @@ public class Client {
                         new TeaPair("x-acs-action", action),
                         new TeaPair("user-agent", com.aliyun.teautil.Common.getUserAgent(_userAgent))
                     ),
+                    globalHeaders,
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -327,8 +354,12 @@ public class Client {
                     request_.headers.put("content-type", "application/json; charset=utf-8");
                 }
 
+                request_.query = globalQueries;
                 if (!com.aliyun.teautil.Common.isUnset(request.query)) {
-                    request_.query = request.query;
+                    request_.query = TeaConverter.merge(String.class,
+                        request_.query,
+                        request.query
+                    );
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
@@ -420,7 +451,7 @@ public class Client {
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
-    public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
@@ -461,6 +492,20 @@ public class Client {
                 request_.protocol = com.aliyun.teautil.Common.defaultString(_protocol, protocol);
                 request_.method = method;
                 request_.pathname = pathname;
+                java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
+                java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                    GlobalParameters globalParams = _globalParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers;
+                    }
+
+                }
+
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
@@ -473,6 +518,7 @@ public class Client {
                         new TeaPair("x-acs-action", action),
                         new TeaPair("user-agent", com.aliyun.teautil.Common.getUserAgent(_userAgent))
                     ),
+                    globalHeaders,
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -481,8 +527,12 @@ public class Client {
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
 
+                request_.query = globalQueries;
                 if (!com.aliyun.teautil.Common.isUnset(request.query)) {
-                    request_.query = request.query;
+                    request_.query = TeaConverter.merge(String.class,
+                        request_.query,
+                        request.query
+                    );
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
@@ -572,7 +622,7 @@ public class Client {
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
-    public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(params, "params");
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -627,6 +677,7 @@ public class Client {
                     }
 
                 }
+
                 request_.query = TeaConverter.merge(String.class,
                     globalQueries,
                     request.query
@@ -699,6 +750,7 @@ public class Client {
 
                         request_.headers.put("Authorization", com.aliyun.openapiutil.Client.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret));
                     }
+
                 }
 
                 _lastRequest = request_;
@@ -784,7 +836,7 @@ public class Client {
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
-    public java.util.Map<String, ?> execute(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> execute(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(params, "params");
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -837,7 +889,8 @@ public class Client {
                     }
 
                 }
-                InterceptorContext.InterceptorContextRequest requestContext = InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
+
+                com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextRequest requestContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
                     new TeaPair("headers", TeaConverter.merge(String.class,
                         globalHeaders,
                         request.headers,
@@ -865,7 +918,7 @@ public class Client {
                     new TeaPair("signatureAlgorithm", _signatureAlgorithm),
                     new TeaPair("userAgent", this.getUserAgent())
                 ));
-                InterceptorContext.InterceptorContextConfiguration configurationContext = InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
+                com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration configurationContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
                     new TeaPair("regionId", _regionId),
                     new TeaPair("endpoint", com.aliyun.teautil.Common.defaultString(request.endpointOverride, _endpoint)),
                     new TeaPair("endpointRule", _endpointRule),
@@ -874,11 +927,11 @@ public class Client {
                     new TeaPair("network", _network),
                     new TeaPair("suffix", _suffix)
                 ));
-                InterceptorContext interceptorContext = InterceptorContext.build(TeaConverter.buildMap(
+                com.aliyun.gateway.spi.models.InterceptorContext interceptorContext = com.aliyun.gateway.spi.models.InterceptorContext.build(TeaConverter.buildMap(
                     new TeaPair("request", requestContext),
                     new TeaPair("configuration", configurationContext)
                 ));
-                AttributeMap attributeMap = new AttributeMap();
+                com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 _spi.modifyConfiguration(interceptorContext, attributeMap);
                 // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -892,7 +945,7 @@ public class Client {
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
 
-                InterceptorContext.InterceptorContextResponse responseContext = InterceptorContext.InterceptorContextResponse.build(TeaConverter.buildMap(
+                com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextResponse responseContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextResponse.build(TeaConverter.buildMap(
                     new TeaPair("statusCode", response_.statusCode),
                     new TeaPair("headers", response_.headers),
                     new TeaPair("body", response_.body)
@@ -928,7 +981,7 @@ public class Client {
         interceptorChain.addResponseInterceptor(interceptor);
     }
 
-    public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+    public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(params))) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),

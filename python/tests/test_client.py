@@ -176,6 +176,7 @@ class TestClient(unittest.TestCase):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
+            assert 'global-value' == request.querystring['global-query'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'ak' == request.querystring['AccessKeyId'][0]
@@ -186,6 +187,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
             assert None is not request.querystring['Signature'][0]
+            assert 'global-value' == request.headers.get('global-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -234,11 +236,13 @@ class TestClient(unittest.TestCase):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
+            assert 'global-value' == request.querystring['global-query'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'json' == request.querystring['Format'][0]
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
+            assert 'global-value' == request.headers.get('global-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -287,6 +291,8 @@ class TestClient(unittest.TestCase):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
+            assert 'global-value' == request.querystring['global-query'][0]
+            assert 'global-value' == request.headers.get('global-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
@@ -344,6 +350,8 @@ class TestClient(unittest.TestCase):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
+            assert 'global-value' == request.querystring['global-query'][0]
+            assert 'global-value' == request.headers.get('global-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
