@@ -208,6 +208,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v2sign_anonymous_json(self):
@@ -263,6 +264,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_ak_form(self):
@@ -322,6 +324,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_anonymous_json(self):
@@ -377,6 +380,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_ak_form(self):
@@ -437,6 +441,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
@@ -491,6 +496,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_ak_form(self):
@@ -551,6 +557,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_anonymous_json(self):
@@ -605,6 +612,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_response_body_type(self):
@@ -666,6 +674,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'array'
         request.headers.update({'type': 'array'})
@@ -674,16 +683,19 @@ class TestClient(unittest.TestCase):
         self.assertEqual('AppId', result.get('body')[0])
         self.assertEqual('ClassId', result.get('body')[1])
         self.assertEqual('UserId', result.get('body')[2])
+        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'string'
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body'))
+        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'byte'
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body').decode('utf-8'))
+        self.assertEqual(200, result.get('statusCode'))
 
         request.headers.update({'type': 'error'})
         try:

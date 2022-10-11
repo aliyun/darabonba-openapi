@@ -248,6 +248,7 @@ class OpenApiClient
                     $_res = Utils::readAsJSON($_response->body);
                     $err = Utils::assertAsMap($_res);
                     $requestId = self::defaultAny(@$err["RequestId"], @$err["requestId"]);
+                    @$err["statusCode"] = $_response->statusCode;
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
@@ -257,37 +258,43 @@ class OpenApiClient
                 if (Utils::equalString($bodyType, "binary")) {
                     $resp = [
                         "body" => $_response->body,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                     return $resp;
                 } else if (Utils::equalString($bodyType, "byte")) {
                     $byt = Utils::readAsBytes($_response->body);
                     return [
                         "body" => $byt,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "string")) {
                     $str = Utils::readAsString($_response->body);
                     return [
                         "body" => $str,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "json")) {
                     $obj = Utils::readAsJSON($_response->body);
                     $res = Utils::assertAsMap($obj);
                     return [
                         "body" => $res,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "array")) {
                     $arr = Utils::readAsJSON($_response->body);
                     return [
                         "body" => $arr,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else {
                     return [
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 }
             } catch (Exception $e) {
@@ -414,6 +421,7 @@ class OpenApiClient
                     $err = Utils::assertAsMap($_res);
                     $requestId = self::defaultAny(@$err["RequestId"], @$err["requestId"]);
                     $requestId = self::defaultAny($requestId, @$err["requestid"]);
+                    @$err["statusCode"] = $_response->statusCode;
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
@@ -423,37 +431,43 @@ class OpenApiClient
                 if (Utils::equalString($bodyType, "binary")) {
                     $resp = [
                         "body" => $_response->body,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                     return $resp;
                 } else if (Utils::equalString($bodyType, "byte")) {
                     $byt = Utils::readAsBytes($_response->body);
                     return [
                         "body" => $byt,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "string")) {
                     $str = Utils::readAsString($_response->body);
                     return [
                         "body" => $str,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "json")) {
                     $obj = Utils::readAsJSON($_response->body);
                     $res = Utils::assertAsMap($obj);
                     return [
                         "body" => $res,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "array")) {
                     $arr = Utils::readAsJSON($_response->body);
                     return [
                         "body" => $arr,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else {
                     return [
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 }
             } catch (Exception $e) {
@@ -579,6 +593,7 @@ class OpenApiClient
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
                     $_res = Utils::readAsJSON($_response->body);
                     $err = Utils::assertAsMap($_res);
+                    @$err["statusCode"] = $_response->statusCode;
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) (self::defaultAny(@$err["RequestId"], @$err["requestId"])) . "",
@@ -588,37 +603,43 @@ class OpenApiClient
                 if (Utils::equalString($bodyType, "binary")) {
                     $resp = [
                         "body" => $_response->body,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                     return $resp;
                 } else if (Utils::equalString($bodyType, "byte")) {
                     $byt = Utils::readAsBytes($_response->body);
                     return [
                         "body" => $byt,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "string")) {
                     $str = Utils::readAsString($_response->body);
                     return [
                         "body" => $str,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "json")) {
                     $obj = Utils::readAsJSON($_response->body);
                     $res = Utils::assertAsMap($obj);
                     return [
                         "body" => $res,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else if (Utils::equalString($bodyType, "array")) {
                     $arr = Utils::readAsJSON($_response->body);
                     return [
                         "body" => $arr,
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 } else {
                     return [
-                        "headers" => $_response->headers
+                        "headers" => $_response->headers,
+                        "statusCode" => $_response->statusCode
                     ];
                 }
             } catch (Exception $e) {

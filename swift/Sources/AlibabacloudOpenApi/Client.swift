@@ -206,6 +206,7 @@ open class Client {
                     var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
                     var requestId: Any = Client.defaultAny(err["RequestId"], err["requestId"])
+                    err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
@@ -215,7 +216,8 @@ open class Client {
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                     return resp as! [String: Any]
                 }
@@ -223,14 +225,16 @@ open class Client {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
                         "body": byt as! [UInt8],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
                         "body": str as! String,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "json")) {
@@ -238,19 +242,22 @@ open class Client {
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
                         "body": res as! [String: Any],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
                         "body": arr as! Any,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else {
                     return [
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
             }
@@ -359,6 +366,7 @@ open class Client {
                     var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
                     var requestId: Any = Client.defaultAny(err["RequestId"], err["requestId"])
                     requestId = Client.defaultAny(requestId, err["requestid"])
+                    err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
@@ -368,7 +376,8 @@ open class Client {
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                     return resp as! [String: Any]
                 }
@@ -376,14 +385,16 @@ open class Client {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
                         "body": byt as! [UInt8],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
                         "body": str as! String,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "json")) {
@@ -391,19 +402,22 @@ open class Client {
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
                         "body": res as! [String: Any],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
                         "body": arr as! Any,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else {
                     return [
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
             }
@@ -511,6 +525,7 @@ open class Client {
                 if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
                     var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
+                    err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
@@ -520,7 +535,8 @@ open class Client {
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                     return resp as! [String: Any]
                 }
@@ -528,14 +544,16 @@ open class Client {
                     var byt: [UInt8] = try await TeaUtils.Client.readAsBytes(_response.body)
                     return [
                         "body": byt as! [UInt8],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "string")) {
                     var str: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
                         "body": str as! String,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "json")) {
@@ -543,19 +561,22 @@ open class Client {
                     var res: [String: Any] = try TeaUtils.Client.assertAsMap(obj)
                     return [
                         "body": res as! [String: Any],
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else if (TeaUtils.Client.equalString(bodyType, "array")) {
                     var arr: Any = try await TeaUtils.Client.readAsJSON(_response.body)
                     return [
                         "body": arr as! Any,
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
                 else {
                     return [
-                        "headers": _response.headers
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode
                     ]
                 }
             }
@@ -841,7 +862,7 @@ open class Client {
         }
     }
 
-    public func setRpcHeaders(_ headers: [String: String]) throws -> Voixd {
+    public func setRpcHeaders(_ headers: [String: String]) throws -> Void {
         self._headers = headers
     }
 

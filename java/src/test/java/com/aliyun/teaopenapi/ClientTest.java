@@ -212,6 +212,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -263,6 +264,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -318,6 +320,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -366,6 +369,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -421,6 +425,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -467,6 +472,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -522,6 +528,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -568,6 +575,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -609,6 +617,7 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
 
         params.bodyType = "array";
         responseBody = "[\"AppId\", \"ClassId\", \"UserId\"]";
@@ -620,11 +629,13 @@ public class ClientTest {
         Assert.assertEquals("AppId", ((List) result.get("body")).get(0));
         Assert.assertEquals("ClassId", ((List) result.get("body")).get(1));
         Assert.assertEquals("UserId", ((List) result.get("body")).get(2));
+        Assert.assertEquals(200, result.get("statusCode"));
 
         params.bodyType = "string";
         result = client.callApi(params, request, runtime);
         Assert.assertEquals("A45EE076-334D-5012-9746-A8F828D20FD4", ((Map) result.get("headers")).get("x-acs-request-id"));
         Assert.assertEquals("[\"AppId\", \"ClassId\", \"UserId\"]", result.get("body"));
+        Assert.assertEquals(200, result.get("statusCode"));
 
         params.bodyType = "byte";
         stubFor(post(urlMatching("/test\\?.+"))
@@ -633,6 +644,7 @@ public class ClientTest {
         result = client.callApi(params, request, runtime);
         Assert.assertEquals("A45EE076-334D-5012-9746-A8F828D20FD4", ((Map) result.get("headers")).get("x-acs-request-id"));
         Assert.assertEquals("[\"AppId\", \"ClassId\", \"UserId\"]", new String((byte[]) result.get("body"), "UTF-8"));
+        Assert.assertEquals(200, result.get("statusCode"));
 
         responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
         stubFor(post(urlMatching("/test\\?.+"))

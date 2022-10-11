@@ -245,6 +245,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for RPC With V2Sign Anonymous JSON should ok", async function () {
@@ -286,6 +287,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for ROA With V2Sign AK Form should ok", async function () {
@@ -335,6 +337,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for ROA With V2Sign Anonymous JSON should ok", async function () {
@@ -381,6 +384,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for RPC With V3Sign AK Form should ok", async function () {
@@ -430,6 +434,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for RPC With V3Sign Anonymous JSON should ok", async function () {
@@ -473,6 +478,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for ROA With V3Sign AK Form should ok", async function () {
@@ -522,6 +528,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("call api for ROA With V3Sign Anonymous JSON should ok", async function () {
@@ -565,6 +572,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
     });
 
     it("response body should ok", async function () {
@@ -591,6 +599,7 @@ describe('$openapi', function () {
         assert.strictEqual(body["AppId"], "test");
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
+        assert.strictEqual(result["statusCode"], 200);
 
         request.headers = {
             ...request.headers,
@@ -602,6 +611,7 @@ describe('$openapi', function () {
         assert.strictEqual(body[0], "AppId");
         assert.strictEqual(body[1], "ClassId");
         assert.strictEqual(body[2], "UserId");
+        assert.strictEqual(result["statusCode"], 200);
 
         request.headers = {
             ...request.headers,
@@ -611,6 +621,7 @@ describe('$openapi', function () {
         result = await client.callApi(params, request, runtime);
         body = result["body"];
         assert.strictEqual(body, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
+        assert.strictEqual(result["statusCode"], 200);
 
         request.headers = {
             ...request.headers,
@@ -621,6 +632,7 @@ describe('$openapi', function () {
         body = result["body"];
         assert.ok(body instanceof Buffer);
         assert.strictEqual(body.toString(), "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
+        assert.strictEqual(result["statusCode"], 200);
 
         request.headers = {
             ...request.headers,
@@ -630,6 +642,7 @@ describe('$openapi', function () {
             await client.callApi(params, request, runtime);
         } catch (err) {
             assert.strictEqual(err.message, "error code: code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4");
+            assert.strictEqual(err.statusCode, 400);
         }
     });
 

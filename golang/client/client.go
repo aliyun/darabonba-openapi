@@ -597,6 +597,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				}
 
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
+				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
@@ -607,8 +608,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 			if tea.BoolValue(util.EqualString(bodyType, tea.String("binary"))) {
 				resp := map[string]interface{}{
-					"body":    response_.Body,
-					"headers": response_.Headers,
+					"body":       response_.Body,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}
 				_result = resp
 				return _result, _err
@@ -620,8 +622,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    byt,
-					"headers": response_.Headers,
+					"body":       byt,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("string"))) {
@@ -632,8 +635,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    tea.StringValue(str),
-					"headers": response_.Headers,
+					"body":       tea.StringValue(str),
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("json"))) {
@@ -649,8 +653,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    res,
-					"headers": response_.Headers,
+					"body":       res,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
@@ -661,14 +666,16 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    arr,
-					"headers": response_.Headers,
+					"body":       arr,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else {
 				_result = make(map[string]interface{})
-				_err = tea.Convert(map[string]map[string]*string{
-					"headers": response_.Headers,
+				_err = tea.Convert(map[string]interface{}{
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			}
@@ -826,6 +833,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
 				requestId = DefaultAny(requestId, err["requestid"])
+				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
@@ -836,8 +844,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 			if tea.BoolValue(util.EqualString(bodyType, tea.String("binary"))) {
 				resp := map[string]interface{}{
-					"body":    response_.Body,
-					"headers": response_.Headers,
+					"body":       response_.Body,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}
 				_result = resp
 				return _result, _err
@@ -849,8 +858,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    byt,
-					"headers": response_.Headers,
+					"body":       byt,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("string"))) {
@@ -861,8 +871,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    tea.StringValue(str),
-					"headers": response_.Headers,
+					"body":       tea.StringValue(str),
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("json"))) {
@@ -878,8 +889,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    res,
-					"headers": response_.Headers,
+					"body":       res,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
@@ -890,14 +902,16 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    arr,
-					"headers": response_.Headers,
+					"body":       arr,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else {
 				_result = make(map[string]interface{})
-				_err = tea.Convert(map[string]map[string]*string{
-					"headers": response_.Headers,
+				_err = tea.Convert(map[string]interface{}{
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			}
@@ -1058,6 +1072,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					return _result, _err
 				}
 
+				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
 					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
 					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
@@ -1068,8 +1083,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 			if tea.BoolValue(util.EqualString(bodyType, tea.String("binary"))) {
 				resp := map[string]interface{}{
-					"body":    response_.Body,
-					"headers": response_.Headers,
+					"body":       response_.Body,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}
 				_result = resp
 				return _result, _err
@@ -1081,8 +1097,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    byt,
-					"headers": response_.Headers,
+					"body":       byt,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("string"))) {
@@ -1093,8 +1110,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    tea.StringValue(str),
-					"headers": response_.Headers,
+					"body":       tea.StringValue(str),
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("json"))) {
@@ -1110,8 +1128,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    res,
-					"headers": response_.Headers,
+					"body":       res,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else if tea.BoolValue(util.EqualString(bodyType, tea.String("array"))) {
@@ -1122,14 +1141,16 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				_result = make(map[string]interface{})
 				_err = tea.Convert(map[string]interface{}{
-					"body":    arr,
-					"headers": response_.Headers,
+					"body":       arr,
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			} else {
 				_result = make(map[string]interface{})
-				_err = tea.Convert(map[string]map[string]*string{
-					"headers": response_.Headers,
+				_err = tea.Convert(map[string]interface{}{
+					"headers":    response_.Headers,
+					"statusCode": tea.IntValue(response_.StatusCode),
 				}, &_result)
 				return _result, _err
 			}
