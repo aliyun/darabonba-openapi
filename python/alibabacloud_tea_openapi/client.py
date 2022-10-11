@@ -215,6 +215,7 @@ class Client:
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
@@ -223,37 +224,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = UtilClient.read_as_bytes(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = UtilClient.read_as_string(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = UtilClient.read_as_json(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = UtilClient.read_as_json(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -381,6 +388,7 @@ class Client:
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
@@ -389,37 +397,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = await UtilClient.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = await UtilClient.read_as_string_async(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = await UtilClient.read_as_json_async(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = await UtilClient.read_as_json_async(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -537,6 +551,7 @@ class Client:
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
                     request_id = self.default_any(request_id, err.get('requestid'))
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
@@ -545,37 +560,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = UtilClient.read_as_bytes(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = UtilClient.read_as_string(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = UtilClient.read_as_json(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = UtilClient.read_as_json(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -693,6 +714,7 @@ class Client:
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
                     request_id = self.default_any(request_id, err.get('requestid'))
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
@@ -701,37 +723,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = await UtilClient.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = await UtilClient.read_as_string_async(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = await UtilClient.read_as_json_async(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = await UtilClient.read_as_json_async(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -848,6 +876,7 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
@@ -856,37 +885,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = UtilClient.read_as_bytes(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = UtilClient.read_as_string(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = UtilClient.read_as_json(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = UtilClient.read_as_json(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):
@@ -1003,6 +1038,7 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    err['statusCode'] = _response.status_code
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
@@ -1011,37 +1047,43 @@ class Client:
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
                         'body': _response.body,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                     return resp
                 elif UtilClient.equal_string(body_type, 'byte'):
                     byt = await UtilClient.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'string'):
                     str = await UtilClient.read_as_string_async(_response.body)
                     return {
                         'body': str,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'json'):
                     obj = await UtilClient.read_as_json_async(_response.body)
                     res = UtilClient.assert_as_map(obj)
                     return {
                         'body': res,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 elif UtilClient.equal_string(body_type, 'array'):
                     arr = await UtilClient.read_as_json_async(_response.body)
                     return {
                         'body': arr,
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
                 else:
                     return {
-                        'headers': _response.headers
+                        'headers': _response.headers,
+                        'statusCode': _response.status_code
                     }
             except Exception as e:
                 if TeaCore.is_retryable(e):

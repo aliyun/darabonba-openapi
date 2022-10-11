@@ -264,6 +264,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -320,6 +321,7 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
@@ -383,6 +385,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -441,6 +444,7 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
@@ -504,6 +508,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -560,6 +565,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
@@ -623,6 +629,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -679,6 +686,7 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 }
 
 func TestResponseBodyType(t *testing.T) {
@@ -718,6 +726,7 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["AppId"])
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 
 	params.BodyType = tea.String("array")
 	params.Pathname = tea.String("/testArray")
@@ -728,6 +737,7 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertEqual(t, "AppId", bodyArray[0])
 	tea_util.AssertEqual(t, "ClassId", bodyArray[1])
 	tea_util.AssertEqual(t, "UserId", bodyArray[2])
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 
 	params.BodyType = tea.String("string")
 	params.Pathname = tea.String("/test")
@@ -736,6 +746,7 @@ func TestResponseBodyType(t *testing.T) {
 	bodyStr, _err := util.AssertAsString(result["body"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
 
 	params.Pathname = tea.String("/testError")
 	tryErr := func() (_e error) {
@@ -754,4 +765,6 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertNotNil(t, tryErr)
 	error := tryErr.(*tea.SDKError)
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(error.Message))
+
+	tea_util.AssertEqual(t, 400, tea.IntValue(error.StatusCode))
 }

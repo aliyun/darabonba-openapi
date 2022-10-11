@@ -257,6 +257,7 @@ namespace AlibabaCloud.OpenApiClient
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -270,6 +271,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -280,6 +282,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -289,6 +292,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -299,6 +303,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -308,6 +313,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -315,6 +321,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -489,6 +496,7 @@ namespace AlibabaCloud.OpenApiClient
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -502,6 +510,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -512,6 +521,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -521,6 +531,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -531,6 +542,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -540,6 +552,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -547,6 +560,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -699,6 +713,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
                         requestId = DefaultAny(requestId, err.Get("requestid"));
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -712,6 +727,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -722,6 +738,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -731,6 +748,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -741,6 +759,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -750,6 +769,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -757,6 +777,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -909,6 +930,7 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
                         requestId = DefaultAny(requestId, err.Get("requestid"));
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -922,6 +944,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -932,6 +955,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -941,6 +965,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -951,6 +976,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -960,6 +986,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -967,6 +994,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -1118,6 +1146,7 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -1131,6 +1160,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -1141,6 +1171,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -1150,6 +1181,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -1160,6 +1192,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -1169,6 +1202,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -1176,6 +1210,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
@@ -1327,6 +1362,7 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
                             {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
@@ -1340,6 +1376,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", response_.Body},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                         return resp;
                     }
@@ -1350,6 +1387,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", byt},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "string"))
@@ -1359,6 +1397,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", str},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "json"))
@@ -1369,6 +1408,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", res},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "array"))
@@ -1378,6 +1418,7 @@ namespace AlibabaCloud.OpenApiClient
                         {
                             {"body", arr},
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                     else
@@ -1385,6 +1426,7 @@ namespace AlibabaCloud.OpenApiClient
                         return new Dictionary<string, object>
                         {
                             {"headers", response_.Headers},
+                            {"statusCode", response_.StatusCode},
                         };
                     }
                 }
