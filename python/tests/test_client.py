@@ -663,7 +663,8 @@ class TestClient(unittest.TestCase):
                 return [200, headers, '["AppId", "ClassId", "UserId"]']
             elif request.headers.get('type') == 'error':
                 return [400, headers, '{"Code":"error code", "Message":"error message", '
-                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}']
+                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
+                                      '"Description":"error description", "AccessDeniedDetail":{}}']
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(

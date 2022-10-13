@@ -252,7 +252,9 @@ class OpenApiClient
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
-                        "data" => $err
+                        "data" => $err,
+                        "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
+                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -425,7 +427,9 @@ class OpenApiClient
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
-                        "data" => $err
+                        "data" => $err,
+                        "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
+                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -597,7 +601,9 @@ class OpenApiClient
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) (self::defaultAny(@$err["RequestId"], @$err["requestId"])) . "",
-                        "data" => $err
+                        "data" => $err,
+                        "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
+                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -785,7 +791,9 @@ class OpenApiClient
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) (self::defaultAny(@$err["RequestId"], @$err["requestId"])) . "",
-                        "data" => $err
+                        "data" => $err,
+                        "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
+                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
                     ]);
                 }
                 if (Utils::equalString($params->bodyType, "binary")) {

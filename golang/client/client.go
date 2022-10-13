@@ -599,9 +599,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
-					"data":    err,
+					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
+					"data":               err,
+					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
+					"accessDeniedDetail": err["AccessDeniedDetail"],
 				})
 				return _result, _err
 			}
@@ -835,9 +837,11 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				requestId = DefaultAny(requestId, err["requestid"])
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
-					"data":    err,
+					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
+					"data":               err,
+					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
+					"accessDeniedDetail": err["AccessDeniedDetail"],
 				})
 				return _result, _err
 			}
@@ -1074,9 +1078,11 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
-					"data":    err,
+					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"data":               err,
+					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
+					"accessDeniedDetail": err["AccessDeniedDetail"],
 				})
 				return _result, _err
 			}
@@ -1371,9 +1377,11 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":    tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message": "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
-					"data":    err,
+					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"data":               err,
+					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
+					"accessDeniedDetail": err["AccessDeniedDetail"],
 				})
 				return _result, _err
 			}
