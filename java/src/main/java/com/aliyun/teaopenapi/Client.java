@@ -222,7 +222,9 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
-                        new TeaPair("data", err)
+                        new TeaPair("data", err),
+                        new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
+                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
                     ));
                 }
 
@@ -401,7 +403,9 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
-                        new TeaPair("data", err)
+                        new TeaPair("data", err),
+                        new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
+                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
                     ));
                 }
 
@@ -579,7 +583,9 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
-                        new TeaPair("data", err)
+                        new TeaPair("data", err),
+                        new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
+                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
                     ));
                 }
 
@@ -793,7 +799,9 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
-                        new TeaPair("data", err)
+                        new TeaPair("data", err),
+                        new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
+                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
                     ));
                 }
 

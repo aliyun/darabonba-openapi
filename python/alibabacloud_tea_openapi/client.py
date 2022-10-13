@@ -219,7 +219,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -392,7 +394,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -555,7 +559,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -718,7 +724,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -880,7 +888,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -1042,7 +1052,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -1223,7 +1235,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {
@@ -1404,7 +1418,9 @@ class Client:
                     raise TeaException({
                         'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err
+                        'data': err,
+                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {

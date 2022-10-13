@@ -210,7 +210,9 @@ open class Client {
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err
+                        "data": err,
+                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "accessDeniedDetail": err["AccessDeniedDetail"]
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -370,7 +372,9 @@ open class Client {
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err
+                        "data": err,
+                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "accessDeniedDetail": err["AccessDeniedDetail"]
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -529,7 +533,9 @@ open class Client {
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err
+                        "data": err,
+                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "accessDeniedDetail": err["AccessDeniedDetail"]
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -712,7 +718,9 @@ open class Client {
                     throw Tea.ReuqestError([
                         "code": Client.defaultAny(err["Code"], err["code"]),
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err
+                        "data": err,
+                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "accessDeniedDetail": err["AccessDeniedDetail"]
                     ])
                 }
                 if (TeaUtils.Client.equalString(params.bodyType, "binary")) {

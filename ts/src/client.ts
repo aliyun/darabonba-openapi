@@ -420,6 +420,8 @@ export default class Client {
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
             data: err,
+            description: `${Client.defaultAny(err["Description"], err["description"])}`,
+            accessDeniedDetail: err["AccessDeniedDetail"],
           });
         }
 
@@ -601,6 +603,8 @@ export default class Client {
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
             data: err,
+            description: `${Client.defaultAny(err["Description"], err["description"])}`,
+            accessDeniedDetail: err["AccessDeniedDetail"],
           });
         }
 
@@ -781,6 +785,8 @@ export default class Client {
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
+            description: `${Client.defaultAny(err["Description"], err["description"])}`,
+            accessDeniedDetail: err["AccessDeniedDetail"],
           });
         }
 
@@ -995,6 +1001,8 @@ export default class Client {
             code: `${Client.defaultAny(err["Code"], err["code"])}`,
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
+            description: `${Client.defaultAny(err["Description"], err["description"])}`,
+            accessDeniedDetail: err["AccessDeniedDetail"],
           });
         }
 

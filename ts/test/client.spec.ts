@@ -43,7 +43,8 @@ const server = http.createServer((req, res) => {
                 });
                 break;
             case 'error':
-                responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+                responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                    ", \"Description\":\"error description\", \"AccessDeniedDetail\":{}}";
                 res.writeHead(400, {
                     ...headers,
                 });

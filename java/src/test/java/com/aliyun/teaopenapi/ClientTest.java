@@ -646,7 +646,8 @@ public class ClientTest {
         Assert.assertEquals("[\"AppId\", \"ClassId\", \"UserId\"]", new String((byte[]) result.get("body"), "UTF-8"));
         Assert.assertEquals(200, result.get("statusCode"));
 
-        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"AccessDeniedDetail\":{}}";
         stubFor(post(urlMatching("/test\\?.+"))
                 .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));

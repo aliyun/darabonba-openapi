@@ -224,7 +224,9 @@ class Client(object):
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(request_id)),
-                        'data': err
+                        'data': err,
+                        'description': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Description'), err.get('description'))),
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -394,7 +396,9 @@ class Client(object):
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(request_id)),
-                        'data': err
+                        'data': err,
+                        'description': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Description'), err.get('description'))),
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -563,7 +567,9 @@ class Client(object):
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),
-                        'data': err
+                        'data': err,
+                        'description': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Description'), err.get('description'))),
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -749,7 +755,9 @@ class Client(object):
                     raise TeaException({
                         'code': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Code'), err.get('code'))),
                         'message': 'code: %s, %s request id: %s' % (TeaConverter.to_unicode(_response.status_code), TeaConverter.to_unicode(self.default_any(err.get('Message'), err.get('message'))), TeaConverter.to_unicode(self.default_any(err.get('RequestId'), err.get('requestId')))),
-                        'data': err
+                        'data': err,
+                        'description': '%s' % TeaConverter.to_unicode(self.default_any(err.get('Description'), err.get('description'))),
+                        'accessDeniedDetail': err.get('AccessDeniedDetail')
                     })
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {

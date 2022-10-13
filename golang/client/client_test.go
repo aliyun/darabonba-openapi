@@ -47,7 +47,8 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte(responseBody))
 	case "error":
-		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}"
+		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
 	default:
