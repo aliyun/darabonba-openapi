@@ -1,4 +1,4 @@
-github aliyun/tea-swift ~> 1.0.0
+github aliyun/tea-swift ~> 1.0.1
 github alibabacloud-sdk-swift/tea-utils ~> 1.0.1
 github aliyun/credentials-swift ~> 1.0.0
 github alibabacloud-sdk-swift/openapi-util ~> 1.0.1

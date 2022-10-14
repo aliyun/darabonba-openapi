@@ -1,3 +1,6 @@
+2022-10-14 Version: v2.0.1
+- Return description and accessDeniedDetail in error info
+
 2022-09-23 Version: v2.0.0
 - Update with tea-utils
 

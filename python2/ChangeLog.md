@@ -1,3 +1,6 @@
+### 2022-10-14 Version 0.1.5
+* Return description and accessDeniedDetail in error info.
+
 ### 2022-04-11 Version 0.1.2
 * Support bearer token.
 * Support endpointOverride for OpenApiRequest.
