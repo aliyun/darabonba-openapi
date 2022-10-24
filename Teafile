@@ -21,7 +21,7 @@
     "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.1",
     "csharp": "AlibabaCloud.OpenApiClient:0.1.5",
     "java": "com.aliyun:tea-openapi:0.2.7",
-    "php": "alibabacloud/darabonba-openapi:^0.2.6",
+    "php": "alibabacloud/darabonba-openapi:^0.2.7",
     "python": "alibabacloud_tea_openapi:0.3.5",
     "python2": "alibabacloud_tea_openapi_py2:0.1.5",
     "cpp": "alibabacloud-sdk-cpp/dara-openapi:master",
