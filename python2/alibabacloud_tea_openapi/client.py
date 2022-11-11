@@ -1057,6 +1057,14 @@ class Client(object):
                 'message': "'config.endpoint' can not be empty"
             })
 
+    def set_gateway_client(self, spi):
+        """
+        set gateway client
+
+        @param spi.:
+        """
+        self._spi = spi
+
     def set_rpc_headers(self, headers):
         """
         set RPC header for debug

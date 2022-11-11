@@ -43,7 +43,7 @@ public class Client {
      * @param config config contains the necessary information to create a client
      */
     public Client(com.aliyun.teaopenapi.models.Config config) throws Exception {
-        if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(config))) {
+        if (com.aliyun.teautil.Common.isUnset(config)) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),
                 new TeaPair("message", "'config' can not be unset")
@@ -132,7 +132,7 @@ public class Client {
                 request_.pathname = "/";
                 java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
                 java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
-                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                if (!com.aliyun.teautil.Common.isUnset(_globalParameters)) {
                     GlobalParameters globalParams = _globalParameters;
                     if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
                         globalQueries = globalParams.queries;
@@ -331,7 +331,7 @@ public class Client {
                 request_.pathname = pathname;
                 java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
                 java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
-                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                if (!com.aliyun.teautil.Common.isUnset(_globalParameters)) {
                     GlobalParameters globalParams = _globalParameters;
                     if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
                         globalQueries = globalParams.queries;
@@ -512,7 +512,7 @@ public class Client {
                 request_.pathname = pathname;
                 java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
                 java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
-                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                if (!com.aliyun.teautil.Common.isUnset(_globalParameters)) {
                     GlobalParameters globalParams = _globalParameters;
                     if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
                         globalQueries = globalParams.queries;
@@ -693,7 +693,7 @@ public class Client {
                 request_.pathname = params.pathname;
                 java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
                 java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
-                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                if (!com.aliyun.teautil.Common.isUnset(_globalParameters)) {
                     GlobalParameters globalParams = _globalParameters;
                     if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
                         globalQueries = globalParams.queries;
@@ -907,7 +907,7 @@ public class Client {
                 java.util.Map<String, String> headers = this.getRpcHeaders();
                 java.util.Map<String, String> globalQueries = new java.util.HashMap<>();
                 java.util.Map<String, String> globalHeaders = new java.util.HashMap<>();
-                if (!com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(_globalParameters))) {
+                if (!com.aliyun.teautil.Common.isUnset(_globalParameters)) {
                     GlobalParameters globalParams = _globalParameters;
                     if (!com.aliyun.teautil.Common.isUnset(globalParams.queries)) {
                         globalQueries = globalParams.queries;
@@ -1011,7 +1011,7 @@ public class Client {
     }
 
     public java.util.Map<String, ?> callApi(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
-        if (com.aliyun.teautil.Common.isUnset(TeaModel.buildMap(params))) {
+        if (com.aliyun.teautil.Common.isUnset(params)) {
             throw new TeaException(TeaConverter.buildMap(
                 new TeaPair("code", "ParameterMissing"),
                 new TeaPair("message", "'params' can not be unset")
@@ -1130,6 +1130,14 @@ public class Client {
             ));
         }
 
+    }
+
+    /**
+     * set gateway client
+     * @param spi.
+     */
+    public void setGatewayClient(com.aliyun.gateway.spi.Client spi) throws Exception {
+        this._spi = spi;
     }
 
     /**

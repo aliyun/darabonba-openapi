@@ -12,6 +12,7 @@ use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Request;
 use AlibabaCloud\OpenApiUtil\OpenApiUtilClient;
 use AlibabaCloud\Tea\XML\XML;
+use Darabonba\GatewaySpi\Client;
 
 use AlibabaCloud\Credentials\Credential\Config;
 use Darabonba\OpenApi\Models\OpenApiRequest;
@@ -1117,6 +1118,16 @@ class OpenApiClient
                 "message" => "'config.endpoint' can not be empty"
             ]);
         }
+    }
+
+    /**
+     * set gateway client
+     * @param Client $spi
+     * @return void
+     */
+    public function setGatewayClient($spi)
+    {
+        $this->_spi = $spi;
     }
 
     /**

@@ -380,7 +380,7 @@ func NewClient(config *Config) (*Client, error) {
 }
 
 func (client *Client) Init(config *Config) (_err error) {
-	if tea.BoolValue(util.IsUnset(tea.ToMap(config))) {
+	if tea.BoolValue(util.IsUnset(config)) {
 		_err = tea.NewSDKError(map[string]interface{}{
 			"code":    "ParameterMissing",
 			"message": "'config' can not be unset",
@@ -490,7 +490,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			request_.Pathname = tea.String("/")
 			globalQueries := make(map[string]*string)
 			globalHeaders := make(map[string]*string)
-			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+			if !tea.BoolValue(util.IsUnset(client.GlobalParameters)) {
 				globalParams := client.GlobalParameters
 				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
 					globalQueries = globalParams.Queries
@@ -750,7 +750,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			request_.Pathname = pathname
 			globalQueries := make(map[string]*string)
 			globalHeaders := make(map[string]*string)
-			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+			if !tea.BoolValue(util.IsUnset(client.GlobalParameters)) {
 				globalParams := client.GlobalParameters
 				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
 					globalQueries = globalParams.Queries
@@ -988,7 +988,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			request_.Pathname = pathname
 			globalQueries := make(map[string]*string)
 			globalHeaders := make(map[string]*string)
-			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+			if !tea.BoolValue(util.IsUnset(client.GlobalParameters)) {
 				globalParams := client.GlobalParameters
 				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
 					globalQueries = globalParams.Queries
@@ -1232,7 +1232,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			request_.Pathname = params.Pathname
 			globalQueries := make(map[string]*string)
 			globalHeaders := make(map[string]*string)
-			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+			if !tea.BoolValue(util.IsUnset(client.GlobalParameters)) {
 				globalParams := client.GlobalParameters
 				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
 					globalQueries = globalParams.Queries
@@ -1534,7 +1534,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 
 			globalQueries := make(map[string]*string)
 			globalHeaders := make(map[string]*string)
-			if !tea.BoolValue(util.IsUnset(tea.ToMap(client.GlobalParameters))) {
+			if !tea.BoolValue(util.IsUnset(client.GlobalParameters)) {
 				globalParams := client.GlobalParameters
 				if !tea.BoolValue(util.IsUnset(globalParams.Queries)) {
 					globalQueries = globalParams.Queries
@@ -1632,7 +1632,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 }
 
 func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
-	if tea.BoolValue(util.IsUnset(tea.ToMap(params))) {
+	if tea.BoolValue(util.IsUnset(params)) {
 		_err = tea.NewSDKError(map[string]interface{}{
 			"code":    "ParameterMissing",
 			"message": "'params' can not be unset",
@@ -1802,6 +1802,15 @@ func (client *Client) CheckConfig(config *Config) (_err error) {
 		return _err
 	}
 
+	return _err
+}
+
+/**
+ * set gateway client
+ * @param spi.
+ */
+func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {
+	client.Spi = spi
 	return _err
 }
 

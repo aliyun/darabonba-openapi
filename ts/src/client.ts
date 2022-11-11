@@ -237,7 +237,7 @@ export default class Client {
    * @param config config contains the necessary information to create a client
    */
   constructor(config: Config) {
-    if (Util.isUnset($tea.toMap(config))) {
+    if (Util.isUnset(config)) {
       throw $tea.newError({
         code: "ParameterMissing",
         message: "'config' can not be unset",
@@ -336,7 +336,7 @@ export default class Client {
         request_.pathname = "/";
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+        if (!Util.isUnset(this._globalParameters)) {
           let globalParams = this._globalParameters;
           if (!Util.isUnset(globalParams.queries)) {
             globalQueries = globalParams.queries;
@@ -533,7 +533,7 @@ export default class Client {
         request_.pathname = pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+        if (!Util.isUnset(this._globalParameters)) {
           let globalParams = this._globalParameters;
           if (!Util.isUnset(globalParams.queries)) {
             globalQueries = globalParams.queries;
@@ -716,7 +716,7 @@ export default class Client {
         request_.pathname = pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+        if (!Util.isUnset(this._globalParameters)) {
           let globalParams = this._globalParameters;
           if (!Util.isUnset(globalParams.queries)) {
             globalQueries = globalParams.queries;
@@ -897,7 +897,7 @@ export default class Client {
         request_.pathname = params.pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+        if (!Util.isUnset(this._globalParameters)) {
           let globalParams = this._globalParameters;
           if (!Util.isUnset(globalParams.queries)) {
             globalQueries = globalParams.queries;
@@ -1112,7 +1112,7 @@ export default class Client {
         let headers = this.getRpcHeaders();
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset($tea.toMap(this._globalParameters))) {
+        if (!Util.isUnset(this._globalParameters)) {
           let globalParams = this._globalParameters;
           if (!Util.isUnset(globalParams.queries)) {
             globalQueries = globalParams.queries;
@@ -1204,7 +1204,7 @@ export default class Client {
   }
 
   async callApi(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
-    if (Util.isUnset($tea.toMap(params))) {
+    if (Util.isUnset(params)) {
       throw $tea.newError({
         code: "ParameterMissing",
         message: "'params' can not be unset",
@@ -1323,6 +1323,14 @@ export default class Client {
       });
     }
 
+  }
+
+  /**
+   * set gateway client
+   * @param spi.
+   */
+  setGatewayClient(spi: SPI): void {
+    this._spi = spi;
   }
 
   /**
