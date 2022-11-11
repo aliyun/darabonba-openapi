@@ -48,7 +48,7 @@ namespace AlibabaCloud.OpenApiClient
          */
         public Client(Config config)
         {
-            if (AlibabaCloud.TeaUtil.Common.IsUnset(config.ToMap()))
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(config))
             {
                 throw new TeaException(new Dictionary<string, string>
                 {
@@ -162,7 +162,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = "/";
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -403,7 +403,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = "/";
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -645,7 +645,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -864,7 +864,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -1083,7 +1083,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -1301,7 +1301,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -1519,7 +1519,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = params_.Pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -1780,7 +1780,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Pathname = params_.Pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -2040,7 +2040,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -2204,7 +2204,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
                     Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters.ToMap()))
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_globalParameters))
                     {
                         GlobalParameters globalParams = _globalParameters;
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(globalParams.Queries))
@@ -2308,7 +2308,7 @@ namespace AlibabaCloud.OpenApiClient
 
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
-            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_.ToMap()))
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_))
             {
                 throw new TeaException(new Dictionary<string, string>
                 {
@@ -2336,7 +2336,7 @@ namespace AlibabaCloud.OpenApiClient
 
         public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
-            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_.ToMap()))
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(params_))
             {
                 throw new TeaException(new Dictionary<string, string>
                 {
@@ -2541,6 +2541,15 @@ namespace AlibabaCloud.OpenApiClient
                     {"message", "'config.endpoint' can not be empty"},
                 });
             }
+        }
+
+        /**
+         * set gateway client
+         * @param spi.
+         */
+        public void SetGatewayClient(AlibabaCloud.GatewaySpi.Client spi)
+        {
+            this._spi = spi;
         }
 
         /**

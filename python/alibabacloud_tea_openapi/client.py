@@ -1913,6 +1913,16 @@ class Client:
                 'message': "'config.endpoint' can not be empty"
             })
 
+    def set_gateway_client(
+        self,
+        spi: SPIClient,
+    ) -> None:
+        """
+        set gateway client
+        @param spi.:
+        """
+        self._spi = spi
+
     def set_rpc_headers(
         self,
         headers: Dict[str, str],

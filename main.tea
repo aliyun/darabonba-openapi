@@ -1023,6 +1023,14 @@ function checkConfig(config: Config)throws : void {
 }
 
 /**
+ * set gateway client
+ * @param spi.
+ */
+function setGatewayClient(spi: SPI)throws : void {
+  @spi = spi;
+}
+
+/**
  * set RPC header for debug
  * @param headers headers for debug, this header can be used only once.
  */
