@@ -1,3 +1,6 @@
+### 2022-11-14 Version 0.3.6
+* Add gateway client setter.
+
 ### 2022-10-14 Version 0.3.5
 * Return description and accessDeniedDetail in error info.
 
