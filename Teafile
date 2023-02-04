@@ -97,5 +97,12 @@
       "author": "Alibaba Cloud SDK",
       "email": "sdk-team@alibabacloud.com"
     }
+  },
+  "releaselog": {
+    "changelog": [
+      "[csharp]resolve stream deeply in convert",
+      "[php]fix: improve json parse for any input"
+    ],
+    "compatible": true
   }
 }
