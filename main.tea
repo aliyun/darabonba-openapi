@@ -34,6 +34,9 @@ type @signatureAlgorithm = string
 type @headers = map[string]string
 type @spi = SPI
 type @globalParameters = GlobalParameters
+type @key = string
+type @cert = string
+type @ca = string
 
 model GlobalParameters {
   headers?: map[string]string,
@@ -68,6 +71,9 @@ model Config {
   signatureVersion?: string(description='Signature Version',example='v1',default=''),
   signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
   globalParameters?: GlobalParameters(description='Global Parameters'),
+  key?: string(description='privite key for client certificate', example='MIIEvQ',default=''),
+  cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
+  ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
 }
 
 /**
@@ -117,6 +123,9 @@ init(config: Config) {
   @signatureVersion = config.signatureVersion;
   @signatureAlgorithm = config.signatureAlgorithm;
   @globalParameters = config.globalParameters;
+  @key = config.key;
+  @cert = config.cert;
+  @ca = config.ca;
 }
 
 model OpenApiRequest {
@@ -275,6 +284,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   }
 } runtime {
   timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
   connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
@@ -426,6 +438,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   }
 } runtime {
   timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
   connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
@@ -577,6 +592,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 } runtime {
   timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
   connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
@@ -787,6 +805,9 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   }
 } runtime {
   timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
   connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
@@ -908,6 +929,9 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
 
 } runtime {
   timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
   readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
   connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
   httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),

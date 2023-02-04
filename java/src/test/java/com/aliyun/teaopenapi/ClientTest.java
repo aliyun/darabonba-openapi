@@ -49,7 +49,10 @@ public class ClientTest {
                 new TeaPair("maxIdleConns", 128),
                 new TeaPair("signatureVersion", "config.signatureVersion"),
                 new TeaPair("signatureAlgorithm", "config.signatureAlgorithm"),
-                new TeaPair("globalParameters", globalParameters)
+                new TeaPair("globalParameters", globalParameters),
+                new TeaPair("key", "config.key"),
+                new TeaPair("cert", "config.cert"),
+                new TeaPair("ca", "config.ca")
         ));
         com.aliyun.credentials.models.Config creConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
                 new TeaPair("accessKeyId", "accessKeyId"),
@@ -97,6 +100,9 @@ public class ClientTest {
         Assert.assertEquals("config.signatureAlgorithm", client._signatureAlgorithm);
         Assert.assertEquals("global-value", client._globalParameters.getHeaders().get("global-key"));
         Assert.assertEquals("global-value", client._globalParameters.getQueries().get("global-query"));
+        Assert.assertEquals("config.key", client._key);
+        Assert.assertEquals("config.cert", client._cert);
+        Assert.assertEquals("config.ca", client._ca);
     }
 
     public static Config createConfig() throws Exception {

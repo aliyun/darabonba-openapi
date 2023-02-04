@@ -61,6 +61,9 @@ export class Config extends $tea.Model {
   signatureVersion?: string;
   signatureAlgorithm?: string;
   globalParameters?: GlobalParameters;
+  key?: string;
+  cert?: string;
+  ca?: string;
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'accessKeyId',
@@ -88,6 +91,9 @@ export class Config extends $tea.Model {
       signatureVersion: 'signatureVersion',
       signatureAlgorithm: 'signatureAlgorithm',
       globalParameters: 'globalParameters',
+      key: 'key',
+      cert: 'cert',
+      ca: 'ca',
     };
   }
 
@@ -118,6 +124,9 @@ export class Config extends $tea.Model {
       signatureVersion: 'string',
       signatureAlgorithm: 'string',
       globalParameters: GlobalParameters,
+      key: 'string',
+      cert: 'string',
+      ca: 'string',
     };
   }
 
@@ -231,6 +240,9 @@ export default class Client {
   _headers: {[key: string ]: string};
   _spi: SPI;
   _globalParameters: GlobalParameters;
+  _key: string;
+  _cert: string;
+  _ca: string;
 
   /**
    * Init client with Config
@@ -281,6 +293,9 @@ export default class Client {
     this._signatureVersion = config.signatureVersion;
     this._signatureAlgorithm = config.signatureAlgorithm;
     this._globalParameters = config.globalParameters;
+    this._key = config.key;
+    this._cert = config.cert;
+    this._ca = config.ca;
   }
 
   /**
@@ -298,6 +313,9 @@ export default class Client {
   async doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
       timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
       readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
       connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
@@ -495,6 +513,9 @@ export default class Client {
   async doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
       timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
       readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
       connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
@@ -678,6 +699,9 @@ export default class Client {
   async doROARequestWithForm(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
       timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
       readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
       connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
@@ -859,6 +883,9 @@ export default class Client {
   async doRequest(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
       timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
       readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
       connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
@@ -1075,6 +1102,9 @@ export default class Client {
   async execute(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
       timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
       readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
       connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
       httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),

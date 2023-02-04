@@ -38,6 +38,9 @@ class Config extends Model
         'type' => '',
         'signatureVersion' => '',
         'signatureAlgorithm' => '',
+        'key' => '',
+        'cert' => '',
+        'ca' => '',
     ];
     public function validate()
     {
@@ -119,6 +122,15 @@ class Config extends Model
         }
         if (null !== $this->globalParameters) {
             $res['globalParameters'] = null !== $this->globalParameters ? $this->globalParameters->toMap() : null;
+        }
+        if (null !== $this->key) {
+            $res['key'] = $this->key;
+        }
+        if (null !== $this->cert) {
+            $res['cert'] = $this->cert;
+        }
+        if (null !== $this->ca) {
+            $res['ca'] = $this->ca;
         }
         return $res;
     }
@@ -203,6 +215,15 @@ class Config extends Model
         }
         if (isset($map['globalParameters'])) {
             $model->globalParameters = GlobalParameters::fromMap($map['globalParameters']);
+        }
+        if (isset($map['key'])) {
+            $model->key = $map['key'];
+        }
+        if (isset($map['cert'])) {
+            $model->cert = $map['cert'];
+        }
+        if (isset($map['ca'])) {
+            $model->ca = $map['ca'];
         }
         return $model;
     }
@@ -377,4 +398,27 @@ class Config extends Model
      * @var GlobalParameters
      */
     public $globalParameters;
+
+    /**
+     * @description privite key for client certificate
+     * @example MIIEvQ
+     * @var string
+     */
+    public $key;
+
+    /**
+     * @description client certificate
+     * @example -----BEGIN CERTIFICATE-----
+xxx-----END CERTIFICATE-----
+     * @var string
+     */
+    public $cert;
+
+    /**
+     * @description server certificate
+     * @example -----BEGIN CERTIFICATE-----
+xxx-----END CERTIFICATE-----
+     * @var string
+     */
+    public $ca;
 }

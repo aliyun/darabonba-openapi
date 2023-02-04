@@ -86,6 +86,9 @@ func TestConfig(t *testing.T) {
 		SignatureVersion:   tea.String("config.signatureVersion"),
 		SignatureAlgorithm: tea.String("config.signatureAlgorithm"),
 		GlobalParameters:   globalParameters,
+		Key:                tea.String("config.key"),
+		Cert:               tea.String("config.cert"),
+		Ca:                 tea.String("config.ca"),
 	}
 	creConfig := &credential.Config{
 		AccessKeyId:     tea.String("accessKeyId"),
@@ -146,6 +149,9 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "config.signatureAlgorithm", tea.StringValue(client.SignatureAlgorithm))
 	tea_util.AssertEqual(t, "global-value", tea.StringValue(client.GlobalParameters.Headers["global-key"]))
 	tea_util.AssertEqual(t, "global-value", tea.StringValue(client.GlobalParameters.Queries["global-query"]))
+	tea_util.AssertEqual(t, "config.key", tea.StringValue(client.Key))
+	tea_util.AssertEqual(t, "config.cert", tea.StringValue(client.Cert))
+	tea_util.AssertEqual(t, "config.ca", tea.StringValue(client.Ca))
 }
 
 func CreateConfig() (_result *Config) {

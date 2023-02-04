@@ -31,6 +31,18 @@ public class Config extends TeaModel {
     @NameInMap("regionId")
     public String regionId;
 
+    // privite key for client certificate
+    @NameInMap("key")
+    public String key;
+
+    // client certificate
+    @NameInMap("cert")
+    public String cert;
+
+    // server certificate
+    @NameInMap("ca")
+    public String ca;
+
     // read timeout
     @NameInMap("readTimeout")
     public Integer readTimeout;
@@ -159,6 +171,30 @@ public class Config extends TeaModel {
     }
     public String getRegionId() {
         return this.regionId;
+    }
+
+    public Config setKey(String key) {
+        this.key = key;
+        return this;
+    }
+    public String getKey() {
+        return this.key;
+    }
+
+    public Config setCert(String cert) {
+        this.cert = cert;
+        return this;
+    }
+    public String getCert() {
+        return this.cert;
+    }
+
+    public Config setCa(String ca) {
+        this.ca = ca;
+        return this;
+    }
+    public String getCa() {
+        return this.ca;
     }
 
     public Config setReadTimeout(Integer readTimeout) {
