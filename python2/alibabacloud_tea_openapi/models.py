@@ -42,7 +42,7 @@ class Config(TeaModel):
                  region_id=None, read_timeout=None, connect_timeout=None, http_proxy=None, https_proxy=None, credential=None,
                  endpoint=None, no_proxy=None, max_idle_conns=None, network=None, user_agent=None, suffix=None,
                  socks_5proxy=None, socks_5net_work=None, endpoint_type=None, open_platform_endpoint=None, type=None,
-                 signature_version=None, signature_algorithm=None, global_parameters=None):
+                 signature_version=None, signature_algorithm=None, global_parameters=None, key=None, cert=None, ca=None):
         # accesskey id
         self.access_key_id = access_key_id  # type: str
         # accesskey secret
@@ -93,6 +93,12 @@ class Config(TeaModel):
         self.signature_algorithm = signature_algorithm  # type: str
         # Global Parameters
         self.global_parameters = global_parameters  # type: GlobalParameters
+        # privite key for client certificate
+        self.key = key  # type: str
+        # client certificate
+        self.cert = cert  # type: str
+        # server certificate
+        self.ca = ca  # type: str
 
     def validate(self):
         if self.global_parameters:
@@ -154,6 +160,12 @@ class Config(TeaModel):
             result['signatureAlgorithm'] = self.signature_algorithm
         if self.global_parameters is not None:
             result['globalParameters'] = self.global_parameters.to_map()
+        if self.key is not None:
+            result['key'] = self.key
+        if self.cert is not None:
+            result['cert'] = self.cert
+        if self.ca is not None:
+            result['ca'] = self.ca
         return result
 
     def from_map(self, m=None):
@@ -209,6 +221,12 @@ class Config(TeaModel):
         if m.get('globalParameters') is not None:
             temp_model = GlobalParameters()
             self.global_parameters = temp_model.from_map(m['globalParameters'])
+        if m.get('key') is not None:
+            self.key = m.get('key')
+        if m.get('cert') is not None:
+            self.cert = m.get('cert')
+        if m.get('ca') is not None:
+            self.ca = m.get('ca')
         return self
 
 

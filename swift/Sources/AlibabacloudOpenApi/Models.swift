@@ -93,6 +93,12 @@ public class Config : Tea.TeaModel {
 
     public var globalParameters: GlobalParameters?
 
+    public var key: String?
+
+    public var cert: String?
+
+    public var ca: String?
+
     public override init() {
         super.init()
     }
@@ -183,6 +189,15 @@ public class Config : Tea.TeaModel {
         if self.globalParameters != nil {
             map["globalParameters"] = self.globalParameters?.toMap()
         }
+        if self.key != nil {
+            map["key"] = self.key!
+        }
+        if self.cert != nil {
+            map["cert"] = self.cert!
+        }
+        if self.ca != nil {
+            map["ca"] = self.ca!
+        }
         return map
     }
 
@@ -263,6 +278,15 @@ public class Config : Tea.TeaModel {
             var model = GlobalParameters()
             model.fromMap(dict["globalParameters"] as! [String: Any])
             self.globalParameters = model
+        }
+        if dict.keys.contains("key") {
+            self.key = dict["key"] as! String
+        }
+        if dict.keys.contains("cert") {
+            self.cert = dict["cert"] as! String
+        }
+        if dict.keys.contains("ca") {
+            self.ca = dict["ca"] as! String
         }
     }
 }

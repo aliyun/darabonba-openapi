@@ -55,6 +55,12 @@ open class Client {
 
     public var _globalParameters: GlobalParameters?
 
+    public var _key: String?
+
+    public var _cert: String?
+
+    public var _ca: String?
+
     public init(_ config: Config) throws {
         if (TeaUtils.Client.isUnset(config)) {
             throw Tea.ReuqestError([
@@ -99,6 +105,9 @@ open class Client {
         self._signatureVersion = config.signatureVersion
         self._signatureAlgorithm = config.signatureAlgorithm
         self._globalParameters = config.globalParameters
+        self._key = config.key
+        self._cert = config.cert
+        self._ca = config.ca
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -107,6 +116,9 @@ open class Client {
         try runtime.validate()
         var _runtime: [String: Any] = [
             "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
             "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
             "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
             "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),
@@ -116,7 +128,7 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": Client.defaultAny(runtime.autoretry, false),
+                "retryable": runtime.autoretry!,
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
@@ -280,6 +292,9 @@ open class Client {
         try runtime.validate()
         var _runtime: [String: Any] = [
             "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
             "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
             "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
             "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),
@@ -442,6 +457,9 @@ open class Client {
         try runtime.validate()
         var _runtime: [String: Any] = [
             "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
             "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
             "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
             "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),
@@ -604,6 +622,9 @@ open class Client {
         try runtime.validate()
         var _runtime: [String: Any] = [
             "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
             "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
             "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
             "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),

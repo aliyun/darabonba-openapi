@@ -188,6 +188,27 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public GlobalParameters GlobalParameters { get; set; }
 
+        /// <summary>
+        /// privite key for client certificate
+        /// </summary>
+        [NameInMap("key")]
+        [Validation(Required=false)]
+        public string Key { get; set; }
+
+        /// <summary>
+        /// client certificate
+        /// </summary>
+        [NameInMap("cert")]
+        [Validation(Required=false)]
+        public string Cert { get; set; }
+
+        /// <summary>
+        /// server certificate
+        /// </summary>
+        [NameInMap("ca")]
+        [Validation(Required=false)]
+        public string Ca { get; set; }
+
     }
 
 }

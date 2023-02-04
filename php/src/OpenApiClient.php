@@ -80,6 +80,12 @@ class OpenApiClient
 
     protected $_globalParameters;
 
+    protected $_key;
+
+    protected $_cert;
+
+    protected $_ca;
+
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -127,6 +133,9 @@ class OpenApiClient
         $this->_signatureVersion = $config->signatureVersion;
         $this->_signatureAlgorithm = $config->signatureAlgorithm;
         $this->_globalParameters = $config->globalParameters;
+        $this->_key = $config->key;
+        $this->_cert = $config->cert;
+        $this->_ca = $config->ca;
     }
 
     /**
@@ -150,6 +159,9 @@ class OpenApiClient
         $runtime->validate();
         $_runtime = [
             "timeouted" => "retry",
+            "key" => Utils::defaultString($runtime->key, $this->_key),
+            "cert" => Utils::defaultString($runtime->cert, $this->_cert),
+            "ca" => Utils::defaultString($runtime->ca, $this->_ca),
             "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
             "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
             "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
@@ -336,6 +348,9 @@ class OpenApiClient
         $runtime->validate();
         $_runtime = [
             "timeouted" => "retry",
+            "key" => Utils::defaultString($runtime->key, $this->_key),
+            "cert" => Utils::defaultString($runtime->cert, $this->_cert),
+            "ca" => Utils::defaultString($runtime->ca, $this->_ca),
             "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
             "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
             "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
@@ -511,6 +526,9 @@ class OpenApiClient
         $runtime->validate();
         $_runtime = [
             "timeouted" => "retry",
+            "key" => Utils::defaultString($runtime->key, $this->_key),
+            "cert" => Utils::defaultString($runtime->cert, $this->_cert),
+            "ca" => Utils::defaultString($runtime->ca, $this->_ca),
             "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
             "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
             "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
@@ -680,6 +698,9 @@ class OpenApiClient
         $runtime->validate();
         $_runtime = [
             "timeouted" => "retry",
+            "key" => Utils::defaultString($runtime->key, $this->_key),
+            "cert" => Utils::defaultString($runtime->cert, $this->_cert),
+            "ca" => Utils::defaultString($runtime->ca, $this->_ca),
             "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
             "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
             "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
@@ -870,6 +891,9 @@ class OpenApiClient
         $runtime->validate();
         $_runtime = [
             "timeouted" => "retry",
+            "key" => Utils::defaultString($runtime->key, $this->_key),
+            "cert" => Utils::defaultString($runtime->cert, $this->_cert),
+            "ca" => Utils::defaultString($runtime->ca, $this->_ca),
             "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
             "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
             "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),

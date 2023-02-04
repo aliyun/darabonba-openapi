@@ -157,6 +157,9 @@ describe('$openapi', function () {
             signatureVersion: "config.signatureVersion",
             signatureAlgorithm: "config.signatureAlgorithm",
             globalParameters: globalParameters,
+            key: "config.key",
+            cert: "config.cert",
+            ca: "config.ca"
         });
         let creConfig = new $Credential.Config({
             accessKeyId: "accessKeyId",
@@ -205,6 +208,9 @@ describe('$openapi', function () {
         assert.strictEqual(client._signatureAlgorithm, 'config.signatureAlgorithm');
         assert.strictEqual(client._globalParameters.toMap().headers['global-key'], 'global-value');
         assert.strictEqual(client._globalParameters.toMap().queries['global-query'], 'global-value');
+        assert.strictEqual(client._key, 'config.key');
+        assert.strictEqual(client._cert, 'config.cert');
+        assert.strictEqual(client._ca, 'config.ca');
     });
 
     it("call api for RPC With V2Sign AK Form should ok", async function () {

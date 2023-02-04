@@ -5,14 +5,13 @@
 package client
 
 import (
-	"io"
-
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	xml "github.com/alibabacloud-go/tea-xml/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
+	"io"
 )
 
 type GlobalParameters struct {
@@ -93,6 +92,12 @@ type Config struct {
 	SignatureAlgorithm *string `json:"signatureAlgorithm,omitempty" xml:"signatureAlgorithm,omitempty"`
 	// Global Parameters
 	GlobalParameters *GlobalParameters `json:"globalParameters,omitempty" xml:"globalParameters,omitempty"`
+	// privite key for client certificate
+	Key *string `json:"key,omitempty" xml:"key,omitempty"`
+	// client certificate
+	Cert *string `json:"cert,omitempty" xml:"cert,omitempty"`
+	// server certificate
+	Ca *string `json:"ca,omitempty" xml:"ca,omitempty"`
 }
 
 func (s Config) String() string {
@@ -225,6 +230,21 @@ func (s *Config) SetSignatureAlgorithm(v string) *Config {
 
 func (s *Config) SetGlobalParameters(v *GlobalParameters) *Config {
 	s.GlobalParameters = v
+	return s
+}
+
+func (s *Config) SetKey(v string) *Config {
+	s.Key = &v
+	return s
+}
+
+func (s *Config) SetCert(v string) *Config {
+	s.Cert = &v
+	return s
+}
+
+func (s *Config) SetCa(v string) *Config {
+	s.Ca = &v
 	return s
 }
 
@@ -367,6 +387,9 @@ type Client struct {
 	Headers              map[string]*string
 	Spi                  spi.ClientInterface
 	GlobalParameters     *GlobalParameters
+	Key                  *string
+	Cert                 *string
+	Ca                   *string
 }
 
 /**
@@ -429,6 +452,9 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.SignatureVersion = config.SignatureVersion
 	client.SignatureAlgorithm = config.SignatureAlgorithm
 	client.GlobalParameters = config.GlobalParameters
+	client.Key = config.Key
+	client.Cert = config.Cert
+	client.Ca = config.Ca
 	return nil
 }
 
@@ -455,6 +481,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 	}
 	_runtime := map[string]interface{}{
 		"timeouted":      "retry",
+		"key":            tea.StringValue(util.DefaultString(runtime.Key, client.Key)),
+		"cert":           tea.StringValue(util.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             tea.StringValue(util.DefaultString(runtime.Ca, client.Ca)),
 		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
 		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
 		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),
@@ -715,6 +744,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 	}
 	_runtime := map[string]interface{}{
 		"timeouted":      "retry",
+		"key":            tea.StringValue(util.DefaultString(runtime.Key, client.Key)),
+		"cert":           tea.StringValue(util.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             tea.StringValue(util.DefaultString(runtime.Ca, client.Ca)),
 		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
 		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
 		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),
@@ -953,6 +985,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 	}
 	_runtime := map[string]interface{}{
 		"timeouted":      "retry",
+		"key":            tea.StringValue(util.DefaultString(runtime.Key, client.Key)),
+		"cert":           tea.StringValue(util.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             tea.StringValue(util.DefaultString(runtime.Ca, client.Ca)),
 		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
 		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
 		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),
@@ -1197,6 +1232,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 	}
 	_runtime := map[string]interface{}{
 		"timeouted":      "retry",
+		"key":            tea.StringValue(util.DefaultString(runtime.Key, client.Key)),
+		"cert":           tea.StringValue(util.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             tea.StringValue(util.DefaultString(runtime.Ca, client.Ca)),
 		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
 		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
 		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),
@@ -1496,6 +1534,9 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 	}
 	_runtime := map[string]interface{}{
 		"timeouted":      "retry",
+		"key":            tea.StringValue(util.DefaultString(runtime.Key, client.Key)),
+		"cert":           tea.StringValue(util.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             tea.StringValue(util.DefaultString(runtime.Ca, client.Ca)),
 		"readTimeout":    tea.IntValue(util.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
 		"connectTimeout": tea.IntValue(util.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
 		"httpProxy":      tea.StringValue(util.DefaultString(runtime.HttpProxy, client.HttpProxy)),

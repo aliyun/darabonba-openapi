@@ -44,7 +44,10 @@ class TestClient(unittest.TestCase):
             max_idle_conns=128,
             signature_version='config.signatureVersion',
             signature_algorithm='config.signatureAlgorithm',
-            global_parameters=global_parameters
+            global_parameters=global_parameters,
+            key='config.key',
+            cert='config.cert',
+            ca='config.ca'
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -92,6 +95,9 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.signatureAlgorithm", client._signature_algorithm)
         self.assertEqual("global-value", client._global_parameters.headers.get("global-key"))
         self.assertEqual("global-value", client._global_parameters.queries.get("global-query"))
+        self.assertEqual("config.key", client._key)
+        self.assertEqual("config.cert", client._cert)
+        self.assertEqual("config.ca", client._ca)
 
     def create_config(self) -> open_api_models.Config:
         global_parameters = open_api_models.GlobalParameters(
