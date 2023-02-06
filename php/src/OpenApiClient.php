@@ -267,7 +267,7 @@ class OpenApiClient
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
                         "data" => $err,
                         "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
-                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
+                        "accessDeniedDetail" => self::defaultAny(@$err["AccessDeniedDetail"], @$err["accessDeniedDetail"])
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -445,7 +445,7 @@ class OpenApiClient
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) ($requestId) . "",
                         "data" => $err,
                         "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
-                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
+                        "accessDeniedDetail" => self::defaultAny(@$err["AccessDeniedDetail"], @$err["accessDeniedDetail"])
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -622,7 +622,7 @@ class OpenApiClient
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) (self::defaultAny(@$err["RequestId"], @$err["requestId"])) . "",
                         "data" => $err,
                         "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
-                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
+                        "accessDeniedDetail" => self::defaultAny(@$err["AccessDeniedDetail"], @$err["accessDeniedDetail"])
                     ]);
                 }
                 if (Utils::equalString($bodyType, "binary")) {
@@ -815,7 +815,7 @@ class OpenApiClient
                         "message" => "code: " . (string) ($_response->statusCode) . ", " . (string) (self::defaultAny(@$err["Message"], @$err["message"])) . " request id: " . (string) (self::defaultAny(@$err["RequestId"], @$err["requestId"])) . "",
                         "data" => $err,
                         "description" => "" . (string) (self::defaultAny(@$err["Description"], @$err["description"])) . "",
-                        "accessDeniedDetail" => @$err["AccessDeniedDetail"]
+                        "accessDeniedDetail" => self::defaultAny(@$err["AccessDeniedDetail"], @$err["accessDeniedDetail"])
                     ]);
                 }
                 if (Utils::equalString($params->bodyType, "binary")) {

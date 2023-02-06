@@ -663,6 +663,35 @@ public class ClientTest {
             Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
             Assert.assertEquals("error code", e.getCode());
             Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertNull(e.getAccessDeniedDetail().get("test"));
+        }
+
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 0}}";
+        stubFor(post(urlMatching("/test\\?.+"))
+                .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        try {
+            result = client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertNull(e.getAccessDeniedDetail().get("test"));
+        }
+
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}";
+        stubFor(post(urlMatching("/test\\?.+"))
+                .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        try {
+            result = client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals(0L, (long) e.getAccessDeniedDetail().get("test"));
         }
 
     }

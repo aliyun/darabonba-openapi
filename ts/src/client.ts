@@ -439,7 +439,7 @@ export default class Client {
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: err["AccessDeniedDetail"],
+            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
           });
         }
 
@@ -625,7 +625,7 @@ export default class Client {
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: err["AccessDeniedDetail"],
+            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
           });
         }
 
@@ -810,7 +810,7 @@ export default class Client {
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: err["AccessDeniedDetail"],
+            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
           });
         }
 
@@ -1029,7 +1029,7 @@ export default class Client {
             message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: err["AccessDeniedDetail"],
+            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
           });
         }
 

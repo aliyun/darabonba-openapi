@@ -237,7 +237,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
       data = err,
       description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = err.AccessDeniedDetail,
+      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
     };
   }
   if (Util.equalString(bodyType, 'binary')) {
@@ -391,7 +391,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
       data = err,
       description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = err.AccessDeniedDetail,
+      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
     };
   }
   if (Util.equalString(bodyType, 'binary')) {
@@ -545,7 +545,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
       data = err,
       description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = err.AccessDeniedDetail,
+      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
     };
   }
   if (Util.equalString(bodyType, 'binary')) {
@@ -758,7 +758,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
       data = err,
       description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = err.AccessDeniedDetail,
+      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
     };
   }
   if (Util.equalString(params.bodyType, 'binary')) {

@@ -49,6 +49,20 @@ const server = http.createServer((req, res) => {
                     ...headers,
                 });
                 break;
+            case 'error1':
+                responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                    ", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 0}}";
+                res.writeHead(400, {
+                    ...headers,
+                });
+                break;
+            case 'error2':
+                responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                    ", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}";
+                res.writeHead(400, {
+                    ...headers,
+                });
+                break;
             default:
                 res.writeHead(200, {
                     ...headers,
@@ -650,6 +664,31 @@ describe('$openapi', function () {
         } catch (err) {
             assert.strictEqual(err.message, "error code: code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4");
             assert.strictEqual(err.statusCode, 400);
+            assert.strictEqual(err.accessDeniedDetail["test"], undefined);
+        }
+
+        request.headers = {
+            ...request.headers,
+            bodyType: "error1"
+        };
+        try {
+            await client.callApi(params, request, runtime);
+        } catch (err) {
+            assert.strictEqual(err.message, "error code: code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4");
+            assert.strictEqual(err.statusCode, 400);
+            assert.strictEqual(err.accessDeniedDetail["test"], undefined);
+        }
+
+        request.headers = {
+            ...request.headers,
+            bodyType: "error2"
+        };
+        try {
+            await client.callApi(params, request, runtime);
+        } catch (err) {
+            assert.strictEqual(err.message, "error code: code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4");
+            assert.strictEqual(err.statusCode, 400);
+            assert.strictEqual(err.accessDeniedDetail["test"], 0);
         }
     });
 

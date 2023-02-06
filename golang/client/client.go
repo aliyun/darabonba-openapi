@@ -5,13 +5,14 @@
 package client
 
 import (
+	"io"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	xml "github.com/alibabacloud-go/tea-xml/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 type GlobalParameters struct {
@@ -632,7 +633,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
-					"accessDeniedDetail": err["AccessDeniedDetail"],
+					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 				})
 				return _result, _err
 			}
@@ -873,7 +874,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
-					"accessDeniedDetail": err["AccessDeniedDetail"],
+					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 				})
 				return _result, _err
 			}
@@ -1117,7 +1118,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
-					"accessDeniedDetail": err["AccessDeniedDetail"],
+					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 				})
 				return _result, _err
 			}
@@ -1419,7 +1420,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
-					"accessDeniedDetail": err["AccessDeniedDetail"],
+					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 				})
 				return _result, _err
 			}

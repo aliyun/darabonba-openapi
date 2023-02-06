@@ -230,7 +230,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -408,7 +408,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -576,7 +576,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -744,7 +744,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -911,7 +911,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -1078,7 +1078,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(body_type, 'binary'):
                     resp = {
@@ -1264,7 +1264,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {
@@ -1450,7 +1450,7 @@ class Client:
                         'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': err.get('AccessDeniedDetail')
+                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
                     })
                 if UtilClient.equal_string(params.body_type, 'binary'):
                     resp = {
