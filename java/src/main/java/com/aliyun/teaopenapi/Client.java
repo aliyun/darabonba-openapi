@@ -233,7 +233,7 @@ public class Client {
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
-                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
+                        new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
                     ));
                 }
 
@@ -417,7 +417,7 @@ public class Client {
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
-                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
+                        new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
                     ));
                 }
 
@@ -600,7 +600,7 @@ public class Client {
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
-                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
+                        new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
                     ));
                 }
 
@@ -819,7 +819,7 @@ public class Client {
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
-                        new TeaPair("accessDeniedDetail", err.get("AccessDeniedDetail"))
+                        new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
                     ));
                 }
 

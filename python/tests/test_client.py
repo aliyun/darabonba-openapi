@@ -671,6 +671,14 @@ class TestClient(unittest.TestCase):
                 return [400, headers, '{"Code":"error code", "Message":"error message", '
                                       '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                                       '"Description":"error description", "AccessDeniedDetail":{}}']
+            elif request.headers.get('type') == 'error1':
+                return [400, headers, '{"Code":"error code", "Message":"error message", '
+                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
+                                      '"Description":"error description", "AccessDeniedDetail":{}, "accessDeniedDetail":{"test": 0}}']
+            elif request.headers.get('type') == 'error2':
+                return [400, headers, '{"Code":"error code", "Message":"error message", '
+                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
+                                      '"Description":"error description", "accessDeniedDetail":{"test": 0}}']
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
@@ -710,3 +718,20 @@ class TestClient(unittest.TestCase):
         except TeaException as e:
             self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
             self.assertEqual('error code', e.code)
+            self.assertFalse('test' in e.accessDeniedDetail)
+
+        request.headers.update({'type': 'error1'})
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
+            self.assertEqual('error code', e.code)
+            self.assertFalse('test' in e.accessDeniedDetail)
+
+        request.headers.update({'type': 'error2'})
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
+            self.assertEqual('error code', e.code)
+            self.assertEqual(0, e.accessDeniedDetail['test'])

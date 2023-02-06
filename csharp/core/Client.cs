@@ -273,7 +273,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -517,7 +517,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -739,7 +739,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -961,7 +961,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -1182,7 +1182,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -1403,7 +1403,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(bodyType, "binary"))
@@ -1667,7 +1667,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "binary"))
@@ -1931,7 +1931,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail")},
+                            {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                         });
                     }
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.BodyType, "binary"))

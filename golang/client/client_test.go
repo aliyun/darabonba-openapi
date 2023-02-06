@@ -51,6 +51,16 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
+	case "error1":
+		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 0}}"
+		w.WriteHeader(400)
+		w.Write([]byte(responseBody))
+	case "error2":
+		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+		w.WriteHeader(400)
+		w.Write([]byte(responseBody))
 	default:
 		w.WriteHeader(200)
 		w.Write([]byte(responseBody))
@@ -701,6 +711,8 @@ func TestResponseBodyType(t *testing.T) {
 	mux.Handle("/test", &mockHandler{content: "json"})
 	mux.Handle("/testArray", &mockHandler{content: "array"})
 	mux.Handle("/testError", &mockHandler{content: "error"})
+	mux.Handle("/testError1", &mockHandler{content: "error1"})
+	mux.Handle("/testError2", &mockHandler{content: "error2"})
 	var server *http.Server
 	server = &http.Server{
 		Addr:         ":9009",
@@ -770,8 +782,52 @@ func TestResponseBodyType(t *testing.T) {
 	}()
 
 	tea_util.AssertNotNil(t, tryErr)
-	error := tryErr.(*tea.SDKError)
-	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(error.Message))
+	err := tryErr.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
-	tea_util.AssertEqual(t, 400, tea.IntValue(error.StatusCode))
+	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
+	tea_util.AssertNil(t, err.AccessDeniedDetail["test"])
+
+	params.Pathname = tea.String("/testError1")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	err = tryErr.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+
+	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
+	tea_util.AssertNil(t, err.AccessDeniedDetail["test"])
+
+	params.Pathname = tea.String("/testError2")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	err = tryErr.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+
+	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
+	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
+	tea_util.AssertEqual(t, 0, accessDeniedDetail)
 }
