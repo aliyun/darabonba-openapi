@@ -1,3 +1,7 @@
+2023-02-07 Version: v2.0.3
+- Add ca configs.
+- Get accessDeniedDetail from error map.
+
 2022-11-14 Version: v2.0.2
 - Add gateway client setter
 
