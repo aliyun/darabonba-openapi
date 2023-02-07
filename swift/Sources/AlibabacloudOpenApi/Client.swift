@@ -224,7 +224,7 @@ open class Client {
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
                         "data": err,
                         "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": err["AccessDeniedDetail"]
+                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -389,7 +389,7 @@ open class Client {
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
                         "data": err,
                         "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": err["AccessDeniedDetail"]
+                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -553,7 +553,7 @@ open class Client {
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
                         "data": err,
                         "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": err["AccessDeniedDetail"]
+                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
@@ -741,7 +741,7 @@ open class Client {
                         "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
                         "data": err,
                         "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": err["AccessDeniedDetail"]
+                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
                 if (TeaUtils.Client.equalString(params.bodyType, "binary")) {
