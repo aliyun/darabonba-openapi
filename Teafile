@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -17,7 +17,7 @@
     "XML": "darabonba:XML:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.4.5",
+    "ts": "@alicloud/openapi-client:^0.4.6",
     "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.3",
     "csharp": "AlibabaCloud.OpenApiClient:0.1.7",
     "java": "com.aliyun:tea-openapi:0.2.9",
@@ -101,7 +101,8 @@
   "releaselog": {
     "changelog": [
       "[java/golang/php/c#/python/python2/ts/swift]support CA configs",
-      "[java/golang/php/c#/python/python2/ts/swift]feat: get accessDeniedDetail from error map"
+      "[java/golang/php/c#/python/python2/ts/swift]feat: get accessDeniedDetail from error map",
+      "[ts]add README"
     ],
     "compatible": true
   }
