@@ -725,14 +725,15 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   __request.headers.x-acs-content-sha256 = hashedRequestPayload;
 
   if (!Util.equalString(params.authType, 'Anonymous')) {
-    var authType = getType();
+    var credentialModel = @credential.getCredential();
+    var authType = credentialModel.type;
     if (Util.equalString(authType, 'bearer')) {
-      var bearerToken = getBearerToken();
+      var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
     } else {
-      var accessKeyId = getAccessKeyId();
-      var accessKeySecret = getAccessKeySecret();
-      var securityToken = getSecurityToken();
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
 
       if (!Util.empty(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
