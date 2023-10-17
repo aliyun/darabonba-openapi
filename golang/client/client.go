@@ -98,7 +98,8 @@ type Config struct {
 	// client certificate
 	Cert *string `json:"cert,omitempty" xml:"cert,omitempty"`
 	// server certificate
-	Ca *string `json:"ca,omitempty" xml:"ca,omitempty"`
+	Ca           *string `json:"ca,omitempty" xml:"ca,omitempty"`
+	IsCloseTrace *bool   `json:"isCloseTrace,omitempty" xml:"isCloseTrace,omitempty"`
 }
 
 func (s Config) String() string {
@@ -249,6 +250,11 @@ func (s *Config) SetCa(v string) *Config {
 	return s
 }
 
+func (s *Config) SetKeepAlive(v bool) *Config {
+	s.IsCloseTrace = &v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
@@ -391,6 +397,7 @@ type Client struct {
 	Key                  *string
 	Cert                 *string
 	Ca                   *string
+	IsCloseTrace         *bool
 }
 
 /**
@@ -456,6 +463,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Key = config.Key
 	client.Cert = config.Cert
 	client.Ca = config.Ca
+	client.IsCloseTrace = config.IsCloseTrace
 	return nil
 }
 
@@ -1252,7 +1260,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":    tea.BoolValue(runtime.IgnoreSSL),
+		"span":         runtime.Span,
+		"isCloseTrace": tea.BoolValue(client.IsCloseTrace),
 	}
 
 	_resp := make(map[string]interface{})
