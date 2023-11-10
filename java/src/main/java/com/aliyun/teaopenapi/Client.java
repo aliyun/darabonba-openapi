@@ -20,9 +20,6 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
-    public String _key;
-    public String _cert;
-    public String _ca;
     public Integer _readTimeout;
     public Integer _connectTimeout;
     public String _httpProxy;
@@ -41,6 +38,9 @@ public class Client {
     public java.util.Map<String, String> _headers;
     public com.aliyun.gateway.spi.Client _spi;
     public GlobalParameters _globalParameters;
+    public String _key;
+    public String _cert;
+    public String _ca;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -79,9 +79,6 @@ public class Client {
         this._method = config.method;
         this._regionId = config.regionId;
         this._userAgent = config.userAgent;
-        this._key = config.key;
-        this._cert = config.cert;
-        this._ca = config.ca;
         this._readTimeout = config.readTimeout;
         this._connectTimeout = config.connectTimeout;
         this._httpProxy = config.httpProxy;
@@ -93,8 +90,23 @@ public class Client {
         this._signatureVersion = config.signatureVersion;
         this._signatureAlgorithm = config.signatureAlgorithm;
         this._globalParameters = config.globalParameters;
+        this._key = config.key;
+        this._cert = config.cert;
+        this._ca = config.ca;
     }
 
+    /**
+     * Encapsulate the request and invoke the network
+     * @param action api name
+     * @param version product version
+     * @param protocol http or https
+     * @param method e.g. GET
+     * @param authType authorization type e.g. AK
+     * @param bodyType response body type e.g. String
+     * @param request object of OpenApiRequest
+     * @param runtime which controls some details of call api, such as retry times
+     * @return the response
+     */
     public java.util.Map<String, ?> doRPCRequest(String action, String version, String protocol, String method, String authType, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -123,7 +135,6 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
-        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -221,7 +232,6 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
-                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
@@ -286,17 +296,24 @@ public class Client {
                     continue;
                 }
                 throw e;
-            } finally {
-                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
-                    _lastResponse.response.close();
-                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
+    /**
+     * Encapsulate the request and invoke the network
+     * @param action api name
+     * @param version product version
+     * @param protocol http or https
+     * @param method e.g. GET
+     * @param authType authorization type e.g. AK
+     * @param pathname pathname of every api
+     * @param bodyType response body type e.g. String
+     * @param request object of OpenApiRequest
+     * @param runtime which controls some details of call api, such as retry times
+     * @return the response
+     */
     public java.util.Map<String, ?> doROARequest(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -325,7 +342,6 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
-        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -398,7 +414,6 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
-                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
                     return TeaConverter.buildMap(
@@ -470,17 +485,24 @@ public class Client {
                     continue;
                 }
                 throw e;
-            } finally {
-                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
-                    _lastResponse.response.close();
-                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
+    /**
+     * Encapsulate the request and invoke the network with form body
+     * @param action api name
+     * @param version product version
+     * @param protocol http or https
+     * @param method e.g. GET
+     * @param authType authorization type e.g. AK
+     * @param pathname pathname of every api
+     * @param bodyType response body type e.g. String
+     * @param request object of OpenApiRequest
+     * @param runtime which controls some details of call api, such as retry times
+     * @return the response
+     */
     public java.util.Map<String, ?> doROARequestWithForm(String action, String version, String protocol, String method, String authType, String pathname, String bodyType, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(request, "request");
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
@@ -509,7 +531,6 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
-        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -583,7 +604,6 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
-                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.equalNumber(response_.statusCode, 204)) {
                     return TeaConverter.buildMap(
@@ -653,17 +673,23 @@ public class Client {
                     continue;
                 }
                 throw e;
-            } finally {
-                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
-                    _lastResponse.response.close();
-                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
+    /**
+     * Encapsulate the request and invoke the network
+     * @param action api name
+     * @param version product version
+     * @param protocol http or https
+     * @param method e.g. GET
+     * @param authType authorization type e.g. AK
+     * @param bodyType response body type e.g. String
+     * @param request object of OpenApiRequest
+     * @param runtime which controls some details of call api, such as retry times
+     * @return the response
+     */
     public java.util.Map<String, ?> doRequest(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(params, "params");
         TeaModel.validateParams(request, "request");
@@ -693,7 +719,6 @@ public class Client {
 
         TeaRequest _lastRequest = null;
         Exception _lastException = null;
-        TeaResponse _lastResponse = null;
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
@@ -801,7 +826,6 @@ public class Client {
 
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
-                _lastResponse = response_;
 
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     java.util.Map<String, Object> err = new java.util.HashMap<>();
@@ -861,7 +885,9 @@ public class Client {
                         new TeaPair("statusCode", response_.statusCode)
                     );
                 } else {
+                    String anything = com.aliyun.teautil.Common.readAsString(response_.body);
                     return TeaConverter.buildMap(
+                        new TeaPair("body", anything),
                         new TeaPair("headers", response_.headers),
                         new TeaPair("statusCode", response_.statusCode)
                     );
@@ -873,17 +899,23 @@ public class Client {
                     continue;
                 }
                 throw e;
-            } finally {
-                if (!com.aliyun.teautil.Common.isUnset(_lastResponse)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response)
-                        && !com.aliyun.teautil.Common.isUnset(_lastResponse.response.body())){
-                    _lastResponse.response.close();
-                }
             }
         }
         throw new TeaUnretryableException(_lastRequest, _lastException);
     }
 
+    /**
+     * Encapsulate the request and invoke the network
+     * @param action api name
+     * @param version product version
+     * @param protocol http or https
+     * @param method e.g. GET
+     * @param authType authorization type e.g. AK
+     * @param bodyType response body type e.g. String
+     * @param request object of OpenApiRequest
+     * @param runtime which controls some details of call api, such as retry times
+     * @return the response
+     */
     public java.util.Map<String, ?> execute(Params params, OpenApiRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         TeaModel.validateParams(params, "params");
         TeaModel.validateParams(request, "request");

@@ -1303,7 +1303,9 @@ class Client:
                         'statusCode': _response.status_code
                     }
                 else:
+                    anything = UtilClient.read_as_string(_response.body)
                     return {
+                        'body': anything,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
@@ -1489,7 +1491,9 @@ class Client:
                         'statusCode': _response.status_code
                     }
                 else:
+                    anything = await UtilClient.read_as_string_async(_response.body)
                     return {
+                        'body': anything,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }

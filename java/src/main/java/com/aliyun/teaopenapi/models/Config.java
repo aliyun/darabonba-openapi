@@ -7,118 +7,174 @@ import com.aliyun.tea.*;
  * Model for initing client
  */
 public class Config extends TeaModel {
-    // accesskey id
+    /**
+     * <p>accesskey id</p>
+     */
     @NameInMap("accessKeyId")
     public String accessKeyId;
 
-    // accesskey secret
+    /**
+     * <p>accesskey secret</p>
+     */
     @NameInMap("accessKeySecret")
     public String accessKeySecret;
 
-    // security token
+    /**
+     * <p>security token</p>
+     */
     @NameInMap("securityToken")
     public String securityToken;
 
-    // http protocol
+    /**
+     * <p>http protocol</p>
+     */
     @NameInMap("protocol")
     public String protocol;
 
-    // http method
+    /**
+     * <p>http method</p>
+     */
     @NameInMap("method")
     public String method;
 
-    // region id
+    /**
+     * <p>region id</p>
+     */
     @NameInMap("regionId")
     public String regionId;
 
-    // privite key for client certificate
-    @NameInMap("key")
-    public String key;
-
-    // client certificate
-    @NameInMap("cert")
-    public String cert;
-
-    // server certificate
-    @NameInMap("ca")
-    public String ca;
-
-    // read timeout
+    /**
+     * <p>read timeout</p>
+     */
     @NameInMap("readTimeout")
     public Integer readTimeout;
 
-    // connect timeout
+    /**
+     * <p>connect timeout</p>
+     */
     @NameInMap("connectTimeout")
     public Integer connectTimeout;
 
-    // http proxy
+    /**
+     * <p>http proxy</p>
+     */
     @NameInMap("httpProxy")
     public String httpProxy;
 
-    // https proxy
+    /**
+     * <p>https proxy</p>
+     */
     @NameInMap("httpsProxy")
     public String httpsProxy;
 
-    // credential
+    /**
+     * <p>credential</p>
+     */
     @NameInMap("credential")
     public com.aliyun.credentials.Client credential;
 
-    // endpoint
+    /**
+     * <p>endpoint</p>
+     */
     @NameInMap("endpoint")
     public String endpoint;
 
-    // proxy white list
+    /**
+     * <p>proxy white list</p>
+     */
     @NameInMap("noProxy")
     public String noProxy;
 
-    // max idle conns
+    /**
+     * <p>max idle conns</p>
+     */
     @NameInMap("maxIdleConns")
     public Integer maxIdleConns;
 
-    // network for endpoint
+    /**
+     * <p>network for endpoint</p>
+     */
     @NameInMap("network")
     public String network;
 
-    // user agent
+    /**
+     * <p>user agent</p>
+     */
     @NameInMap("userAgent")
     public String userAgent;
 
-    // suffix for endpoint
+    /**
+     * <p>suffix for endpoint</p>
+     */
     @NameInMap("suffix")
     public String suffix;
 
-    // socks5 proxy
+    /**
+     * <p>socks5 proxy</p>
+     */
     @NameInMap("socks5Proxy")
     public String socks5Proxy;
 
-    // socks5 network
+    /**
+     * <p>socks5 network</p>
+     */
     @NameInMap("socks5NetWork")
     public String socks5NetWork;
 
-    // endpoint type
+    /**
+     * <p>endpoint type</p>
+     */
     @NameInMap("endpointType")
     public String endpointType;
 
-    // OpenPlatform endpoint
+    /**
+     * <p>OpenPlatform endpoint</p>
+     */
     @NameInMap("openPlatformEndpoint")
     public String openPlatformEndpoint;
 
-    // credential type
+    /**
+     * <p>credential type</p>
+     */
     @NameInMap("type")
     @Deprecated
     public String type;
 
-    // Signature Version
+    /**
+     * <p>Signature Version</p>
+     */
     @NameInMap("signatureVersion")
     public String signatureVersion;
 
-    // Signature Algorithm
+    /**
+     * <p>Signature Algorithm</p>
+     */
     @NameInMap("signatureAlgorithm")
     public String signatureAlgorithm;
 
-    // Global Parameters
+    /**
+     * <p>Global Parameters</p>
+     */
     @NameInMap("globalParameters")
     public GlobalParameters globalParameters;
+
+    /**
+     * <p>privite key for client certificate</p>
+     */
+    @NameInMap("key")
+    public String key;
+
+    /**
+     * <p>client certificate</p>
+     */
+    @NameInMap("cert")
+    public String cert;
+
+    /**
+     * <p>server certificate</p>
+     */
+    @NameInMap("ca")
+    public String ca;
 
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
@@ -171,30 +227,6 @@ public class Config extends TeaModel {
     }
     public String getRegionId() {
         return this.regionId;
-    }
-
-    public Config setKey(String key) {
-        this.key = key;
-        return this;
-    }
-    public String getKey() {
-        return this.key;
-    }
-
-    public Config setCert(String cert) {
-        this.cert = cert;
-        return this;
-    }
-    public String getCert() {
-        return this.cert;
-    }
-
-    public Config setCa(String ca) {
-        this.ca = ca;
-        return this;
-    }
-    public String getCa() {
-        return this.ca;
     }
 
     public Config setReadTimeout(Integer readTimeout) {
@@ -347,6 +379,30 @@ public class Config extends TeaModel {
     }
     public GlobalParameters getGlobalParameters() {
         return this.globalParameters;
+    }
+
+    public Config setKey(String key) {
+        this.key = key;
+        return this;
+    }
+    public String getKey() {
+        return this.key;
+    }
+
+    public Config setCert(String cert) {
+        this.cert = cert;
+        return this;
+    }
+    public String getCert() {
+        return this.cert;
+    }
+
+    public Config setCa(String ca) {
+        this.ca = ca;
+        return this;
+    }
+    public String getCa() {
+        return this.ca;
     }
 
 }

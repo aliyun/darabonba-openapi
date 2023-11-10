@@ -855,7 +855,9 @@ class OpenApiClient
                         "statusCode" => $_response->statusCode
                     ];
                 } else {
+                    $anything = Utils::readAsString($_response->body);
                     return [
+                        "body" => $anything,
                         "headers" => $_response->headers,
                         "statusCode" => $_response->statusCode
                     ];

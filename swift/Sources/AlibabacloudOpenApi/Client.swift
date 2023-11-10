@@ -786,7 +786,9 @@ open class Client {
                     ]
                 }
                 else {
+                    var anything: String = try await TeaUtils.Client.readAsString(_response.body)
                     return [
+                        "body": anything as! String,
                         "headers": _response.headers,
                         "statusCode": _response.statusCode
                     ]

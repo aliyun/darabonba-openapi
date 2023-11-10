@@ -1723,8 +1723,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else
                     {
+                        string anything = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
+                            {"body", anything},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -1987,8 +1989,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else
                     {
+                        string anything = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
+                            {"body", anything},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };

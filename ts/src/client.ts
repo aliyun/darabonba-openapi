@@ -1070,7 +1070,9 @@ export default class Client {
             statusCode: response_.statusCode,
           };
         } else {
+          let anything = await Util.readAsString(response_.body);
           return {
+            body: anything,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
