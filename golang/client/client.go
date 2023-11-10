@@ -1283,6 +1283,15 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 			}
 
+			extendsHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
+				extendsParameters := runtime.ExtendsParameters
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
+					extendsHeaders = extendsParameters.Headers
+				}
+
+			}
+
 			request_.Query = tea.Merge(globalQueries,
 				request.Query)
 			// endpoint is setted in product client
@@ -1295,6 +1304,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				"x-acs-signature-nonce": util.GetNonce(),
 				"accept":                tea.String("application/json"),
 			}, globalHeaders,
+				extendsHeaders,
 				request.Headers)
 			if tea.BoolValue(util.EqualString(params.Style, tea.String("RPC"))) {
 				headers, _err := client.GetRpcHeaders()
