@@ -191,15 +191,21 @@ func CreateConfig() (_result *Config) {
 }
 
 func CreateRuntimeOptions() (_result *util.RuntimeOptions) {
+	extendsParameters := &util.ExtendsParameters{
+		Headers: map[string]*string{
+			"extends-key": tea.String("extends-value"),
+		},
+	}
 	runtime := &util.RuntimeOptions{
-		ReadTimeout:    tea.Int(4000),
-		ConnectTimeout: tea.Int(4000),
-		MaxIdleConns:   tea.Int(100),
-		Autoretry:      tea.Bool(true),
-		MaxAttempts:    tea.Int(1),
-		BackoffPolicy:  tea.String("no"),
-		BackoffPeriod:  tea.Int(1),
-		IgnoreSSL:      tea.Bool(true),
+		ReadTimeout:       tea.Int(4000),
+		ConnectTimeout:    tea.Int(4000),
+		MaxIdleConns:      tea.Int(100),
+		Autoretry:         tea.Bool(true),
+		MaxAttempts:       tea.Int(1),
+		BackoffPolicy:     tea.String("no"),
+		BackoffPeriod:     tea.Int(1),
+		IgnoreSSL:         tea.Bool(true),
+		ExtendsParameters: extendsParameters,
 	}
 	_result = runtime
 	return _result
@@ -509,6 +515,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
+	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
 	tea_util.AssertNotNil(t, headers["x-acs-date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
@@ -568,6 +575,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
+	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
 	tea_util.AssertNotNil(t, headers["x-acs-date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
@@ -630,6 +638,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
+	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
 	tea_util.AssertNotNil(t, headers["x-acs-date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
@@ -689,6 +698,7 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
+	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
 	tea_util.AssertNotNil(t, headers["x-acs-date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
