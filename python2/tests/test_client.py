@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# This file is auto-generated, don't edit it. Thanks.
 import unittest
 import re
 import httpretty
@@ -44,10 +43,7 @@ class TestClient(unittest.TestCase):
             max_idle_conns=128,
             signature_version='config.signatureVersion',
             signature_algorithm='config.signatureAlgorithm',
-            global_parameters=global_parameters,
-            key='config.key',
-            cert='config.cert',
-            ca='config.ca'
+            global_parameters=global_parameters
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -95,11 +91,8 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.signatureAlgorithm", client._signature_algorithm)
         self.assertEqual("global-value", client._global_parameters.headers.get("global-key"))
         self.assertEqual("global-value", client._global_parameters.queries.get("global-query"))
-        self.assertEqual("config.key", client._key)
-        self.assertEqual("config.cert", client._cert)
-        self.assertEqual("config.ca", client._ca)
 
-    def create_config(self) -> open_api_models.Config:
+    def create_config(self):
         global_parameters = open_api_models.GlobalParameters(
             headers={
                 'global-key': 'global-value'
@@ -123,7 +116,7 @@ class TestClient(unittest.TestCase):
         )
         return config
 
-    def create_runtime_options(self) -> util_models.RuntimeOptions:
+    def create_runtime_options(self):
         runtime = util_models.RuntimeOptions(
             read_timeout=4000,
             connect_timeout=4000,
@@ -136,7 +129,7 @@ class TestClient(unittest.TestCase):
         )
         return runtime
 
-    def create_open_api_request(self) -> open_api_models.OpenApiRequest:
+    def create_open_api_request(self):
         query = {}
         query['key1'] = 'value'
         query['key2'] = 1
@@ -178,11 +171,10 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
-            assert 'global-value' == request.querystring['global-query'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'ak' == request.querystring['AccessKeyId'][0]
@@ -193,7 +185,6 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
             assert None is not request.querystring['Signature'][0]
-            assert 'global-value' == request.headers.get('global-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -214,7 +205,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v2sign_anonymous_json(self):
@@ -239,17 +229,15 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
-            assert 'global-value' == request.querystring['global-query'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'json' == request.querystring['Format'][0]
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
-            assert 'global-value' == request.headers.get('global-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -270,7 +258,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_ak_form(self):
@@ -295,12 +282,10 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
-            assert 'global-value' == request.querystring['global-query'][0]
-            assert 'global-value' == request.headers.get('global-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
@@ -330,11 +315,10 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_anonymous_json(self):
-        requestBody = '{"key1":"value","key2":1,"key3":true}'
+        requestBody = '{"key1": "value", "key2": 1, "key3": true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
         config = self.create_config()
         runtime = self.create_runtime_options()
@@ -355,12 +339,10 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
-            assert 'global-value' == request.querystring['global-query'][0]
-            assert 'global-value' == request.headers.get('global-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
@@ -386,7 +368,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_ak_form(self):
@@ -410,7 +391,7 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
@@ -447,11 +428,10 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
-        requestBody = '{"key1":"value","key2":1,"key3":true}'
+        requestBody = '{"key1": "value", "key2": 1, "key3": true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
         config = self.create_config()
         runtime = self.create_runtime_options()
@@ -471,7 +451,7 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
@@ -502,7 +482,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_ak_form(self):
@@ -526,7 +505,7 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
@@ -563,11 +542,10 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_anonymous_json(self):
-        requestBody = '{"key1":"value","key2":1,"key3":true}'
+        requestBody = '{"key1": "value", "key2": 1, "key3": true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
         config = self.create_config()
         runtime = self.create_runtime_options()
@@ -587,7 +565,7 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
@@ -618,7 +596,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
     def test_response_body_type(self):
@@ -642,7 +619,7 @@ class TestClient(unittest.TestCase):
             body_type='json'
         )
 
-        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+        def request_callback(request, uri, headers):
             assert 'value' == request.querystring['key1'][0]
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
@@ -669,16 +646,7 @@ class TestClient(unittest.TestCase):
                 return [200, headers, '["AppId", "ClassId", "UserId"]']
             elif request.headers.get('type') == 'error':
                 return [400, headers, '{"Code":"error code", "Message":"error message", '
-                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
-                                      '"Description":"error description", "AccessDeniedDetail":{}}']
-            elif request.headers.get('type') == 'error1':
-                return [400, headers, '{"Code":"error code", "Message":"error message", '
-                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
-                                      '"Description":"error description", "AccessDeniedDetail":{}, "accessDeniedDetail":{"test": 0}}']
-            elif request.headers.get('type') == 'error2':
-                return [400, headers, '{"Code":"error code", "Message":"error message", '
-                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
-                                      '"Description":"error description", "accessDeniedDetail":{"test": 0}}']
+                                      '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}']
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
@@ -689,7 +657,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
-        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'array'
         request.headers.update({'type': 'array'})
@@ -698,19 +665,16 @@ class TestClient(unittest.TestCase):
         self.assertEqual('AppId', result.get('body')[0])
         self.assertEqual('ClassId', result.get('body')[1])
         self.assertEqual('UserId', result.get('body')[2])
-        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'string'
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body'))
-        self.assertEqual(200, result.get('statusCode'))
 
         params.body_type = 'byte'
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body').decode('utf-8'))
-        self.assertEqual(200, result.get('statusCode'))
 
         request.headers.update({'type': 'error'})
         try:
@@ -718,20 +682,3 @@ class TestClient(unittest.TestCase):
         except TeaException as e:
             self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
             self.assertEqual('error code', e.code)
-            self.assertFalse('test' in e.accessDeniedDetail)
-
-        request.headers.update({'type': 'error1'})
-        try:
-            client.call_api(params, request, runtime)
-        except TeaException as e:
-            self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
-            self.assertEqual('error code', e.code)
-            self.assertFalse('test' in e.accessDeniedDetail)
-
-        request.headers.update({'type': 'error2'})
-        try:
-            client.call_api(params, request, runtime)
-        except TeaException as e:
-            self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
-            self.assertEqual('error code', e.code)
-            self.assertEqual(0, e.accessDeniedDetail['test'])

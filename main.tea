@@ -799,7 +799,9 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       statusCode = __response.statusCode
     };
   } else {
+    var anything = Util.readAsString(__response.body);
     return {
+      body = anything,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
