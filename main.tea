@@ -707,7 +707,11 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     __request.headers.content-type = 'application/octet-stream';
   } else {
     if (!Util.isUnset(request.body)) {
-      if (Util.equalString(params.reqBodyType, 'json')) {
+      if (Util.equalString(params.reqBodyType, 'byte')) {
+        var byteObj = Util.assertAsBytes(request.body);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
+        __request.body = byteObj;
+      } else if (Util.equalString(params.reqBodyType, 'json')) {
         var jsonObj = Util.toJSONString(request.body);
         hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
         __request.body = jsonObj;

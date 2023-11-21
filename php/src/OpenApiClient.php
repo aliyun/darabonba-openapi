@@ -773,7 +773,11 @@ class OpenApiClient
                     $_request->headers["content-type"] = "application/octet-stream";
                 } else {
                     if (!Utils::isUnset($request->body)) {
-                        if (Utils::equalString($params->reqBodyType, "json")) {
+                        if (Utils::equalString($params->reqBodyType, "byte")) {
+                            $byteObj = Utils::assertAsBytes($request->body);
+                            $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash($byteObj, $signatureAlgorithm));
+                            $_request->body = $byteObj;
+                        } else if (Utils::equalString($params->reqBodyType, "json")) {
                             $jsonObj = Utils::toJSONString($request->body);
                             $hashedRequestPayload = OpenApiUtilClient::hexEncode(OpenApiUtilClient::hash(Utils::toBytes($jsonObj), $signatureAlgorithm));
                             $_request->body = $jsonObj;

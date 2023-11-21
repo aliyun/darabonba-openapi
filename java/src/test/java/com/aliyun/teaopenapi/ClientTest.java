@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -693,6 +694,78 @@ public class ClientTest {
             Assert.assertEquals(400, (int) e.getStatusCode());
             Assert.assertEquals(0L, (long) e.getAccessDeniedDetail().get("test"));
         }
+
+    }
+
+    @Test
+    public void testRequestBodyType() throws Exception {
+        String responseBody = "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}";
+        Config config = ClientTest.createConfig();
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        Client client = new Client(config);
+
+        // formData
+        Params params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "RPC"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("key1", "value");
+        body.put("key2", 1);
+        body.put("key3", true);
+        OpenApiRequest request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        StringBuilder requestBody = new StringBuilder();
+        for (String key : ((java.util.Map<String, Object>) request.body).keySet()) {
+            requestBody.append(key).append("=").append(((Map<?, ?>) request.body).get(key));
+            requestBody.append("&");
+        }
+        stubFor(post(urlMatching("/test\\?.+"))
+                .withRequestBody(equalTo(requestBody.deleteCharAt(requestBody.length() - 1).toString()))
+                .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        // json
+        params.setReqBodyType("json");
+        stubFor(post(urlMatching("/test\\?.+")).withRequestBody(equalToJson("{\"key1\":\"value\",\"key2\":1,\"key3\":true}"))
+                .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        // byte
+        params.setReqBodyType("byte");
+        request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("body", com.aliyun.teautil.Common.toBytes("test byte"))
+        ));
+        stubFor(post(urlMatching("/test\\?.+")).withRequestBody(equalTo("test byte"))
+                .withHeader("content-type", equalTo("application/json; charset=UTF-8;"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        // stream
+        params.setReqBodyType("binary");
+        request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("stream", new ByteArrayInputStream("test byte".getBytes("UTF-8")))
+        ));
+        stubFor(post(urlMatching("/test\\?.+")).withRequestBody(equalTo("test byte"))
+                .withHeader("content-type", equalTo("application/octet-stream"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
 
     }
 }

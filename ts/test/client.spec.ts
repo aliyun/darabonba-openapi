@@ -72,6 +72,24 @@ const server = http.createServer((req, res) => {
     })
 });
 
+class BytesReadable extends Readable {
+    value: Buffer
+  
+    constructor(value: string | Buffer) {
+      super();
+      if (typeof value === 'string') {
+        this.value = Buffer.from(value);
+      } else if (Buffer.isBuffer(value)) {
+        this.value = value;
+      }
+    }
+  
+    _read() {
+      this.push(this.value);
+      this.push(null);
+    }
+  }
+
 function createConfig(): $OpenApi.Config {
     let globalParameters = new $OpenApi.GlobalParameters({
         headers: {
@@ -690,6 +708,65 @@ describe('$openapi', function () {
             assert.strictEqual(err.statusCode, 400);
             assert.strictEqual(err.accessDeniedDetail["test"], 0);
         }
+    });
+    it("request body should ok", async function () {
+        let config = createConfig();
+        let runtime = createRuntimeOptions();
+        config.protocol = "HTTP";
+        let port = (server.address() as AddressInfo).port;
+        config.endpoint = `127.0.0.1:${port}`;
+        let client = new OpenApi(config);
+        // formData
+        let params = new $OpenApi.Params({
+            action: "TestAPI",
+            version: "2022-06-01",
+            protocol: "HTTPS",
+            pathname: "/test",
+            method: "POST",
+            authType: "AK",
+            style: "ROA",
+            reqBodyType: "formData",
+            bodyType: "json",
+        });
+        let body: { [key: string]: any } = {};
+        body["key1"] = "value";
+        body["key2"] = 1;
+        body["key3"] = true;
+        let request = new $OpenApi.OpenApiRequest({
+            body: OpenApiUtil.parseToMap(body),
+        });
+        let result = await client.callApi(params, request, runtime);
+        let headers = result["headers"];
+        assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
+        assert.strictEqual(result["statusCode"], 200);
+
+        // json
+        params.reqBodyType = "json";
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
+        assert.strictEqual(result["statusCode"], 200);
+
+        // byte
+        params.reqBodyType = "byte";
+        let byteBody = Util.toBytes("test byte");
+        request = new $OpenApi.OpenApiRequest({
+            body: byteBody,
+        });
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["raw-body"], "test byte");
+        assert.strictEqual(result["statusCode"], 200);
+
+        // stream
+        params.reqBodyType = "binary";
+        request = new $OpenApi.OpenApiRequest({
+            stream: new BytesReadable(byteBody),
+        });
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["raw-body"], "test byte");
+        assert.strictEqual(result["statusCode"], 200);
     });
 
 });

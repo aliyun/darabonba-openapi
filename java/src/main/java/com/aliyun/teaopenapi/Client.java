@@ -786,7 +786,11 @@ public class Client {
                     request_.headers.put("content-type", "application/octet-stream");
                 } else {
                     if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                        if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
+                        if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "byte")) {
+                            byte[] byteObj = com.aliyun.teautil.Common.assertAsBytes(request.body);
+                            hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(byteObj, signatureAlgorithm));
+                            request_.body = Tea.toReadable(byteObj);
+                        } else if (com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
                             String jsonObj = com.aliyun.teautil.Common.toJSONString(request.body);
                             hashedRequestPayload = com.aliyun.openapiutil.Client.hexEncode(com.aliyun.openapiutil.Client.hash(com.aliyun.teautil.Common.toBytes(jsonObj), signatureAlgorithm));
                             request_.body = Tea.toReadable(jsonObj);

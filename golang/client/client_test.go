@@ -831,3 +831,85 @@ func TestResponseBodyType(t *testing.T) {
 	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
 	tea_util.AssertEqual(t, 0, accessDeniedDetail)
 }
+
+func TestRequestBodyType(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/test", &mockHandler{content: "json"})
+	var server *http.Server
+	server = &http.Server{
+		Addr:         ":9010",
+		WriteTimeout: time.Second * 4,
+		Handler:      mux,
+	}
+	go server.ListenAndServe()
+	config := CreateConfig()
+	runtime := CreateRuntimeOptions()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String("127.0.0.1:9009")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	// formData
+	params := &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	body := map[string]interface{}{}
+	body["key1"] = tea.String("value")
+	body["key2"] = tea.Int(1)
+	body["key3"] = tea.Bool(true)
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	result, _err := client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err := util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
+	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
+
+	// json
+	params.ReqBodyType = tea.String("json")
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
+	tea_util.AssertEqual(t, "application/json; charset=utf-8", headers["content-type"])
+
+	// byte
+	params.ReqBodyType = tea.String("byte")
+	byteBody := util.ToBytes(tea.String("test byte"))
+	request = &OpenApiRequest{
+		Body: byteBody,
+	}
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "test byte", headers["raw-body"])
+	tea_util.AssertEqual(t, "text/plain; charset=utf-8", headers["content-type"])
+
+	// stream
+	params.ReqBodyType = tea.String("binary")
+	streamBody := strings.NewReader("test byte")
+	request = &OpenApiRequest{
+		Stream: streamBody,
+	}
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "test byte", headers["raw-body"])
+	tea_util.AssertEqual(t, "application/octet-stream", headers["content-type"])
+}

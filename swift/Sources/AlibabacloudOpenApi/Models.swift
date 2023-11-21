@@ -3,8 +3,6 @@ import Tea
 import TeaUtils
 import AlibabaCloudCredentials
 import AlibabaCloudOpenApiUtil
-import AlibabacloudGatewaySPI
-import DarabonbaXML
 
 public class GlobalParameters : Tea.TeaModel {
     public var headers: [String: String]?
