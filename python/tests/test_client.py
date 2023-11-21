@@ -11,6 +11,7 @@ from alibabacloud_credentials import models as credential_models
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_tea_openapi.client import Client as OpenApiClient
 from alibabacloud_tea_util import models as util_models
+from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
 
 
@@ -201,7 +202,7 @@ class TestClient(unittest.TestCase):
                                         request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
@@ -257,7 +258,7 @@ class TestClient(unittest.TestCase):
                                         request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
@@ -317,7 +318,7 @@ class TestClient(unittest.TestCase):
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
@@ -434,7 +435,7 @@ class TestClient(unittest.TestCase):
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
@@ -550,7 +551,7 @@ class TestClient(unittest.TestCase):
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             return [200, headers, responseBody]
@@ -662,7 +663,7 @@ class TestClient(unittest.TestCase):
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
-            assert content_type == 'application/x-www-form-urlencoded', 'expected application/json but received Content-Type: {}'.format(
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             if request.headers.get('type') == 'array':
@@ -735,3 +736,95 @@ class TestClient(unittest.TestCase):
             self.assertEqual('code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4', e.message)
             self.assertEqual('error code', e.code)
             self.assertEqual(0, e.accessDeniedDetail['test'])
+
+    @httpretty.activate(allow_net_connect=False)
+    def test_response_body_type(self):
+        config = self.create_config()
+        runtime = self.create_runtime_options()
+        config.protocol = 'HTTP'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        # formData
+        params = open_api_models.Params(
+            action='TestAPI',
+            version='2022-06-01',
+            protocol='HTTPS',
+            pathname='/test1',
+            method='POST',
+            auth_type='AK',
+            style='ROA',
+            req_body_type='formData',
+            body_type='json'
+        )
+        body = {}
+        body['key1'] = 'value'
+        body['key2'] = 1
+        body['key3'] = True
+        request = open_api_models.OpenApiRequest(
+            body=OpenApiUtilClient.parse_to_map(body)
+        )
+        def request_callback_1(request: HTTPrettyRequest, uri: str, headers: dict):
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == 'key1=value&key2=1&key3=True', 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
+                content_type)
+            return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
+        httpretty.register_uri(
+            httpretty.POST, "http://test.aliyuncs.com/test1",
+            body=request_callback_1)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual(200, result.get('statusCode'))
+
+        # json
+        params.pathname = '/test2'
+        params.req_body_type = 'json'
+        def request_callback_2(request: HTTPrettyRequest, uri: str, headers: dict):
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == '{"key1":"value","key2":1,"key3":true}', 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
+                content_type)
+            return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
+        httpretty.register_uri(
+            httpretty.POST, "http://test.aliyuncs.com/test2",
+            body=request_callback_2)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual(200, result.get('statusCode'))
+
+        # byte
+        params.pathname = '/test3'
+        params.req_body_type = 'byte'
+        byte_body = UtilClient.to_bytes('test byte')
+        request = open_api_models.OpenApiRequest(
+            body=byte_body
+        )
+        def request_callback_3(request: HTTPrettyRequest, uri: str, headers: dict):
+            content_type = request.headers.get('content-type')
+            assert request.body == UtilClient.to_bytes('test byte'), 'unexpected body: {}'.format(request.body)
+            assert content_type is None, 'expected text/plain but received Content-Type: {}'.format(
+                content_type)
+            return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
+        httpretty.register_uri(
+            httpretty.POST, "http://test.aliyuncs.com/test3",
+            body=request_callback_3)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual(200, result.get('statusCode'))
+
+        # stream
+        params.pathname = '/test4'
+        params.req_body_type = 'binary'
+        request = open_api_models.OpenApiRequest(
+            stream=byte_body
+        )
+        def request_callback_4(request: HTTPrettyRequest, uri: str, headers: dict):
+            content_type = request.headers.get('content-type')
+            print(request)
+            assert request.body.decode('utf-8') == 'test byte', 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/octet-stream', 'expected application/octet-stream but received Content-Type: {}'.format(
+                content_type)
+            return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
+        httpretty.register_uri(
+            httpretty.POST, "http://test.aliyuncs.com/test4",
+            body=request_callback_4)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual(200, result.get('statusCode'))
+

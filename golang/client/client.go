@@ -1321,7 +1321,15 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				request_.Headers["content-type"] = tea.String("application/octet-stream")
 			} else {
 				if !tea.BoolValue(util.IsUnset(request.Body)) {
-					if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
+					if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("byte"))) {
+						byteObj, _err := util.AssertAsBytes(request.Body)
+						if _err != nil {
+							return _result, _err
+						}
+
+						hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(byteObj, signatureAlgorithm))
+						request_.Body = tea.ToReader(byteObj)
+					} else if tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
 						jsonObj := util.ToJSONString(request.Body)
 						hashedRequestPayload = openapiutil.HexEncode(openapiutil.Hash(util.ToBytes(jsonObj), signatureAlgorithm))
 						request_.Body = tea.ToReader(jsonObj)

@@ -697,7 +697,12 @@ open class Client {
                 }
                 else {
                     if (!TeaUtils.Client.isUnset(request.body)) {
-                        if (TeaUtils.Client.equalString(params.reqBodyType, "json")) {
+                        if (TeaUtils.Client.equalString(params.reqBodyType, "byte")) {
+                            var byteObj: [UInt8] = try TeaUtils.Client.assertAsBytes(request.body)
+                            hashedRequestPayload = AlibabaCloudOpenApiUtil.Client.hexEncode(AlibabaCloudOpenApiUtil.Client.hash(byteObj, signatureAlgorithm))
+                            _request.body = Tea.TeaCore.toReadable(byteObj as! [UInt8])
+                        }
+                        else if (TeaUtils.Client.equalString(params.reqBodyType, "json")) {
                             var jsonObj: String = TeaUtils.Client.toJSONString(request.body)
                             hashedRequestPayload = AlibabaCloudOpenApiUtil.Client.hexEncode(AlibabaCloudOpenApiUtil.Client.hash(TeaUtils.Client.toBytes(jsonObj), signatureAlgorithm))
                             _request.body = Tea.TeaCore.toReadable(jsonObj as! String)

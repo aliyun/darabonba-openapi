@@ -1222,7 +1222,11 @@ class Client:
                     _request.headers['content-type'] = 'application/octet-stream'
                 else:
                     if not UtilClient.is_unset(request.body):
-                        if UtilClient.equal_string(params.req_body_type, 'json'):
+                        if UtilClient.equal_string(params.req_body_type, 'byte'):
+                            byte_obj = UtilClient.assert_as_bytes(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                            _request.body = byte_obj
+                        elif UtilClient.equal_string(params.req_body_type, 'json'):
                             json_obj = UtilClient.to_jsonstring(request.body)
                             hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
                             _request.body = json_obj
@@ -1410,7 +1414,11 @@ class Client:
                     _request.headers['content-type'] = 'application/octet-stream'
                 else:
                     if not UtilClient.is_unset(request.body):
-                        if UtilClient.equal_string(params.req_body_type, 'json'):
+                        if UtilClient.equal_string(params.req_body_type, 'byte'):
+                            byte_obj = UtilClient.assert_as_bytes(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                            _request.body = byte_obj
+                        elif UtilClient.equal_string(params.req_body_type, 'json'):
                             json_obj = UtilClient.to_jsonstring(request.body)
                             hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
                             _request.body = json_obj

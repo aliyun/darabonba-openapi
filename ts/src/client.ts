@@ -972,7 +972,11 @@ export default class Client {
           request_.headers["content-type"] = "application/octet-stream";
         } else {
           if (!Util.isUnset(request.body)) {
-            if (Util.equalString(params.reqBodyType, "json")) {
+            if (Util.equalString(params.reqBodyType, "byte")) {
+              let byteObj = Util.assertAsBytes(request.body);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(byteObj);
+            } else if (Util.equalString(params.reqBodyType, "json")) {
               let jsonObj = Util.toJSONString(request.body);
               hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
               request_.body = new $tea.BytesReadable(jsonObj);

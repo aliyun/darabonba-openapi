@@ -1604,7 +1604,13 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                         {
-                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "byte"))
+                            {
+                                byte[] byteObj = AlibabaCloud.TeaUtil.Common.AssertAsBytes(request.Body);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(byteObj, signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(byteObj);
+                            }
+                            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
                             {
                                 string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                                 hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
@@ -1870,7 +1876,13 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                         {
-                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                            if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "byte"))
+                            {
+                                byte[] byteObj = AlibabaCloud.TeaUtil.Common.AssertAsBytes(request.Body);
+                                hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(byteObj, signatureAlgorithm));
+                                request_.Body = TeaCore.BytesReadable(byteObj);
+                            }
+                            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
                             {
                                 string jsonObj = AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body);
                                 hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(jsonObj), signatureAlgorithm));
