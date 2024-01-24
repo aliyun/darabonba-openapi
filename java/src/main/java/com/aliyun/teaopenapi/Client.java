@@ -41,6 +41,7 @@ public class Client {
     public String _key;
     public String _cert;
     public String _ca;
+    public Boolean _disableHttp2;
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -93,6 +94,7 @@ public class Client {
         this._key = config.key;
         this._cert = config.cert;
         this._ca = config.ca;
+        this._disableHttp2 = config.disableHttp2;
     }
 
     /**
@@ -944,7 +946,8 @@ public class Client {
                 new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
-            new TeaPair("ignoreSSL", runtime.ignoreSSL)
+            new TeaPair("ignoreSSL", runtime.ignoreSSL),
+            new TeaPair("disableHttp2", Client.defaultAny(_disableHttp2, false))
         );
 
         TeaRequest _lastRequest = null;

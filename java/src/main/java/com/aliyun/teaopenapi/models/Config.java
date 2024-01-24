@@ -176,6 +176,12 @@ public class Config extends TeaModel {
     @NameInMap("ca")
     public String ca;
 
+    /**
+     * <p>disable HTTP/2</p>
+     */
+    @NameInMap("disableHttp2")
+    public Boolean disableHttp2;
+
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
         return TeaModel.build(map, self);
@@ -403,6 +409,14 @@ public class Config extends TeaModel {
     }
     public String getCa() {
         return this.ca;
+    }
+
+    public Config setDisableHttp2(Boolean disableHttp2) {
+        this.disableHttp2 = disableHttp2;
+        return this;
+    }
+    public Boolean getDisableHttp2() {
+        return this.disableHttp2;
     }
 
 }
