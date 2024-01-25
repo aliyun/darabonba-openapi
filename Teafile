@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -20,7 +20,7 @@
     "ts": "@alicloud/openapi-client:^0.4.7",
     "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.5",
     "csharp": "AlibabaCloud.OpenApiClient:0.1.8",
-    "java": "com.aliyun:tea-openapi:0.3.1",
+    "java": "com.aliyun:tea-openapi:0.3.2",
     "php": "alibabacloud/darabonba-openapi:^0.2.10",
     "python": "alibabacloud_tea_openapi:0.3.8",
     "python2": "alibabacloud_tea_openapi_py2:0.1.8",
@@ -100,11 +100,7 @@
   },
   "releaselog": {
     "changelog": [
-      "[java/golang/php/c#/python/python2/ts/swift]support CA configs",
-      "[java/golang/php/c#/python/python2/ts/swift]feat: get accessDeniedDetail from error map",
-      "[java/golang/php/c#/python/python2/ts/swift]resolve byte body for request",
-      "[java/golang/php/c#/python/python2/ts/swift]fix memory leak bug",
-      "[ts]add README"
+      "[java]support disable HTTP/2 config."
     ],
     "compatible": true
   }
