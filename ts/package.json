@@ -1,6 +1,6 @@
 {
   "name": "@alicloud/openapi-client",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "",
   "main": "dist/client.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "@alicloud/credentials": "^2",
     "@alicloud/openapi-util": "^0.3.2",
     "@alicloud/gateway-spi": "^0.0.8",
-    "@alicloud/tea-xml": "0.0.2"
+    "@alicloud/tea-xml": "0.0.3"
   },
   "files": [
     "dist",
