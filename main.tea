@@ -962,6 +962,143 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   disableHttp2 = defaultAny(@disableHttp2, false)
 }
 
+@SSE
+api callSSEApi(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): asyncIterator[object] {
+  __request.protocol = Util.defaultString(@protocol, params.protocol);
+  __request.method = params.method;
+  __request.pathname = params.pathname;
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!Util.isUnset(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!Util.isUnset(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!Util.isUnset(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
+  __request.query = {
+    ...globalQueries,
+    ...request.query,
+  };
+
+  // endpoint is setted in product client
+  __request.headers = {
+    host = @endpoint,
+    x-acs-version = params.version,
+    x-acs-action = params.action,
+    user-agent = getUserAgent(),
+    x-acs-date= OpenApiUtil.getTimestamp(),
+    x-acs-signature-nonce = Util.getNonce(),
+    accept = 'application/json',
+    ...globalHeaders,
+    ...request.headers,
+  };
+  if (Util.equalString(params.style, 'RPC')) {
+    var headers = getRpcHeaders();
+    if (!Util.isUnset(headers)) {
+      __request.headers = {
+        ...__request.headers,
+        ...headers
+      };
+    }
+  }
+
+  var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');
+  var hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(''), signatureAlgorithm));
+
+  if (!Util.isUnset(request.stream)) {
+    var tmp = Util.readAsBytes(request.stream);
+    hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
+    __request.body = tmp;
+    __request.headers.content-type = 'application/octet-stream';
+  } else {
+    if (!Util.isUnset(request.body)) {
+      if (Util.equalString(params.reqBodyType, 'byte')) {
+        var byteObj = Util.assertAsBytes(request.body);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
+        __request.body = byteObj;
+      } else if (Util.equalString(params.reqBodyType, 'json')) {
+        var jsonObj = Util.toJSONString(request.body);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
+        __request.body = jsonObj;
+        __request.headers.content-type = 'application/json; charset=utf-8';
+      } else {
+        var m = Util.assertAsMap(request.body);
+        var formObj = OpenApiUtil.toForm(m);
+        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
+        __request.body = formObj;
+        __request.headers.content-type = 'application/x-www-form-urlencoded';
+      }
+    }
+  }
+
+  __request.headers.x-acs-content-sha256 = hashedRequestPayload;
+
+  if (!Util.equalString(params.authType, 'Anonymous')) {
+    var credentialModel = @credential.getCredential();
+    var authType = credentialModel.type;
+    if (Util.equalString(authType, 'bearer')) {
+      var bearerToken = credentialModel.bearerToken;
+      __request.headers.x-acs-bearer-token = bearerToken;
+    } else {
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
+
+      if (!Util.empty(securityToken)) {
+        __request.headers.x-acs-accesskey-id = accessKeyId;
+        __request.headers.x-acs-security-token = securityToken;
+      }
+      __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+    }
+  }
+} returns {
+  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+    var err : map[string]any = {};
+    if (!Util.isUnset(__response.headers.content-type) && Util.equalString(__response.headers.content-type, 'text/xml;charset=utf-8')) {
+      var _str = Util.readAsString(__response.body);
+      var respMap = XML.parseXml(_str, null);
+      err = Util.assertAsMap(respMap.Error);
+    } else {
+      var _res = Util.readAsJSON(__response.body);
+      err = Util.assertAsMap(_res);
+    }
+    err.statusCode = __response.statusCode;
+    throw {
+      code = `${defaultAny(err.Code, err.code)}`,
+      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
+      data = err,
+      description = `${defaultAny(err.Description, err.description)}`,
+      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
+    };
+  }
+  return Util.readAsSSE(__response.body);
+} runtime {
+  timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = runtime.ignoreSSL
+}
+
 /**
  * Get user agent
  * @return user agent

@@ -24,20 +24,21 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi.
 
-Created on 21/11/2023
+Created on 01/03/2024
 
 @author: Alibaba Cloud SDK
 """
 
-PACKAGE = "alibabacloud_tea_openapi"
-NAME = "alibabacloud_tea_openapi" or "alibabacloud-package"
+PACKAGE = "alibabacloud_tea_openapi_inner"
+NAME = "aliyun-tea-openapi-inner"
 DESCRIPTION = "Alibaba Cloud openapi SDK Library for Python"
 AUTHOR = "Alibaba Cloud SDK"
 AUTHOR_EMAIL = "sdk-team@alibabacloud.com"
 URL = "https://github.com/aliyun/darabonba-openapi"
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
-    "alibabacloud_tea_util>=0.3.11, <1.0.0",
+    "aliyun-tea-inner>=1.0.3, <2.0.0",
+    "aliyun-tea-util-inner>=1.0.2, <2.0.0",
     "alibabacloud_credentials>=0.3.1, <1.0.0",
     "alibabacloud_openapi_util>=0.2.1, <1.0.0",
     "alibabacloud_gateway_spi>=0.0.1, <1.0.0",
@@ -59,7 +60,7 @@ setup(
     author_email=AUTHOR_EMAIL,
     license="Apache License 2.0",
     url=URL,
-    keywords=["alibabacloud","tea","openapi"],
+    keywords=["alibabacloud","tea","openapi","inner"],
     packages=find_packages(exclude=["tests*"]),
     include_package_data=True,
     platforms="any",

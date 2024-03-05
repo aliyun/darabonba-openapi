@@ -2,13 +2,13 @@
 /**
  * This is for OpenApi SDK
  */
-import Util, * as $Util from '@alicloud/tea-util';
+import Util, * as $Util from '@ali/tea-util';
 import Credential, * as $Credential from '@alicloud/credentials';
 import OpenApiUtil from '@alicloud/openapi-util';
 import SPI, * as $SPI from '@alicloud/gateway-spi';
 import XML from '@alicloud/tea-xml';
 import { Readable } from 'stream';
-import * as $tea from '@alicloud/tea-typescript';
+import * as $tea from '@ali/tea-typescript';
 
 export class GlobalParameters extends $tea.Model {
   headers?: { [key: string]: string };
@@ -1228,6 +1228,178 @@ export default class Client {
           statusCode: interceptorContext.response.statusCode,
           body: interceptorContext.response.deserializedBody,
         };
+      } catch (ex) {
+        if ($tea.isRetryable(ex)) {
+          continue;
+        }
+        throw ex;
+      }
+    }
+
+    throw $tea.newUnretryableError(_lastRequest);
+  }
+
+  async *callSSEApi(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): AsyncGenerator<{[key: string]: any}, any, unknown> {
+    let _runtime: { [key: string]: any } = {
+      timeouted: "retry",
+      key: Util.defaultString(runtime.key, this._key),
+      cert: Util.defaultString(runtime.cert, this._cert),
+      ca: Util.defaultString(runtime.ca, this._ca),
+      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
+      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
+      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
+      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
+      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
+      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
+      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
+      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
+      retry: {
+        retryable: runtime.autoretry,
+        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
+      },
+      backoff: {
+        policy: Util.defaultString(runtime.backoffPolicy, "no"),
+        period: Util.defaultNumber(runtime.backoffPeriod, 1),
+      },
+      ignoreSSL: runtime.ignoreSSL,
+    }
+
+    let _lastRequest = null;
+    let _now = Date.now();
+    let _retryTimes = 0;
+    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
+      if (_retryTimes > 0) {
+        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+        if (_backoffTime > 0) {
+          await $tea.sleep(_backoffTime);
+        }
+      }
+
+      _retryTimes = _retryTimes + 1;
+      try {
+        let request_ = new $tea.Request();
+        request_.protocol = Util.defaultString(this._protocol, params.protocol);
+        request_.method = params.method;
+        request_.pathname = params.pathname;
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(this._globalParameters)) {
+          let globalParams = this._globalParameters;
+          if (!Util.isUnset(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!Util.isUnset(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
+        request_.query = {
+          ...globalQueries,
+          ...request.query,
+        };
+        // endpoint is setted in product client
+        request_.headers = {
+          host: this._endpoint,
+          'x-acs-version': params.version,
+          'x-acs-action': params.action,
+          'user-agent': this.getUserAgent(),
+          'x-acs-date': OpenApiUtil.getTimestamp(),
+          'x-acs-signature-nonce': Util.getNonce(),
+          accept: "application/json",
+          ...globalHeaders,
+          ...request.headers,
+        };
+        if (Util.equalString(params.style, "RPC")) {
+          let headers = this.getRpcHeaders();
+          if (!Util.isUnset(headers)) {
+            request_.headers = {
+              ...request_.headers,
+              ...headers,
+            };
+          }
+
+        }
+
+        let signatureAlgorithm = Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256");
+        let hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(""), signatureAlgorithm));
+        if (!Util.isUnset(request.stream)) {
+          let tmp = await Util.readAsBytes(request.stream);
+          hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
+          request_.body = new $tea.BytesReadable(tmp);
+          request_.headers["content-type"] = "application/octet-stream";
+        } else {
+          if (!Util.isUnset(request.body)) {
+            if (Util.equalString(params.reqBodyType, "byte")) {
+              let byteObj = Util.assertAsBytes(request.body);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(byteObj);
+            } else if (Util.equalString(params.reqBodyType, "json")) {
+              let jsonObj = Util.toJSONString(request.body);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(jsonObj);
+              request_.headers["content-type"] = "application/json; charset=utf-8";
+            } else {
+              let m = Util.assertAsMap(request.body);
+              let formObj = OpenApiUtil.toForm(m);
+              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
+              request_.body = new $tea.BytesReadable(formObj);
+              request_.headers["content-type"] = "application/x-www-form-urlencoded";
+            }
+
+          }
+
+        }
+
+        request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
+        if (!Util.equalString(params.authType, "Anonymous")) {
+          let authType = await this.getType();
+          if (Util.equalString(authType, "bearer")) {
+            let bearerToken = await this.getBearerToken();
+            request_.headers["x-acs-bearer-token"] = bearerToken;
+          } else {
+            let accessKeyId = await this.getAccessKeyId();
+            let accessKeySecret = await this.getAccessKeySecret();
+            let securityToken = await this.getSecurityToken();
+            if (!Util.empty(securityToken)) {
+              request_.headers["x-acs-accesskey-id"] = accessKeyId;
+              request_.headers["x-acs-security-token"] = securityToken;
+            }
+
+            request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+          }
+
+        }
+
+        _lastRequest = request_;
+        let response_ = await $tea.doAction(request_, _runtime);
+
+        if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
+          let err : {[key: string ]: any} = { };
+          if (!Util.isUnset(response_.headers["content-type"]) && Util.equalString(response_.headers["content-type"], "text/xml;charset=utf-8")) {
+            let _str = await Util.readAsString(response_.body);
+            let respMap = XML.parseXml(_str, null);
+            err = Util.assertAsMap(respMap["Error"]);
+          } else {
+            let _res = await Util.readAsJSON(response_.body);
+            err = Util.assertAsMap(_res);
+          }
+
+          err["statusCode"] = response_.statusCode;
+          throw $tea.newError({
+            code: `${Client.defaultAny(err["Code"], err["code"])}`,
+            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
+            data: err,
+            description: `${Client.defaultAny(err["Description"], err["description"])}`,
+            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
+          });
+        }
+
+        for await (const value of Util.readAsSSE(response_.body)) {
+          yield value;
+        }
+        return;
       } catch (ex) {
         if ($tea.isRetryable(ex)) {
           continue;

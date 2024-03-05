@@ -2,17 +2,17 @@
 # This file is auto-generated, don't edit it. Thanks.
 import time
 
-from Tea.exceptions import TeaException, UnretryableException
-from Tea.request import TeaRequest
-from Tea.core import TeaCore
+from TeaInner.exceptions import TeaException, UnretryableException
+from TeaInner.request import TeaRequest
+from TeaInner.core import TeaCore
 from typing import Dict, Any
 
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_gateway_spi.client import Client as SPIClient
-from alibabacloud_tea_openapi import models as open_api_models
-from alibabacloud_tea_util.client import Client as UtilClient
+from alibabacloud_tea_openapi_inner import models as open_api_models
+from alibabacloud_tea_util_inner.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
-from alibabacloud_tea_util import models as util_models
+from alibabacloud_tea_util_inner import models as util_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
 from alibabacloud_tea_xml.client import Client as XMLClient
 from alibabacloud_gateway_spi import models as spi_models
@@ -1783,6 +1783,248 @@ class Client:
                     continue
                 raise e
         raise UnretryableException(_last_request, _last_exception)
+
+    def call_sseapi(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ):
+        params.validate()
+        request.validate()
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'key': UtilClient.default_string(runtime.key, self._key),
+            'cert': UtilClient.default_string(runtime.cert, self._cert),
+            'ca': UtilClient.default_string(runtime.ca, self._ca),
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': runtime.ignore_ssl
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request.method = params.method
+                _request.pathname = params.pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
+                _request.query = TeaCore.merge(global_queries,
+                    request.query)
+                # endpoint is setted in product client
+                _request.headers = TeaCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': self.get_user_agent(),
+                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'accept': 'application/json'
+                }, global_headers,
+                    request.headers)
+                if UtilClient.equal_string(params.style, 'RPC'):
+                    headers = self.get_rpc_headers()
+                    if not UtilClient.is_unset(headers):
+                        _request.headers = TeaCore.merge(_request.headers,
+                            headers)
+                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
+                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
+                if not UtilClient.is_unset(request.stream):
+                    tmp = UtilClient.read_as_bytes(request.stream)
+                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    _request.body = tmp
+                    _request.headers['content-type'] = 'application/octet-stream'
+                else:
+                    if not UtilClient.is_unset(request.body):
+                        if UtilClient.equal_string(params.req_body_type, 'byte'):
+                            byte_obj = UtilClient.assert_as_bytes(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                            _request.body = byte_obj
+                        elif UtilClient.equal_string(params.req_body_type, 'json'):
+                            json_obj = UtilClient.to_jsonstring(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                            _request.body = json_obj
+                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                        else:
+                            m = UtilClient.assert_as_map(request.body)
+                            form_obj = OpenApiUtilClient.to_form(m)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            _request.body = form_obj
+                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                _request.headers['x-acs-content-sha256'] = hashed_request_payload
+                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    auth_type = self.get_type()
+                    if UtilClient.equal_string(auth_type, 'bearer'):
+                        bearer_token = self.get_bearer_token()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                    else:
+                        access_key_id = self.get_access_key_id()
+                        access_key_secret = self.get_access_key_secret()
+                        security_token = self.get_security_token()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                _last_request = _request
+                _response = TeaCore.do_sse_action(_request, _runtime)
+                for res in UtilClient.read_as_sse(_response):
+                    yield res
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+
+    async def call_sseapi_async(
+        self,
+        params: open_api_models.Params,
+        request: open_api_models.OpenApiRequest,
+        runtime: util_models.RuntimeOptions,
+    ):
+        params.validate()
+        request.validate()
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'key': UtilClient.default_string(runtime.key, self._key),
+            'cert': UtilClient.default_string(runtime.cert, self._cert),
+            'ca': UtilClient.default_string(runtime.ca, self._ca),
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': runtime.ignore_ssl
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request.method = params.method
+                _request.pathname = params.pathname
+                global_queries = {}
+                global_headers = {}
+                if not UtilClient.is_unset(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not UtilClient.is_unset(global_params.queries):
+                        global_queries = global_params.queries
+                    if not UtilClient.is_unset(global_params.headers):
+                        global_headers = global_params.headers
+                _request.query = TeaCore.merge(global_queries,
+                    request.query)
+                # endpoint is setted in product client
+                _request.headers = TeaCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': self.get_user_agent(),
+                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
+                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'accept': 'application/json'
+                }, global_headers,
+                    request.headers)
+                if UtilClient.equal_string(params.style, 'RPC'):
+                    headers = self.get_rpc_headers()
+                    if not UtilClient.is_unset(headers):
+                        _request.headers = TeaCore.merge(_request.headers,
+                            headers)
+                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
+                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
+                if not UtilClient.is_unset(request.stream):
+                    tmp = await UtilClient.read_as_bytes_async(request.stream)
+                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    _request.body = tmp
+                    _request.headers['content-type'] = 'application/octet-stream'
+                else:
+                    if not UtilClient.is_unset(request.body):
+                        if UtilClient.equal_string(params.req_body_type, 'byte'):
+                            byte_obj = UtilClient.assert_as_bytes(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                            _request.body = byte_obj
+                        elif UtilClient.equal_string(params.req_body_type, 'json'):
+                            json_obj = UtilClient.to_jsonstring(request.body)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                            _request.body = json_obj
+                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                        else:
+                            m = UtilClient.assert_as_map(request.body)
+                            form_obj = OpenApiUtilClient.to_form(m)
+                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            _request.body = form_obj
+                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
+                _request.headers['x-acs-content-sha256'] = hashed_request_payload
+                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    auth_type = await self.get_type_async()
+                    if UtilClient.equal_string(auth_type, 'bearer'):
+                        bearer_token = await self.get_bearer_token_async()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                    else:
+                        access_key_id = await self.get_access_key_id_async()
+                        access_key_secret = await self.get_access_key_secret_async()
+                        security_token = await self.get_security_token_async()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                _last_request = _request
+                _response = TeaCore.async_do_sse_action(_request, _runtime)
+                async for res in UtilClient.read_as_sse_async(_response):
+                    yield res
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
 
     def call_api(
         self,

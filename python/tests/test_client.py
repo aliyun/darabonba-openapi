@@ -3,15 +3,15 @@
 import unittest
 import re
 import httpretty
-from Tea.exceptions import TeaException
+from TeaInner.exceptions import TeaException
 from httpretty.core import HTTPrettyRequest
 
-from alibabacloud_tea_openapi import models as open_api_models
+from alibabacloud_tea_openapi_inner import models as open_api_models
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_credentials.client import Client as CredentialClient
-from alibabacloud_tea_openapi.client import Client as OpenApiClient
-from alibabacloud_tea_util import models as util_models
-from alibabacloud_tea_util.client import Client as UtilClient
+from alibabacloud_tea_openapi_inner.client import Client as OpenApiClient
+from alibabacloud_tea_util_inner import models as util_models
+from alibabacloud_tea_util_inner.client import Client as UtilClient
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
 
 
