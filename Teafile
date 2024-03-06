@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -18,7 +18,7 @@
   },
   "releases": {
     "ts": "@alicloud/openapi-client:^0.4.8",
-    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.5",
+    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.6",
     "csharp": "AlibabaCloud.OpenApiClient:0.1.8",
     "java": "com.aliyun:tea-openapi:0.3.2",
     "php": "alibabacloud/darabonba-openapi:^0.2.10",
@@ -100,7 +100,7 @@
   },
   "releaselog": {
     "changelog": [
-      "[java]support disable HTTP/2 config."
+      "[golang]support extends parameters."
     ],
     "compatible": true
   }
