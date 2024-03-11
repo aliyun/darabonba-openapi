@@ -34,3 +34,8 @@ jobs:
       run: go mod tidy
     - name: Test
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/...
+    - uses: codecov/codecov-action@v4
+      with:
+        flags: golang # optional
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
