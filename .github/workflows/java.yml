@@ -30,3 +30,6 @@ jobs:
         java-version: ${{ matrix.java }}
     - name: Test
       run: mvn test -B
+    - uses: codecov/codecov-action@v4
+      with:
+        flags: java # optional

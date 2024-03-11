@@ -28,3 +28,6 @@ jobs:
     - name: Test with unittest
       run: |
         coverage run --source="./alibabacloud_tea_openapi" -m pytest tests/test_*
+    - uses: codecov/codecov-action@v4
+      with:
+        flags: python # optional
