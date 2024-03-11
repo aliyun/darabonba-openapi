@@ -6,7 +6,6 @@
   "scripts": {
     "test": "mocha -r ts-node/register -r source-map-support/register test/**/*.spec.ts --timeout=10000",
     "test-cov": "nyc -e .ts -r=html -r=text -r=lcov npm run test",
-    "ci": "npm run test-cov && codecov",
     "build": "tsc",
     "prepublishOnly": "tsc"
   },
@@ -14,7 +13,6 @@
   "license": "ISC",
   "devDependencies": {
     "@types/mocha": "^5.2.7",
-    "codecov": "^3.6.1",
     "mocha": "^6.2.0",
     "@types/node": "^12.12.26",
     "nyc": "^15.0.0",
