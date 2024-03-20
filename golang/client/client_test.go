@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	openapiutil "github.com/alibabacloud-go/openapi-util/service"
+	openapiutil "github.com/alibabacloud-go/openapi-util/v2/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
-	"github.com/alibabacloud-go/tea/tea"
-	tea_util "github.com/alibabacloud-go/tea/utils"
+	"github.com/alibabacloud-go/tea/v2/tea"
+	tea_util "github.com/alibabacloud-go/tea/v2/utils"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
 
@@ -60,6 +60,29 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
 			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
 		w.WriteHeader(400)
+		w.Write([]byte(responseBody))
+	case "error3":
+		responseBody = "{\"Code\":\"Throttling\", \"Message\":\"Throttling error\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"Throttling error description\"}"
+		w.WriteHeader(429)
+		w.Write([]byte(responseBody))
+	case "error4":
+		responseBody = "{\"Code\":\"Throttling\", \"Message\":\"Throttling error\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"Throttling error description\"}"
+		w.Header().Set("X-RateLimit-User", "Limit:1,Remain:0,TimeLeft:1000,Reset:1000")
+		w.WriteHeader(429)
+		w.Write([]byte(responseBody))
+	case "error5":
+		responseBody = "{\"Code\":\"Throttling.User\", \"Message\":\"Throttling.User error\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"Throttling error description\"}"
+		w.Header().Set("X-RateLimit-User", "Limit:1,Remain:0,TimeLeft:2000,Reset:2000")
+		w.WriteHeader(429)
+		w.Write([]byte(responseBody))
+	case "error6":
+		responseBody = "{\"Code\":\"Throttling.Api\", \"Message\":\"Throttling.Api error\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"Throttling.Api error description\"}"
+		w.Header().Set("X-RateLimit-User-API", "Limit:1,Remain:0,TimeLeft:3000,Reset:3000")
+		w.WriteHeader(429)
 		w.Write([]byte(responseBody))
 	default:
 		w.WriteHeader(200)
@@ -723,6 +746,10 @@ func TestResponseBodyType(t *testing.T) {
 	mux.Handle("/testError", &mockHandler{content: "error"})
 	mux.Handle("/testError1", &mockHandler{content: "error1"})
 	mux.Handle("/testError2", &mockHandler{content: "error2"})
+	mux.Handle("/testError3", &mockHandler{content: "error3"})
+	mux.Handle("/testError4", &mockHandler{content: "error4"})
+	mux.Handle("/testError5", &mockHandler{content: "error5"})
+	mux.Handle("/testError6", &mockHandler{content: "error6"})
 	var server *http.Server
 	server = &http.Server{
 		Addr:         ":9009",
@@ -792,7 +819,7 @@ func TestResponseBodyType(t *testing.T) {
 	}()
 
 	tea_util.AssertNotNil(t, tryErr)
-	err := tryErr.(*tea.SDKError)
+	err := tryErr.(*ClientError)
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
@@ -813,7 +840,7 @@ func TestResponseBodyType(t *testing.T) {
 	}()
 
 	tea_util.AssertNotNil(t, tryErr)
-	err = tryErr.(*tea.SDKError)
+	err = tryErr.(*ClientError)
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
@@ -834,12 +861,96 @@ func TestResponseBodyType(t *testing.T) {
 	}()
 
 	tea_util.AssertNotNil(t, tryErr)
-	err = tryErr.(*tea.SDKError)
+	err = tryErr.(*ClientError)
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
 	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
 	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+
+	params.Pathname = tea.String("/testError3")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	throttlingError := tryErr.(*ThrottlingError)
+	tea_util.AssertEqual(t, "code: 429, Throttling error request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(throttlingError.Message))
+
+	tea_util.AssertEqual(t, 429, tea.IntValue(throttlingError.StatusCode))
+	tea_util.AssertNil(t, throttlingError.RetryAfter)
+
+	params.Pathname = tea.String("/testError4")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	throttlingError = tryErr.(*ThrottlingError)
+	tea_util.AssertEqual(t, "code: 429, Throttling error request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(throttlingError.Message))
+
+	tea_util.AssertEqual(t, 429, tea.IntValue(throttlingError.StatusCode))
+	tea_util.AssertEqual(t, int64(1000), tea.Int64Value(throttlingError.RetryAfter))
+
+	params.Pathname = tea.String("/testError5")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	throttlingError = tryErr.(*ThrottlingError)
+	tea_util.AssertEqual(t, "code: 429, Throttling.User error request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(throttlingError.Message))
+
+	tea_util.AssertEqual(t, 429, tea.IntValue(throttlingError.StatusCode))
+	tea_util.AssertEqual(t, int64(2000), tea.Int64Value(throttlingError.RetryAfter))
+
+	params.Pathname = tea.String("/testError6")
+	tryErr = func() (_e error) {
+		defer func() {
+			if r := tea.Recover(recover()); r != nil {
+				_e = r
+			}
+		}()
+		_, _err = client.CallApi(params, request, runtime)
+		if _err != nil {
+			return _err
+		}
+		return nil
+	}()
+
+	tea_util.AssertNotNil(t, tryErr)
+	throttlingError = tryErr.(*ThrottlingError)
+	tea_util.AssertEqual(t, "code: 429, Throttling.Api error request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(throttlingError.Message))
+
+	tea_util.AssertEqual(t, 429, tea.IntValue(throttlingError.StatusCode))
+	tea_util.AssertEqual(t, int64(3000), tea.Int64Value(throttlingError.RetryAfter))
 }
 
 func TestRequestBodyType(t *testing.T) {

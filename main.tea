@@ -38,18 +38,43 @@ type @key = string
 type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
+type @retryOptions = $RetryOptions
 
 model GlobalParameters {
   headers?: map[string]string,
   queries?: map[string]string,
 }
+
+@aliasName("AlibabaCloudException")
+exception AlibabaCloudError extends $Error {
+  statusCode?: number(description='HTTP Status Code'),
+  code?: string(description="Error Code"),
+  message?: string(description="Error Message"),
+  description?: string(description="Error Description"),
+  requestId?: string(description="Request ID"),
+}
+
+@aliasName("ClientException")
+exception ClientError extends AlibabaCloudError {
+  accessDeniedDetail?: map[string]any(description="Access Denied Detail"),
+}
+
+@aliasName("ServerException")
+exception ServerError extends AlibabaCloudError {
+}
+
+@aliasName("ThrottlingException")
+exception ThrottlingError extends AlibabaCloudError {
+  retryAfter?: long(description="Retry After(ms)"),
+}
+
 /**
  * Model for initing client
  */
 model Config {
   accessKeyId?: string(description='accesskey id',default=''),
   accessKeySecret?: string(description='accesskey secret',default=''),
-  securityToken?: string(description='security token',example='a.txt',default=''),
+  securityToken?: string(description='security token',example='',default=''),
   protocol?: string(description='http protocol',example='http',default='http'),
   method?: string(description='http method',example='GET',default=''),
   regionId?: string(description='region id',example='cn-hangzhou',default=''),
@@ -76,6 +101,7 @@ model Config {
   cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+  retryOptions?: $RetryOptions(description='retry options'),
 }
 
 /**
@@ -84,7 +110,7 @@ model Config {
  */
 init(config: Config) {
   if (Util.isUnset(config)) {
-    throw {
+    throw new ClientError {
       code = 'ParameterMissing',
       message = '\'config\' can not be unset'
     };
@@ -129,6 +155,7 @@ init(config: Config) {
   @cert = config.cert;
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
+  @retryOptions = config.retryOptions;
 }
 
 model OpenApiRequest {
@@ -234,14 +261,34 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+    var code = defaultAny(err.Code, err.code);
+    if (Util.equalString(`${code}`, 'Throttling') || Util.equalString(`${code}`, 'Throttling.User') || Util.equalString(`${code}`, 'Throttling.Api')) {
+      throw new ThrottlingError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if (Util.is4xx(__response.statusCode)) {
+      throw new ClientError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new ServerError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
   if (Util.equalString(bodyType, 'binary')) {
     var resp = {
@@ -286,7 +333,6 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     };
   }
 } runtime {
-  timeouted = 'retry',
   key = Util.defaultString(runtime.key, @key),
   cert = Util.defaultString(runtime.cert, @cert),
   ca = Util.defaultString(runtime.ca, @ca),
@@ -298,14 +344,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -388,14 +427,34 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
     requestId = defaultAny(requestId, err.requestid);
-    err.statusCode = __response.statusCode;
-     throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+    var code = defaultAny(err.Code, err.code);
+    if (Util.equalString(`${code}`, 'Throttling') || Util.equalString(`${code}`, 'Throttling.User') || Util.equalString(`${code}`, 'Throttling.Api')) {
+      throw new ThrottlingError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if (Util.is4xx(__response.statusCode)) {
+      throw new ClientError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new ServerError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
   if (Util.equalString(bodyType, 'binary')) {
     var resp = {
@@ -440,7 +499,6 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     };
   }
 } runtime {
-  timeouted = 'retry',
   key = Util.defaultString(runtime.key, @key),
   cert = Util.defaultString(runtime.cert, @cert),
   ca = Util.defaultString(runtime.ca, @ca),
@@ -452,14 +510,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -542,14 +593,35 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+    var requestId = defaultAny(err.RequestId, err.requestId);
+    var code = defaultAny(err.Code, err.code);
+    if (Util.equalString(`${code}`, 'Throttling') || Util.equalString(`${code}`, 'Throttling.User') || Util.equalString(`${code}`, 'Throttling.Api')) {
+      throw new ThrottlingError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if (Util.is4xx(__response.statusCode)) {
+      throw new ClientError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new ServerError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
   if (Util.equalString(bodyType, 'binary')) {
     var resp = {
@@ -594,7 +666,6 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     };
   }
 } runtime {
-  timeouted = 'retry',
   key = Util.defaultString(runtime.key, @key),
   cert = Util.defaultString(runtime.cert, @cert),
   ca = Util.defaultString(runtime.ca, @ca),
@@ -606,14 +677,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -631,7 +695,7 @@ model Params = {
 
 async function callApi(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
   if (Util.isUnset(params)) {
-    throw {
+    throw new ClientError {
       code = 'ParameterMissing',
       message = '\'params\' can not be unset'
     };
@@ -768,14 +832,35 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       var _res = Util.readAsJSON(__response.body);
       err = Util.assertAsMap(_res);
     }
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+    var requestId = defaultAny(err.RequestId, err.requestId);
+    var code = defaultAny(err.Code, err.code);
+    if (Util.equalString(`${code}`, 'Throttling') || Util.equalString(`${code}`, 'Throttling.User') || Util.equalString(`${code}`, 'Throttling.Api')) {
+      throw new ThrottlingError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if (Util.is4xx(__response.statusCode)) {
+      throw new ClientError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new ServerError{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
+        description = `${defaultAny(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
   if (Util.equalString(params.bodyType, 'binary')) {
     var resp = {
@@ -822,7 +907,6 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     };
   }
 } runtime {
-  timeouted = 'retry',
   key = Util.defaultString(runtime.key, @key),
   cert = Util.defaultString(runtime.cert, @cert),
   ca = Util.defaultString(runtime.ca, @ca),
@@ -834,14 +918,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -946,7 +1023,6 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   };
 
 } runtime {
-  timeouted = 'retry',
   key = Util.defaultString(runtime.key, @key),
   cert = Util.defaultString(runtime.cert, @cert),
   ca = Util.defaultString(runtime.ca, @ca),
@@ -958,14 +1034,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   disableHttp2 = defaultAny(@disableHttp2, false)
 }
@@ -1058,7 +1127,7 @@ static function defaultAny(inputValue: any, defaultValue: any): any {
  */
 function checkConfig(config: Config)throws : void {
   if (Util.empty(@endpointRule) && Util.empty(config.endpoint)) {
-    throw {
+    throw new ClientError {
       code = 'ParameterMissing',
       message = '\'config.endpoint\' can not be empty'
     };
@@ -1088,4 +1157,16 @@ function getRpcHeaders() throws : map[string] string {
   var headers: map[string] string = @headers;
   @headers = null;
   return headers;
+}
+
+function getAccessDeniedDetail(err: map[string] any): map[string] any {
+  var accessDeniedDetail : map[string] any = null;
+  if (Util.isUnset(err.AccessDeniedDetail)) {
+    var detail1 = Util.assertAsMap(err.AccessDeniedDetail);
+    accessDeniedDetail = detail1;
+  } else if (Util.isUnset(err.accessDeniedDetail)) {
+    var detail2 = Util.assertAsMap(err.AccessDeniedDetail);
+    accessDeniedDetail = detail2;
+  }
+  return accessDeniedDetail;
 }
