@@ -99,6 +99,8 @@ public class Config : Tea.TeaModel {
 
     public var ca: String?
 
+    public var disableHttp2: Bool?
+
     public override init() {
         super.init()
     }
@@ -198,6 +200,9 @@ public class Config : Tea.TeaModel {
         if self.ca != nil {
             map["ca"] = self.ca!
         }
+        if self.disableHttp2 != nil {
+            map["disableHttp2"] = self.disableHttp2!
+        }
         return map
     }
 
@@ -287,6 +292,9 @@ public class Config : Tea.TeaModel {
         }
         if dict.keys.contains("ca") && dict["ca"] != nil {
             self.ca = dict["ca"] as! String
+        }
+        if dict.keys.contains("disableHttp2") && dict["disableHttp2"] != nil {
+            self.disableHttp2 = dict["disableHttp2"] as! Bool
         }
     }
 }

@@ -209,6 +209,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public string Ca { get; set; }
 
+        /// <summary>
+        /// disable HTTP/2
+        /// </summary>
+        [NameInMap("disableHttp2")]
+        [Validation(Required=false)]
+        public bool? DisableHttp2 { get; set; }
+
     }
 
 }

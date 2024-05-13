@@ -125,6 +125,11 @@ class TestClient(unittest.TestCase):
         return config
 
     def create_runtime_options(self) -> util_models.RuntimeOptions:
+        extends_parameters = util_models.ExtendsParameters(
+            headers={
+                'extends-key': 'extends-value'
+            }
+        )
         runtime = util_models.RuntimeOptions(
             read_timeout=4000,
             connect_timeout=4000,
@@ -133,7 +138,8 @@ class TestClient(unittest.TestCase):
             max_attempts=1,
             backoff_policy='no',
             backoff_period=1,
-            ignore_ssl=True
+            ignore_ssl=True,
+            extends_parameters=extends_parameters
         )
         return runtime
 
@@ -195,6 +201,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['SignatureNonce'][0]
             assert None is not request.querystring['Signature'][0]
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -251,6 +258,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -302,6 +310,7 @@ class TestClient(unittest.TestCase):
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
@@ -362,6 +371,7 @@ class TestClient(unittest.TestCase):
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
@@ -418,6 +428,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -429,7 +440,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-content-sha256')
 
             assert None is not re.match(
-                'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;for-test;global-key;' +
+                'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
@@ -479,6 +490,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -534,6 +546,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -545,7 +558,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-content-sha256')
 
             assert None is not re.match(
-                'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;for-test;global-key;' +
+                'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
@@ -595,6 +608,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
@@ -650,6 +664,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.querystring['global-query'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
+            assert 'extends-value' == request.headers.get('extends-key')
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')

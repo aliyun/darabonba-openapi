@@ -135,6 +135,11 @@ public class ClientTest {
     }
 
     public static RuntimeOptions createRuntimeOptions() throws Exception {
+        ExtendsParameters extendsParameters = ExtendsParameters.build(TeaConverter.buildMap(
+                new TeaPair("headers", TeaConverter.buildMap(
+                        new TeaPair("extends-key", "extends-value")
+                ))
+        ));
         RuntimeOptions runtime = RuntimeOptions.build(TeaConverter.buildMap(
                 new TeaPair("readTimeout", 4000),
                 new TeaPair("connectTimeout", 4000),
@@ -143,7 +148,8 @@ public class ClientTest {
                 new TeaPair("maxAttempts", 1),
                 new TeaPair("backoffPolicy", "no"),
                 new TeaPair("backoffPeriod", 1),
-                new TeaPair("ignoreSSL", true)
+                new TeaPair("ignoreSSL", true),
+                new TeaPair("extendsParameters", extendsParameters)
         ));
         return runtime;
     }
@@ -210,6 +216,7 @@ public class ClientTest {
                 .withQueryParam("SignatureNonce", matching(".+"))
                 .withQueryParam("Signature", matching(".+"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
@@ -262,6 +269,7 @@ public class ClientTest {
                 .withQueryParam("Timestamp", matching(".+"))
                 .withQueryParam("SignatureNonce", matching(".+"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
@@ -309,6 +317,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("date", matching(".+"))
                 .withHeader("host", matching("localhost:[0-9]+"))
@@ -361,6 +370,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("date", matching(".+"))
                 .withHeader("host", matching("localhost:[0-9]+"))
@@ -413,6 +423,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
@@ -465,6 +476,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
@@ -516,6 +528,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
@@ -568,6 +581,7 @@ public class ClientTest {
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
                 .withHeader("global-key", equalTo("global-value"))
+                .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))

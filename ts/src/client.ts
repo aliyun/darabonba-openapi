@@ -64,6 +64,7 @@ export class Config extends $tea.Model {
   key?: string;
   cert?: string;
   ca?: string;
+  disableHttp2?: boolean;
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'accessKeyId',
@@ -94,6 +95,7 @@ export class Config extends $tea.Model {
       key: 'key',
       cert: 'cert',
       ca: 'ca',
+      disableHttp2: 'disableHttp2',
     };
   }
 
@@ -127,6 +129,7 @@ export class Config extends $tea.Model {
       key: 'string',
       cert: 'string',
       ca: 'string',
+      disableHttp2: 'boolean',
     };
   }
 
@@ -243,6 +246,7 @@ export default class Client {
   _key: string;
   _cert: string;
   _ca: string;
+  _disableHttp2: boolean;
 
   /**
    * Init client with Config
@@ -296,6 +300,7 @@ export default class Client {
     this._key = config.key;
     this._cert = config.cert;
     this._ca = config.ca;
+    this._disableHttp2 = config.disableHttp2;
   }
 
   /**
@@ -366,6 +371,15 @@ export default class Client {
 
         }
 
+        let extendsHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!Util.isUnset(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+        }
+
         request_.query = {
           Action: action,
           Format: "json",
@@ -384,6 +398,7 @@ export default class Client {
             'x-acs-action': action,
             'user-agent': this.getUserAgent(),
             ...globalHeaders,
+            ...extendsHeaders,
           };
         } else {
           request_.headers = {
@@ -392,6 +407,7 @@ export default class Client {
             'x-acs-action': action,
             'user-agent': this.getUserAgent(),
             ...globalHeaders,
+            ...extendsHeaders,
             ...headers,
           };
         }
@@ -566,6 +582,15 @@ export default class Client {
 
         }
 
+        let extendsHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!Util.isUnset(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+        }
+
         request_.headers = {
           date: Util.getDateUTCString(),
           host: this._endpoint,
@@ -577,6 +602,7 @@ export default class Client {
           'x-acs-action': action,
           'user-agent': Util.getUserAgent(this._userAgent),
           ...globalHeaders,
+          ...extendsHeaders,
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
@@ -752,6 +778,15 @@ export default class Client {
 
         }
 
+        let extendsHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!Util.isUnset(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+        }
+
         request_.headers = {
           date: Util.getDateUTCString(),
           host: this._endpoint,
@@ -763,6 +798,7 @@ export default class Client {
           'x-acs-action': action,
           'user-agent': Util.getUserAgent(this._userAgent),
           ...globalHeaders,
+          ...extendsHeaders,
           ...request.headers,
         };
         if (!Util.isUnset(request.body)) {
@@ -936,6 +972,15 @@ export default class Client {
 
         }
 
+        let extendsHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!Util.isUnset(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+        }
+
         request_.query = {
           ...globalQueries,
           ...request.query,
@@ -950,6 +995,7 @@ export default class Client {
           'x-acs-signature-nonce': Util.getNonce(),
           accept: "application/json",
           ...globalHeaders,
+          ...extendsHeaders,
           ...request.headers,
         };
         if (Util.equalString(params.style, "RPC")) {
@@ -1128,6 +1174,7 @@ export default class Client {
         period: Util.defaultNumber(runtime.backoffPeriod, 1),
       },
       ignoreSSL: runtime.ignoreSSL,
+      disableHttp2: Client.defaultAny(this._disableHttp2, false),
     }
 
     let _lastRequest = null;
@@ -1160,9 +1207,19 @@ export default class Client {
 
         }
 
+        let extendsHeaders : {[key: string ]: string} = { };
+        if (!Util.isUnset(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!Util.isUnset(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+        }
+
         let requestContext = new $SPI.InterceptorContextRequest({
           headers: {
             ...globalHeaders,
+            ...extendsHeaders,
             ...request.headers,
             ...headers,
           },

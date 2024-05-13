@@ -132,6 +132,9 @@ class Config extends Model
         if (null !== $this->ca) {
             $res['ca'] = $this->ca;
         }
+        if (null !== $this->disableHttp2) {
+            $res['disableHttp2'] = $this->disableHttp2;
+        }
         return $res;
     }
     /**
@@ -224,6 +227,9 @@ class Config extends Model
         }
         if (isset($map['ca'])) {
             $model->ca = $map['ca'];
+        }
+        if (isset($map['disableHttp2'])) {
+            $model->disableHttp2 = $map['disableHttp2'];
         }
         return $model;
     }
@@ -408,17 +414,22 @@ class Config extends Model
 
     /**
      * @description client certificate
-     * @example -----BEGIN CERTIFICATE-----
-xxx-----END CERTIFICATE-----
+     * @example -----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----
      * @var string
      */
     public $cert;
 
     /**
      * @description server certificate
-     * @example -----BEGIN CERTIFICATE-----
-xxx-----END CERTIFICATE-----
+     * @example -----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----
      * @var string
      */
     public $ca;
+
+    /**
+     * @description disable HTTP/2
+     * @example false
+     * @var bool
+     */
+    public $disableHttp2;
 }

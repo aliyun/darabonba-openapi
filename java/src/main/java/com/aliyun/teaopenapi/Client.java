@@ -166,6 +166,15 @@ public class Client {
 
                 }
 
+                java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
+                    com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers;
+                    }
+
+                }
+
                 request_.query = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("Action", action),
@@ -187,7 +196,8 @@ public class Client {
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
                         ),
-                        globalHeaders
+                        globalHeaders,
+                        extendsHeaders
                     );
                 } else {
                     request_.headers = TeaConverter.merge(String.class,
@@ -198,6 +208,7 @@ public class Client {
                             new TeaPair("user-agent", this.getUserAgent())
                         ),
                         globalHeaders,
+                        extendsHeaders,
                         headers
                     );
                 }
@@ -373,6 +384,15 @@ public class Client {
 
                 }
 
+                java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
+                    com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers;
+                    }
+
+                }
+
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
@@ -386,6 +406,7 @@ public class Client {
                         new TeaPair("user-agent", com.aliyun.teautil.Common.getUserAgent(_userAgent))
                     ),
                     globalHeaders,
+                    extendsHeaders,
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -562,6 +583,15 @@ public class Client {
 
                 }
 
+                java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
+                    com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers;
+                    }
+
+                }
+
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
@@ -575,6 +605,7 @@ public class Client {
                         new TeaPair("user-agent", com.aliyun.teautil.Common.getUserAgent(_userAgent))
                     ),
                     globalHeaders,
+                    extendsHeaders,
                     request.headers
                 );
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -750,6 +781,15 @@ public class Client {
 
                 }
 
+                java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
+                    com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers;
+                    }
+
+                }
+
                 request_.query = TeaConverter.merge(String.class,
                     globalQueries,
                     request.query
@@ -766,6 +806,7 @@ public class Client {
                         new TeaPair("accept", "application/json")
                     ),
                     globalHeaders,
+                    extendsHeaders,
                     request.headers
                 );
                 if (com.aliyun.teautil.Common.equalString(params.style, "RPC")) {
@@ -980,9 +1021,19 @@ public class Client {
 
                 }
 
+                java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
+                    com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers;
+                    }
+
+                }
+
                 com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextRequest requestContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextRequest.build(TeaConverter.buildMap(
                     new TeaPair("headers", TeaConverter.merge(String.class,
                         globalHeaders,
+                        extendsHeaders,
                         request.headers,
                         headers
                     )),

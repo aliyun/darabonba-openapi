@@ -5,13 +5,14 @@
 package client
 
 import (
+	"io"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	xml "github.com/alibabacloud-go/tea-xml/service"
 	"github.com/alibabacloud-go/tea/tea"
 	credential "github.com/aliyun/credentials-go/credentials"
-	"io"
 )
 
 type GlobalParameters struct {
@@ -98,6 +99,12 @@ type Config struct {
 	Cert *string `json:"cert,omitempty" xml:"cert,omitempty"`
 	// server certificate
 	Ca *string `json:"ca,omitempty" xml:"ca,omitempty"`
+	// disable HTTP/2
+	//
+	// example:
+	//
+	// false
+	DisableHttp2 *bool `json:"disableHttp2,omitempty" xml:"disableHttp2,omitempty"`
 }
 
 func (s Config) String() string {
@@ -248,6 +255,11 @@ func (s *Config) SetCa(v string) *Config {
 	return s
 }
 
+func (s *Config) SetDisableHttp2(v bool) *Config {
+	s.DisableHttp2 = &v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
@@ -390,6 +402,7 @@ type Client struct {
 	Key                  *string
 	Cert                 *string
 	Ca                   *string
+	DisableHttp2         *bool
 }
 
 /**
@@ -455,6 +468,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Key = config.Key
 	client.Cert = config.Cert
 	client.Ca = config.Ca
+	client.DisableHttp2 = config.DisableHttp2
 	return nil
 }
 
@@ -531,6 +545,15 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 			}
 
+			extendsHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
+				extendsParameters := runtime.ExtendsParameters
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
+					extendsHeaders = extendsParameters.Headers
+				}
+
+			}
+
 			request_.Query = tea.Merge(map[string]*string{
 				"Action":         action,
 				"Format":         tea.String("json"),
@@ -551,7 +574,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"x-acs-version": version,
 					"x-acs-action":  action,
 					"user-agent":    client.GetUserAgent(),
-				}, globalHeaders)
+				}, globalHeaders,
+					extendsHeaders)
 			} else {
 				request_.Headers = tea.Merge(map[string]*string{
 					"host":          client.Endpoint,
@@ -559,6 +583,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"x-acs-action":  action,
 					"user-agent":    client.GetUserAgent(),
 				}, globalHeaders,
+					extendsHeaders,
 					headers)
 			}
 
@@ -794,6 +819,15 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 			}
 
+			extendsHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
+				extendsParameters := runtime.ExtendsParameters
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
+					extendsHeaders = extendsParameters.Headers
+				}
+
+			}
+
 			request_.Headers = tea.Merge(map[string]*string{
 				"date":                    util.GetDateUTCString(),
 				"host":                    client.Endpoint,
@@ -805,6 +839,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, globalHeaders,
+				extendsHeaders,
 				request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
@@ -1035,6 +1070,15 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 			}
 
+			extendsHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
+				extendsParameters := runtime.ExtendsParameters
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
+					extendsHeaders = extendsParameters.Headers
+				}
+
+			}
+
 			request_.Headers = tea.Merge(map[string]*string{
 				"date":                    util.GetDateUTCString(),
 				"host":                    client.Endpoint,
@@ -1046,6 +1090,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				"x-acs-action":            action,
 				"user-agent":              util.GetUserAgent(client.UserAgent),
 			}, globalHeaders,
+				extendsHeaders,
 				request.Headers)
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m, _err := util.AssertAsMap(request.Body)
@@ -1562,7 +1607,8 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":    tea.BoolValue(runtime.IgnoreSSL),
+		"disableHttp2": DefaultAny(client.DisableHttp2, tea.Bool(false)),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1596,8 +1642,18 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 
 			}
 
+			extendsHeaders := make(map[string]*string)
+			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
+				extendsParameters := runtime.ExtendsParameters
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
+					extendsHeaders = extendsParameters.Headers
+				}
+
+			}
+
 			requestContext := &spi.InterceptorContextRequest{
 				Headers: tea.Merge(globalHeaders,
+					extendsHeaders,
 					request.Headers,
 					headers),
 				Query: tea.Merge(globalQueries,
