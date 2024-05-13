@@ -73,6 +73,7 @@ class Config(TeaModel):
         key: str = None,
         cert: str = None,
         ca: str = None,
+        disable_http_2: bool = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -130,6 +131,8 @@ class Config(TeaModel):
         self.cert = cert
         # server certificate
         self.ca = ca
+        # disable HTTP/2
+        self.disable_http_2 = disable_http_2
 
     def validate(self):
         if self.global_parameters:
@@ -197,6 +200,8 @@ class Config(TeaModel):
             result['cert'] = self.cert
         if self.ca is not None:
             result['ca'] = self.ca
+        if self.disable_http_2 is not None:
+            result['disableHttp2'] = self.disable_http_2
         return result
 
     def from_map(self, m: dict = None):
@@ -258,6 +263,8 @@ class Config(TeaModel):
             self.cert = m.get('cert')
         if m.get('ca') is not None:
             self.ca = m.get('ca')
+        if m.get('disableHttp2') is not None:
+            self.disable_http_2 = m.get('disableHttp2')
         return self
 
 

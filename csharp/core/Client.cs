@@ -44,6 +44,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _key;
         protected string _cert;
         protected string _ca;
+        protected bool? _disableHttp2;
 
         /**
          * Init client with Config
@@ -104,6 +105,7 @@ namespace AlibabaCloud.OpenApiClient
             this._key = config.Key;
             this._cert = config.Cert;
             this._ca = config.Ca;
+            this._disableHttp2 = config.DisableHttp2;
         }
 
         /**
@@ -183,6 +185,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Query = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -209,7 +220,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"x-acs-action", action},
                                 {"user-agent", GetUserAgent()},
                             },
-                            globalHeaders
+                            globalHeaders,
+                            extendsHeaders
                         );
                     }
                     else
@@ -224,6 +236,7 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", GetUserAgent()},
                             },
                             globalHeaders,
+                            extendsHeaders,
                             headers
                         );
                     }
@@ -427,6 +440,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Query = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -453,7 +475,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"x-acs-action", action},
                                 {"user-agent", GetUserAgent()},
                             },
-                            globalHeaders
+                            globalHeaders,
+                            extendsHeaders
                         );
                     }
                     else
@@ -468,6 +491,7 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", GetUserAgent()},
                             },
                             globalHeaders,
+                            extendsHeaders,
                             headers
                         );
                     }
@@ -672,6 +696,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Headers = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -687,6 +720,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"user-agent", AlibabaCloud.TeaUtil.Common.GetUserAgent(_userAgent)},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -894,6 +928,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Headers = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -909,6 +952,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"user-agent", AlibabaCloud.TeaUtil.Common.GetUserAgent(_userAgent)},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -1116,6 +1160,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Headers = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -1131,6 +1184,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"user-agent", AlibabaCloud.TeaUtil.Common.GetUserAgent(_userAgent)},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -1337,6 +1391,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Headers = TeaConverter.merge<string>
                     (
                         new Dictionary<string, string>()
@@ -1352,6 +1415,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"user-agent", AlibabaCloud.TeaUtil.Common.GetUserAgent(_userAgent)},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
@@ -1558,6 +1622,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Query = TeaConverter.merge<string>
                     (
                         globalQueries,
@@ -1577,6 +1650,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"accept", "application/json"},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
@@ -1830,6 +1904,15 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     request_.Query = TeaConverter.merge<string>
                     (
                         globalQueries,
@@ -1849,6 +1932,7 @@ namespace AlibabaCloud.OpenApiClient
                             {"accept", "application/json"},
                         },
                         globalHeaders,
+                        extendsHeaders,
                         request.Headers
                     );
                     if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "RPC"))
@@ -2065,6 +2149,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"disableHttp2", DefaultAny(_disableHttp2.Value, false)},
             };
 
             TeaRequest _lastRequest = null;
@@ -2101,11 +2186,21 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
                     {
                         Headers = TeaConverter.merge<string>
                         (
                             globalHeaders,
+                            extendsHeaders,
                             request.Headers,
                             headers
                         ),
@@ -2232,6 +2327,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"disableHttp2", DefaultAny(_disableHttp2.Value, false)},
             };
 
             TeaRequest _lastRequest = null;
@@ -2268,11 +2364,21 @@ namespace AlibabaCloud.OpenApiClient
                             globalHeaders = globalParams.Headers;
                         }
                     }
+                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(runtime.ExtendsParameters))
+                    {
+                        AlibabaCloud.TeaUtil.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(extendsParameters.Headers))
+                        {
+                            extendsHeaders = extendsParameters.Headers;
+                        }
+                    }
                     AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest requestContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext.InterceptorContextRequest
                     {
                         Headers = TeaConverter.merge<string>
                         (
                             globalHeaders,
+                            extendsHeaders,
                             request.Headers,
                             headers
                         ),

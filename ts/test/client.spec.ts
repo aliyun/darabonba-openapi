@@ -116,6 +116,11 @@ function createConfig(): $OpenApi.Config {
 }
 
 function createRuntimeOptions(): $Util.RuntimeOptions {
+    let extendsParameters = new $Util.ExtendsParameters({
+        headers: {
+            'extends-key': "extends-value",
+        },
+    });
     let runtime = new $Util.RuntimeOptions({
         readTimeout: 4000,
         connectTimeout: 4000,
@@ -125,6 +130,7 @@ function createRuntimeOptions(): $Util.RuntimeOptions {
         backoffPolicy: "no",
         backoffPeriod: 1,
         ignoreSSL: true,
+        extendsParameters: extendsParameters,
     });
     return runtime;
 }
@@ -272,6 +278,7 @@ describe('$openapi', function () {
         assert.ok(regexp.test(headers["raw-query"]));
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
         assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -314,6 +321,7 @@ describe('$openapi', function () {
         assert.ok(regexp.test(headers["raw-query"]));
         assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.strictEqual(headers["x-acs-version"], "2022-06-01");
         assert.strictEqual(headers["x-acs-action"], "TestAPI");
         assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -363,6 +371,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");
@@ -413,6 +422,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");
@@ -459,6 +469,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["x-acs-date"].length > 0);
         assert.ok(headers["x-acs-content-sha256"].length > 0);
@@ -509,6 +520,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["x-acs-date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");
@@ -553,6 +565,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["x-acs-date"].length > 0);
         assert.ok(headers["x-acs-content-sha256"].length > 0);
@@ -603,6 +616,7 @@ describe('$openapi', function () {
         assert.strictEqual(headers["connection"], "keep-alive");
         assert.strictEqual(headers["for-test"], "sdk");
         assert.strictEqual(headers["global-key"], "global-value");
+        assert.strictEqual(headers["extends-key"], "extends-value");
         assert.ok(headers["x-acs-signature-nonce"].length > 0);
         assert.ok(headers["x-acs-date"].length > 0);
         assert.strictEqual(headers["accept"], "application/json");

@@ -167,6 +167,13 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       globalHeaders = globalParams.headers;
     }
   }
+  var extendsHeaders : map[string]string = {};
+  if (!Util.isUnset(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!Util.isUnset(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+  }
   __request.query = {
     Action = action,
     Format = 'json',
@@ -185,7 +192,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-version = version,
       x-acs-action = action,
       user-agent = getUserAgent(),
-      ...globalHeaders
+      ...globalHeaders,
+      ...extendsHeaders
     };
   } else {
     __request.headers = {
@@ -194,6 +202,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-action = action,
       user-agent = getUserAgent(),
       ...globalHeaders,
+      ...extendsHeaders,
       ...headers
     };
   }
@@ -337,6 +346,13 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       globalHeaders = globalParams.headers;
     }
   }
+  var extendsHeaders : map[string]string = {};
+  if (!Util.isUnset(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!Util.isUnset(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+  }
   __request.headers = {
     date = Util.getDateUTCString(),
     host = @endpoint,
@@ -348,6 +364,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     x-acs-action = action,
     user-agent = Util.getUserAgent(@userAgent),
     ...globalHeaders,
+    ...extendsHeaders,
     ...request.headers
   };
 
@@ -491,6 +508,13 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       globalHeaders = globalParams.headers;
     }
   }
+  var extendsHeaders : map[string]string = {};
+  if (!Util.isUnset(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!Util.isUnset(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+  }
   __request.headers = {
     date = Util.getDateUTCString(),
     host = @endpoint,
@@ -502,6 +526,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     x-acs-action = action,
     user-agent = Util.getUserAgent(@userAgent),
     ...globalHeaders,
+    ...extendsHeaders,
     ...request.headers
   };
 
@@ -872,9 +897,17 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
       globalHeaders = globalParams.headers;
     }
   }
+  var extendsHeaders : map[string]string = {};
+  if (!Util.isUnset(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!Util.isUnset(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+  }
   var requestContext = new SPI.InterceptorContext.request{
     headers = {
       ...globalHeaders,
+      ...extendsHeaders,
       ...request.headers,
       ...headers
     },

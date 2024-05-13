@@ -61,6 +61,8 @@ open class Client {
 
     public var _ca: String?
 
+    public var _disableHttp2: Bool?
+
     public init(_ config: Config) throws {
         if (TeaUtils.Client.isUnset(config)) {
             throw Tea.ReuqestError([
@@ -108,6 +110,7 @@ open class Client {
         self._key = config.key
         self._cert = config.cert
         self._ca = config.ca
+        self._disableHttp2 = config.disableHttp2
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -135,7 +138,7 @@ open class Client {
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": runtime.ignoreSSL!
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -165,6 +168,13 @@ open class Client {
                         globalHeaders = globalParams.headers ?? [:]
                     }
                 }
+                var extendsHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
+                    var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
+                    if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                }
                 _request.query = Tea.TeaConverter.merge([
                     "Action": action as! String,
                     "Format": "json",
@@ -179,7 +189,7 @@ open class Client {
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
-                    ], globalHeaders)
+                    ], globalHeaders, extendsHeaders)
                 }
                 else {
                     _request.headers = Tea.TeaConverter.merge([
@@ -187,7 +197,7 @@ open class Client {
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
-                    ], globalHeaders, headers)
+                    ], globalHeaders, extendsHeaders, headers)
                 }
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     var m: [String: Any] = try TeaUtils.Client.assertAsMap(request.body)
@@ -341,6 +351,13 @@ open class Client {
                         globalHeaders = globalParams.headers ?? [:]
                     }
                 }
+                var extendsHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
+                    var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
+                    if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                }
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
                     "host": self._endpoint ?? "",
@@ -351,7 +368,7 @@ open class Client {
                     "x-acs-version": version as! String,
                     "x-acs-action": action as! String,
                     "user-agent": TeaUtils.Client.getUserAgent(self._userAgent)
-                ], globalHeaders, request.headers ?? [:])
+                ], globalHeaders, extendsHeaders, request.headers ?? [:])
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     _request.body = Tea.TeaCore.toReadable(TeaUtils.Client.toJSONString(request.body))
                     _request.headers["content-type"] = "application/json; charset=utf-8";
@@ -506,6 +523,13 @@ open class Client {
                         globalHeaders = globalParams.headers ?? [:]
                     }
                 }
+                var extendsHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
+                    var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
+                    if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                }
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
                     "host": self._endpoint ?? "",
@@ -516,7 +540,7 @@ open class Client {
                     "x-acs-version": version as! String,
                     "x-acs-action": action as! String,
                     "user-agent": TeaUtils.Client.getUserAgent(self._userAgent)
-                ], globalHeaders, request.headers ?? [:])
+                ], globalHeaders, extendsHeaders, request.headers ?? [:])
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     var m: [String: Any] = try TeaUtils.Client.assertAsMap(request.body)
                     _request.body = Tea.TeaCore.toReadable(AlibabaCloudOpenApiUtil.Client.toForm(m))
@@ -671,6 +695,13 @@ open class Client {
                         globalHeaders = globalParams.headers ?? [:]
                     }
                 }
+                var extendsHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
+                    var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
+                    if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                }
                 _request.query = Tea.TeaConverter.merge([:], globalQueries, request.query ?? [:])
                 _request.headers = Tea.TeaConverter.merge([
                     "host": self._endpoint ?? "",
@@ -680,7 +711,7 @@ open class Client {
                     "x-acs-date": AlibabaCloudOpenApiUtil.Client.getTimestamp(),
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "accept": "application/json"
-                ], globalHeaders, request.headers ?? [:])
+                ], globalHeaders, extendsHeaders, request.headers ?? [:])
                 if (TeaUtils.Client.equalString(params.style, "RPC")) {
                     var headers: [String: String] = try getRpcHeaders()
                     if (!TeaUtils.Client.isUnset(headers)) {
