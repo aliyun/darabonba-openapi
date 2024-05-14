@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -17,15 +17,15 @@
     "XML": "darabonba:XML:*"
   },
   "releases": {
-    "ts": "@alicloud/openapi-client:^0.4.8",
-    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.6",
-    "csharp": "AlibabaCloud.OpenApiClient:0.1.8",
-    "java": "com.aliyun:tea-openapi:0.3.2",
-    "php": "alibabacloud/darabonba-openapi:^0.2.10",
-    "python": "alibabacloud_tea_openapi:0.3.8",
+    "ts": "@alicloud/openapi-client:^0.4.9",
+    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.7",
+    "csharp": "AlibabaCloud.OpenApiClient:0.1.9",
+    "java": "com.aliyun:tea-openapi:0.3.3",
+    "php": "alibabacloud/darabonba-openapi:^0.2.11",
+    "python": "alibabacloud_tea_openapi:0.3.9",
     "python2": "alibabacloud_tea_openapi_py2:0.1.8",
     "cpp": "alibabacloud-sdk-cpp/dara-openapi:master",
-    "swift": "alibabacloud-sdk-swift/darabonba-openapi:1.0.3"
+    "swift": "alibabacloud-sdk-swift/darabonba-openapi:1.0.4"
   },
   "csharp": {
     "namespace": "AlibabaCloud.OpenApiClient",
@@ -100,7 +100,7 @@
   },
   "releaselog": {
     "changelog": [
-      "[golang]support extends parameters."
+      "support extends parameters && disableHttp2 config."
     ],
     "compatible": true
   }

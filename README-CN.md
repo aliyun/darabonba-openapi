@@ -3,6 +3,12 @@
 
 # Alibaba Cloud OpenApi Client
 
+[![Golang CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/go.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/go.yml)
+[![Java CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/java.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/java.yml)
+[![Python CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/python.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/python.yml)
+[![TypeScript CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml)
+[![codecov](https://codecov.io/gh/aliyun/darabonba-openapi/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/darabonba-openapi)
+
 ## 问题
 
 [Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new)，不符合指南的问题可能会立即关闭。

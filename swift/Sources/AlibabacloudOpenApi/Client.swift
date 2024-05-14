@@ -138,7 +138,7 @@ open class Client {
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": runtime.ignoreSSL!
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
