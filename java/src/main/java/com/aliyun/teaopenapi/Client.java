@@ -1254,6 +1254,7 @@ public class Client {
 
     /**
      * set RPC header for debug
+     * @deprecated use globalParameters in config instead.
      * @param headers headers for debug, this header can be used only once.
      */
     public void setRpcHeaders(java.util.Map<String, String> headers) throws Exception {
@@ -1262,6 +1263,7 @@ public class Client {
 
     /**
      * get RPC header for debug
+     * @deprecated use globalParameters in config instead.
      */
     public java.util.Map<String, String> getRpcHeaders() throws Exception {
         java.util.Map<String, String> headers = _headers;

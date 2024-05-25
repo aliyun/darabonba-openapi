@@ -3,6 +3,8 @@ import Tea
 import TeaUtils
 import AlibabaCloudCredentials
 import AlibabaCloudOpenApiUtil
+import AlibabacloudGatewaySPI
+import DarabonbaXML
 
 open class Client {
     public var _endpoint: String?
@@ -53,6 +55,8 @@ open class Client {
 
     public var _headers: [String: String]?
 
+    public var _spi: AlibabacloudGatewaySPI.Client?
+
     public var _globalParameters: GlobalParameters?
 
     public var _key: String?
@@ -83,7 +87,7 @@ open class Client {
                 "accessKeySecret": config.accessKeySecret ?? ""
             ])
             credentialConfig.securityToken = config.securityToken
-            self._credential = AlibabaCloudCredentials.Client(credentialConfig)
+            self._credential = try AlibabaCloudCredentials.Client(credentialConfig)
         }
         else if (!TeaUtils.Client.isUnset(config.credential)) {
             self._credential = config.credential
@@ -230,10 +234,10 @@ open class Client {
                     var requestId: Any = Client.defaultAny(err["RequestId"], err["requestId"])
                     err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "code": String(Client.defaultAny(err["Code"], err["code"])),
+                        "message": "code: " + String(_response.statusCode) + ", " + String(Client.defaultAny(err["Message"], err["message"])) + " request id: " + String(requestId as! Any),
+                        "data": err as! [String: Any],
+                        "description": String(Client.defaultAny(err["Description"], err["description"])),
                         "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
@@ -314,14 +318,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": Client.defaultAny(runtime.autoretry, false),
+                "retryable": runtime.autoretry!,
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": runtime.ignoreSSL!
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -386,7 +390,7 @@ open class Client {
                         _request.headers["x-acs-security-token"] = securityToken as! String;
                     }
                     var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                    _request.headers["authorization"] = "acs " + accessKeyId + ":" + AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret);
+                    _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -402,10 +406,10 @@ open class Client {
                     requestId = Client.defaultAny(requestId, err["requestid"])
                     err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "code": String(Client.defaultAny(err["Code"], err["code"])),
+                        "message": "code: " + String(_response.statusCode) + ", " + String(Client.defaultAny(err["Message"], err["message"])) + " request id: " + String(requestId as! Any),
+                        "data": err as! [String: Any],
+                        "description": String(Client.defaultAny(err["Description"], err["description"])),
                         "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
@@ -486,14 +490,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": Client.defaultAny(runtime.autoretry, false),
+                "retryable": runtime.autoretry!,
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": runtime.ignoreSSL!
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -559,7 +563,7 @@ open class Client {
                         _request.headers["x-acs-security-token"] = securityToken as! String;
                     }
                     var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                    _request.headers["authorization"] = "acs " + accessKeyId + ":" + AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret);
+                    _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -573,10 +577,10 @@ open class Client {
                     var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
                     err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "code": String(Client.defaultAny(err["Code"], err["code"])),
+                        "message": "code: " + String(_response.statusCode) + ", " + String(Client.defaultAny(err["Message"], err["message"])) + " request id: " + String(Client.defaultAny(err["RequestId"], err["requestId"])),
+                        "data": err as! [String: Any],
+                        "description": String(Client.defaultAny(err["Description"], err["description"])),
                         "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
@@ -658,14 +662,14 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": Client.defaultAny(runtime.autoretry, false),
+                "retryable": runtime.autoretry!,
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": runtime.ignoreSSL!
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -750,15 +754,16 @@ open class Client {
                 }
                 _request.headers["x-acs-content-sha256"] = hashedRequestPayload as! String;
                 if (!TeaUtils.Client.equalString(params.authType, "Anonymous")) {
-                    var authType: String = try await getType()
+                    var credentialModel: AlibabaCloudCredentials.CredentialModel = try await self._credential!.getCredential()
+                    var authType: String = credentialModel.type ?? ""
                     if (TeaUtils.Client.equalString(authType, "bearer")) {
-                        var bearerToken: String = try await getBearerToken()
+                        var bearerToken: String = credentialModel.bearerToken ?? ""
                         _request.headers["x-acs-bearer-token"] = bearerToken as! String;
                     }
                     else {
-                        var accessKeyId: String = try await getAccessKeyId()
-                        var accessKeySecret: String = try await getAccessKeySecret()
-                        var securityToken: String = try await getSecurityToken()
+                        var accessKeyId: String = credentialModel.accessKeyId ?? ""
+                        var accessKeySecret: String = credentialModel.accessKeySecret ?? ""
+                        var securityToken: String = credentialModel.securityToken ?? ""
                         if (!TeaUtils.Client.empty(securityToken)) {
                             _request.headers["x-acs-accesskey-id"] = accessKeyId as! String;
                             _request.headers["x-acs-security-token"] = securityToken as! String;
@@ -769,14 +774,22 @@ open class Client {
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
                 if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
-                    var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
+                    var err: [String: Any] = [:]
+                    if (!TeaUtils.Client.isUnset(_response.headers["content-type"]) && TeaUtils.Client.equalString(_response.headers["content-type"], "text/xml;charset=utf-8")) {
+                        var _str: String = try await TeaUtils.Client.readAsString(_response.body)
+                        var respMap: [String: Any] = DarabonbaXML.Client.parseXml(_str, nil)
+                        err = try TeaUtils.Client.assertAsMap(respMap["Error"])
+                    }
+                    else {
+                        var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
+                        err = try TeaUtils.Client.assertAsMap(_res)
+                    }
                     err["statusCode"] = _response.statusCode
                     throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
+                        "code": String(Client.defaultAny(err["Code"], err["code"])),
+                        "message": "code: " + String(_response.statusCode) + ", " + String(Client.defaultAny(err["Message"], err["message"])) + " request id: " + String(Client.defaultAny(err["RequestId"], err["requestId"])),
+                        "data": err as! [String: Any],
+                        "description": String(Client.defaultAny(err["Description"], err["description"])),
                         "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
                     ])
                 }
@@ -829,6 +842,137 @@ open class Client {
                         "statusCode": _response.statusCode
                     ]
                 }
+            }
+            catch {
+                if (Tea.TeaCore.isRetryable(error)) {
+                    _lastException = error as! Tea.RetryableError
+                    continue
+                }
+                throw error
+            }
+        }
+        throw Tea.UnretryableError(_lastRequest, _lastException)
+    }
+
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func execute(_ params: Params, _ request: OpenApiRequest, _ runtime: TeaUtils.RuntimeOptions) async throws -> [String: Any] {
+        try params.validate()
+        try request.validate()
+        try runtime.validate()
+        var _runtime: [String: Any] = [
+            "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
+            "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
+            "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
+            "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),
+            "httpsProxy": TeaUtils.Client.defaultString(runtime.httpsProxy, self._httpsProxy),
+            "noProxy": TeaUtils.Client.defaultString(runtime.noProxy, self._noProxy),
+            "socks5Proxy": TeaUtils.Client.defaultString(runtime.socks5Proxy, self._socks5Proxy),
+            "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
+            "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
+            "retry": [
+                "retryable": runtime.autoretry!,
+                "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
+            ],
+            "backoff": [
+                "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
+                "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
+            ],
+            "ignoreSSL": runtime.ignoreSSL!,
+            "disableHttp2": Client.defaultAny(self._disableHttp2, false)
+        ]
+        var _lastRequest: Tea.TeaRequest? = nil
+        var _lastException: Tea.TeaError? = nil
+        var _now: Int32 = Tea.TeaCore.timeNow()
+        var _retryTimes: Int32 = 0
+        while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
+            if (_retryTimes > 0) {
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                if (_backoffTime > 0) {
+                    Tea.TeaCore.sleep(_backoffTime)
+                }
+            }
+            _retryTimes = _retryTimes + 1
+            do {
+                var _request: Tea.TeaRequest = Tea.TeaRequest()
+                var headers: [String: String] = try getRpcHeaders()
+                var globalQueries: [String: String] = [:]
+                var globalHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(self._globalParameters)) {
+                    var globalParams: GlobalParameters = self._globalParameters!
+                    if (!TeaUtils.Client.isUnset(globalParams.queries)) {
+                        globalQueries = globalParams.queries ?? [:]
+                    }
+                    if (!TeaUtils.Client.isUnset(globalParams.headers)) {
+                        globalHeaders = globalParams.headers ?? [:]
+                    }
+                }
+                var extendsHeaders: [String: String] = [:]
+                if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
+                    var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
+                    if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
+                        extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                }
+                var requestContext: AlibabacloudGatewaySPI.InterceptorContext.Request = AlibabacloudGatewaySPI.InterceptorContext.Request([
+                    "headers": Tea.TeaConverter.merge([:], globalHeaders, extendsHeaders, request.headers ?? [:], headers),
+                    "query": Tea.TeaConverter.merge([:], globalQueries, request.query ?? [:]),
+                    "body": request.body!,
+                    "stream": request.stream!,
+                    "hostMap": request.hostMap ?? [:],
+                    "pathname": params.pathname ?? "",
+                    "productId": self._productId ?? "",
+                    "action": params.action ?? "",
+                    "version": params.version ?? "",
+                    "protocol": TeaUtils.Client.defaultString(self._protocol, params.protocol_),
+                    "method": TeaUtils.Client.defaultString(self._method, params.method),
+                    "authType": params.authType ?? "",
+                    "bodyType": params.bodyType ?? "",
+                    "reqBodyType": params.reqBodyType ?? "",
+                    "style": params.style ?? "",
+                    "credential": self._credential!,
+                    "signatureVersion": self._signatureVersion ?? "",
+                    "signatureAlgorithm": self._signatureAlgorithm ?? "",
+                    "userAgent": getUserAgent()
+                ])
+                var configurationContext: AlibabacloudGatewaySPI.InterceptorContext.Configuration = AlibabacloudGatewaySPI.InterceptorContext.Configuration([
+                    "regionId": self._regionId ?? "",
+                    "endpoint": TeaUtils.Client.defaultString(request.endpointOverride, self._endpoint),
+                    "endpointRule": self._endpointRule ?? "",
+                    "endpointMap": self._endpointMap ?? [:],
+                    "endpointType": self._endpointType ?? "",
+                    "network": self._network ?? "",
+                    "suffix": self._suffix ?? ""
+                ])
+                var interceptorContext: AlibabacloudGatewaySPI.InterceptorContext = AlibabacloudGatewaySPI.InterceptorContext([
+                    "request": requestContext as! AlibabacloudGatewaySPI.InterceptorContext.Request,
+                    "configuration": configurationContext as! AlibabacloudGatewaySPI.InterceptorContext.Configuration
+                ])
+                var attributeMap: AlibabacloudGatewaySPI.AttributeMap = AlibabacloudGatewaySPI.AttributeMap([:])
+                try await self._spi!.modifyConfiguration(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
+                try await self._spi!.modifyRequest(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
+                _request.protocol_ = interceptorContext.request!.protocol_ ?? ""
+                _request.method = interceptorContext.request!.method ?? ""
+                _request.pathname = interceptorContext.request!.pathname ?? ""
+                _request.query = interceptorContext.request!.query ?? [:]
+                _request.body = interceptorContext.request!.stream!
+                _request.headers = interceptorContext.request!.headers ?? [:]
+                _lastRequest = _request
+                var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
+                var responseContext: AlibabacloudGatewaySPI.InterceptorContext.Response = AlibabacloudGatewaySPI.InterceptorContext.Response([
+                    "statusCode": _response.statusCode,
+                    "headers": _response.headers,
+                    "body": _response.body
+                ])
+                interceptorContext.response = responseContext
+                try await self._spi!.modifyResponse(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
+                return [
+                    "headers": interceptorContext.response!.headers ?? [:],
+                    "statusCode": interceptorContext.response!.statusCode!,
+                    "body": interceptorContext.response!.deserializedBody!
+                ]
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
@@ -927,6 +1071,10 @@ open class Client {
                 "message": "'config.endpoint' can not be empty"
             ])
         }
+    }
+
+    public func setGatewayClient(_ spi: AlibabacloudGatewaySPI.Client) throws -> Void {
+        self._spi = spi
     }
 
     public func setRpcHeaders(_ headers: [String: String]) throws -> Void {

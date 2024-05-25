@@ -1108,6 +1108,7 @@ function setGatewayClient(spi: SPI)throws : void {
 
 /**
  * set RPC header for debug
+ * @deprecated use globalParameters in config instead.
  * @param headers headers for debug, this header can be used only once.
  */
 function setRpcHeaders(headers: map[string] string)throws : void {
@@ -1116,6 +1117,7 @@ function setRpcHeaders(headers: map[string] string)throws : void {
 
 /**
  * get RPC header for debug
+ * @deprecated use globalParameters in config instead.
  */
 function getRpcHeaders() throws : map[string] string {
   var headers: map[string] string = @headers;
