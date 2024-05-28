@@ -7,6 +7,7 @@ import Credential;
 import OpenApiUtil;
 import SPI;
 import XML;
+import HttpClient;
 
 type @endpoint = string
 type @regionId = string
@@ -38,6 +39,7 @@ type @key = string
 type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
+type @httpClient = HttpClient
 
 model GlobalParameters {
   headers?: map[string]string,
@@ -77,6 +79,7 @@ model Config {
   cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+  httpClient?: HttpClient
 }
 
 /**
@@ -136,6 +139,7 @@ init(config: Config) {
   @cert = config.cert;
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
+  @httpClient = config.httpClient;
 }
 
 model OpenApiRequest {
@@ -337,7 +341,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  httpClient = @httpClient
 }
 
 /**
@@ -520,7 +525,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  httpClient = @httpClient
 }
 
 /**
@@ -703,7 +709,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  httpClient = @httpClient
 }
 
 model Params = {
@@ -948,7 +955,8 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  httpClient = @httpClient
 }
 
 
@@ -1086,7 +1094,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
   ignoreSSL = runtime.ignoreSSL,
-  disableHttp2 = defaultAny(@disableHttp2, false)
+  disableHttp2 = defaultAny(@disableHttp2, false),
+  httpClient = @httpClient
 }
 
 /**
