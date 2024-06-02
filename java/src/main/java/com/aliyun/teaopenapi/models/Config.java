@@ -26,6 +26,12 @@ public class Config extends TeaModel {
     public String securityToken;
 
     /**
+     * <p>bearer token</p>
+     */
+    @NameInMap("bearerToken")
+    public String bearerToken;
+
+    /**
      * <p>http protocol</p>
      */
     @NameInMap("protocol")
@@ -209,6 +215,14 @@ public class Config extends TeaModel {
     }
     public String getSecurityToken() {
         return this.securityToken;
+    }
+
+    public Config setBearerToken(String bearerToken) {
+        this.bearerToken = bearerToken;
+        return this;
+    }
+    public String getBearerToken() {
+        return this.bearerToken;
     }
 
     public Config setProtocol(String protocol) {

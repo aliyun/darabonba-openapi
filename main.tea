@@ -214,8 +214,6 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     };
   }
 
-  
-
   if (!Util.isUnset(request.body)) {
     var m = Util.assertAsMap(request.body);
     var tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
@@ -223,27 +221,32 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     __request.headers.content-type = 'application/x-www-form-urlencoded';
   }
 
-
   if (!Util.equalString(authType, 'Anonymous')) {
-    var accessKeyId = getAccessKeyId();
-    var accessKeySecret = getAccessKeySecret();
-    var securityToken = getSecurityToken();
-
-    if (!Util.empty(securityToken)) {
-      __request.query.SecurityToken = securityToken;
+    var credentialType = getType();
+    if (Util.equalString(credentialType, 'bearer')) {
+      var bearerToken = getBearerToken();
+      __request.query.BearerToken = bearerToken;
+      __request.query.SignatureType = 'BEARERTOKEN';
+    } else {
+      var accessKeyId = getAccessKeyId();
+      var accessKeySecret = getAccessKeySecret();
+      var securityToken = getSecurityToken();
+      if (!Util.empty(securityToken)) {
+        __request.query.SecurityToken = securityToken;
+      }
+      __request.query.SignatureMethod = 'HMAC-SHA1';
+      __request.query.SignatureVersion = '1.0';
+      __request.query.AccessKeyId = accessKeyId;
+      var t : map[string]any = null;
+      if (!Util.isUnset(request.body)) {
+        t = Util.assertAsMap(request.body);
+      }
+      var signedParam = {
+        ...__request.query,
+        ...OpenApiUtil.query(t)
+      };
+      __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
     }
-    __request.query.SignatureMethod = 'HMAC-SHA1';
-    __request.query.SignatureVersion = '1.0';
-    __request.query.AccessKeyId = accessKeyId;
-    var t : map[string]any = null;
-    if (!Util.isUnset(request.body)) {
-      t = Util.assertAsMap(request.body);
-    }
-    var signedParam = {
-      ...__request.query,
-      ...OpenApiUtil.query(t)
-    };
-    __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
   }
 } returns {
   if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
@@ -389,16 +392,23 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var accessKeyId = getAccessKeyId();
-    var accessKeySecret = getAccessKeySecret();
-    var securityToken = getSecurityToken();
-    if (!Util.empty(securityToken)) {
-      __request.headers.x-acs-accesskey-id = accessKeyId;
-      __request.headers.x-acs-security-token = securityToken;
-    }
+    var credentialType = getType();
+    if (Util.equalString(credentialType, 'bearer')) {
+      var bearerToken = getBearerToken();
+      __request.headers.x-acs-bearer-token = bearerToken;
+      __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+    } else {
+      var accessKeyId = getAccessKeyId();
+      var accessKeySecret = getAccessKeySecret();
+      var securityToken = getSecurityToken();
+      if (!Util.empty(securityToken)) {
+        __request.headers.x-acs-accesskey-id = accessKeyId;
+        __request.headers.x-acs-security-token = securityToken;
+      }
 
-    var stringToSign = OpenApiUtil.getStringToSign(__request);
-    __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+      var stringToSign = OpenApiUtil.getStringToSign(__request);
+      __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+    }
   }
 } returns {
   if (Util.equalNumber(__response.statusCode, 204)) {
@@ -553,16 +563,23 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var accessKeyId = getAccessKeyId();
-    var accessKeySecret = getAccessKeySecret();
-    var securityToken = getSecurityToken();
-    if (!Util.empty(securityToken)) {
-      __request.headers.x-acs-accesskey-id = accessKeyId;
-      __request.headers.x-acs-security-token = securityToken;
-    }
+    var credentialType = getType();
+    if (Util.equalString(credentialType, 'bearer')) {
+      var bearerToken = getBearerToken();
+      __request.headers.x-acs-bearer-token = bearerToken;
+      __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+    } else {
+      var accessKeyId = getAccessKeyId();
+      var accessKeySecret = getAccessKeySecret();
+      var securityToken = getSecurityToken();
+      if (!Util.empty(securityToken)) {
+        __request.headers.x-acs-accesskey-id = accessKeyId;
+        __request.headers.x-acs-security-token = securityToken;
+      }
 
-    var stringToSign = OpenApiUtil.getStringToSign(__request);
-    __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+      var stringToSign = OpenApiUtil.getStringToSign(__request);
+      __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+    }
   }
 } returns {
   if (Util.equalNumber(__response.statusCode, 204)) {
@@ -777,6 +794,12 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     if (Util.equalString(authType, 'bearer')) {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
+      if (Util.equalString(params.style, 'RPC')) {
+        __request.query.SignatureType = 'BEARERTOKEN';
+      } else {
+        __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+      }
+      
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;

@@ -68,6 +68,12 @@ public class Client {
             ));
             credentialConfig.securityToken = config.securityToken;
             this._credential = new com.aliyun.credentials.Client(credentialConfig);
+        } else if (!com.aliyun.teautil.Common.empty(config.bearerToken)) {
+            com.aliyun.credentials.models.Config cc = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
+                new TeaPair("type", "bearer"),
+                new TeaPair("bearerToken", config.bearerToken)
+            ));
+            this._credential = new com.aliyun.credentials.Client(cc);
         } else if (!com.aliyun.teautil.Common.isUnset(config.credential)) {
             this._credential = config.credential;
         }
@@ -221,26 +227,34 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String accessKeyId = this.getAccessKeyId();
-                    String accessKeySecret = this.getAccessKeySecret();
-                    String securityToken = this.getSecurityToken();
-                    if (!com.aliyun.teautil.Common.empty(securityToken)) {
-                        request_.query.put("SecurityToken", securityToken);
+                    String credentialType = this.getType();
+                    if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
+                        String bearerToken = this.getBearerToken();
+                        request_.query.put("BearerToken", bearerToken);
+                        request_.query.put("SignatureType", "BEARERTOKEN");
+                    } else {
+                        String accessKeyId = this.getAccessKeyId();
+                        String accessKeySecret = this.getAccessKeySecret();
+                        String securityToken = this.getSecurityToken();
+                        if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                            request_.query.put("SecurityToken", securityToken);
+                        }
+
+                        request_.query.put("SignatureMethod", "HMAC-SHA1");
+                        request_.query.put("SignatureVersion", "1.0");
+                        request_.query.put("AccessKeyId", accessKeyId);
+                        java.util.Map<String, Object> t = null;
+                        if (!com.aliyun.teautil.Common.isUnset(request.body)) {
+                            t = com.aliyun.teautil.Common.assertAsMap(request.body);
+                        }
+
+                        java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
+                            request_.query,
+                            com.aliyun.openapiutil.Client.query(t)
+                        );
+                        request_.query.put("Signature", com.aliyun.openapiutil.Client.getRPCSignature(signedParam, request_.method, accessKeySecret));
                     }
 
-                    request_.query.put("SignatureMethod", "HMAC-SHA1");
-                    request_.query.put("SignatureVersion", "1.0");
-                    request_.query.put("AccessKeyId", accessKeyId);
-                    java.util.Map<String, Object> t = null;
-                    if (!com.aliyun.teautil.Common.isUnset(request.body)) {
-                        t = com.aliyun.teautil.Common.assertAsMap(request.body);
-                    }
-
-                    java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
-                        request_.query,
-                        com.aliyun.openapiutil.Client.query(t)
-                    );
-                    request_.query.put("Signature", com.aliyun.openapiutil.Client.getRPCSignature(signedParam, request_.method, accessKeySecret));
                 }
 
                 _lastRequest = request_;
@@ -423,16 +437,24 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String accessKeyId = this.getAccessKeyId();
-                    String accessKeySecret = this.getAccessKeySecret();
-                    String securityToken = this.getSecurityToken();
-                    if (!com.aliyun.teautil.Common.empty(securityToken)) {
-                        request_.headers.put("x-acs-accesskey-id", accessKeyId);
-                        request_.headers.put("x-acs-security-token", securityToken);
+                    String credentialType = this.getType();
+                    if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
+                        String bearerToken = this.getBearerToken();
+                        request_.headers.put("x-acs-bearer-token", bearerToken);
+                        request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
+                    } else {
+                        String accessKeyId = this.getAccessKeyId();
+                        String accessKeySecret = this.getAccessKeySecret();
+                        String securityToken = this.getSecurityToken();
+                        if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                            request_.headers.put("x-acs-accesskey-id", accessKeyId);
+                            request_.headers.put("x-acs-security-token", securityToken);
+                        }
+
+                        String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
+                        request_.headers.put("authorization", "acs " + accessKeyId + ":" + com.aliyun.openapiutil.Client.getROASignature(stringToSign, accessKeySecret) + "");
                     }
 
-                    String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
-                    request_.headers.put("authorization", "acs " + accessKeyId + ":" + com.aliyun.openapiutil.Client.getROASignature(stringToSign, accessKeySecret) + "");
                 }
 
                 _lastRequest = request_;
@@ -623,16 +645,24 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String accessKeyId = this.getAccessKeyId();
-                    String accessKeySecret = this.getAccessKeySecret();
-                    String securityToken = this.getSecurityToken();
-                    if (!com.aliyun.teautil.Common.empty(securityToken)) {
-                        request_.headers.put("x-acs-accesskey-id", accessKeyId);
-                        request_.headers.put("x-acs-security-token", securityToken);
+                    String credentialType = this.getType();
+                    if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
+                        String bearerToken = this.getBearerToken();
+                        request_.headers.put("x-acs-bearer-token", bearerToken);
+                        request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
+                    } else {
+                        String accessKeyId = this.getAccessKeyId();
+                        String accessKeySecret = this.getAccessKeySecret();
+                        String securityToken = this.getSecurityToken();
+                        if (!com.aliyun.teautil.Common.empty(securityToken)) {
+                            request_.headers.put("x-acs-accesskey-id", accessKeyId);
+                            request_.headers.put("x-acs-security-token", securityToken);
+                        }
+
+                        String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
+                        request_.headers.put("authorization", "acs " + accessKeyId + ":" + com.aliyun.openapiutil.Client.getROASignature(stringToSign, accessKeySecret) + "");
                     }
 
-                    String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
-                    request_.headers.put("authorization", "acs " + accessKeyId + ":" + com.aliyun.openapiutil.Client.getROASignature(stringToSign, accessKeySecret) + "");
                 }
 
                 _lastRequest = request_;
@@ -857,6 +887,12 @@ public class Client {
                     if (com.aliyun.teautil.Common.equalString(authType, "bearer")) {
                         String bearerToken = credentialModel.bearerToken;
                         request_.headers.put("x-acs-bearer-token", bearerToken);
+                        if (com.aliyun.teautil.Common.equalString(params.style, "RPC")) {
+                            request_.query.put("SignatureType", "BEARERTOKEN");
+                        } else {
+                            request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
+                        }
+
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;

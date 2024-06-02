@@ -115,6 +115,18 @@ function createConfig(): $OpenApi.Config {
     return config;
 }
 
+function createBearerTokenConfig(): $OpenApi.Config {
+    let creConfig = new $Credential.Config({
+        bearerToken: "token",
+        type: "bearer",
+    });
+    let credential = new Credential(creConfig);
+    let config = new $OpenApi.Config({
+        credential: credential,
+    });
+    return config;
+}
+
 function createRuntimeOptions(): $Util.RuntimeOptions {
     let extendsParameters = new $Util.ExtendsParameters({
         headers: {
@@ -213,6 +225,19 @@ describe('$openapi', function () {
         assert.strictEqual(await client.getSecurityToken(), 'securityToken');
         assert.strictEqual(await client.getType(), 'sts');
 
+        creConfig = new $Credential.Config({
+            bearerToken: "token",
+            type: "bearer",
+        });
+        credential = new Credential(creConfig);
+        config.credential = credential;
+        client = new OpenApi(config);
+        assert.strictEqual(await client.getAccessKeyId(), '');
+        assert.strictEqual(await client.getAccessKeySecret(), '');
+        assert.strictEqual(await client.getSecurityToken(), '');
+        assert.strictEqual(await client.getBearerToken(), 'token');
+        assert.strictEqual(await client.getType(), 'bearer');
+
         config.accessKeyId = "ak";
         config.accessKeySecret = "secret";
         config.securityToken = "token";
@@ -292,6 +317,18 @@ describe('$openapi', function () {
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
         assert.strictEqual(result["statusCode"], 200);
+
+        // bearer token
+        config = createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = `127.0.0.1:${port}`;
+        client = new OpenApi(config);
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&key1=value&key2=1&key3=true&BearerToken=token&SignatureType=BEARERTOKEN/;
+        assert.ok(regexp.test(headers["raw-query"]));
+        // assert.strictEqual(headers["authorization"], "bearer token");
     });
 
     it("call api for RPC With V2Sign Anonymous JSON should ok", async function () {
@@ -386,6 +423,50 @@ describe('$openapi', function () {
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
         assert.strictEqual(result["statusCode"], 200);
+
+        // bearer token
+        config = createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = `127.0.0.1:${port}`;
+        client = new OpenApi(config);
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["x-acs-version"], "2022-06-01");
+        assert.strictEqual(headers["x-acs-action"], "TestAPI");
+        assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
+        assert.strictEqual(headers["x-acs-request-id"], "A45EE076-334D-5012-9746-A8F828D20FD4");
+        assert.strictEqual(headers["accept"], "application/json");
+        assert.strictEqual(headers["x-acs-bearer-token"], "token");
+        assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
+        // assert.strictEqual(headers["authorization"], "bearer token");
+
+        config = createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = `127.0.0.1:${port}`;
+        client = new OpenApi(config);
+        params = new $OpenApi.Params({
+            action: "TestAPI",
+            version: "2022-06-01",
+            protocol: "HTTPS",
+            pathname: "/test",
+            method: "POST",
+            authType: "AK",
+            style: "ROA",
+            reqBodyType: "json",
+            bodyType: "json",
+        });
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["x-acs-version"], "2022-06-01");
+        assert.strictEqual(headers["x-acs-action"], "TestAPI");
+        assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
+        assert.strictEqual(headers["x-acs-request-id"], "A45EE076-334D-5012-9746-A8F828D20FD4");
+        assert.strictEqual(headers["accept"], "application/json");
+        assert.strictEqual(headers["x-acs-bearer-token"], "token");
+        assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
+        // assert.strictEqual(headers["authorization"], "bearer token");
     });
 
     it("call api for ROA With V2Sign Anonymous JSON should ok", async function () {
@@ -485,6 +566,23 @@ describe('$openapi', function () {
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
         assert.strictEqual(result["statusCode"], 200);
+
+        // bearer token
+        config = createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.endpoint = `127.0.0.1:${port}`;
+        client = new OpenApi(config);
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["x-acs-version"], "2022-06-01");
+        assert.strictEqual(headers["x-acs-action"], "TestAPI");
+        assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
+        assert.strictEqual(headers["x-acs-request-id"], "A45EE076-334D-5012-9746-A8F828D20FD4");
+        assert.strictEqual(headers["accept"], "application/json");
+        assert.strictEqual(headers["x-acs-bearer-token"], "token");
+        const regexp = /SignatureType=BEARERTOKEN/;
+        assert.ok(regexp.test(headers["raw-query"]));
+        // assert.strictEqual(headers["authorization"], "bearer token");
     });
 
     it("call api for RPC With V3Sign Anonymous JSON should ok", async function () {
@@ -581,6 +679,22 @@ describe('$openapi', function () {
         assert.strictEqual(body["ClassId"], "test");
         assert.strictEqual(body["UserId"], 123);
         assert.strictEqual(result["statusCode"], 200);
+
+        // bearer token
+        config = createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.endpoint = `127.0.0.1:${port}`;
+        client = new OpenApi(config);
+        result = await client.callApi(params, request, runtime);
+        headers = result["headers"];
+        assert.strictEqual(headers["x-acs-version"], "2022-06-01");
+        assert.strictEqual(headers["x-acs-action"], "TestAPI");
+        assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
+        assert.strictEqual(headers["x-acs-request-id"], "A45EE076-334D-5012-9746-A8F828D20FD4");
+        assert.strictEqual(headers["accept"], "application/json");
+        assert.strictEqual(headers["x-acs-bearer-token"], "token");
+        assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
+        // assert.strictEqual(headers["authorization"], "bearer token");
     });
 
     it("call api for ROA With V3Sign Anonymous JSON should ok", async function () {

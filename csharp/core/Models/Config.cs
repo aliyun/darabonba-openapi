@@ -34,6 +34,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         public string SecurityToken { get; set; }
 
         /// <summary>
+        /// bearer token
+        /// </summary>
+        [NameInMap("bearerToken")]
+        [Validation(Required=false)]
+        public string BearerToken { get; set; }
+
+        /// <summary>
         /// http protocol
         /// </summary>
         [NameInMap("protocol")]

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.aliyun</groupId>
     <artifactId>tea-openapi</artifactId>
@@ -42,9 +43,9 @@
         </repository>
     </distributionManagement>
     <scm>
-        <connection/>
-        <developerConnection/>
-        <url/>
+        <connection />
+        <developerConnection />
+        <url />
     </scm>
     <dependencies>
         <dependency>
@@ -55,7 +56,7 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>credentials-java</artifactId>
-            <version>0.3.0</version>
+            <version>0.3.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.aliyun</groupId>
@@ -81,7 +82,7 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>tea-xml</artifactId>
-            <version>0.1.5</version>
+            <version>0.1.6</version>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>

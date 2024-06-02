@@ -48,6 +48,7 @@ class Config(TeaModel):
         access_key_id: str = None,
         access_key_secret: str = None,
         security_token: str = None,
+        bearer_token: str = None,
         protocol: str = None,
         method: str = None,
         region_id: str = None,
@@ -81,6 +82,8 @@ class Config(TeaModel):
         self.access_key_secret = access_key_secret
         # security token
         self.security_token = security_token
+        # bearer token
+        self.bearer_token = bearer_token
         # http protocol
         self.protocol = protocol
         # http method
@@ -150,6 +153,8 @@ class Config(TeaModel):
             result['accessKeySecret'] = self.access_key_secret
         if self.security_token is not None:
             result['securityToken'] = self.security_token
+        if self.bearer_token is not None:
+            result['bearerToken'] = self.bearer_token
         if self.protocol is not None:
             result['protocol'] = self.protocol
         if self.method is not None:
@@ -212,6 +217,8 @@ class Config(TeaModel):
             self.access_key_secret = m.get('accessKeySecret')
         if m.get('securityToken') is not None:
             self.security_token = m.get('securityToken')
+        if m.get('bearerToken') is not None:
+            self.bearer_token = m.get('bearerToken')
         if m.get('protocol') is not None:
             self.protocol = m.get('protocol')
         if m.get('method') is not None:

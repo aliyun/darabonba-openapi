@@ -71,4 +71,5 @@ class OpenApiRequest extends Model
     public $hostMap;
 
     public $endpointOverride;
+
 }

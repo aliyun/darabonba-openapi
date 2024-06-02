@@ -39,4 +39,5 @@ class GlobalParameters extends Model
     public $headers;
 
     public $queries;
+
 }

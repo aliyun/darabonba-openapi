@@ -39,6 +39,7 @@ export class Config extends $tea.Model {
   accessKeyId?: string;
   accessKeySecret?: string;
   securityToken?: string;
+  bearerToken?: string;
   protocol?: string;
   method?: string;
   regionId?: string;
@@ -70,6 +71,7 @@ export class Config extends $tea.Model {
       accessKeyId: 'accessKeyId',
       accessKeySecret: 'accessKeySecret',
       securityToken: 'securityToken',
+      bearerToken: 'bearerToken',
       protocol: 'protocol',
       method: 'method',
       regionId: 'regionId',
@@ -104,6 +106,7 @@ export class Config extends $tea.Model {
       accessKeyId: 'string',
       accessKeySecret: 'string',
       securityToken: 'string',
+      bearerToken: 'string',
       protocol: 'string',
       method: 'string',
       regionId: 'string',
@@ -274,6 +277,12 @@ export default class Client {
       });
       credentialConfig.securityToken = config.securityToken;
       this._credential = new Credential(credentialConfig);
+    } else if (!Util.empty(config.bearerToken)) {
+      let cc = new $Credential.Config({
+        type: "bearer",
+        bearerToken: config.bearerToken,
+      });
+      this._credential = new Credential(cc);
     } else if (!Util.isUnset(config.credential)) {
       this._credential = config.credential;
     }
@@ -420,26 +429,34 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let accessKeyId = await this.getAccessKeyId();
-          let accessKeySecret = await this.getAccessKeySecret();
-          let securityToken = await this.getSecurityToken();
-          if (!Util.empty(securityToken)) {
-            request_.query["SecurityToken"] = securityToken;
+          let credentialType = await this.getType();
+          if (Util.equalString(credentialType, "bearer")) {
+            let bearerToken = await this.getBearerToken();
+            request_.query["BearerToken"] = bearerToken;
+            request_.query["SignatureType"] = "BEARERTOKEN";
+          } else {
+            let accessKeyId = await this.getAccessKeyId();
+            let accessKeySecret = await this.getAccessKeySecret();
+            let securityToken = await this.getSecurityToken();
+            if (!Util.empty(securityToken)) {
+              request_.query["SecurityToken"] = securityToken;
+            }
+
+            request_.query["SignatureMethod"] = "HMAC-SHA1";
+            request_.query["SignatureVersion"] = "1.0";
+            request_.query["AccessKeyId"] = accessKeyId;
+            let t : {[key: string ]: any} = null;
+            if (!Util.isUnset(request.body)) {
+              t = Util.assertAsMap(request.body);
+            }
+
+            let signedParam = {
+              ...request_.query,
+              ...OpenApiUtil.query(t),
+            };
+            request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
           }
 
-          request_.query["SignatureMethod"] = "HMAC-SHA1";
-          request_.query["SignatureVersion"] = "1.0";
-          request_.query["AccessKeyId"] = accessKeyId;
-          let t : {[key: string ]: any} = null;
-          if (!Util.isUnset(request.body)) {
-            t = Util.assertAsMap(request.body);
-          }
-
-          let signedParam = {
-            ...request_.query,
-            ...OpenApiUtil.query(t),
-          };
-          request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
         }
 
         _lastRequest = request_;
@@ -619,16 +636,24 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let accessKeyId = await this.getAccessKeyId();
-          let accessKeySecret = await this.getAccessKeySecret();
-          let securityToken = await this.getSecurityToken();
-          if (!Util.empty(securityToken)) {
-            request_.headers["x-acs-accesskey-id"] = accessKeyId;
-            request_.headers["x-acs-security-token"] = securityToken;
+          let credentialType = await this.getType();
+          if (Util.equalString(credentialType, "bearer")) {
+            let bearerToken = await this.getBearerToken();
+            request_.headers["x-acs-bearer-token"] = bearerToken;
+            request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else {
+            let accessKeyId = await this.getAccessKeyId();
+            let accessKeySecret = await this.getAccessKeySecret();
+            let securityToken = await this.getSecurityToken();
+            if (!Util.empty(securityToken)) {
+              request_.headers["x-acs-accesskey-id"] = accessKeyId;
+              request_.headers["x-acs-security-token"] = securityToken;
+            }
+
+            let stringToSign = OpenApiUtil.getStringToSign(request_);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
           }
 
-          let stringToSign = OpenApiUtil.getStringToSign(request_);
-          request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
         }
 
         _lastRequest = request_;
@@ -816,16 +841,24 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let accessKeyId = await this.getAccessKeyId();
-          let accessKeySecret = await this.getAccessKeySecret();
-          let securityToken = await this.getSecurityToken();
-          if (!Util.empty(securityToken)) {
-            request_.headers["x-acs-accesskey-id"] = accessKeyId;
-            request_.headers["x-acs-security-token"] = securityToken;
+          let credentialType = await this.getType();
+          if (Util.equalString(credentialType, "bearer")) {
+            let bearerToken = await this.getBearerToken();
+            request_.headers["x-acs-bearer-token"] = bearerToken;
+            request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else {
+            let accessKeyId = await this.getAccessKeyId();
+            let accessKeySecret = await this.getAccessKeySecret();
+            let securityToken = await this.getSecurityToken();
+            if (!Util.empty(securityToken)) {
+              request_.headers["x-acs-accesskey-id"] = accessKeyId;
+              request_.headers["x-acs-security-token"] = securityToken;
+            }
+
+            let stringToSign = OpenApiUtil.getStringToSign(request_);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
           }
 
-          let stringToSign = OpenApiUtil.getStringToSign(request_);
-          request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
         }
 
         _lastRequest = request_;
@@ -1041,14 +1074,21 @@ export default class Client {
 
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
         if (!Util.equalString(params.authType, "Anonymous")) {
-          let authType = await this.getType();
+          let credentialModel = await this._credential.getCredential();
+          let authType = credentialModel.type;
           if (Util.equalString(authType, "bearer")) {
-            let bearerToken = await this.getBearerToken();
+            let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
+            if (Util.equalString(params.style, "RPC")) {
+              request_.query["SignatureType"] = "BEARERTOKEN";
+            } else {
+              request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+            }
+
           } else {
-            let accessKeyId = await this.getAccessKeyId();
-            let accessKeySecret = await this.getAccessKeySecret();
-            let securityToken = await this.getSecurityToken();
+            let accessKeyId = credentialModel.accessKeyId;
+            let accessKeySecret = credentialModel.accessKeySecret;
+            let securityToken = credentialModel.securityToken;
             if (!Util.empty(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;

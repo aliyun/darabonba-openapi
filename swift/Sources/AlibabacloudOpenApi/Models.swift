@@ -33,10 +33,10 @@ public class GlobalParameters : Tea.TeaModel {
     }
 
     public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("headers") && dict["headers"] != nil {
+        if dict.keys.contains("headers") {
             self.headers = dict["headers"] as! [String: String]
         }
-        if dict.keys.contains("queries") && dict["queries"] != nil {
+        if dict.keys.contains("queries") {
             self.queries = dict["queries"] as! [String: String]
         }
     }
@@ -48,6 +48,8 @@ public class Config : Tea.TeaModel {
     public var accessKeySecret: String?
 
     public var securityToken: String?
+
+    public var bearerToken: String?
 
     public var protocol_: String?
 
@@ -124,6 +126,9 @@ public class Config : Tea.TeaModel {
         }
         if self.securityToken != nil {
             map["securityToken"] = self.securityToken!
+        }
+        if self.bearerToken != nil {
+            map["bearerToken"] = self.bearerToken!
         }
         if self.protocol_ != nil {
             map["protocol"] = self.protocol_!
@@ -207,93 +212,96 @@ public class Config : Tea.TeaModel {
     }
 
     public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("accessKeyId") && dict["accessKeyId"] != nil {
+        if dict.keys.contains("accessKeyId") {
             self.accessKeyId = dict["accessKeyId"] as! String
         }
-        if dict.keys.contains("accessKeySecret") && dict["accessKeySecret"] != nil {
+        if dict.keys.contains("accessKeySecret") {
             self.accessKeySecret = dict["accessKeySecret"] as! String
         }
-        if dict.keys.contains("securityToken") && dict["securityToken"] != nil {
+        if dict.keys.contains("securityToken") {
             self.securityToken = dict["securityToken"] as! String
         }
-        if dict.keys.contains("protocol") && dict["protocol"] != nil {
+        if dict.keys.contains("bearerToken") {
+            self.bearerToken = dict["bearerToken"] as! String
+        }
+        if dict.keys.contains("protocol") {
             self.protocol_ = dict["protocol"] as! String
         }
-        if dict.keys.contains("method") && dict["method"] != nil {
+        if dict.keys.contains("method") {
             self.method = dict["method"] as! String
         }
-        if dict.keys.contains("regionId") && dict["regionId"] != nil {
+        if dict.keys.contains("regionId") {
             self.regionId = dict["regionId"] as! String
         }
-        if dict.keys.contains("readTimeout") && dict["readTimeout"] != nil {
+        if dict.keys.contains("readTimeout") {
             self.readTimeout = dict["readTimeout"] as! Int
         }
-        if dict.keys.contains("connectTimeout") && dict["connectTimeout"] != nil {
+        if dict.keys.contains("connectTimeout") {
             self.connectTimeout = dict["connectTimeout"] as! Int
         }
-        if dict.keys.contains("httpProxy") && dict["httpProxy"] != nil {
+        if dict.keys.contains("httpProxy") {
             self.httpProxy = dict["httpProxy"] as! String
         }
-        if dict.keys.contains("httpsProxy") && dict["httpsProxy"] != nil {
+        if dict.keys.contains("httpsProxy") {
             self.httpsProxy = dict["httpsProxy"] as! String
         }
-        if dict.keys.contains("credential") && dict["credential"] != nil {
+        if dict.keys.contains("credential") {
             self.credential = dict["credential"] as! AlibabaCloudCredentials.Client
         }
-        if dict.keys.contains("endpoint") && dict["endpoint"] != nil {
+        if dict.keys.contains("endpoint") {
             self.endpoint = dict["endpoint"] as! String
         }
-        if dict.keys.contains("noProxy") && dict["noProxy"] != nil {
+        if dict.keys.contains("noProxy") {
             self.noProxy = dict["noProxy"] as! String
         }
-        if dict.keys.contains("maxIdleConns") && dict["maxIdleConns"] != nil {
+        if dict.keys.contains("maxIdleConns") {
             self.maxIdleConns = dict["maxIdleConns"] as! Int
         }
-        if dict.keys.contains("network") && dict["network"] != nil {
+        if dict.keys.contains("network") {
             self.network = dict["network"] as! String
         }
-        if dict.keys.contains("userAgent") && dict["userAgent"] != nil {
+        if dict.keys.contains("userAgent") {
             self.userAgent = dict["userAgent"] as! String
         }
-        if dict.keys.contains("suffix") && dict["suffix"] != nil {
+        if dict.keys.contains("suffix") {
             self.suffix = dict["suffix"] as! String
         }
-        if dict.keys.contains("socks5Proxy") && dict["socks5Proxy"] != nil {
+        if dict.keys.contains("socks5Proxy") {
             self.socks5Proxy = dict["socks5Proxy"] as! String
         }
-        if dict.keys.contains("socks5NetWork") && dict["socks5NetWork"] != nil {
+        if dict.keys.contains("socks5NetWork") {
             self.socks5NetWork = dict["socks5NetWork"] as! String
         }
-        if dict.keys.contains("endpointType") && dict["endpointType"] != nil {
+        if dict.keys.contains("endpointType") {
             self.endpointType = dict["endpointType"] as! String
         }
-        if dict.keys.contains("openPlatformEndpoint") && dict["openPlatformEndpoint"] != nil {
+        if dict.keys.contains("openPlatformEndpoint") {
             self.openPlatformEndpoint = dict["openPlatformEndpoint"] as! String
         }
-        if dict.keys.contains("type") && dict["type"] != nil {
+        if dict.keys.contains("type") {
             self.type = dict["type"] as! String
         }
-        if dict.keys.contains("signatureVersion") && dict["signatureVersion"] != nil {
+        if dict.keys.contains("signatureVersion") {
             self.signatureVersion = dict["signatureVersion"] as! String
         }
-        if dict.keys.contains("signatureAlgorithm") && dict["signatureAlgorithm"] != nil {
+        if dict.keys.contains("signatureAlgorithm") {
             self.signatureAlgorithm = dict["signatureAlgorithm"] as! String
         }
-        if dict.keys.contains("globalParameters") && dict["globalParameters"] != nil {
+        if dict.keys.contains("globalParameters") {
             var model = GlobalParameters()
             model.fromMap(dict["globalParameters"] as! [String: Any])
             self.globalParameters = model
         }
-        if dict.keys.contains("key") && dict["key"] != nil {
+        if dict.keys.contains("key") {
             self.key = dict["key"] as! String
         }
-        if dict.keys.contains("cert") && dict["cert"] != nil {
+        if dict.keys.contains("cert") {
             self.cert = dict["cert"] as! String
         }
-        if dict.keys.contains("ca") && dict["ca"] != nil {
+        if dict.keys.contains("ca") {
             self.ca = dict["ca"] as! String
         }
-        if dict.keys.contains("disableHttp2") && dict["disableHttp2"] != nil {
+        if dict.keys.contains("disableHttp2") {
             self.disableHttp2 = dict["disableHttp2"] as! Bool
         }
     }
@@ -348,22 +356,22 @@ public class OpenApiRequest : Tea.TeaModel {
     }
 
     public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("headers") && dict["headers"] != nil {
+        if dict.keys.contains("headers") {
             self.headers = dict["headers"] as! [String: String]
         }
-        if dict.keys.contains("query") && dict["query"] != nil {
+        if dict.keys.contains("query") {
             self.query = dict["query"] as! [String: String]
         }
-        if dict.keys.contains("body") && dict["body"] != nil {
+        if dict.keys.contains("body") {
             self.body = dict["body"] as! Any
         }
-        if dict.keys.contains("stream") && dict["stream"] != nil {
+        if dict.keys.contains("stream") {
             self.stream = dict["stream"] as! InputStream
         }
-        if dict.keys.contains("hostMap") && dict["hostMap"] != nil {
+        if dict.keys.contains("hostMap") {
             self.hostMap = dict["hostMap"] as! [String: String]
         }
-        if dict.keys.contains("endpointOverride") && dict["endpointOverride"] != nil {
+        if dict.keys.contains("endpointOverride") {
             self.endpointOverride = dict["endpointOverride"] as! String
         }
     }
@@ -441,31 +449,31 @@ public class Params : Tea.TeaModel {
     }
 
     public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("action") && dict["action"] != nil {
+        if dict.keys.contains("action") {
             self.action = dict["action"] as! String
         }
-        if dict.keys.contains("version") && dict["version"] != nil {
+        if dict.keys.contains("version") {
             self.version = dict["version"] as! String
         }
-        if dict.keys.contains("protocol") && dict["protocol"] != nil {
+        if dict.keys.contains("protocol") {
             self.protocol_ = dict["protocol"] as! String
         }
-        if dict.keys.contains("pathname") && dict["pathname"] != nil {
+        if dict.keys.contains("pathname") {
             self.pathname = dict["pathname"] as! String
         }
-        if dict.keys.contains("method") && dict["method"] != nil {
+        if dict.keys.contains("method") {
             self.method = dict["method"] as! String
         }
-        if dict.keys.contains("authType") && dict["authType"] != nil {
+        if dict.keys.contains("authType") {
             self.authType = dict["authType"] as! String
         }
-        if dict.keys.contains("bodyType") && dict["bodyType"] != nil {
+        if dict.keys.contains("bodyType") {
             self.bodyType = dict["bodyType"] as! String
         }
-        if dict.keys.contains("reqBodyType") && dict["reqBodyType"] != nil {
+        if dict.keys.contains("reqBodyType") {
             self.reqBodyType = dict["reqBodyType"] as! String
         }
-        if dict.keys.contains("style") && dict["style"] != nil {
+        if dict.keys.contains("style") {
             self.style = dict["style"] as! String
         }
     }

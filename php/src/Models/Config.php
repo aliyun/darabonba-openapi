@@ -17,6 +17,7 @@ class Config extends Model
         'accessKeyId' => '',
         'accessKeySecret' => '',
         'securityToken' => '',
+        'bearerToken' => '',
         'protocol' => 'http',
         'method' => '',
         'regionId' => '',
@@ -56,6 +57,9 @@ class Config extends Model
         }
         if (null !== $this->securityToken) {
             $res['securityToken'] = $this->securityToken;
+        }
+        if (null !== $this->bearerToken) {
+            $res['bearerToken'] = $this->bearerToken;
         }
         if (null !== $this->protocol) {
             $res['protocol'] = $this->protocol;
@@ -152,6 +156,9 @@ class Config extends Model
         }
         if (isset($map['securityToken'])) {
             $model->securityToken = $map['securityToken'];
+        }
+        if (isset($map['bearerToken'])) {
+            $model->bearerToken = $map['bearerToken'];
         }
         if (isset($map['protocol'])) {
             $model->protocol = $map['protocol'];
@@ -251,6 +258,13 @@ class Config extends Model
      * @var string
      */
     public $securityToken;
+
+    /**
+     * @description bearer token
+     * @example the-bearer-token
+     * @var string
+     */
+    public $bearerToken;
 
     /**
      * @description http protocol
@@ -432,4 +446,5 @@ class Config extends Model
      * @var bool
      */
     public $disableHttp2;
+
 }

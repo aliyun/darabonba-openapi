@@ -78,6 +78,12 @@ class Client:
             )
             credential_config.security_token = config.security_token
             self._credential = CredentialClient(credential_config)
+        elif not UtilClient.empty(config.bearer_token):
+            cc = credential_models.Config(
+                type='bearer',
+                bearer_token=config.bearer_token
+            )
+            self._credential = CredentialClient(cc)
         elif not UtilClient.is_unset(config.credential):
             self._credential = config.credential
         self._endpoint = config.endpoint
@@ -213,20 +219,26 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = self.get_access_key_id()
-                    access_key_secret = self.get_access_key_secret()
-                    security_token = self.get_security_token()
-                    if not UtilClient.empty(security_token):
-                        _request.query['SecurityToken'] = security_token
-                    _request.query['SignatureMethod'] = 'HMAC-SHA1'
-                    _request.query['SignatureVersion'] = '1.0'
-                    _request.query['AccessKeyId'] = access_key_id
-                    t = None
-                    if not UtilClient.is_unset(request.body):
-                        t = UtilClient.assert_as_map(request.body)
-                    signed_param = TeaCore.merge(_request.query,
-                        OpenApiUtilClient.query(t))
-                    _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                    credential_type = self.get_type()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = self.get_bearer_token()
+                        _request.query['BearerToken'] = bearer_token
+                        _request.query['SignatureType'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = self.get_access_key_id()
+                        access_key_secret = self.get_access_key_secret()
+                        security_token = self.get_security_token()
+                        if not UtilClient.empty(security_token):
+                            _request.query['SecurityToken'] = security_token
+                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
+                        _request.query['SignatureVersion'] = '1.0'
+                        _request.query['AccessKeyId'] = access_key_id
+                        t = None
+                        if not UtilClient.is_unset(request.body):
+                            t = UtilClient.assert_as_map(request.body)
+                        signed_param = TeaCore.merge(_request.query,
+                            OpenApiUtilClient.query(t))
+                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -398,20 +410,26 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = await self.get_access_key_id_async()
-                    access_key_secret = await self.get_access_key_secret_async()
-                    security_token = await self.get_security_token_async()
-                    if not UtilClient.empty(security_token):
-                        _request.query['SecurityToken'] = security_token
-                    _request.query['SignatureMethod'] = 'HMAC-SHA1'
-                    _request.query['SignatureVersion'] = '1.0'
-                    _request.query['AccessKeyId'] = access_key_id
-                    t = None
-                    if not UtilClient.is_unset(request.body):
-                        t = UtilClient.assert_as_map(request.body)
-                    signed_param = TeaCore.merge(_request.query,
-                        OpenApiUtilClient.query(t))
-                    _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                    credential_type = await self.get_type_async()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = await self.get_bearer_token_async()
+                        _request.query['BearerToken'] = bearer_token
+                        _request.query['SignatureType'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = await self.get_access_key_id_async()
+                        access_key_secret = await self.get_access_key_secret_async()
+                        security_token = await self.get_security_token_async()
+                        if not UtilClient.empty(security_token):
+                            _request.query['SecurityToken'] = security_token
+                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
+                        _request.query['SignatureVersion'] = '1.0'
+                        _request.query['AccessKeyId'] = access_key_id
+                        t = None
+                        if not UtilClient.is_unset(request.body):
+                            t = UtilClient.assert_as_map(request.body)
+                        signed_param = TeaCore.merge(_request.query,
+                            OpenApiUtilClient.query(t))
+                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -573,14 +591,20 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = self.get_access_key_id()
-                    access_key_secret = self.get_access_key_secret()
-                    security_token = self.get_security_token()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                    credential_type = self.get_type()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = self.get_bearer_token()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = self.get_access_key_id()
+                        access_key_secret = self.get_access_key_secret()
+                        security_token = self.get_security_token()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -747,14 +771,20 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = await self.get_access_key_id_async()
-                    access_key_secret = await self.get_access_key_secret_async()
-                    security_token = await self.get_security_token_async()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                    credential_type = await self.get_type_async()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = await self.get_bearer_token_async()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = await self.get_access_key_id_async()
+                        access_key_secret = await self.get_access_key_secret_async()
+                        security_token = await self.get_security_token_async()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -922,14 +952,20 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = self.get_access_key_id()
-                    access_key_secret = self.get_access_key_secret()
-                    security_token = self.get_security_token()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                    credential_type = self.get_type()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = self.get_bearer_token()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = self.get_access_key_id()
+                        access_key_secret = self.get_access_key_secret()
+                        security_token = self.get_security_token()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -1095,14 +1131,20 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    access_key_id = await self.get_access_key_id_async()
-                    access_key_secret = await self.get_access_key_secret_async()
-                    security_token = await self.get_security_token_async()
-                    if not UtilClient.empty(security_token):
-                        _request.headers['x-acs-accesskey-id'] = access_key_id
-                        _request.headers['x-acs-security-token'] = security_token
-                    string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                    _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                    credential_type = await self.get_type_async()
+                    if UtilClient.equal_string(credential_type, 'bearer'):
+                        bearer_token = await self.get_bearer_token_async()
+                        _request.headers['x-acs-bearer-token'] = bearer_token
+                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    else:
+                        access_key_id = await self.get_access_key_id_async()
+                        access_key_secret = await self.get_access_key_secret_async()
+                        security_token = await self.get_security_token_async()
+                        if not UtilClient.empty(security_token):
+                            _request.headers['x-acs-accesskey-id'] = access_key_id
+                            _request.headers['x-acs-security-token'] = security_token
+                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -1289,6 +1331,10 @@ class Client:
                     if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = self.get_bearer_token()
                         _request.headers['x-acs-bearer-token'] = bearer_token
+                        if UtilClient.equal_string(params.style, 'RPC'):
+                            _request.query['SignatureType'] = 'BEARERTOKEN'
+                        else:
+                            _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
                         access_key_id = self.get_access_key_id()
                         access_key_secret = self.get_access_key_secret()
@@ -1487,6 +1533,10 @@ class Client:
                     if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = await self.get_bearer_token_async()
                         _request.headers['x-acs-bearer-token'] = bearer_token
+                        if UtilClient.equal_string(params.style, 'RPC'):
+                            _request.query['SignatureType'] = 'BEARERTOKEN'
+                        else:
+                            _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
                         access_key_id = await self.get_access_key_id_async()
                         access_key_secret = await self.get_access_key_secret_async()
