@@ -108,10 +108,10 @@ func TestConfig(t *testing.T) {
 		SecurityToken:   tea.String("securityToken"),
 		Type:            tea.String("sts"),
 	}
-	credential, _err := credential.NewCredential(creConfig)
+	cred, _err := credential.NewCredential(creConfig)
 	tea_util.AssertNil(t, _err)
 
-	config.Credential = credential
+	config.Credential = cred
 	config.String()
 	config.GoString()
 	client, _err := NewClient(nil)
@@ -128,6 +128,28 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "securityToken", tea.StringValue(token))
 	ty, _ := client.GetType()
 	tea_util.AssertEqual(t, "sts", tea.StringValue(ty))
+
+	// bearer token
+	creConfig = &credential.Config{
+		BearerToken: tea.String("token"),
+		Type:        tea.String("bearer"),
+	}
+	cred, _err = credential.NewCredential(creConfig)
+	tea_util.AssertNil(t, _err)
+
+	config.Credential = cred
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	ak, _ = client.GetAccessKeyId()
+	tea_util.AssertEqual(t, "", tea.StringValue(ak))
+	sk, _ = client.GetAccessKeySecret()
+	tea_util.AssertEqual(t, "", tea.StringValue(sk))
+	token, _ = client.GetSecurityToken()
+	tea_util.AssertEqual(t, "", tea.StringValue(token))
+	bearer, _ := client.GetBearerToken()
+	tea_util.AssertEqual(t, "token", tea.StringValue(bearer))
+	ty, _ = client.GetType()
+	tea_util.AssertEqual(t, "bearer", tea.StringValue(ty))
 
 	config.AccessKeyId = tea.String("ak")
 	config.AccessKeySecret = tea.String("secret")
@@ -207,6 +229,22 @@ func CreateConfig() (_result *Config) {
 		SignatureVersion:   tea.String("config.signatureVersion"),
 		SignatureAlgorithm: tea.String("ACS3-HMAC-SHA256"),
 		GlobalParameters:   globalParameters,
+	}
+	_result = config
+	return _result
+}
+
+func CreateBearerTokenConfig() (_result *Config) {
+	creConfig := &credential.Config{
+		BearerToken: tea.String("token"),
+		Type:        tea.String("bearer"),
+	}
+	cred, _err := credential.NewCredential(creConfig)
+	if _err != nil {
+		return nil
+	}
+	config := &Config{
+		Credential: cred,
 	}
 	_result = config
 	return _result
@@ -310,6 +348,27 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "test", body["ClassId"])
 	tea_util.AssertEqual(t, "123", body["UserId"].(json.Number).String())
 	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
+
+	// bearer token
+	config = CreateBearerTokenConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9001")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	regx, _ = regexp.Compile("Action=TestAPI&BearerToken=token&Format=json" +
+		"&SignatureNonce=.+&SignatureType=BEARERTOKEN&Timestamp=.+&Version=2022-06-01" +
+		"&key1=value&key2=1&key3=true")
+	str, _ = util.AssertAsString(headers["raw-query"])
+	find = regx.FindAllString(tea.StringValue(str), -1)
+	tea_util.AssertNotNil(t, find)
+	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
+
 }
 
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -451,6 +510,42 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	headers, _err = util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
+
+	// bearer token
+	config = CreateBearerTokenConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9003")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
+	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
+	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
+
+	params = &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
+	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
+	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
 }
 
 func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -594,6 +689,21 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	headers, _err = util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "test", headers["extends-key"])
+
+	// bearer token
+	config = CreateBearerTokenConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String("127.0.0.1:9005")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
+	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
+	tea_util.AssertEqual(t, "SignatureType=BEARERTOKEN&key1=value&key2=1&key3=true", headers["raw-query"])
 }
 
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -735,6 +845,21 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	headers, _err = util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
+
+	// bearer token
+	config = CreateBearerTokenConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String("127.0.0.1:9007")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+
+	headers, _err = util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
+	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
+	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
 }
 
 func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {

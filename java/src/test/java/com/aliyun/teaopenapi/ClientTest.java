@@ -69,6 +69,20 @@ public class ClientTest {
         Assert.assertEquals("accessKeySecret", client.getAccessKeySecret());
         Assert.assertEquals("securityToken", client.getSecurityToken());
         Assert.assertEquals("sts", client.getType());
+
+        creConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
+                new TeaPair("bearerToken", "token"),
+                new TeaPair("type", "bearer")
+        ));
+        credential = new com.aliyun.credentials.Client(creConfig);
+        config.credential = credential;
+        client = new Client(config);
+        Assert.assertNull(client.getAccessKeyId());
+        Assert.assertNull(client.getAccessKeySecret());
+        Assert.assertNull(client.getSecurityToken());
+        Assert.assertEquals("token", client.getBearerToken());
+        Assert.assertEquals("bearer", client.getType());
+
         config.accessKeyId = "ak";
         config.accessKeySecret = "secret";
         config.securityToken = "token";
@@ -130,6 +144,18 @@ public class ClientTest {
                 new TeaPair("signatureAlgorithm", "ACS3-HMAC-SHA256"),
                 new TeaPair("globalParameters", globalParameters),
                 new TeaPair("disableHttp2", true)
+        ));
+        return config;
+    }
+
+    public static Config createBearerTokenConfig() throws Exception {
+        com.aliyun.credentials.models.Config creConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
+                new TeaPair("bearerToken", "token"),
+                new TeaPair("type", "bearer")
+        ));
+        com.aliyun.credentials.Client credential = new com.aliyun.credentials.Client(creConfig);
+        Config config = Config.build(TeaConverter.buildMap(
+                new TeaPair("credential", credential)
         ));
         return config;
     }
@@ -229,6 +255,24 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        // bearer token
+        config = ClientTest.createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        stubFor(post(anyUrl())
+                .withQueryParam("Action", equalTo("TestAPI"))
+                .withQueryParam("Version", equalTo("2022-06-01"))
+                .withQueryParam("Format", equalTo("json"))
+                .withQueryParam("BearerToken", equalTo("token"))
+                .withQueryParam("SignatureType", equalTo("BEARERTOKEN"))
+                // .withHeader("authorization", equalTo("bearer token"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
     }
 
@@ -340,6 +384,47 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // bearer token
+        config = ClientTest.createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        stubFor(post(anyUrl())
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("accept", equalTo("application/json"))
+                .withHeader("x-acs-bearer-token", equalTo("token"))
+                .withHeader("x-acs-signature-type", equalTo("BEARERTOKEN"))
+                // .withHeader("authorization", equalTo("bearer token"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        ));
+        stubFor(post(anyUrl())
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("accept", equalTo("application/json"))
+                .withHeader("x-acs-bearer-token", equalTo("token"))
+                .withHeader("x-acs-signature-type", equalTo("BEARERTOKEN"))
+                // .withHeader("authorization", equalTo("bearer token"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -447,6 +532,23 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // bearer token
+        config = ClientTest.createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        stubFor(post(anyUrl())
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("accept", equalTo("application/json"))
+                .withHeader("x-acs-bearer-token", equalTo("token"))
+                .withQueryParam("SignatureType", equalTo("BEARERTOKEN"))
+                // .withHeader("authorization", equalTo("bearer token"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        result = client.callApi(params, request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 
     @Test
@@ -551,6 +653,23 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        // bearer token
+        config = ClientTest.createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        stubFor(post(anyUrl())
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("accept", equalTo("application/json"))
+                .withHeader("x-acs-bearer-token", equalTo("token"))
+                .withHeader("x-acs-signature-type", equalTo("BEARERTOKEN"))
+                // .withHeader("authorization", equalTo("bearer token"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
     }
 

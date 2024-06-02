@@ -113,6 +113,12 @@ class OpenApiClient
             ]);
             $credentialConfig->securityToken = $config->securityToken;
             $this->_credential = new Credential($credentialConfig);
+        } else if (!Utils::empty_($config->bearerToken)) {
+            $cc = new Config([
+                "type" => "bearer",
+                "bearerToken" => $config->bearerToken
+            ]);
+            $this->_credential = new Credential($cc);
         } else if (!Utils::isUnset($config->credential)) {
             $this->_credential = $config->credential;
         }
@@ -249,21 +255,28 @@ class OpenApiClient
                     $_request->headers["content-type"] = "application/x-www-form-urlencoded";
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
-                    $accessKeyId = $this->getAccessKeyId();
-                    $accessKeySecret = $this->getAccessKeySecret();
-                    $securityToken = $this->getSecurityToken();
-                    if (!Utils::empty_($securityToken)) {
-                        $_request->query["SecurityToken"] = $securityToken;
+                    $credentialType = $this->getType();
+                    if (Utils::equalString($credentialType, "bearer")) {
+                        $bearerToken = $this->getBearerToken();
+                        $_request->query["BearerToken"] = $bearerToken;
+                        $_request->query["SignatureType"] = "BEARERTOKEN";
+                    } else {
+                        $accessKeyId = $this->getAccessKeyId();
+                        $accessKeySecret = $this->getAccessKeySecret();
+                        $securityToken = $this->getSecurityToken();
+                        if (!Utils::empty_($securityToken)) {
+                            $_request->query["SecurityToken"] = $securityToken;
+                        }
+                        $_request->query["SignatureMethod"] = "HMAC-SHA1";
+                        $_request->query["SignatureVersion"] = "1.0";
+                        $_request->query["AccessKeyId"] = $accessKeyId;
+                        $t = null;
+                        if (!Utils::isUnset($request->body)) {
+                            $t = Utils::assertAsMap($request->body);
+                        }
+                        $signedParam = Tea::merge($_request->query, OpenApiUtilClient::query($t));
+                        $_request->query["Signature"] = OpenApiUtilClient::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
                     }
-                    $_request->query["SignatureMethod"] = "HMAC-SHA1";
-                    $_request->query["SignatureVersion"] = "1.0";
-                    $_request->query["AccessKeyId"] = $accessKeyId;
-                    $t = null;
-                    if (!Utils::isUnset($request->body)) {
-                        $t = Utils::assertAsMap($request->body);
-                    }
-                    $signedParam = Tea::merge($_request->query, OpenApiUtilClient::query($t));
-                    $_request->query["Signature"] = OpenApiUtilClient::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
                 }
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
@@ -434,15 +447,22 @@ class OpenApiClient
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
-                    $accessKeyId = $this->getAccessKeyId();
-                    $accessKeySecret = $this->getAccessKeySecret();
-                    $securityToken = $this->getSecurityToken();
-                    if (!Utils::empty_($securityToken)) {
-                        $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
-                        $_request->headers["x-acs-security-token"] = $securityToken;
+                    $credentialType = $this->getType();
+                    if (Utils::equalString($credentialType, "bearer")) {
+                        $bearerToken = $this->getBearerToken();
+                        $_request->headers["x-acs-bearer-token"] = $bearerToken;
+                        $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
+                    } else {
+                        $accessKeyId = $this->getAccessKeyId();
+                        $accessKeySecret = $this->getAccessKeySecret();
+                        $securityToken = $this->getSecurityToken();
+                        if (!Utils::empty_($securityToken)) {
+                            $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
+                            $_request->headers["x-acs-security-token"] = $securityToken;
+                        }
+                        $stringToSign = OpenApiUtilClient::getStringToSign($_request);
+                        $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) . "";
                     }
-                    $stringToSign = OpenApiUtilClient::getStringToSign($_request);
-                    $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) . "";
                 }
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
@@ -620,15 +640,22 @@ class OpenApiClient
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
-                    $accessKeyId = $this->getAccessKeyId();
-                    $accessKeySecret = $this->getAccessKeySecret();
-                    $securityToken = $this->getSecurityToken();
-                    if (!Utils::empty_($securityToken)) {
-                        $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
-                        $_request->headers["x-acs-security-token"] = $securityToken;
+                    $credentialType = $this->getType();
+                    if (Utils::equalString($credentialType, "bearer")) {
+                        $bearerToken = $this->getBearerToken();
+                        $_request->headers["x-acs-bearer-token"] = $bearerToken;
+                        $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
+                    } else {
+                        $accessKeyId = $this->getAccessKeyId();
+                        $accessKeySecret = $this->getAccessKeySecret();
+                        $securityToken = $this->getSecurityToken();
+                        if (!Utils::empty_($securityToken)) {
+                            $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
+                            $_request->headers["x-acs-security-token"] = $securityToken;
+                        }
+                        $stringToSign = OpenApiUtilClient::getStringToSign($_request);
+                        $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) . "";
                     }
-                    $stringToSign = OpenApiUtilClient::getStringToSign($_request);
-                    $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) . "";
                 }
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
@@ -828,6 +855,11 @@ class OpenApiClient
                     if (Utils::equalString($authType, "bearer")) {
                         $bearerToken = $this->getBearerToken();
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
+                        if (Utils::equalString($params->style, "RPC")) {
+                            $_request->query["SignatureType"] = "BEARERTOKEN";
+                        } else {
+                            $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
+                        }
                     } else {
                         $accessKeyId = $this->getAccessKeyId();
                         $accessKeySecret = $this->getAccessKeySecret();

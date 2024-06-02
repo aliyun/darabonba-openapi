@@ -63,6 +63,20 @@ class TestClient(unittest.TestCase):
         self.assertEqual('accessKeySecret', client.get_access_key_secret())
         self.assertEqual('securityToken', client.get_security_token())
         self.assertEqual('sts', client.get_type())
+
+        cre_config = credential_models.Config(
+            bearer_token='token',
+            type='bearer'
+        )
+        credential = CredentialClient(cre_config)
+        config.credential = credential
+        client = OpenApiClient(config)
+        self.assertIsNone(client.get_access_key_id())
+        self.assertIsNone(client.get_access_key_secret())
+        self.assertIsNone(client.get_security_token())
+        self.assertEqual('token', client.get_bearer_token())
+        self.assertEqual('bearer', client.get_type())
+
         config.access_key_id = 'ak'
         config.access_key_secret = 'secret'
         config.security_token = 'token'
@@ -121,6 +135,17 @@ class TestClient(unittest.TestCase):
             signature_version='config.signatureVersion',
             signature_algorithm='ACS3-HMAC-SHA256',
             global_parameters=global_parameters
+        )
+        return config
+    
+    def create_bearer_token_config(self) -> open_api_models.Config:
+        cre_config = credential_models.Config(
+            bearer_token='token',
+            type='bearer'
+        )
+        credential = CredentialClient(cre_config)
+        config = open_api_models.Config(
+            credential=credential
         )
         return config
 
@@ -222,6 +247,34 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
+
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test1.aliyuncs.com'
+        client = OpenApiClient(config)
+        def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            assert 'TestAPI' == request.querystring['Action'][0]
+            assert '2022-06-01' == request.querystring['Version'][0]
+            assert 'json' == request.querystring['Format'][0]
+            assert None is not request.querystring['Timestamp'][0]
+            assert None is not request.querystring['SignatureNonce'][0]
+            assert 'token' == request.querystring['BearerToken'][0]
+            assert 'BEARERTOKEN' == request.querystring['SignatureType'][0]
+            # assert 'bearer token' == request.headers.get('authorization')
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
+                content_type)
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            return [200, headers, responseBody]
+        httpretty.register_uri(
+            httpretty.POST, "http://test1.aliyuncs.com",
+            body=bearer_request_callback)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
@@ -340,6 +393,66 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
+
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test1.aliyuncs.com'
+        client = OpenApiClient(config)
+        def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            assert '2022-06-01' == request.headers.get('x-acs-version')
+            assert 'TestAPI' == request.headers.get('x-acs-action')
+            assert 'application/json' == request.headers.get('accept')
+            assert 'token' == request.headers.get('x-acs-bearer-token')
+            assert 'BEARERTOKEN' == request.headers.get('x-acs-signature-type')
+            # assert 'bearer token' == request.headers.get('authorization')
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
+                content_type)
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            return [200, headers, responseBody]
+        httpretty.register_uri(
+            httpretty.POST, "http://test1.aliyuncs.com/test",
+            body=bearer_request_callback)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
+        self.assertEqual(200, result.get('statusCode'))
+
+        requestBody = '{"key1":"value","key2":1,"key3":true}'
+        config.endpoint = 'test2.aliyuncs.com'
+        client = OpenApiClient(config)
+        params = open_api_models.Params(
+            action='TestAPI',
+            version='2022-06-01',
+            protocol='HTTPS',
+            pathname='/test',
+            method='POST',
+            auth_type='AK',
+            style='ROA',
+            req_body_type='json',
+            body_type='json'
+        )
+        def bearer_json_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            assert '2022-06-01' == request.headers.get('x-acs-version')
+            assert 'TestAPI' == request.headers.get('x-acs-action')
+            assert 'application/json' == request.headers.get('accept')
+            assert 'token' == request.headers.get('x-acs-bearer-token')
+            assert 'BEARERTOKEN' == request.headers.get('x-acs-signature-type')
+            # assert 'bearer token' == request.headers.get('authorization')
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
+                content_type)
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            return [200, headers, responseBody]
+        httpretty.register_uri(
+            httpretty.POST, "http://test2.aliyuncs.com/test",
+            body=bearer_json_request_callback)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)
@@ -461,6 +574,31 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.endpoint = 'test1.aliyuncs.com'
+        client = OpenApiClient(config)
+        def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            assert '2022-06-01' == request.headers.get('x-acs-version')
+            assert 'TestAPI' == request.headers.get('x-acs-action')
+            assert 'application/json' == request.headers.get('accept')
+            assert 'token' == request.headers.get('x-acs-bearer-token')
+            assert 'BEARERTOKEN' == request.querystring['SignatureType'][0]
+            # assert 'bearer token' == request.headers.get('authorization')
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
+                content_type)
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            return [200, headers, responseBody]
+        httpretty.register_uri(
+            httpretty.POST, "http://test1.aliyuncs.com",
+            body=bearer_request_callback)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
+        self.assertEqual(200, result.get('statusCode'))
+
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
         requestBody = '{"key1":"value","key2":1,"key3":true}'
@@ -577,6 +715,31 @@ class TestClient(unittest.TestCase):
         self.assertEqual('test', result.get('body').get('AppId'))
         self.assertEqual('test', result.get('body').get('ClassId'))
         self.assertEqual(123, result.get('body').get('UserId'))
+        self.assertEqual(200, result.get('statusCode'))
+
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.endpoint = 'test1.aliyuncs.com'
+        client = OpenApiClient(config)
+        def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            assert '2022-06-01' == request.headers.get('x-acs-version')
+            assert 'TestAPI' == request.headers.get('x-acs-action')
+            assert 'application/json' == request.headers.get('accept')
+            assert 'token' == request.headers.get('x-acs-bearer-token')
+            assert 'BEARERTOKEN' == request.headers.get('x-acs-signature-type')
+            # assert 'bearer token' == request.headers.get('authorization')
+            content_type = request.headers.get('content-type')
+            assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
+            assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
+                content_type)
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            return [200, headers, responseBody]
+        httpretty.register_uri(
+            httpretty.POST, "http://test1.aliyuncs.com/test",
+            body=bearer_request_callback)
+        result = client.call_api(params, request, runtime)
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
     @httpretty.activate(allow_net_connect=False)

@@ -83,7 +83,14 @@ open class Client {
                 "accessKeySecret": config.accessKeySecret ?? ""
             ])
             credentialConfig.securityToken = config.securityToken
-            self._credential = AlibabaCloudCredentials.Client(credentialConfig)
+            self._credential = try AlibabaCloudCredentials.Client(credentialConfig)
+        }
+        else if (!TeaUtils.Client.empty(config.bearerToken)) {
+            var cc: AlibabaCloudCredentials.Config = AlibabaCloudCredentials.Config([
+                "type": "bearer",
+                "bearerToken": config.bearerToken ?? ""
+            ])
+            self._credential = try AlibabaCloudCredentials.Client(cc)
         }
         else if (!TeaUtils.Client.isUnset(config.credential)) {
             self._credential = config.credential
@@ -206,21 +213,29 @@ open class Client {
                     _request.headers["content-type"] = "application/x-www-form-urlencoded";
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
-                    var accessKeyId: String = try await getAccessKeyId()
-                    var accessKeySecret: String = try await getAccessKeySecret()
-                    var securityToken: String = try await getSecurityToken()
-                    if (!TeaUtils.Client.empty(securityToken)) {
-                        _request.query["SecurityToken"] = securityToken as! String;
+                    var credentialType: String = try await getType()
+                    if (TeaUtils.Client.equalString(credentialType, "bearer")) {
+                        var bearerToken: String = try await getBearerToken()
+                        _request.query["BearerToken"] = bearerToken as! String;
+                        _request.query["SignatureType"] = "BEARERTOKEN";
                     }
-                    _request.query["SignatureMethod"] = "HMAC-SHA1";
-                    _request.query["SignatureVersion"] = "1.0";
-                    _request.query["AccessKeyId"] = accessKeyId as! String;
-                    var t: [String: Any]? = nil
-                    if (!TeaUtils.Client.isUnset(request.body)) {
-                        t = try TeaUtils.Client.assertAsMap(request.body)
+                    else {
+                        var accessKeyId: String = try await getAccessKeyId()
+                        var accessKeySecret: String = try await getAccessKeySecret()
+                        var securityToken: String = try await getSecurityToken()
+                        if (!TeaUtils.Client.empty(securityToken)) {
+                            _request.query["SecurityToken"] = securityToken as! String;
+                        }
+                        _request.query["SignatureMethod"] = "HMAC-SHA1";
+                        _request.query["SignatureVersion"] = "1.0";
+                        _request.query["AccessKeyId"] = accessKeyId as! String;
+                        var t: [String: Any]? = nil
+                        if (!TeaUtils.Client.isUnset(request.body)) {
+                            t = try TeaUtils.Client.assertAsMap(request.body)
+                        }
+                        var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, AlibabaCloudOpenApiUtil.Client.query(t))
+                        _request.query["Signature"] = AlibabaCloudOpenApiUtil.Client.getRPCSignature(signedParam, _request.method, accessKeySecret);
                     }
-                    var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, AlibabaCloudOpenApiUtil.Client.query(t))
-                    _request.query["Signature"] = AlibabaCloudOpenApiUtil.Client.getRPCSignature(signedParam, _request.method, accessKeySecret);
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -378,15 +393,23 @@ open class Client {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
-                    var accessKeyId: String = try await getAccessKeyId()
-                    var accessKeySecret: String = try await getAccessKeySecret()
-                    var securityToken: String = try await getSecurityToken()
-                    if (!TeaUtils.Client.empty(securityToken)) {
-                        _request.headers["x-acs-accesskey-id"] = accessKeyId as! String;
-                        _request.headers["x-acs-security-token"] = securityToken as! String;
+                    var credentialType: String = try await getType()
+                    if (TeaUtils.Client.equalString(credentialType, "bearer")) {
+                        var bearerToken: String = try await getBearerToken()
+                        _request.headers["x-acs-bearer-token"] = bearerToken as! String;
+                        _request.headers["x-acs-signature-type"] = "BEARERTOKEN";
                     }
-                    var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                    _request.headers["authorization"] = "acs " + accessKeyId + ":" + AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret);
+                    else {
+                        var accessKeyId: String = try await getAccessKeyId()
+                        var accessKeySecret: String = try await getAccessKeySecret()
+                        var securityToken: String = try await getSecurityToken()
+                        if (!TeaUtils.Client.empty(securityToken)) {
+                            _request.headers["x-acs-accesskey-id"] = accessKeyId as! String;
+                            _request.headers["x-acs-security-token"] = securityToken as! String;
+                        }
+                        var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
+                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
+                    }
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -551,15 +574,23 @@ open class Client {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
-                    var accessKeyId: String = try await getAccessKeyId()
-                    var accessKeySecret: String = try await getAccessKeySecret()
-                    var securityToken: String = try await getSecurityToken()
-                    if (!TeaUtils.Client.empty(securityToken)) {
-                        _request.headers["x-acs-accesskey-id"] = accessKeyId as! String;
-                        _request.headers["x-acs-security-token"] = securityToken as! String;
+                    var credentialType: String = try await getType()
+                    if (TeaUtils.Client.equalString(credentialType, "bearer")) {
+                        var bearerToken: String = try await getBearerToken()
+                        _request.headers["x-acs-bearer-token"] = bearerToken as! String;
+                        _request.headers["x-acs-signature-type"] = "BEARERTOKEN";
                     }
-                    var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                    _request.headers["authorization"] = "acs " + accessKeyId + ":" + AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret);
+                    else {
+                        var accessKeyId: String = try await getAccessKeyId()
+                        var accessKeySecret: String = try await getAccessKeySecret()
+                        var securityToken: String = try await getSecurityToken()
+                        if (!TeaUtils.Client.empty(securityToken)) {
+                            _request.headers["x-acs-accesskey-id"] = accessKeyId as! String;
+                            _request.headers["x-acs-security-token"] = securityToken as! String;
+                        }
+                        var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
+                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
+                    }
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -754,6 +785,12 @@ open class Client {
                     if (TeaUtils.Client.equalString(authType, "bearer")) {
                         var bearerToken: String = try await getBearerToken()
                         _request.headers["x-acs-bearer-token"] = bearerToken as! String;
+                        if (TeaUtils.Client.equalString(params.style, "RPC")) {
+                            _request.query["SignatureType"] = "BEARERTOKEN";
+                        }
+                        else {
+                            _request.headers["x-acs-signature-type"] = "BEARERTOKEN";
+                        }
                     }
                     else {
                         var accessKeyId: String = try await getAccessKeyId()
