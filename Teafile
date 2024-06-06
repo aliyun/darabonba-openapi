@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
-  "name": "OpenApi",
-  "version": "0.3.13",
+  "name": "OpenApiWithHttpClient",
+  "version": "0.0.1",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -101,7 +101,7 @@
   },
   "releaselog": {
     "changelog": [
-      "support bearer token credentials request."
+      "[golang]support httpclient in config."
     ],
     "compatible": true
   }
