@@ -50,6 +50,7 @@ model Config {
   accessKeyId?: string(description='accesskey id',default=''),
   accessKeySecret?: string(description='accesskey secret',default=''),
   securityToken?: string(description='security token',example='a.txt',default=''),
+  bearerToken?: string(description='bearer token',example='the-bearer-token',default=''),
   protocol?: string(description='http protocol',example='http',default='http'),
   method?: string(description='http method',example='GET',default=''),
   regionId?: string(description='region id',example='cn-hangzhou',default=''),
@@ -103,6 +104,12 @@ init(config: Config) {
     };
     credentialConfig.securityToken = config.securityToken;
     @credential = new Credential(credentialConfig);
+  } else if (!Util.empty(config.bearerToken)) {
+    var cc = new Credential.Config{
+      type = 'bearer',
+      bearerToken = config.bearerToken
+    };
+    @credential = new Credential(cc);
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
   }
