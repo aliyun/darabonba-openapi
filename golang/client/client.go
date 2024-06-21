@@ -1,7 +1,7 @@
 // This file is auto-generated, don't edit it. Thanks.
-/**
- * This is for OpenApi SDK
- */
+// Description:
+//
+// This is for OpenApi SDK
 package client
 
 import (
@@ -38,73 +38,171 @@ func (s *GlobalParameters) SetQueries(v map[string]*string) *GlobalParameters {
 	return s
 }
 
-/**
- * Model for initing client
- */
+// Description:
+//
+// Model for initing client
 type Config struct {
 	// accesskey id
 	AccessKeyId *string `json:"accessKeyId,omitempty" xml:"accessKeyId,omitempty"`
 	// accesskey secret
 	AccessKeySecret *string `json:"accessKeySecret,omitempty" xml:"accessKeySecret,omitempty"`
 	// security token
+	//
+	// example:
+	//
+	// a.txt
 	SecurityToken *string `json:"securityToken,omitempty" xml:"securityToken,omitempty"`
 	// http protocol
+	//
+	// example:
+	//
+	// http
 	Protocol *string `json:"protocol,omitempty" xml:"protocol,omitempty"`
 	// http method
+	//
+	// example:
+	//
+	// GET
 	Method *string `json:"method,omitempty" xml:"method,omitempty"`
 	// region id
+	//
+	// example:
+	//
+	// cn-hangzhou
 	RegionId *string `json:"regionId,omitempty" xml:"regionId,omitempty"`
 	// read timeout
+	//
+	// example:
+	//
+	// 10
 	ReadTimeout *int `json:"readTimeout,omitempty" xml:"readTimeout,omitempty"`
 	// connect timeout
+	//
+	// example:
+	//
+	// 10
 	ConnectTimeout *int `json:"connectTimeout,omitempty" xml:"connectTimeout,omitempty"`
 	// http proxy
+	//
+	// example:
+	//
+	// http://localhost
 	HttpProxy *string `json:"httpProxy,omitempty" xml:"httpProxy,omitempty"`
 	// https proxy
+	//
+	// example:
+	//
+	// https://localhost
 	HttpsProxy *string `json:"httpsProxy,omitempty" xml:"httpsProxy,omitempty"`
 	// credential
 	Credential credential.Credential `json:"credential,omitempty" xml:"credential,omitempty"`
 	// endpoint
+	//
+	// example:
+	//
+	// cs.aliyuncs.com
 	Endpoint *string `json:"endpoint,omitempty" xml:"endpoint,omitempty"`
 	// proxy white list
+	//
+	// example:
+	//
+	// http://localhost
 	NoProxy *string `json:"noProxy,omitempty" xml:"noProxy,omitempty"`
 	// max idle conns
+	//
+	// example:
+	//
+	// 3
 	MaxIdleConns *int `json:"maxIdleConns,omitempty" xml:"maxIdleConns,omitempty"`
 	// network for endpoint
+	//
+	// example:
+	//
+	// public
 	Network *string `json:"network,omitempty" xml:"network,omitempty"`
 	// user agent
+	//
+	// example:
+	//
+	// Alibabacloud/1
 	UserAgent *string `json:"userAgent,omitempty" xml:"userAgent,omitempty"`
 	// suffix for endpoint
+	//
+	// example:
+	//
+	// aliyun
 	Suffix *string `json:"suffix,omitempty" xml:"suffix,omitempty"`
 	// socks5 proxy
 	Socks5Proxy *string `json:"socks5Proxy,omitempty" xml:"socks5Proxy,omitempty"`
 	// socks5 network
+	//
+	// example:
+	//
+	// TCP
 	Socks5NetWork *string `json:"socks5NetWork,omitempty" xml:"socks5NetWork,omitempty"`
 	// endpoint type
+	//
+	// example:
+	//
+	// internal
 	EndpointType *string `json:"endpointType,omitempty" xml:"endpointType,omitempty"`
 	// OpenPlatform endpoint
+	//
+	// example:
+	//
+	// openplatform.aliyuncs.com
 	OpenPlatformEndpoint *string `json:"openPlatformEndpoint,omitempty" xml:"openPlatformEndpoint,omitempty"`
 	// Deprecated
+	//
 	// credential type
+	//
+	// example:
+	//
+	// access_key
 	Type *string `json:"type,omitempty" xml:"type,omitempty"`
 	// Signature Version
+	//
+	// example:
+	//
+	// v1
 	SignatureVersion *string `json:"signatureVersion,omitempty" xml:"signatureVersion,omitempty"`
 	// Signature Algorithm
+	//
+	// example:
+	//
+	// ACS3-HMAC-SHA256
 	SignatureAlgorithm *string `json:"signatureAlgorithm,omitempty" xml:"signatureAlgorithm,omitempty"`
 	// Global Parameters
 	GlobalParameters *GlobalParameters `json:"globalParameters,omitempty" xml:"globalParameters,omitempty"`
 	// privite key for client certificate
+	//
+	// example:
+	//
+	// MIIEvQ
 	Key *string `json:"key,omitempty" xml:"key,omitempty"`
 	// client certificate
+	//
+	// example:
+	//
+	// -----BEGIN CERTIFICATE-----
+	//
+	// xxx-----END CERTIFICATE-----
 	Cert *string `json:"cert,omitempty" xml:"cert,omitempty"`
 	// server certificate
+	//
+	// example:
+	//
+	// -----BEGIN CERTIFICATE-----
+	//
+	// xxx-----END CERTIFICATE-----
 	Ca *string `json:"ca,omitempty" xml:"ca,omitempty"`
 	// disable HTTP/2
 	//
 	// example:
 	//
 	// false
-	DisableHttp2 *bool `json:"disableHttp2,omitempty" xml:"disableHttp2,omitempty"`
+	DisableHttp2 *bool          `json:"disableHttp2,omitempty" xml:"disableHttp2,omitempty"`
+	HttpClient   tea.HttpClient `json:"httpClient,omitempty" xml:"httpClient,omitempty"`
 }
 
 func (s Config) String() string {
@@ -260,6 +358,11 @@ func (s *Config) SetDisableHttp2(v bool) *Config {
 	return s
 }
 
+func (s *Config) SetHttpClient(v tea.HttpClient) *Config {
+	s.HttpClient = v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
@@ -403,12 +506,14 @@ type Client struct {
 	Cert                 *string
 	Ca                   *string
 	DisableHttp2         *bool
+	HttpClient           tea.HttpClient
 }
 
-/**
- * Init client with Config
- * @param config config contains the necessary information to create a client
- */
+// Description:
+//
+// # Init client with Config
+//
+// @param config - config contains the necessary information to create a client
 func NewClient(config *Config) (*Client, error) {
 	client := new(Client)
 	err := client.Init(config)
@@ -469,21 +574,31 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Cert = config.Cert
 	client.Ca = config.Ca
 	client.DisableHttp2 = config.DisableHttp2
+	client.HttpClient = config.HttpClient
 	return nil
 }
 
-/**
- * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
- * @param runtime which controls some details of call api, such as retry times
- * @return the response
- */
+// Description:
+//
+// # Encapsulate the request and invoke the network
+//
+// @param action - api name
+//
+// @param version - product version
+//
+// @param protocol - http or https
+//
+// @param method - e.g. GET
+//
+// @param authType - authorization type e.g. AK
+//
+// @param bodyType - response body type e.g. String
+//
+// @param request - object of OpenApiRequest
+//
+// @param runtime - which controls some details of call api, such as retry times
+//
+// @return the response
 func (client *Client) DoRPCRequest(action *string, version *string, protocol *string, method *string, authType *string, bodyType *string, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
 	_err = tea.Validate(request)
 	if _err != nil {
@@ -514,7 +629,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":  tea.BoolValue(runtime.IgnoreSSL),
+		"httpClient": client.HttpClient,
 	}
 
 	_resp := make(map[string]interface{})
@@ -745,19 +861,29 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 	return _resp, _err
 }
 
-/**
- * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param pathname pathname of every api
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
- * @param runtime which controls some details of call api, such as retry times
- * @return the response
- */
+// Description:
+//
+// # Encapsulate the request and invoke the network
+//
+// @param action - api name
+//
+// @param version - product version
+//
+// @param protocol - http or https
+//
+// @param method - e.g. GET
+//
+// @param authType - authorization type e.g. AK
+//
+// @param pathname - pathname of every api
+//
+// @param bodyType - response body type e.g. String
+//
+// @param request - object of OpenApiRequest
+//
+// @param runtime - which controls some details of call api, such as retry times
+//
+// @return the response
 func (client *Client) DoROARequest(action *string, version *string, protocol *string, method *string, authType *string, pathname *string, bodyType *string, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
 	_err = tea.Validate(request)
 	if _err != nil {
@@ -788,7 +914,8 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":  tea.BoolValue(runtime.IgnoreSSL),
+		"httpClient": client.HttpClient,
 	}
 
 	_resp := make(map[string]interface{})
@@ -996,19 +1123,29 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 	return _resp, _err
 }
 
-/**
- * Encapsulate the request and invoke the network with form body
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param pathname pathname of every api
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
- * @param runtime which controls some details of call api, such as retry times
- * @return the response
- */
+// Description:
+//
+// # Encapsulate the request and invoke the network with form body
+//
+// @param action - api name
+//
+// @param version - product version
+//
+// @param protocol - http or https
+//
+// @param method - e.g. GET
+//
+// @param authType - authorization type e.g. AK
+//
+// @param pathname - pathname of every api
+//
+// @param bodyType - response body type e.g. String
+//
+// @param request - object of OpenApiRequest
+//
+// @param runtime - which controls some details of call api, such as retry times
+//
+// @return the response
 func (client *Client) DoROARequestWithForm(action *string, version *string, protocol *string, method *string, authType *string, pathname *string, bodyType *string, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
 	_err = tea.Validate(request)
 	if _err != nil {
@@ -1039,7 +1176,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":  tea.BoolValue(runtime.IgnoreSSL),
+		"httpClient": client.HttpClient,
 	}
 
 	_resp := make(map[string]interface{})
@@ -1250,18 +1388,27 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 	return _resp, _err
 }
 
-/**
- * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
- * @param runtime which controls some details of call api, such as retry times
- * @return the response
- */
+// Description:
+//
+// # Encapsulate the request and invoke the network
+//
+// @param action - api name
+//
+// @param version - product version
+//
+// @param protocol - http or https
+//
+// @param method - e.g. GET
+//
+// @param authType - authorization type e.g. AK
+//
+// @param bodyType - response body type e.g. String
+//
+// @param request - object of OpenApiRequest
+//
+// @param runtime - which controls some details of call api, such as retry times
+//
+// @return the response
 func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
 	_err = tea.Validate(params)
 	if _err != nil {
@@ -1296,7 +1443,8 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":  tea.BoolValue(runtime.IgnoreSSL),
+		"httpClient": client.HttpClient,
 	}
 
 	_resp := make(map[string]interface{})
@@ -1561,18 +1709,27 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 	return _resp, _err
 }
 
-/**
- * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
- * @param runtime which controls some details of call api, such as retry times
- * @return the response
- */
+// Description:
+//
+// # Encapsulate the request and invoke the network
+//
+// @param action - api name
+//
+// @param version - product version
+//
+// @param protocol - http or https
+//
+// @param method - e.g. GET
+//
+// @param authType - authorization type e.g. AK
+//
+// @param bodyType - response body type e.g. String
+//
+// @param request - object of OpenApiRequest
+//
+// @param runtime - which controls some details of call api, such as retry times
+//
+// @return the response
 func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *util.RuntimeOptions) (_result map[string]interface{}, _err error) {
 	_err = tea.Validate(params)
 	if _err != nil {
@@ -1609,6 +1766,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 		},
 		"ignoreSSL":    tea.BoolValue(runtime.IgnoreSSL),
 		"disableHttp2": DefaultAny(client.DisableHttp2, tea.Bool(false)),
+		"httpClient":   client.HttpClient,
 	}
 
 	_resp := make(map[string]interface{})
@@ -1782,20 +1940,22 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 
 }
 
-/**
- * Get user agent
- * @return user agent
- */
+// Description:
+//
+// # Get user agent
+//
+// @return user agent
 func (client *Client) GetUserAgent() (_result *string) {
 	userAgent := util.GetUserAgent(client.UserAgent)
 	_result = userAgent
 	return _result
 }
 
-/**
- * Get accesskey id by using credential
- * @return accesskey id
- */
+// Description:
+//
+// # Get accesskey id by using credential
+//
+// @return accesskey id
 func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
 		_result = tea.String("")
@@ -1811,10 +1971,11 @@ func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 	return _result, _err
 }
 
-/**
- * Get accesskey secret by using credential
- * @return accesskey secret
- */
+// Description:
+//
+// # Get accesskey secret by using credential
+//
+// @return accesskey secret
 func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
 		_result = tea.String("")
@@ -1830,10 +1991,11 @@ func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 	return _result, _err
 }
 
-/**
- * Get security token by using credential
- * @return security token
- */
+// Description:
+//
+// # Get security token by using credential
+//
+// @return security token
 func (client *Client) GetSecurityToken() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
 		_result = tea.String("")
@@ -1849,10 +2011,11 @@ func (client *Client) GetSecurityToken() (_result *string, _err error) {
 	return _result, _err
 }
 
-/**
- * Get bearer token by credential
- * @return bearer token
- */
+// Description:
+//
+// # Get bearer token by credential
+//
+// @return bearer token
 func (client *Client) GetBearerToken() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
 		_result = tea.String("")
@@ -1864,10 +2027,11 @@ func (client *Client) GetBearerToken() (_result *string, _err error) {
 	return _result, _err
 }
 
-/**
- * Get credential type by credential
- * @return credential type e.g. access_key
- */
+// Description:
+//
+// # Get credential type by credential
+//
+// @return credential type e.g. access_key
 func (client *Client) GetType() (_result *string, _err error) {
 	if tea.BoolValue(util.IsUnset(client.Credential)) {
 		_result = tea.String("")
@@ -1879,12 +2043,15 @@ func (client *Client) GetType() (_result *string, _err error) {
 	return _result, _err
 }
 
-/**
- * If inputValue is not null, return it or return defaultValue
- * @param inputValue  users input value
- * @param defaultValue default value
- * @return the final result
- */
+// Description:
+//
+// # If inputValue is not null, return it or return defaultValue
+//
+// @param inputValue - users input value
+//
+// @param defaultValue - default value
+//
+// @return the final result
 func DefaultAny(inputValue interface{}, defaultValue interface{}) (_result interface{}) {
 	if tea.BoolValue(util.IsUnset(inputValue)) {
 		_result = defaultValue
@@ -1895,10 +2062,11 @@ func DefaultAny(inputValue interface{}, defaultValue interface{}) (_result inter
 	return _result
 }
 
-/**
- * If the endpointRule and config.endpoint are empty, throw error
- * @param config config contains the necessary information to create a client
- */
+// Description:
+//
+// # If the endpointRule and config.endpoint are empty, throw error
+//
+// @param config - config contains the necessary information to create a client
 func (client *Client) CheckConfig(config *Config) (_err error) {
 	if tea.BoolValue(util.Empty(client.EndpointRule)) && tea.BoolValue(util.Empty(config.Endpoint)) {
 		_err = tea.NewSDKError(map[string]interface{}{
@@ -1911,27 +2079,29 @@ func (client *Client) CheckConfig(config *Config) (_err error) {
 	return _err
 }
 
-/**
- * set gateway client
- * @param spi.
- */
+// Description:
+//
+// set gateway client
+//
+// @param spi - .
 func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {
 	client.Spi = spi
 	return _err
 }
 
-/**
- * set RPC header for debug
- * @param headers headers for debug, this header can be used only once.
- */
+// Description:
+//
+// set RPC header for debug
+//
+// @param headers - headers for debug, this header can be used only once.
 func (client *Client) SetRpcHeaders(headers map[string]*string) (_err error) {
 	client.Headers = headers
 	return _err
 }
 
-/**
- * get RPC header for debug
- */
+// Description:
+//
+// get RPC header for debug
 func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
 	headers := client.Headers
 	client.Headers = nil
