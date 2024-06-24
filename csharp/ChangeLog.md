@@ -1,3 +1,7 @@
+### 2024-06-24 Version 0.1.10
+
+- Support bearer token credentials request.
+
 ### 2023-02-07 Version 0.1.7
 
 - Add ca configs.
