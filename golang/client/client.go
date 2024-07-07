@@ -674,10 +674,15 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			}
 
 			extendsHeaders := make(map[string]*string)
+			extendsQueries := make(map[string]*string)
 			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
 				extendsParameters := runtime.ExtendsParameters
 				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
 					extendsHeaders = extendsParameters.Headers
+				}
+
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Queries)) {
+					extendsQueries = extendsParameters.Queries
 				}
 
 			}
@@ -689,6 +694,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"Timestamp":      openapiutil.GetTimestamp(),
 				"SignatureNonce": util.GetNonce(),
 			}, globalQueries,
+				extendsQueries,
 				request.Query)
 			headers, _err := client.GetRpcHeaders()
 			if _err != nil {
@@ -974,10 +980,15 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}
 
 			extendsHeaders := make(map[string]*string)
+			extendsQueries := make(map[string]*string)
 			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
 				extendsParameters := runtime.ExtendsParameters
 				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
 					extendsHeaders = extendsParameters.Headers
+				}
+
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Queries)) {
+					extendsQueries = extendsParameters.Queries
 				}
 
 			}
@@ -1000,7 +1011,8 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
 			}
 
-			request_.Query = globalQueries
+			request_.Query = tea.Merge(globalQueries,
+				extendsQueries)
 			if !tea.BoolValue(util.IsUnset(request.Query)) {
 				request_.Query = tea.Merge(request_.Query,
 					request.Query)
@@ -1251,10 +1263,15 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			}
 
 			extendsHeaders := make(map[string]*string)
+			extendsQueries := make(map[string]*string)
 			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
 				extendsParameters := runtime.ExtendsParameters
 				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
 					extendsHeaders = extendsParameters.Headers
+				}
+
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Queries)) {
+					extendsQueries = extendsParameters.Queries
 				}
 
 			}
@@ -1282,7 +1299,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				request_.Headers["content-type"] = tea.String("application/x-www-form-urlencoded")
 			}
 
-			request_.Query = globalQueries
+			request_.Query = tea.Merge(globalQueries,
+				extendsQueries)
 			if !tea.BoolValue(util.IsUnset(request.Query)) {
 				request_.Query = tea.Merge(request_.Query,
 					request.Query)
@@ -1533,15 +1551,21 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			}
 
 			extendsHeaders := make(map[string]*string)
+			extendsQueries := make(map[string]*string)
 			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
 				extendsParameters := runtime.ExtendsParameters
 				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
 					extendsHeaders = extendsParameters.Headers
 				}
 
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Queries)) {
+					extendsQueries = extendsParameters.Queries
+				}
+
 			}
 
 			request_.Query = tea.Merge(globalQueries,
+				extendsQueries,
 				request.Query)
 			// endpoint is setted in product client
 			request_.Headers = tea.Merge(map[string]*string{
@@ -1863,10 +1887,15 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			}
 
 			extendsHeaders := make(map[string]*string)
+			extendsQueries := make(map[string]*string)
 			if !tea.BoolValue(util.IsUnset(runtime.ExtendsParameters)) {
 				extendsParameters := runtime.ExtendsParameters
 				if !tea.BoolValue(util.IsUnset(extendsParameters.Headers)) {
 					extendsHeaders = extendsParameters.Headers
+				}
+
+				if !tea.BoolValue(util.IsUnset(extendsParameters.Queries)) {
+					extendsQueries = extendsParameters.Queries
 				}
 
 			}
@@ -1877,6 +1906,7 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 					request.Headers,
 					headers),
 				Query: tea.Merge(globalQueries,
+					extendsQueries,
 					request.Query),
 				Body:               request.Body,
 				Stream:             request.Stream,

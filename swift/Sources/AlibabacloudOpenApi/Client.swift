@@ -176,10 +176,14 @@ open class Client {
                     }
                 }
                 var extendsHeaders: [String: String] = [:]
+                var extendsQueries: [String: String] = [:]
                 if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
                     var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
                     if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                    if (!TeaUtils.Client.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries ?? [:]
                     }
                 }
                 _request.query = Tea.TeaConverter.merge([
@@ -188,7 +192,7 @@ open class Client {
                     "Version": version as! String,
                     "Timestamp": AlibabaCloudOpenApiUtil.Client.getTimestamp(),
                     "SignatureNonce": TeaUtils.Client.getNonce()
-                ], globalQueries, request.query ?? [:])
+                ], globalQueries, extendsQueries, request.query ?? [:])
                 var headers: [String: String] = try getRpcHeaders()
                 if (TeaUtils.Client.isUnset(headers)) {
                     _request.headers = Tea.TeaConverter.merge([
@@ -367,10 +371,14 @@ open class Client {
                     }
                 }
                 var extendsHeaders: [String: String] = [:]
+                var extendsQueries: [String: String] = [:]
                 if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
                     var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
                     if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                    if (!TeaUtils.Client.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries ?? [:]
                     }
                 }
                 _request.headers = Tea.TeaConverter.merge([
@@ -388,7 +396,7 @@ open class Client {
                     _request.body = Tea.TeaCore.toReadable(TeaUtils.Client.toJSONString(request.body))
                     _request.headers["content-type"] = "application/json; charset=utf-8";
                 }
-                _request.query = globalQueries as! [String: String]
+                _request.query = Tea.TeaConverter.merge([:], globalQueries, extendsQueries)
                 if (!TeaUtils.Client.isUnset(request.query)) {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
@@ -547,10 +555,14 @@ open class Client {
                     }
                 }
                 var extendsHeaders: [String: String] = [:]
+                var extendsQueries: [String: String] = [:]
                 if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
                     var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
                     if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers ?? [:]
+                    }
+                    if (!TeaUtils.Client.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries ?? [:]
                     }
                 }
                 _request.headers = Tea.TeaConverter.merge([
@@ -569,7 +581,7 @@ open class Client {
                     _request.body = Tea.TeaCore.toReadable(AlibabaCloudOpenApiUtil.Client.toForm(m))
                     _request.headers["content-type"] = "application/x-www-form-urlencoded";
                 }
-                _request.query = globalQueries as! [String: String]
+                _request.query = Tea.TeaConverter.merge([:], globalQueries, extendsQueries)
                 if (!TeaUtils.Client.isUnset(request.query)) {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
@@ -727,13 +739,17 @@ open class Client {
                     }
                 }
                 var extendsHeaders: [String: String] = [:]
+                var extendsQueries: [String: String] = [:]
                 if (!TeaUtils.Client.isUnset(runtime.extendsParameters)) {
                     var extendsParameters: TeaUtils.ExtendsParameters = runtime.extendsParameters!
                     if (!TeaUtils.Client.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers ?? [:]
                     }
+                    if (!TeaUtils.Client.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries ?? [:]
+                    }
                 }
-                _request.query = Tea.TeaConverter.merge([:], globalQueries, request.query ?? [:])
+                _request.query = Tea.TeaConverter.merge([:], globalQueries, extendsQueries, request.query ?? [:])
                 _request.headers = Tea.TeaConverter.merge([
                     "host": self._endpoint ?? "",
                     "x-acs-version": params.version ?? "",
