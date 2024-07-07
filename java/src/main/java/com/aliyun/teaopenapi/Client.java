@@ -173,10 +173,15 @@ public class Client {
                 }
 
                 java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                java.util.Map<String, String> extendsQueries = new java.util.HashMap<>();
                 if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
                     com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
                     if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries;
                     }
 
                 }
@@ -190,6 +195,7 @@ public class Client {
                         new TeaPair("SignatureNonce", com.aliyun.teautil.Common.getNonce())
                     ),
                     globalQueries,
+                    extendsQueries,
                     request.query
                 );
                 java.util.Map<String, String> headers = this.getRpcHeaders();
@@ -399,10 +405,15 @@ public class Client {
                 }
 
                 java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                java.util.Map<String, String> extendsQueries = new java.util.HashMap<>();
                 if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
                     com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
                     if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries;
                     }
 
                 }
@@ -428,7 +439,10 @@ public class Client {
                     request_.headers.put("content-type", "application/json; charset=utf-8");
                 }
 
-                request_.query = globalQueries;
+                request_.query = TeaConverter.merge(String.class,
+                    globalQueries,
+                    extendsQueries
+                );
                 if (!com.aliyun.teautil.Common.isUnset(request.query)) {
                     request_.query = TeaConverter.merge(String.class,
                         request_.query,
@@ -606,10 +620,15 @@ public class Client {
                 }
 
                 java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                java.util.Map<String, String> extendsQueries = new java.util.HashMap<>();
                 if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
                     com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
                     if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries;
                     }
 
                 }
@@ -636,7 +655,10 @@ public class Client {
                     request_.headers.put("content-type", "application/x-www-form-urlencoded");
                 }
 
-                request_.query = globalQueries;
+                request_.query = TeaConverter.merge(String.class,
+                    globalQueries,
+                    extendsQueries
+                );
                 if (!com.aliyun.teautil.Common.isUnset(request.query)) {
                     request_.query = TeaConverter.merge(String.class,
                         request_.query,
@@ -812,16 +834,22 @@ public class Client {
                 }
 
                 java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                java.util.Map<String, String> extendsQueries = new java.util.HashMap<>();
                 if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
                     com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
                     if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers;
                     }
 
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries;
+                    }
+
                 }
 
                 request_.query = TeaConverter.merge(String.class,
                     globalQueries,
+                    extendsQueries,
                     request.query
                 );
                 // endpoint is setted in product client
@@ -1058,10 +1086,15 @@ public class Client {
                 }
 
                 java.util.Map<String, String> extendsHeaders = new java.util.HashMap<>();
+                java.util.Map<String, String> extendsQueries = new java.util.HashMap<>();
                 if (!com.aliyun.teautil.Common.isUnset(runtime.extendsParameters)) {
                     com.aliyun.teautil.models.ExtendsParameters extendsParameters = runtime.extendsParameters;
                     if (!com.aliyun.teautil.Common.isUnset(extendsParameters.headers)) {
                         extendsHeaders = extendsParameters.headers;
+                    }
+
+                    if (!com.aliyun.teautil.Common.isUnset(extendsParameters.queries)) {
+                        extendsQueries = extendsParameters.queries;
                     }
 
                 }
@@ -1075,6 +1108,7 @@ public class Client {
                     )),
                     new TeaPair("query", TeaConverter.merge(String.class,
                         globalQueries,
+                        extendsQueries,
                         request.query
                     )),
                     new TeaPair("body", request.body),

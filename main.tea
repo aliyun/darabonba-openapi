@@ -175,10 +175,14 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     }
   }
   var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
   if (!Util.isUnset(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
     if (!Util.isUnset(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
+    }
+    if (!Util.isUnset(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
     }
   }
   __request.query = {
@@ -188,6 +192,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     Timestamp = OpenApiUtil.getTimestamp(),
     SignatureNonce = Util.getNonce(),
     ...globalQueries,
+    ...extendsQueries,
     ...request.query
   };
 
@@ -357,10 +362,14 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     }
   }
   var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
   if (!Util.isUnset(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
     if (!Util.isUnset(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
+    }
+    if (!Util.isUnset(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
     }
   }
   __request.headers = {
@@ -383,7 +392,10 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     __request.headers.content-type = 'application/json; charset=utf-8';
   }
 
-  __request.query = globalQueries;
+  __request.query = {
+    ...globalQueries,
+    ...extendsQueries,
+  };
   if (!Util.isUnset(request.query)) {
     __request.query = {
       ...__request.query,
@@ -526,10 +538,14 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     }
   }
   var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
   if (!Util.isUnset(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
     if (!Util.isUnset(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
+    }
+    if (!Util.isUnset(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
     }
   }
   __request.headers = {
@@ -554,7 +570,10 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
 
-  __request.query = globalQueries;
+  __request.query = {
+    ...globalQueries,
+    ...extendsQueries,
+  };
   if (!Util.isUnset(request.query)) {
     __request.query = {
       ...__request.query,
@@ -723,14 +742,19 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     }
   }
   var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
   if (!Util.isUnset(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
     if (!Util.isUnset(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
+    if (!Util.isUnset(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
+    }
   }
   __request.query = {
     ...globalQueries,
+    ...extendsQueries,
     ...request.query,
   };
 
@@ -928,10 +952,14 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     }
   }
   var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
   if (!Util.isUnset(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
     if (!Util.isUnset(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
+    }
+    if (!Util.isUnset(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
     }
   }
   var requestContext = new SPI.InterceptorContext.request{
@@ -943,6 +971,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     },
     query = {
       ...globalQueries,
+      ...extendsQueries,
       ...request.query,
     },
     body = request.body,

@@ -218,10 +218,14 @@ class OpenApiClient
                     }
                 }
                 $extendsHeaders = [];
+                $extendsQueries = [];
                 if (!Utils::isUnset($runtime->extendsParameters)) {
                     $extendsParameters = $runtime->extendsParameters;
                     if (!Utils::isUnset($extendsParameters->headers)) {
                         $extendsHeaders = $extendsParameters->headers;
+                    }
+                    if (!Utils::isUnset($extendsParameters->queries)) {
+                        $extendsQueries = $extendsParameters->queries;
                     }
                 }
                 $_request->query = Tea::merge([
@@ -230,7 +234,7 @@ class OpenApiClient
                     "Version" => $version,
                     "Timestamp" => OpenApiUtilClient::getTimestamp(),
                     "SignatureNonce" => Utils::getNonce()
-                ], $globalQueries, $request->query);
+                ], $globalQueries, $extendsQueries, $request->query);
                 $headers = $this->getRpcHeaders();
                 if (Utils::isUnset($headers)) {
                     // endpoint is setted in product client
@@ -383,13 +387,13 @@ class OpenApiClient
             "socks5NetWork" => Utils::defaultString($runtime->socks5NetWork, $this->_socks5NetWork),
             "maxIdleConns" => Utils::defaultNumber($runtime->maxIdleConns, $this->_maxIdleConns),
             "retry" => [
-                "retryable" => $runtime->autoretry,
-                "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
-            ],
+                    "retryable" => $runtime->autoretry,
+                    "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
+                ],
             "backoff" => [
-                "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
-                "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
-            ],
+                    "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
+                    "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
+                ],
             "ignoreSSL" => $runtime->ignoreSSL
         ];
         $_lastRequest = null;
@@ -421,10 +425,14 @@ class OpenApiClient
                     }
                 }
                 $extendsHeaders = [];
+                $extendsQueries = [];
                 if (!Utils::isUnset($runtime->extendsParameters)) {
                     $extendsParameters = $runtime->extendsParameters;
                     if (!Utils::isUnset($extendsParameters->headers)) {
                         $extendsHeaders = $extendsParameters->headers;
+                    }
+                    if (!Utils::isUnset($extendsParameters->queries)) {
+                        $extendsQueries = $extendsParameters->queries;
                     }
                 }
                 $_request->headers = Tea::merge([
@@ -442,7 +450,7 @@ class OpenApiClient
                     $_request->body = Utils::toJSONString($request->body);
                     $_request->headers["content-type"] = "application/json; charset=utf-8";
                 }
-                $_request->query = $globalQueries;
+                $_request->query = Tea::merge($globalQueries, $extendsQueries);
                 if (!Utils::isUnset($request->query)) {
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
@@ -579,9 +587,9 @@ class OpenApiClient
                 "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
             ],
             "backoff" => [
-                "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
-                "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
-            ],
+                    "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
+                    "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
+                ],
             "ignoreSSL" => $runtime->ignoreSSL
         ];
         $_lastRequest = null;
@@ -613,10 +621,14 @@ class OpenApiClient
                     }
                 }
                 $extendsHeaders = [];
+                $extendsQueries = [];
                 if (!Utils::isUnset($runtime->extendsParameters)) {
                     $extendsParameters = $runtime->extendsParameters;
                     if (!Utils::isUnset($extendsParameters->headers)) {
                         $extendsHeaders = $extendsParameters->headers;
+                    }
+                    if (!Utils::isUnset($extendsParameters->queries)) {
+                        $extendsQueries = $extendsParameters->queries;
                     }
                 }
                 $_request->headers = Tea::merge([
@@ -635,7 +647,7 @@ class OpenApiClient
                     $_request->body = OpenApiUtilClient::toForm($m);
                     $_request->headers["content-type"] = "application/x-www-form-urlencoded";
                 }
-                $_request->query = $globalQueries;
+                $_request->query = Tea::merge($globalQueries, $extendsQueries);
                 if (!Utils::isUnset($request->query)) {
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
@@ -799,13 +811,17 @@ class OpenApiClient
                     }
                 }
                 $extendsHeaders = [];
+                $extendsQueries = [];
                 if (!Utils::isUnset($runtime->extendsParameters)) {
                     $extendsParameters = $runtime->extendsParameters;
                     if (!Utils::isUnset($extendsParameters->headers)) {
                         $extendsHeaders = $extendsParameters->headers;
                     }
+                    if (!Utils::isUnset($extendsParameters->queries)) {
+                        $extendsQueries = $extendsParameters->queries;
+                    }
                 }
-                $_request->query = Tea::merge($globalQueries, $request->query);
+                $_request->query = Tea::merge($globalQueries, $extendsQueries, $request->query);
                 // endpoint is setted in product client
                 $_request->headers = Tea::merge([
                     "host" => $this->_endpoint,
@@ -1010,15 +1026,19 @@ class OpenApiClient
                     }
                 }
                 $extendsHeaders = [];
+                $extendsQueries = [];
                 if (!Utils::isUnset($runtime->extendsParameters)) {
                     $extendsParameters = $runtime->extendsParameters;
                     if (!Utils::isUnset($extendsParameters->headers)) {
                         $extendsHeaders = $extendsParameters->headers;
                     }
+                    if (!Utils::isUnset($extendsParameters->queries)) {
+                        $extendsQueries = $extendsParameters->queries;
+                    }
                 }
                 $requestContext = new \Darabonba\GatewaySpi\Models\InterceptorContext\request([
                     "headers" => Tea::merge($globalHeaders, $extendsHeaders, $request->headers, $headers),
-                    "query" => Tea::merge($globalQueries, $request->query),
+                    "query" => Tea::merge($globalQueries, $extendsQueries, $request->query),
                     "body" => $request->body,
                     "stream" => $request->stream,
                     "hostMap" => $request->hostMap,

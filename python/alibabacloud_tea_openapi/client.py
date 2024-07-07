@@ -182,10 +182,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.query = TeaCore.merge({
                     'Action': action,
                     'Format': 'json',
@@ -193,6 +196,7 @@ class Client:
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
                 }, global_queries,
+                    extends_queries,
                     request.query)
                 headers = self.get_rpc_headers()
                 if UtilClient.is_unset(headers):
@@ -373,10 +377,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.query = TeaCore.merge({
                     'Action': action,
                     'Format': 'json',
@@ -384,6 +391,7 @@ class Client:
                     'Timestamp': OpenApiUtilClient.get_timestamp(),
                     'SignatureNonce': UtilClient.get_nonce()
                 }, global_queries,
+                    extends_queries,
                     request.query)
                 headers = self.get_rpc_headers()
                 if UtilClient.is_unset(headers):
@@ -566,10 +574,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -586,7 +597,8 @@ class Client:
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
-                _request.query = global_queries
+                _request.query = TeaCore.merge(global_queries,
+                    extends_queries)
                 if not UtilClient.is_unset(request.query):
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
@@ -746,10 +758,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -766,7 +781,8 @@ class Client:
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
-                _request.query = global_queries
+                _request.query = TeaCore.merge(global_queries,
+                    extends_queries)
                 if not UtilClient.is_unset(request.query):
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
@@ -926,10 +942,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -947,7 +966,8 @@ class Client:
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.query = global_queries
+                _request.query = TeaCore.merge(global_queries,
+                    extends_queries)
                 if not UtilClient.is_unset(request.query):
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
@@ -1105,10 +1125,13 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.headers = TeaCore.merge({
                     'date': UtilClient.get_date_utcstring(),
                     'host': self._endpoint,
@@ -1126,7 +1149,8 @@ class Client:
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.query = global_queries
+                _request.query = TeaCore.merge(global_queries,
+                    extends_queries)
                 if not UtilClient.is_unset(request.query):
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
@@ -1278,11 +1302,15 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.query = TeaCore.merge(global_queries,
+                    extends_queries,
                     request.query)
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
@@ -1480,11 +1508,15 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 _request.query = TeaCore.merge(global_queries,
+                    extends_queries,
                     request.query)
                 # endpoint is setted in product client
                 _request.headers = TeaCore.merge({
@@ -1682,16 +1714,20 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 request_context = spi_models.InterceptorContextRequest(
                     headers=TeaCore.merge(global_headers,
                         extends_headers,
                         request.headers,
                         headers),
                     query=TeaCore.merge(global_queries,
+                        extends_queries,
                         request.query),
                     body=request.body,
                     stream=request.stream,
@@ -1825,16 +1861,20 @@ class Client:
                     if not UtilClient.is_unset(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
+                extends_queries = {}
                 if not UtilClient.is_unset(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
                     if not UtilClient.is_unset(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
+                    if not UtilClient.is_unset(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
                 request_context = spi_models.InterceptorContextRequest(
                     headers=TeaCore.merge(global_headers,
                         extends_headers,
                         request.headers,
                         headers),
                     query=TeaCore.merge(global_queries,
+                        extends_queries,
                         request.query),
                     body=request.body,
                     stream=request.stream,

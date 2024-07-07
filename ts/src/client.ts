@@ -381,10 +381,15 @@ export default class Client {
         }
 
         let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
         if (!Util.isUnset(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
           if (!Util.isUnset(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!Util.isUnset(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
           }
 
         }
@@ -396,6 +401,7 @@ export default class Client {
           Timestamp: OpenApiUtil.getTimestamp(),
           SignatureNonce: Util.getNonce(),
           ...globalQueries,
+          ...extendsQueries,
           ...request.query,
         };
         let headers = this.getRpcHeaders();
@@ -600,10 +606,15 @@ export default class Client {
         }
 
         let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
         if (!Util.isUnset(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
           if (!Util.isUnset(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!Util.isUnset(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
           }
 
         }
@@ -627,7 +638,10 @@ export default class Client {
           request_.headers["content-type"] = "application/json; charset=utf-8";
         }
 
-        request_.query = globalQueries;
+        request_.query = {
+          ...globalQueries,
+          ...extendsQueries,
+        };
         if (!Util.isUnset(request.query)) {
           request_.query = {
             ...request_.query,
@@ -804,10 +818,15 @@ export default class Client {
         }
 
         let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
         if (!Util.isUnset(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
           if (!Util.isUnset(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!Util.isUnset(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
           }
 
         }
@@ -832,7 +851,10 @@ export default class Client {
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 
-        request_.query = globalQueries;
+        request_.query = {
+          ...globalQueries,
+          ...extendsQueries,
+        };
         if (!Util.isUnset(request.query)) {
           request_.query = {
             ...request_.query,
@@ -1006,16 +1028,22 @@ export default class Client {
         }
 
         let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
         if (!Util.isUnset(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
           if (!Util.isUnset(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
+          if (!Util.isUnset(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
+          }
+
         }
 
         request_.query = {
           ...globalQueries,
+          ...extendsQueries,
           ...request.query,
         };
         // endpoint is setted in product client
@@ -1248,10 +1276,15 @@ export default class Client {
         }
 
         let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
         if (!Util.isUnset(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
           if (!Util.isUnset(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!Util.isUnset(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
           }
 
         }
@@ -1265,6 +1298,7 @@ export default class Client {
           },
           query: {
             ...globalQueries,
+            ...extendsQueries,
             ...request.query,
           },
           body: request.body,
