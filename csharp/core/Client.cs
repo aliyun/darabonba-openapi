@@ -2478,7 +2478,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", DefaultAny(_disableHttp2.Value, false)},
+                {"disableHttp2", DefaultAny(_disableHttp2, false)},
             };
 
             TeaRequest _lastRequest = null;

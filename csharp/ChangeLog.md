@@ -1,3 +1,7 @@
+### 2024-08-06 Version 0.1.11
+
+- Support extends query parameters.
+
 ### 2024-06-24 Version 0.1.10
 
 - Support bearer token credentials request.
