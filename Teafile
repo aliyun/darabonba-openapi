@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
-  "name": "OpenApi",
-  "version": "0.3.13",
+  "name": "OpenApiWithHttpClient",
+  "version": "0.0.1",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -14,7 +14,8 @@
     "OpenApiUtil": "alibabacloud:OpenApiUtil:*",
     "Credential": "alibabacloud:Credential:*",
     "SPI": "alibabacloud:GatewaySPI:*",
-    "XML": "darabonba:XML:*"
+    "XML": "darabonba:XML:*",
+    "HttpClient": "darabonba:HttpClient:*"
   },
   "releases": {
     "ts": "@alicloud/openapi-client:^0.4.11",
@@ -100,7 +101,7 @@
   },
   "releaselog": {
     "changelog": [
-      "support bearer token credentials request."
+      "[golang]support httpclient in config."
     ],
     "compatible": true
   }
