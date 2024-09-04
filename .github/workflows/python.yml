@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: pip install alibabacloud-tea coverage pytest alibabacloud-tea-util alibabacloud_credentials alibabacloud_openapi_util alibabacloud_gateway_spi alibabacloud_tea_xml httpretty
+      run: pip install alibabacloud-tea coverage pytest alibabacloud-tea-util alibabacloud_credentials alibabacloud_openapi_util alibabacloud_gateway_spi alibabacloud_tea_xml httpretty alibabacloud_gateway_pop aioresponses
     - name: Test with unittest
       run: |
         coverage run --source="./alibabacloud_tea_openapi" -m pytest tests/test_*
