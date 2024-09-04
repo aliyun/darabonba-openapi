@@ -1,6 +1,9 @@
 package com.aliyun.teaopenapi;
 
+import com.aliyun.credentials.provider.ProfileCredentialsProvider;
 import com.aliyun.tea.*;
+import com.aliyun.tea.interceptor.*;
+import com.aliyun.tea.utils.AttributeMap;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teaopenapi.models.GlobalParameters;
 import com.aliyun.teaopenapi.models.OpenApiRequest;
@@ -12,6 +15,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -92,6 +97,32 @@ public class ClientTest {
         Assert.assertEquals("secret", client.getAccessKeySecret());
         Assert.assertEquals("token", client.getSecurityToken());
         Assert.assertEquals("sts", client.getType());
+
+        config.bearerToken = "token";
+        config.type = "bearer";
+        config.accessKeyId = "";
+        config.accessKeySecret = "";
+        config.securityToken = "";
+        client = new Client(config);
+        Assert.assertEquals(null, client.getAccessKeyId());
+        Assert.assertEquals(null, client.getAccessKeySecret());
+        Assert.assertEquals(null, client.getSecurityToken());
+        Assert.assertEquals("bearer", client.getType());
+        Assert.assertEquals("token", client.getBearerToken());
+
+        config.bearerToken = "";
+        config.type = "";
+        config.accessKeyId = "";
+        config.accessKeySecret = "";
+        config.securityToken = "";
+        config.credential = null;
+        client = new Client(config);
+        Assert.assertEquals("", client.getAccessKeyId());
+        Assert.assertEquals("", client.getAccessKeySecret());
+        Assert.assertEquals("", client.getSecurityToken());
+        Assert.assertEquals("", client.getType());
+        Assert.assertEquals("", client.getBearerToken());
+
         Assert.assertNull(client._spi);
         Assert.assertNull(client._endpointRule);
         Assert.assertNull(client._endpointMap);
@@ -120,6 +151,28 @@ public class ClientTest {
         Assert.assertEquals("config.cert", client._cert);
         Assert.assertEquals("config.ca", client._ca);
         Assert.assertEquals(false, client._disableHttp2);
+
+        client.addRequestInterceptor(new RequestInterceptor() {
+            @Override
+            public TeaRequest modifyRequest(InterceptorContext interceptorContext, AttributeMap attributeMap) {
+                return interceptorContext.teaRequest();
+            }
+        });
+        client.addResponseInterceptor(new ResponseInterceptor() {
+            @Override
+            public TeaResponse modifyResponse(InterceptorContext interceptorContext, AttributeMap attributeMap) {
+                return interceptorContext.teaResponse();
+            }
+        });
+        client.addRuntimeOptionsInterceptor(new RuntimeOptionsInterceptor() {
+            @Override
+            public Map<String, Object> modifyRuntimeOptions(InterceptorContext interceptorContext, AttributeMap attributeMap) {
+                return interceptorContext.runtimeOptions();
+            }
+        });
+        Field field = Client.class.getDeclaredField("interceptorChain");
+        field.setAccessible(true);
+        Assert.assertTrue(field.get(client) instanceof InterceptorChain);
     }
 
     public static Config createConfig() throws Exception {

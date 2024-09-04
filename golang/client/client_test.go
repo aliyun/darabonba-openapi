@@ -2,12 +2,14 @@ package client
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
+	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
 	openapiutil "github.com/alibabacloud-go/openapi-util/service"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
@@ -61,6 +63,11 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
+	case "serverError":
+		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+		w.WriteHeader(500)
+		w.Write([]byte(responseBody))
 	default:
 		w.WriteHeader(200)
 		w.Write([]byte(responseBody))
@@ -102,6 +109,31 @@ func TestConfig(t *testing.T) {
 		Cert:               tea.String("config.cert"),
 		Ca:                 tea.String("config.ca"),
 	}
+	config.SetEndpoint("config.endpoint")
+	config.SetEndpointType("public")
+	config.SetNetwork("config.network")
+	config.SetSuffix("config.suffix")
+	config.SetProtocol("config.protocol")
+	config.SetMethod("config.method")
+	config.SetRegionId("config.regionId")
+	config.SetUserAgent("config.userAgent")
+	config.SetReadTimeout(3000)
+	config.SetConnectTimeout(3000)
+	config.SetHttpProxy("config.httpProxy")
+	config.SetHttpsProxy("config.httpsProxy")
+	config.SetNoProxy("config.noProxy")
+	config.SetSocks5Proxy("config.socks5Proxy")
+	config.SetSocks5NetWork("config.socks5NetWork")
+	config.SetMaxIdleConns(128)
+	config.SetSignatureVersion("config.signatureVersion")
+	config.SetSignatureAlgorithm("config.signatureAlgorithm")
+	config.SetGlobalParameters(globalParameters)
+	config.SetKey("config.key")
+	config.SetCert("config.cert")
+	config.SetCa("config.ca")
+	config.SetOpenPlatformEndpoint("openPlatform.aliyuncs.com")
+	config.SetDisableHttp2(true)
+
 	creConfig := &credential.Config{
 		AccessKeyId:     tea.String("accessKeyId"),
 		AccessKeySecret: tea.String("accessKeySecret"),
@@ -111,7 +143,7 @@ func TestConfig(t *testing.T) {
 	cred, _err := credential.NewCredential(creConfig)
 	tea_util.AssertNil(t, _err)
 
-	config.Credential = cred
+	config.SetCredential(cred)
 	config.String()
 	config.GoString()
 	client, _err := NewClient(nil)
@@ -151,10 +183,10 @@ func TestConfig(t *testing.T) {
 	ty, _ = client.GetType()
 	tea_util.AssertEqual(t, "bearer", tea.StringValue(ty))
 
-	config.AccessKeyId = tea.String("ak")
-	config.AccessKeySecret = tea.String("secret")
-	config.SecurityToken = tea.String("token")
-	config.Type = tea.String("sts")
+	config.SetAccessKeyId("ak")
+	config.SetAccessKeySecret("secret")
+	config.SetSecurityToken("token")
+	config.SetType("sts")
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	ak, _ = client.GetAccessKeyId()
@@ -165,6 +197,25 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "token", tea.StringValue(token))
 	ty, _ = client.GetType()
 	tea_util.AssertEqual(t, "sts", tea.StringValue(ty))
+
+	config.SetType("bearer")
+	config.SetBearerToken("token")
+	config.SetAccessKeyId("")
+	config.SetAccessKeySecret("")
+	config.SetSecurityToken("")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	ak, _ = client.GetAccessKeyId()
+	tea_util.AssertEqual(t, "", tea.StringValue(ak))
+	sk, _ = client.GetAccessKeySecret()
+	tea_util.AssertEqual(t, "", tea.StringValue(sk))
+	token, _ = client.GetSecurityToken()
+	tea_util.AssertEqual(t, "", tea.StringValue(token))
+	token, _ = client.GetBearerToken()
+	tea_util.AssertEqual(t, "token", tea.StringValue(token))
+	ty, _ = client.GetType()
+	tea_util.AssertEqual(t, "bearer", tea.StringValue(ty))
+
 	config.AccessKeyId = tea.String("ak")
 	config.AccessKeySecret = tea.String("secret")
 	config.Type = tea.String("access_key")
@@ -204,8 +255,75 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "config.key", tea.StringValue(client.Key))
 	tea_util.AssertEqual(t, "config.cert", tea.StringValue(client.Cert))
 	tea_util.AssertEqual(t, "config.ca", tea.StringValue(client.Ca))
+	tea_util.AssertEqual(t, true, tea.BoolValue(client.DisableHttp2))
+
+	globalParameters.SetHeaders(map[string]*string{
+		"global-key": tea.String("test"),
+	})
+	globalParameters.SetQueries(map[string]*string{
+		"global-query": tea.String("test"),
+	})
+	tea_util.AssertEqual(t, "test", tea.StringValue(client.GlobalParameters.Headers["global-key"]))
+	tea_util.AssertEqual(t, "test", tea.StringValue(client.GlobalParameters.Queries["global-query"]))
 	_err = client.CheckConfig(config)
 	tea_util.AssertNil(t, _err)
+}
+
+func TestOpenApiRequest(t *testing.T) {
+	query := map[string]*string{
+		"key": tea.String("value"),
+	}
+	body := map[string]interface{}{
+		"key": tea.String("value"),
+	}
+	headers := map[string]*string{
+		"key": tea.String("value"),
+	}
+	hostMap := map[string]*string{
+		"key": tea.String("value"),
+	}
+	req := &OpenApiRequest{}
+	req.SetQuery(query)
+	req.SetBody(body)
+	req.SetHeaders(headers)
+	req.SetHostMap(hostMap)
+	req.SetEndpointOverride("test")
+	req.SetStream(strings.NewReader("test"))
+	req.GoString()
+	req.String()
+
+	tea_util.AssertEqual(t, "value", tea.StringValue(req.Headers["key"]))
+	tea_util.AssertEqual(t, "value", tea.StringValue(req.Query["key"]))
+	tea_util.AssertEqual(t, body, req.Body)
+	tea_util.AssertEqual(t, "test", tea.StringValue(req.EndpointOverride))
+	tea_util.AssertEqual(t, "value", tea.StringValue(req.HostMap["key"]))
+	byt, _ := ioutil.ReadAll(req.Stream)
+	tea_util.AssertEqual(t, "test", string(byt))
+}
+
+func TestParams(t *testing.T) {
+	params := &Params{}
+	params.SetAction("test")
+	params.SetVersion("test")
+	params.SetProtocol("test")
+	params.SetPathname("test")
+	params.SetMethod("test")
+	params.SetAuthType("test")
+	params.SetBodyType("test")
+	params.SetReqBodyType("test")
+	params.SetStyle("test")
+	params.GoString()
+	params.String()
+
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Action))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Version))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Protocol))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Pathname))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Method))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.AuthType))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.BodyType))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.ReqBodyType))
+	tea_util.AssertEqual(t, "test", tea.StringValue(params.Style))
 }
 
 func CreateConfig() (_result *Config) {
@@ -1068,7 +1186,7 @@ func TestRequestBodyType(t *testing.T) {
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9009")
+	config.Endpoint = tea.String("127.0.0.1:9010")
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	// formData
@@ -1301,4 +1419,96 @@ func TestResponseBodyTypeROA(t *testing.T) {
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
 	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
 	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+}
+
+func TestRetryWithError(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/", &mockHandler{content: "serverError"})
+	mux.Handle("/test", &mockHandler{content: "serverError"})
+	var server *http.Server
+	server = &http.Server{
+		Addr:         ":9013",
+		WriteTimeout: time.Second * 4,
+		Handler:      mux,
+	}
+	go server.ListenAndServe()
+	config := CreateConfig()
+	runtime := CreateRuntimeOptions()
+	runtime.Autoretry = tea.Bool(true)
+	runtime.MaxAttempts = tea.Int(3)
+	runtime.BackoffPolicy = tea.String("fix")
+	runtime.BackoffPeriod = tea.Int(1)
+
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9013")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	request := CreateOpenApiRequest()
+
+	params := &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("Anonymous"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	_, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
+	err := _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+
+	params = &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("Anonymous"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	_, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
+	err = _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+
+	params = &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("Anonymous"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	_, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
+	err = _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+
+	params = &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("Anonymous"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	client.ProductId = tea.String("test")
+	gatewayClient, _err := pop.NewClient()
+	tea_util.AssertNil(t, _err)
+	client.SetGatewayClient(gatewayClient)
+	_, _err = client.Execute(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
 }
