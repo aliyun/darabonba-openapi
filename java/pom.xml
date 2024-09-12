@@ -102,6 +102,12 @@
             <version>0.8.4</version>
             <classifier>runtime</classifier>
         </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alibabacloud-gateway-pop</artifactId>
+            <version>0.0.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -144,7 +150,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.4</version>
                 <executions>
-                    <!-- <execution>
+                    <execution>
                         <id>default-instrument</id>
                         <goals>
                             <goal>instrument</goal>
@@ -156,8 +162,8 @@
                         <goals>
                             <goal>restore-instrumented-classes</goal>
                         </goals>
-                    </execution> -->
-                    <!-- <execution>
+                    </execution>
+                    <execution>
                         <id>report</id>
                         <phase>test</phase>
                         <goals>
@@ -166,18 +172,6 @@
                         <configuration>
                             <dataFile>${project.build.directory}/coverage.exec</dataFile>
                         </configuration>
-                    </execution> -->
-                    <execution>
-                        <goals>
-                          <goal>prepare-agent</goal> <!-- 用于在编译时启动JaCoCo代理 -->
-                        </goals>
-                      </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal> <!-- 生成HTML格式的报告 -->
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

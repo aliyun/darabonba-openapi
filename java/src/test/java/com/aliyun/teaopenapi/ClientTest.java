@@ -1,6 +1,5 @@
 package com.aliyun.teaopenapi;
 
-import com.aliyun.credentials.provider.ProfileCredentialsProvider;
 import com.aliyun.tea.*;
 import com.aliyun.tea.interceptor.*;
 import com.aliyun.tea.utils.AttributeMap;
@@ -16,7 +15,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -956,5 +954,135 @@ public class ClientTest {
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
 
+    }
+
+    @Test
+    public void testRetryWithError() throws Exception {
+        Config config = ClientTest.createConfig();
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        runtime.autoretry = true;
+        runtime.maxAttempts = 2;
+        runtime.backoffPolicy = "fix";
+        runtime.backoffPeriod = 1;
+        runtime.connectTimeout = 10;
+        runtime.readTimeout = 10;
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        config.signatureAlgorithm = "v2";
+        Client client = new Client(config);
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+
+        // formData
+        Params params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "RPC"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withFixedDelay(5000)));
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
+        }
+
+        config.signatureAlgorithm = null;
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withFixedDelay(5000)));
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
+        }
+
+        config.signatureAlgorithm = null;
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        ));
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withFixedDelay(5000)));
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
+        }
+        params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withFixedDelay(5000)));
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
+        }
+
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        client._productId = "test";
+        client.setGatewayClient(new com.aliyun.gateway.pop.Client());
+        params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withFixedDelay(5000)));
+        try {
+            client.execute(params, request, runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
+        }
     }
 }
