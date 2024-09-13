@@ -261,6 +261,31 @@ describe('$openapi', function () {
     assert.strictEqual(await client.getAccessKeySecret(), 'secret');
     assert.strictEqual(await client.getSecurityToken(), 'token');
     assert.strictEqual(await client.getType(), 'sts');
+
+    config.bearerToken = "token";
+    config.accessKeyId = undefined;
+    config.accessKeySecret = undefined;
+    config.securityToken = undefined;
+    config.type = "bearer";
+    client = new OpenApi(config);
+    assert.strictEqual(await client.getAccessKeyId(), '');
+    assert.strictEqual(await client.getAccessKeySecret(), '');
+    assert.strictEqual(await client.getSecurityToken(), '');
+    assert.strictEqual(await client.getBearerToken(), 'token');
+    assert.strictEqual(await client.getType(), 'bearer');
+
+    config.bearerToken = undefined;
+    config.accessKeyId = "ak";
+    config.accessKeySecret = "secret";
+    config.securityToken = undefined;
+    config.type = "access_key";
+    client = new OpenApi(config);
+    assert.strictEqual(await client.getAccessKeyId(), 'ak');
+    assert.strictEqual(await client.getAccessKeySecret(), 'secret');
+    assert.strictEqual(await client.getSecurityToken(), '');
+    assert.strictEqual(await client.getBearerToken(), '');
+    assert.strictEqual(await client.getType(), 'access_key');
+
     assert.strictEqual(client._spi, undefined);
     assert.strictEqual(client._endpointRule, undefined);
     assert.strictEqual(client._endpointMap, undefined);
