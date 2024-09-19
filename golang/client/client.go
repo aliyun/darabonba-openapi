@@ -733,35 +733,20 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
-				credentialType, _err := client.GetType()
+				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
 				}
 
+				credentialType := credentialModel.Type
 				if tea.BoolValue(util.EqualString(credentialType, tea.String("bearer"))) {
-					bearerToken, _err := client.GetBearerToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					bearerToken := credentialModel.BearerToken
 					request_.Query["BearerToken"] = bearerToken
 					request_.Query["SignatureType"] = tea.String("BEARERTOKEN")
 				} else {
-					accessKeyId, _err := client.GetAccessKeyId()
-					if _err != nil {
-						return _result, _err
-					}
-
-					accessKeySecret, _err := client.GetAccessKeySecret()
-					if _err != nil {
-						return _result, _err
-					}
-
-					securityToken, _err := client.GetSecurityToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					accessKeyId := credentialModel.AccessKeyId
+					accessKeySecret := credentialModel.AccessKeySecret
+					securityToken := credentialModel.SecurityToken
 					if !tea.BoolValue(util.Empty(securityToken)) {
 						request_.Query["SecurityToken"] = securityToken
 					}
@@ -1019,35 +1004,20 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
-				credentialType, _err := client.GetType()
+				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
 				}
 
+				credentialType := credentialModel.Type
 				if tea.BoolValue(util.EqualString(credentialType, tea.String("bearer"))) {
-					bearerToken, _err := client.GetBearerToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					bearerToken := credentialModel.BearerToken
 					request_.Headers["x-acs-bearer-token"] = bearerToken
 					request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
 				} else {
-					accessKeyId, _err := client.GetAccessKeyId()
-					if _err != nil {
-						return _result, _err
-					}
-
-					accessKeySecret, _err := client.GetAccessKeySecret()
-					if _err != nil {
-						return _result, _err
-					}
-
-					securityToken, _err := client.GetSecurityToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					accessKeyId := credentialModel.AccessKeyId
+					accessKeySecret := credentialModel.AccessKeySecret
+					securityToken := credentialModel.SecurityToken
 					if !tea.BoolValue(util.Empty(securityToken)) {
 						request_.Headers["x-acs-accesskey-id"] = accessKeyId
 						request_.Headers["x-acs-security-token"] = securityToken
@@ -1307,35 +1277,20 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
-				credentialType, _err := client.GetType()
+				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
 				}
 
+				credentialType := credentialModel.Type
 				if tea.BoolValue(util.EqualString(credentialType, tea.String("bearer"))) {
-					bearerToken, _err := client.GetBearerToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					bearerToken := credentialModel.BearerToken
 					request_.Headers["x-acs-bearer-token"] = bearerToken
 					request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
 				} else {
-					accessKeyId, _err := client.GetAccessKeyId()
-					if _err != nil {
-						return _result, _err
-					}
-
-					accessKeySecret, _err := client.GetAccessKeySecret()
-					if _err != nil {
-						return _result, _err
-					}
-
-					securityToken, _err := client.GetSecurityToken()
-					if _err != nil {
-						return _result, _err
-					}
-
+					accessKeyId := credentialModel.AccessKeyId
+					accessKeySecret := credentialModel.AccessKeySecret
+					securityToken := credentialModel.SecurityToken
 					if !tea.BoolValue(util.Empty(securityToken)) {
 						request_.Headers["x-acs-accesskey-id"] = accessKeyId
 						request_.Headers["x-acs-security-token"] = securityToken

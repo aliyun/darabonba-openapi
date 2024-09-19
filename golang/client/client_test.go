@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -373,6 +374,9 @@ func CreateRuntimeOptions() (_result *util.RuntimeOptions) {
 		Headers: map[string]*string{
 			"extends-key": tea.String("extends-value"),
 		},
+		Queries: map[string]*string{
+			"extends-key": tea.String("extends-value"),
+		},
 	}
 	runtime := &util.RuntimeOptions{
 		ReadTimeout:       tea.Int(4000),
@@ -447,7 +451,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	regx, _ := regexp.Compile("AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+" +
 		"&SignatureMethod=HMAC-SHA1&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01" +
-		"&global-query=global-value&key1=value&key2=1&key3=true")
+		"&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true")
 	str, _ := util.AssertAsString(headers["raw-query"])
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
@@ -481,7 +485,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	regx, _ = regexp.Compile("Action=TestAPI&BearerToken=token&Format=json" +
 		"&SignatureNonce=.+&SignatureType=BEARERTOKEN&Timestamp=.+&Version=2022-06-01" +
-		"&key1=value&key2=1&key3=true")
+		"&extends-key=extends-value&key1=value&key2=1&key3=true")
 	str, _ = util.AssertAsString(headers["raw-query"])
 	find = regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
@@ -525,7 +529,7 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	regx, _ := regexp.Compile("Action=TestAPI&Format=json&SignatureNonce=.+&Timestamp=.+&Version=2022-06-01" +
-		"&global-query=global-value&key1=value&key2=1&key3=true")
+		"&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true")
 	str, _ := util.AssertAsString(headers["raw-query"])
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
@@ -591,7 +595,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -701,7 +705,7 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -769,7 +773,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -821,7 +825,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
 	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
-	tea_util.AssertEqual(t, "SignatureType=BEARERTOKEN&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=true", headers["raw-query"])
 }
 
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -858,7 +862,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -925,7 +929,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -1014,7 +1018,7 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
-	tea_util.AssertEqual(t, "global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -1107,6 +1111,14 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
+
+	params.BodyType = tea.String("binary")
+	params.Pathname = tea.String("/test")
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	bodyStr, _err = util.ReadAsString(result["body"].(io.Reader))
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 
 	params.Pathname = tea.String("/testError")
 	tryErr := func() (_e error) {
@@ -1292,6 +1304,13 @@ func TestResponseBodyTypeRPC(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
+
+	params.BodyType = tea.String("binary")
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	bodyStr, _err = util.ReadAsString(result["body"].(io.Reader))
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 }
 
 func TestResponseBodyTypeROA(t *testing.T) {
@@ -1355,6 +1374,14 @@ func TestResponseBodyTypeROA(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
+
+	params.BodyType = tea.String("binary")
+	params.Pathname = tea.String("/test")
+	result, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNil(t, _err)
+	bodyStr, _err = util.ReadAsString(result["body"].(io.Reader))
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}", tea.StringValue(bodyStr))
 
 	params.Pathname = tea.String("/testError")
 	tryErr := func() (_e error) {

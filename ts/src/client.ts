@@ -435,15 +435,16 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let credentialType = await this.getType();
+          let credentialModel = await this._credential.getCredential();
+          let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
-            let bearerToken = await this.getBearerToken();
+            let bearerToken = credentialModel.bearerToken;
             request_.query["BearerToken"] = bearerToken;
             request_.query["SignatureType"] = "BEARERTOKEN";
           } else {
-            let accessKeyId = await this.getAccessKeyId();
-            let accessKeySecret = await this.getAccessKeySecret();
-            let securityToken = await this.getSecurityToken();
+            let accessKeyId = credentialModel.accessKeyId;
+            let accessKeySecret = credentialModel.accessKeySecret;
+            let securityToken = credentialModel.securityToken;
             if (!Util.empty(securityToken)) {
               request_.query["SecurityToken"] = securityToken;
             }
@@ -650,15 +651,16 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let credentialType = await this.getType();
+          let credentialModel = await this._credential.getCredential();
+          let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
-            let bearerToken = await this.getBearerToken();
+            let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
           } else {
-            let accessKeyId = await this.getAccessKeyId();
-            let accessKeySecret = await this.getAccessKeySecret();
-            let securityToken = await this.getSecurityToken();
+            let accessKeyId = credentialModel.accessKeyId;
+            let accessKeySecret = credentialModel.accessKeySecret;
+            let securityToken = credentialModel.securityToken;
             if (!Util.empty(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
@@ -863,15 +865,16 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
-          let credentialType = await this.getType();
+          let credentialModel = await this._credential.getCredential();
+          let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
-            let bearerToken = await this.getBearerToken();
+            let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
           } else {
-            let accessKeyId = await this.getAccessKeyId();
-            let accessKeySecret = await this.getAccessKeySecret();
-            let securityToken = await this.getSecurityToken();
+            let accessKeyId = credentialModel.accessKeyId;
+            let accessKeySecret = credentialModel.accessKeySecret;
+            let securityToken = credentialModel.securityToken;
             if (!Util.empty(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;

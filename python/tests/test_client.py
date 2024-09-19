@@ -184,6 +184,9 @@ class TestClient(unittest.TestCase):
         extends_parameters = util_models.ExtendsParameters(
             headers={
                 'extends-key': 'extends-value'
+            },
+            queries={
+                'extends-key': 'extends-value'
             }
         )
         runtime = util_models.RuntimeOptions(
@@ -246,6 +249,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'ak' == request.querystring['AccessKeyId'][0]
@@ -335,7 +339,7 @@ class TestClient(unittest.TestCase):
 
         def request_callback(url, **request):
             assert None is not re.match(
-                '.+AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+&SignatureMethod=HMAC-SHA1&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01&global-query=global-value&key1=value&key2=1&key3=True',
+                '.+AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+&SignatureMethod=HMAC-SHA1&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                 str(url))
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -377,7 +381,7 @@ class TestClient(unittest.TestCase):
 
         def bearer_request_callback(url, **request):
             assert None is not re.match(
-                '.+Action=TestAPI&BearerToken=token&Format=json&SignatureNonce=.+&SignatureType=BEARERTOKEN&Timestamp=.+&Version=2022-06-01&key1=value&key2=1&key3=True',
+                '.+Action=TestAPI&BearerToken=token&Format=json&SignatureNonce=.+&SignatureType=BEARERTOKEN&Timestamp=.+&Version=2022-06-01&extends-key=extends-value&key1=value&key2=1&key3=True',
                 str(url))
             # assert 'bearer token' == request.headers.get('authorization')
             content_type = request['headers'].get('content-type')
@@ -429,6 +433,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'TestAPI' == request.querystring['Action'][0]
             assert '2022-06-01' == request.querystring['Version'][0]
             assert 'json' == request.querystring['Format'][0]
@@ -483,7 +488,7 @@ class TestClient(unittest.TestCase):
 
         def request_callback(url, **request):
             assert None is not re.match(
-                '.+Action=TestAPI&Format=json&SignatureNonce=.+&Timestamp=.+&Version=2022-06-01&global-query=global-value&key1=value&key2=1&key3=True',
+                '.+Action=TestAPI&Format=json&SignatureNonce=.+&Timestamp=.+&Version=2022-06-01&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                 str(url))
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -544,6 +549,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
@@ -665,7 +671,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
             assert 'sdk' == request['headers'].get('for-test')
@@ -688,7 +694,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -714,7 +720,7 @@ class TestClient(unittest.TestCase):
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/test?key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -726,7 +732,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test1.aliyuncs.com/test?key1=value&key2=1&key3=True',
+        m.post('http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -757,7 +763,7 @@ class TestClient(unittest.TestCase):
         )
 
         def bearer_json_request_callback(url, **request):
-            assert 'http://test2.aliyuncs.com/test?key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test2.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -769,7 +775,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test2.aliyuncs.com/test?key1=value&key2=1&key3=True',
+        m.post('http://test2.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -812,6 +818,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
@@ -865,7 +872,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
             assert 'sdk' == request['headers'].get('for-test')
@@ -884,7 +891,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -929,6 +936,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -1014,7 +1022,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1039,7 +1047,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1064,7 +1072,7 @@ class TestClient(unittest.TestCase):
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1076,7 +1084,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&key1=value&key2=1&key3=True',
+        m.post('http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1118,6 +1126,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -1170,7 +1179,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1189,7 +1198,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1234,6 +1243,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -1319,7 +1329,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1344,7 +1354,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1369,7 +1379,7 @@ class TestClient(unittest.TestCase):
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/test?key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1381,7 +1391,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test1.aliyuncs.com/test?key1=value&key2=1&key3=True',
+        m.post('http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1423,6 +1433,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -1475,7 +1486,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1494,7 +1505,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1539,6 +1550,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -1652,7 +1664,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1673,7 +1685,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                headers=responseHeaders,
@@ -1691,7 +1703,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1712,7 +1724,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('UserId', result.get('body')[2])
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1729,7 +1741,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1746,7 +1758,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body').decode('utf-8'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "AccessDeniedDetail":{}}',
@@ -1763,7 +1775,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('error code', e.code)
             self.assertFalse('test' in e.accessDeniedDetail)
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "AccessDeniedDetail":{}, "accessDeniedDetail":{"test": 0}}',
@@ -1780,7 +1792,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('error code', e.code)
             self.assertFalse('test' in e.accessDeniedDetail)
 
-        m.post('http://test.aliyuncs.com/test?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "accessDeniedDetail":{"test": 0}}',
@@ -1925,14 +1937,14 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_1(url, **request):
-            assert 'http://test.aliyuncs.com/test1?global-query=global-value' == str(url)
+            assert 'http://test.aliyuncs.com/test1?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == 'key1=value&key2=1&key3=True', 'unexpected body: {}'.format(
                 request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test1?global-query=global-value',
+        m.post('http://test.aliyuncs.com/test1?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_1)
@@ -1950,14 +1962,14 @@ class TestClient(unittest.TestCase):
         params.req_body_type = 'json'
 
         def request_callback_2(url, **request):
-            assert 'http://test.aliyuncs.com/test2?global-query=global-value' == str(url)
+            assert 'http://test.aliyuncs.com/test2?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode(
                 'utf-8') == '{"key1":"value","key2":1,"key3":true}', 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test2?global-query=global-value',
+        m.post('http://test.aliyuncs.com/test2?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_2)
@@ -1979,13 +1991,13 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_3(url, **request):
-            assert 'http://test.aliyuncs.com/test3?global-query=global-value' == str(url)
+            assert 'http://test.aliyuncs.com/test3?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'] == UtilClient.to_bytes('test byte'), 'unexpected body: {}'.format(request['data'])
             assert content_type is None, 'expected text/plain but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test3?global-query=global-value',
+        m.post('http://test.aliyuncs.com/test3?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_3)
@@ -2006,13 +2018,13 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_4(url, **request):
-            assert 'http://test.aliyuncs.com/test4?global-query=global-value' == str(url)
+            assert 'http://test.aliyuncs.com/test4?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == 'test byte', 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/octet-stream', 'expected application/octet-stream but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test4?global-query=global-value',
+        m.post('http://test.aliyuncs.com/test4?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_4)
@@ -2055,6 +2067,7 @@ class TestClient(unittest.TestCase):
             assert '1' == request.querystring['key2'][0]
             assert 'True' == request.querystring['key3'][0]
             assert 'global-value' == request.querystring['global-query'][0]
+            assert 'extends-value' == request.querystring['extends-key'][0]
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
@@ -2110,7 +2123,7 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -2129,7 +2142,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
