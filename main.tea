@@ -227,15 +227,16 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var credentialType = getType();
+    var credentialModel = @credential.getCredential();
+    var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
-      var bearerToken = getBearerToken();
+      var bearerToken = credentialModel.bearerToken;
       __request.query.BearerToken = bearerToken;
       __request.query.SignatureType = 'BEARERTOKEN';
     } else {
-      var accessKeyId = getAccessKeyId();
-      var accessKeySecret = getAccessKeySecret();
-      var securityToken = getSecurityToken();
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
       if (!Util.empty(securityToken)) {
         __request.query.SecurityToken = securityToken;
       }
@@ -404,15 +405,16 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var credentialType = getType();
+    var credentialModel = @credential.getCredential();
+    var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
-      var bearerToken = getBearerToken();
+      var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
     } else {
-      var accessKeyId = getAccessKeyId();
-      var accessKeySecret = getAccessKeySecret();
-      var securityToken = getSecurityToken();
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
       if (!Util.empty(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
@@ -582,15 +584,16 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
-    var credentialType = getType();
+    var credentialModel = @credential.getCredential();
+    var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
-      var bearerToken = getBearerToken();
+      var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
     } else {
-      var accessKeyId = getAccessKeyId();
-      var accessKeySecret = getAccessKeySecret();
-      var securityToken = getSecurityToken();
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
       if (!Util.empty(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;

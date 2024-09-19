@@ -215,6 +215,9 @@ public class ClientTest {
         ExtendsParameters extendsParameters = ExtendsParameters.build(TeaConverter.buildMap(
                 new TeaPair("headers", TeaConverter.buildMap(
                         new TeaPair("extends-key", "extends-value")
+                )),
+                new TeaPair("queries", TeaConverter.buildMap(
+                        new TeaPair("extends-key", "extends-value")
                 ))
         ));
         RuntimeOptions runtime = RuntimeOptions.build(TeaConverter.buildMap(
@@ -282,6 +285,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withQueryParam("Action", equalTo("TestAPI"))
                 .withQueryParam("Version", equalTo("2022-06-01"))
                 .withQueryParam("AccessKeyId", equalTo("ak"))
@@ -358,6 +362,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withQueryParam("Action", equalTo("TestAPI"))
                 .withQueryParam("Version", equalTo("2022-06-01"))
                 .withQueryParam("Format", equalTo("json"))
@@ -411,6 +416,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -505,6 +511,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -558,6 +565,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -628,6 +636,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -680,6 +689,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -750,6 +760,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("global-key", equalTo("global-value"))
                 .withHeader("extends-key", equalTo("extends-value"))
                 .withHeader("for-test", matching("sdk"))
@@ -803,6 +814,7 @@ public class ClientTest {
                 .withQueryParam("key2", equalTo("1"))
                 .withQueryParam("key3", equalTo("true"))
                 .withQueryParam("global-query", equalTo("global-value"))
+                .withQueryParam("extends-key", equalTo("extends-value"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));

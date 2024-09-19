@@ -233,15 +233,16 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String credentialType = this.getType();
+                    com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
-                        String bearerToken = this.getBearerToken();
+                        String bearerToken = credentialModel.bearerToken;
                         request_.query.put("BearerToken", bearerToken);
                         request_.query.put("SignatureType", "BEARERTOKEN");
                     } else {
-                        String accessKeyId = this.getAccessKeyId();
-                        String accessKeySecret = this.getAccessKeySecret();
-                        String securityToken = this.getSecurityToken();
+                        String accessKeyId = credentialModel.accessKeyId;
+                        String accessKeySecret = credentialModel.accessKeySecret;
+                        String securityToken = credentialModel.securityToken;
                         if (!com.aliyun.teautil.Common.empty(securityToken)) {
                             request_.query.put("SecurityToken", securityToken);
                         }
@@ -451,15 +452,16 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String credentialType = this.getType();
+                    com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
-                        String bearerToken = this.getBearerToken();
+                        String bearerToken = credentialModel.bearerToken;
                         request_.headers.put("x-acs-bearer-token", bearerToken);
                         request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
                     } else {
-                        String accessKeyId = this.getAccessKeyId();
-                        String accessKeySecret = this.getAccessKeySecret();
-                        String securityToken = this.getSecurityToken();
+                        String accessKeyId = credentialModel.accessKeyId;
+                        String accessKeySecret = credentialModel.accessKeySecret;
+                        String securityToken = credentialModel.securityToken;
                         if (!com.aliyun.teautil.Common.empty(securityToken)) {
                             request_.headers.put("x-acs-accesskey-id", accessKeyId);
                             request_.headers.put("x-acs-security-token", securityToken);
@@ -667,15 +669,16 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
-                    String credentialType = this.getType();
+                    com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
-                        String bearerToken = this.getBearerToken();
+                        String bearerToken = credentialModel.bearerToken;
                         request_.headers.put("x-acs-bearer-token", bearerToken);
                         request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
                     } else {
-                        String accessKeyId = this.getAccessKeyId();
-                        String accessKeySecret = this.getAccessKeySecret();
-                        String securityToken = this.getSecurityToken();
+                        String accessKeyId = credentialModel.accessKeyId;
+                        String accessKeySecret = credentialModel.accessKeySecret;
+                        String securityToken = credentialModel.securityToken;
                         if (!com.aliyun.teautil.Common.empty(securityToken)) {
                             request_.headers.put("x-acs-accesskey-id", accessKeyId);
                             request_.headers.put("x-acs-security-token", securityToken);

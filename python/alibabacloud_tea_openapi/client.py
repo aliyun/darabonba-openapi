@@ -223,15 +223,16 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = self.get_type()
+                    credential_model = self._credential.get_credential()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = self.get_bearer_token()
+                        bearer_token = credential_model.bearer_token
                         _request.query['BearerToken'] = bearer_token
                         _request.query['SignatureType'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = self.get_access_key_id()
-                        access_key_secret = self.get_access_key_secret()
-                        security_token = self.get_security_token()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
                         _request.query['SignatureMethod'] = 'HMAC-SHA1'
@@ -418,15 +419,16 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = await self.get_type_async()
+                    credential_model = await self._credential.get_credential_async()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = await self.get_bearer_token_async()
+                        bearer_token = credential_model.bearer_token
                         _request.query['BearerToken'] = bearer_token
                         _request.query['SignatureType'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = await self.get_access_key_id_async()
-                        access_key_secret = await self.get_access_key_secret_async()
-                        security_token = await self.get_security_token_async()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
                         _request.query['SignatureMethod'] = 'HMAC-SHA1'
@@ -603,15 +605,16 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = self.get_type()
+                    credential_model = self._credential.get_credential()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = self.get_bearer_token()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = self.get_access_key_id()
-                        access_key_secret = self.get_access_key_secret()
-                        security_token = self.get_security_token()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
@@ -787,15 +790,16 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = await self.get_type_async()
+                    credential_model = await self._credential.get_credential_async()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = await self.get_bearer_token_async()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = await self.get_access_key_id_async()
-                        access_key_secret = await self.get_access_key_secret_async()
-                        security_token = await self.get_security_token_async()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
@@ -972,15 +976,16 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = self.get_type()
+                    credential_model = self._credential.get_credential()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = self.get_bearer_token()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = self.get_access_key_id()
-                        access_key_secret = self.get_access_key_secret()
-                        security_token = self.get_security_token()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
@@ -1155,15 +1160,16 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    credential_type = await self.get_type_async()
+                    credential_model = await self._credential.get_credential_async()
+                    credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
-                        bearer_token = await self.get_bearer_token_async()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = await self.get_access_key_id_async()
-                        access_key_secret = await self.get_access_key_secret_async()
-                        security_token = await self.get_security_token_async()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
@@ -1355,18 +1361,19 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    auth_type = self.get_type()
+                    credential_model = self._credential.get_credential()
+                    auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):
-                        bearer_token = self.get_bearer_token()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         if UtilClient.equal_string(params.style, 'RPC'):
                             _request.query['SignatureType'] = 'BEARERTOKEN'
                         else:
                             _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = self.get_access_key_id()
-                        access_key_secret = self.get_access_key_secret()
-                        security_token = self.get_security_token()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
@@ -1561,18 +1568,19 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    auth_type = await self.get_type_async()
+                    credential_model = await self._credential.get_credential_async()
+                    auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):
-                        bearer_token = await self.get_bearer_token_async()
+                        bearer_token = credential_model.bearer_token
                         _request.headers['x-acs-bearer-token'] = bearer_token
                         if UtilClient.equal_string(params.style, 'RPC'):
                             _request.query['SignatureType'] = 'BEARERTOKEN'
                         else:
                             _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
                     else:
-                        access_key_id = await self.get_access_key_id_async()
-                        access_key_secret = await self.get_access_key_secret_async()
-                        security_token = await self.get_security_token_async()
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
