@@ -233,6 +233,13 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
+                    if (com.aliyun.teautil.Common.isUnset(_credential)) {
+                        throw new TeaException(TeaConverter.buildMap(
+                            new TeaPair("code", "InvalidCredentials"),
+                            new TeaPair("message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.")
+                        ));
+                    }
+
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
@@ -452,6 +459,13 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
+                    if (com.aliyun.teautil.Common.isUnset(_credential)) {
+                        throw new TeaException(TeaConverter.buildMap(
+                            new TeaPair("code", "InvalidCredentials"),
+                            new TeaPair("message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.")
+                        ));
+                    }
+
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
@@ -669,6 +683,13 @@ public class Client {
                 }
 
                 if (!com.aliyun.teautil.Common.equalString(authType, "Anonymous")) {
+                    if (com.aliyun.teautil.Common.isUnset(_credential)) {
+                        throw new TeaException(TeaConverter.buildMap(
+                            new TeaPair("code", "InvalidCredentials"),
+                            new TeaPair("message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.")
+                        ));
+                    }
+
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
@@ -913,6 +934,13 @@ public class Client {
 
                 request_.headers.put("x-acs-content-sha256", hashedRequestPayload);
                 if (!com.aliyun.teautil.Common.equalString(params.authType, "Anonymous")) {
+                    if (com.aliyun.teautil.Common.isUnset(_credential)) {
+                        throw new TeaException(TeaConverter.buildMap(
+                            new TeaPair("code", "InvalidCredentials"),
+                            new TeaPair("message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.")
+                        ));
+                    }
+
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
                     String authType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(authType, "bearer")) {

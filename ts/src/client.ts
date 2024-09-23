@@ -435,6 +435,13 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
+          if (Util.isUnset(this._credential)) {
+            throw $tea.newError({
+              code: `InvalidCredentials`,
+              message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
+            });
+          }
+
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
@@ -651,6 +658,13 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
+          if (Util.isUnset(this._credential)) {
+            throw $tea.newError({
+              code: `InvalidCredentials`,
+              message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
+            });
+          }
+
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
@@ -865,6 +879,13 @@ export default class Client {
         }
 
         if (!Util.equalString(authType, "Anonymous")) {
+          if (Util.isUnset(this._credential)) {
+            throw $tea.newError({
+              code: `InvalidCredentials`,
+              message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
+            });
+          }
+
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
@@ -1105,6 +1126,13 @@ export default class Client {
 
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
         if (!Util.equalString(params.authType, "Anonymous")) {
+          if (Util.isUnset(this._credential)) {
+            throw $tea.newError({
+              code: `InvalidCredentials`,
+              message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
+            });
+          }
+
           let credentialModel = await this._credential.getCredential();
           let authType = credentialModel.type;
           if (Util.equalString(authType, "bearer")) {

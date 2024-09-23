@@ -259,6 +259,12 @@ class OpenApiClient
                     $_request->headers["content-type"] = "application/x-www-form-urlencoded";
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
+                    if (Utils::isUnset($this->_credential)) {
+                        throw new TeaError([
+                            "code" => "InvalidCredentials",
+                            "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ]);
+                    }
                     $credentialType = $this->getType();
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $this->getBearerToken();
@@ -455,6 +461,12 @@ class OpenApiClient
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
+                    if (Utils::isUnset($this->_credential)) {
+                        throw new TeaError([
+                            "code" => "InvalidCredentials",
+                            "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ]);
+                    }
                     $credentialType = $this->getType();
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $this->getBearerToken();
@@ -652,6 +664,12 @@ class OpenApiClient
                     $_request->query = Tea::merge($_request->query, $request->query);
                 }
                 if (!Utils::equalString($authType, "Anonymous")) {
+                    if (Utils::isUnset($this->_credential)) {
+                        throw new TeaError([
+                            "code" => "InvalidCredentials",
+                            "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ]);
+                    }
                     $credentialType = $this->getType();
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $this->getBearerToken();
@@ -867,6 +885,12 @@ class OpenApiClient
                 }
                 $_request->headers["x-acs-content-sha256"] = $hashedRequestPayload;
                 if (!Utils::equalString($params->authType, "Anonymous")) {
+                    if (Utils::isUnset($this->_credential)) {
+                        throw new TeaError([
+                            "code" => "InvalidCredentials",
+                            "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ]);
+                    }
                     $authType = $this->getType();
                     if (Utils::equalString($authType, "bearer")) {
                         $bearerToken = $this->getBearerToken();

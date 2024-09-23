@@ -264,6 +264,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -536,6 +544,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -791,6 +807,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -1043,6 +1067,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -1296,6 +1328,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -1547,6 +1587,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(authType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
@@ -1833,6 +1881,14 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
                         string authType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
@@ -2130,6 +2186,14 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Headers["x-acs-content-sha256"] = hashedRequestPayload;
                     if (!AlibabaCloud.TeaUtil.Common.EqualString(params_.AuthType, "Anonymous"))
                     {
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
+                        {
+                            throw new TeaException(new Dictionary<string, string>
+                            {
+                                {"code", "InvalidCredentials"},
+                                {"message", "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."},
+                            });
+                        }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
                         string authType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))

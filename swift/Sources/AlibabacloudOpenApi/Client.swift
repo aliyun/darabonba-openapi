@@ -221,6 +221,12 @@ open class Client {
                     _request.headers["content-type"] = "application/x-www-form-urlencoded";
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
+                    if (TeaUtils.Client.isUnset(self._credential)) {
+                        throw Tea.ReuqestError([
+                            "code": "InvalidCredentials",
+                            "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ])
+                    }
                     var credentialType: String = try await getType()
                     if (TeaUtils.Client.equalString(credentialType, "bearer")) {
                         var bearerToken: String = try await getBearerToken()
@@ -405,6 +411,12 @@ open class Client {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
+                    if (TeaUtils.Client.isUnset(self._credential)) {
+                        throw Tea.ReuqestError([
+                            "code": "InvalidCredentials",
+                            "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ])
+                    }
                     var credentialType: String = try await getType()
                     if (TeaUtils.Client.equalString(credentialType, "bearer")) {
                         var bearerToken: String = try await getBearerToken()
@@ -590,6 +602,12 @@ open class Client {
                     _request.query = Tea.TeaConverter.merge([:], _request.query, request.query ?? [:])
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
+                    if (TeaUtils.Client.isUnset(self._credential)) {
+                        throw Tea.ReuqestError([
+                            "code": "InvalidCredentials",
+                            "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ])
+                    }
                     var credentialType: String = try await getType()
                     if (TeaUtils.Client.equalString(credentialType, "bearer")) {
                         var bearerToken: String = try await getBearerToken()
@@ -801,6 +819,12 @@ open class Client {
                 }
                 _request.headers["x-acs-content-sha256"] = hashedRequestPayload as! String;
                 if (!TeaUtils.Client.equalString(params.authType, "Anonymous")) {
+                    if (TeaUtils.Client.isUnset(self._credential)) {
+                        throw Tea.ReuqestError([
+                            "code": "InvalidCredentials",
+                            "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
+                        ])
+                    }
                     var authType: String = try await getType()
                     if (TeaUtils.Client.equalString(authType, "bearer")) {
                         var bearerToken: String = try await getBearerToken()
