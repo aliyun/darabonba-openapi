@@ -1,3 +1,7 @@
+### 2024-09-23 Version 0.1.12
+
+- Solve the inconsistency of credentials refresh in all methods.
+
 ### 2024-08-06 Version 0.1.11
 
 - Support extends query parameters.

@@ -1,3 +1,6 @@
+2024-09-23 Version: v2.0.10
+- Solve the inconsistency of credentials refresh in all methods.
+
 2023-02-07 Version: v2.0.3
 - Add ca configs.
 - Get accessDeniedDetail from error map.

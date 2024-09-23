@@ -1,3 +1,6 @@
+### 2024-09-23 Version 0.3.12
+* Solve the inconsistency of credentials refresh in all methods.
+
 ### 2022-11-14 Version 0.3.6
 * Add gateway client setter.
 
