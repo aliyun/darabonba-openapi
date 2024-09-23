@@ -733,6 +733,14 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
+				if tea.BoolValue(util.IsUnset(client.Credential)) {
+					_err = tea.NewSDKError(map[string]interface{}{
+						"code":    "InvalidCredentials",
+						"message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.",
+					})
+					return _result, _err
+				}
+
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
@@ -1004,6 +1012,14 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
+				if tea.BoolValue(util.IsUnset(client.Credential)) {
+					_err = tea.NewSDKError(map[string]interface{}{
+						"code":    "InvalidCredentials",
+						"message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.",
+					})
+					return _result, _err
+				}
+
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
@@ -1277,6 +1293,14 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			}
 
 			if !tea.BoolValue(util.EqualString(authType, tea.String("Anonymous"))) {
+				if tea.BoolValue(util.IsUnset(client.Credential)) {
+					_err = tea.NewSDKError(map[string]interface{}{
+						"code":    "InvalidCredentials",
+						"message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.",
+					})
+					return _result, _err
+				}
+
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
@@ -1591,6 +1615,14 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 			request_.Headers["x-acs-content-sha256"] = hashedRequestPayload
 			if !tea.BoolValue(util.EqualString(params.AuthType, tea.String("Anonymous"))) {
+				if tea.BoolValue(util.IsUnset(client.Credential)) {
+					_err = tea.NewSDKError(map[string]interface{}{
+						"code":    "InvalidCredentials",
+						"message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.",
+					})
+					return _result, _err
+				}
+
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err

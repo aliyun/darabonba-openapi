@@ -369,6 +369,10 @@ func CreateBearerTokenConfig() (_result *Config) {
 	return _result
 }
 
+func CreateAnonymousConfig() (_result *Config) {
+	return &Config{}
+}
+
 func CreateRuntimeOptions() (_result *util.RuntimeOptions) {
 	extendsParameters := &util.ExtendsParameters{
 		Headers: map[string]*string{
@@ -491,6 +495,17 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertNotNil(t, find)
 	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
 
+	// Anonymous error
+	config = CreateAnonymousConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9001")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	_, _err = client.CallApi(params, request, runtime)
+	err := _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
 }
 
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -649,6 +664,18 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
 	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
 
+	// Anonymous error
+	config = CreateAnonymousConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9003")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	_, _err = client.CallApi(params, request, runtime)
+	err := _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
+
 	params = &Params{
 		Action:      tea.String("TestAPI"),
 		Version:     tea.String("2022-06-01"),
@@ -660,6 +687,13 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 		ReqBodyType: tea.String("json"),
 		BodyType:    tea.String("json"),
 	}
+	// bearer token
+	config = CreateBearerTokenConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9003")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
 	tea_util.AssertNil(t, _err)
 
@@ -668,6 +702,19 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
 	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
 	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
+
+	// Anonymous error
+	config = CreateAnonymousConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9003")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	_, _err = client.CallApi(params, request, runtime)
+	err = _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
+
 }
 
 func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -826,6 +873,17 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
 	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
 	tea_util.AssertEqual(t, "SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=true", headers["raw-query"])
+
+	// Anonymous error
+	config = CreateAnonymousConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String("127.0.0.1:9005")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	_, _err = client.CallApi(params, request, runtime)
+	err := _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
 }
 
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
@@ -982,6 +1040,18 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	// tea_util.AssertEqual(t, "bearer token", headers["authorization"])
 	tea_util.AssertEqual(t, "token", headers["x-acs-bearer-token"])
 	tea_util.AssertEqual(t, "BEARERTOKEN", headers["x-acs-signature-type"])
+
+	// Anonymous error
+	config = CreateAnonymousConfig()
+	config.Protocol = tea.String("HTTP")
+	config.SignatureAlgorithm = tea.String("v2")
+	config.Endpoint = tea.String("127.0.0.1:9003")
+	client, _err = NewClient(config)
+	tea_util.AssertNil(t, _err)
+	_, _err = client.CallApi(params, request, runtime)
+	err := _err.(*tea.SDKError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
 }
 
 func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {

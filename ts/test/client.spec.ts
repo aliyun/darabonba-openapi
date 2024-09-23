@@ -141,6 +141,10 @@ function createBearerTokenConfig(): $OpenApi.Config {
   return config;
 }
 
+function createAnonymousConfig(): $OpenApi.Config {
+  return new $OpenApi.Config();
+}
+
 function createRuntimeOptions(): $Util.RuntimeOptions {
   let extendsParameters = new $Util.ExtendsParameters({
     headers: {
@@ -368,6 +372,19 @@ describe('$openapi', function () {
     regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&key1=value&key2=1&key3=true&BearerToken=token&SignatureType=BEARERTOKEN/;
     assert.ok(regexp.test(headers["raw-query"]));
     // assert.strictEqual(headers["authorization"], "bearer token");
+
+    // Anonymous error
+    config = createAnonymousConfig();
+    config.protocol = "HTTP";
+    config.signatureAlgorithm = "v2";
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.strictEqual(err.message, "InvalidCredentials: Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.");
+      assert.strictEqual(err.code, "InvalidCredentials");
+    }
   });
 
   it("call api for RPC With V2Sign Anonymous JSON should ok", async function () {
@@ -480,6 +497,19 @@ describe('$openapi', function () {
     assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
     // assert.strictEqual(headers["authorization"], "bearer token");
 
+    // Anonymous error
+    config = createAnonymousConfig();
+    config.protocol = "HTTP";
+    config.signatureAlgorithm = "v2";
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.strictEqual(err.message, "InvalidCredentials: Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.");
+      assert.strictEqual(err.code, "InvalidCredentials");
+    }
+
     config = createBearerTokenConfig();
     config.protocol = "HTTP";
     config.signatureAlgorithm = "v2";
@@ -506,6 +536,19 @@ describe('$openapi', function () {
     assert.strictEqual(headers["x-acs-bearer-token"], "token");
     assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
     // assert.strictEqual(headers["authorization"], "bearer token");
+
+    // Anonymous error
+    config = createAnonymousConfig();
+    config.protocol = "HTTP";
+    config.signatureAlgorithm = "v2";
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.strictEqual(err.message, "InvalidCredentials: Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.");
+      assert.strictEqual(err.code, "InvalidCredentials");
+    }
   });
 
   it("call api for ROA With V2Sign Anonymous JSON should ok", async function () {
@@ -622,6 +665,19 @@ describe('$openapi', function () {
     const regexp = /SignatureType=BEARERTOKEN/;
     assert.ok(regexp.test(headers["raw-query"]));
     // assert.strictEqual(headers["authorization"], "bearer token");
+
+    // Anonymous error
+    config = createAnonymousConfig();
+    config.protocol = "HTTP";
+    config.signatureAlgorithm = "v2";
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.strictEqual(err.message, "InvalidCredentials: Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.");
+      assert.strictEqual(err.code, "InvalidCredentials");
+    }
   });
 
   it("call api for RPC With V3Sign Anonymous JSON should ok", async function () {
@@ -734,6 +790,19 @@ describe('$openapi', function () {
     assert.strictEqual(headers["x-acs-bearer-token"], "token");
     assert.strictEqual(headers["x-acs-signature-type"], "BEARERTOKEN");
     // assert.strictEqual(headers["authorization"], "bearer token");
+
+    // Anonymous error
+    config = createAnonymousConfig();
+    config.protocol = "HTTP";
+    config.signatureAlgorithm = "v2";
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.strictEqual(err.message, "InvalidCredentials: Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.");
+      assert.strictEqual(err.code, "InvalidCredentials");
+    }
   });
 
   it("call api for ROA With V3Sign Anonymous JSON should ok", async function () {

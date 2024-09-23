@@ -179,6 +179,9 @@ class TestClient(unittest.TestCase):
             credential=credential
         )
         return config
+    
+    def create_anonymous_config(self) -> open_api_models.Config:
+        return open_api_models.Config()
 
     def create_runtime_options(self) -> util_models.RuntimeOptions:
         extends_parameters = util_models.ExtendsParameters(
@@ -314,6 +317,18 @@ class TestClient(unittest.TestCase):
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
+
     @aioresponses()
     def test_call_api_for_rpcwith_v2sign_ak_form_async(self, m):
         requestBody = 'key1=value&key2=1&key3=True'
@@ -404,6 +419,19 @@ class TestClient(unittest.TestCase):
         result = task.result()
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
+
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            loop.run_until_complete(client.call_api_async(params, request, runtime))
+            assert False
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v2sign_anonymous_json(self):
@@ -611,7 +639,23 @@ class TestClient(unittest.TestCase):
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
+
         requestBody = '{"key1":"value","key2":1,"key3":true}'
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
         config.endpoint = 'test2.aliyuncs.com'
         client = OpenApiClient(config)
         params = open_api_models.Params(
@@ -646,6 +690,18 @@ class TestClient(unittest.TestCase):
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
+
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
 
     @aioresponses()
     def test_call_api_for_roawith_v2sign_ak_form_async(self, m):
@@ -747,7 +803,24 @@ class TestClient(unittest.TestCase):
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            loop.run_until_complete(client.call_api_async(params, request, runtime))
+            assert False
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
+
         requestBody = '{"key1":"value","key2":1,"key3":true}'
+        # bearer token
+        config = self.create_bearer_token_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
         config.endpoint = 'test2.aliyuncs.com'
         client = OpenApiClient(config)
         params = open_api_models.Params(
@@ -789,6 +862,19 @@ class TestClient(unittest.TestCase):
         result = task.result()
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
+
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            loop.run_until_complete(client.call_api_async(params, request, runtime))
+            assert False
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v2sign_anonymous_json(self):
@@ -999,6 +1085,18 @@ class TestClient(unittest.TestCase):
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
+
     @aioresponses()
     def test_call_api_for_rpcwith_v3sign_ak_form_async(self, m):
         requestBody = 'key1=value&key2=1&key3=True'
@@ -1098,6 +1196,19 @@ class TestClient(unittest.TestCase):
         result = task.result()
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
+
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            loop.run_until_complete(client.call_api_async(params, request, runtime))
+            assert False
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
@@ -1306,6 +1417,18 @@ class TestClient(unittest.TestCase):
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
 
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            client.call_api(params, request, runtime)
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
+
     @aioresponses()
     def test_call_api_for_roawith_v3sign_ak_form_async(self, m):
         requestBody = 'key1=value&key2=1&key3=True'
@@ -1405,6 +1528,19 @@ class TestClient(unittest.TestCase):
         result = task.result()
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
         self.assertEqual(200, result.get('statusCode'))
+
+        # anonymous error
+        config = self.create_anonymous_config()
+        config.protocol = 'HTTP'
+        config.signature_algorithm = 'v2'
+        config.endpoint = 'test.aliyuncs.com'
+        client = OpenApiClient(config)
+        try:
+            loop.run_until_complete(client.call_api_async(params, request, runtime))
+            assert False
+        except TeaException as e:
+            self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
+            self.assertEqual('InvalidCredentials', e.code)
 
     @httpretty.activate(allow_net_connect=False)
     def test_call_api_for_roawith_v3sign_anonymous_json(self):

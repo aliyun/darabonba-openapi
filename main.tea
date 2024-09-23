@@ -227,6 +227,12 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
+    if (Util.isUnset(@credential)) {
+      throw {
+        code = `InvalidCredentials`,
+        message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
+      }
+    }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
@@ -405,6 +411,12 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
+    if (Util.isUnset(@credential)) {
+      throw {
+        code = `InvalidCredentials`,
+        message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
+      }
+    }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
@@ -584,6 +596,12 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   }
 
   if (!Util.equalString(authType, 'Anonymous')) {
+    if (Util.isUnset(@credential)) {
+      throw {
+        code = `InvalidCredentials`,
+        message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
+      }
+    }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
@@ -816,6 +834,12 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   __request.headers.x-acs-content-sha256 = hashedRequestPayload;
 
   if (!Util.equalString(params.authType, 'Anonymous')) {
+    if (Util.isUnset(@credential)) {
+      throw {
+        code = `InvalidCredentials`,
+        message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
+      }
+    }
     var credentialModel = @credential.getCredential();
     var authType = credentialModel.type;
     if (Util.equalString(authType, 'bearer')) {

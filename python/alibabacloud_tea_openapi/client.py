@@ -223,6 +223,11 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -419,6 +424,11 @@ class Client:
                     _request.body = UtilClient.to_form_string(tmp)
                     _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -605,6 +615,11 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -790,6 +805,11 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -976,6 +996,11 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -1160,6 +1185,11 @@ class Client:
                     _request.query = TeaCore.merge(_request.query,
                         request.query)
                 if not UtilClient.equal_string(auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
@@ -1361,6 +1391,11 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = self._credential.get_credential()
                     auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):
@@ -1568,6 +1603,11 @@ class Client:
                             _request.headers['content-type'] = 'application/x-www-form-urlencoded'
                 _request.headers['x-acs-content-sha256'] = hashed_request_payload
                 if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
+                    if UtilClient.is_unset(self._credential):
+                        raise TeaException({
+                            'code': f'InvalidCredentials',
+                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        })
                     credential_model = await self._credential.get_credential_async()
                     auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):

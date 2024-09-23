@@ -211,6 +211,10 @@ public class ClientTest {
         return config;
     }
 
+    public static Config createAnonymousConfig() throws Exception {
+        return new Config();
+    }
+
     public static RuntimeOptions createRuntimeOptions() throws Exception {
         ExtendsParameters extendsParameters = ExtendsParameters.build(TeaConverter.buildMap(
                 new TeaPair("headers", TeaConverter.buildMap(
@@ -329,6 +333,19 @@ public class ClientTest {
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // Anonymous error
+        config = ClientTest.createAnonymousConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", e.getMessage());
+            Assert.assertEquals("InvalidCredentials", e.getCode());
+        }
     }
 
     @Test
@@ -460,6 +477,19 @@ public class ClientTest {
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
 
+        // Anonymous error
+        config = ClientTest.createAnonymousConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", e.getMessage());
+            Assert.assertEquals("InvalidCredentials", e.getCode());
+        }
+
         params = Params.build(TeaConverter.buildMap(
                 new TeaPair("action", "TestAPI"),
                 new TeaPair("version", "2022-06-01"),
@@ -471,6 +501,12 @@ public class ClientTest {
                 new TeaPair("reqBodyType", "json"),
                 new TeaPair("bodyType", "json")
         ));
+        // bearer token
+        config = ClientTest.createBearerTokenConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
         stubFor(post(anyUrl())
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
@@ -482,6 +518,19 @@ public class ClientTest {
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // Anonymous error
+        config = ClientTest.createAnonymousConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", e.getMessage());
+            Assert.assertEquals("InvalidCredentials", e.getCode());
+        }
     }
 
     @Test
@@ -608,6 +657,18 @@ public class ClientTest {
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // Anonymous error
+        config = ClientTest.createAnonymousConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", e.getMessage());
+            Assert.assertEquals("InvalidCredentials", e.getCode());
+        }
     }
 
     @Test
@@ -732,6 +793,18 @@ public class ClientTest {
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
         result = client.callApi(params, request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
+
+        // Anonymous error
+        config = ClientTest.createAnonymousConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", e.getMessage());
+            Assert.assertEquals("InvalidCredentials", e.getCode());
+        }
     }
 
     @Test
