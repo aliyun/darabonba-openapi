@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
-  "name": "OpenApi",
-  "version": "0.3.15",
+  "name": "OpenApiWithHttpClient",
+  "version": "0.0.3",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -14,11 +14,12 @@
     "OpenApiUtil": "alibabacloud:OpenApiUtil:*",
     "Credential": "alibabacloud:Credential:*",
     "SPI": "alibabacloud:GatewaySPI:*",
-    "XML": "darabonba:XML:*"
+    "XML": "darabonba:XML:*",
+    "HttpClient": "darabonba:HttpClient:*"
   },
   "releases": {
     "ts": "@alicloud/openapi-client:^0.4.12",
-    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.10",
+    "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.11-0.20241012070109-f821fe24f6e4",
     "csharp": "AlibabaCloud.OpenApiClient:0.1.12",
     "java": "com.aliyun:tea-openapi:0.3.6",
     "php": "alibabacloud/darabonba-openapi:^0.2.13",
@@ -100,7 +101,11 @@
   },
   "releaselog": {
     "changelog": [
+<<<<<<< HEAD
       "Solve the inconsistency of credentials refresh in all methods."
+=======
+      "[golang]support httpclient in config."
+>>>>>>> ce38047 (update teafile)
     ],
     "compatible": true
   }
