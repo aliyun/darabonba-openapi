@@ -265,15 +265,16 @@ class OpenApiClient
                             "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ]);
                     }
-                    $credentialType = $this->getType();
+                    $credentialModel = $this->_credential->getCredential();
+                    $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
-                        $bearerToken = $this->getBearerToken();
+                        $bearerToken = $credentialModel->bearerToken;
                         $_request->query["BearerToken"] = $bearerToken;
                         $_request->query["SignatureType"] = "BEARERTOKEN";
                     } else {
-                        $accessKeyId = $this->getAccessKeyId();
-                        $accessKeySecret = $this->getAccessKeySecret();
-                        $securityToken = $this->getSecurityToken();
+                        $accessKeyId = $credentialModel->accessKeyId;
+                        $accessKeySecret = $credentialModel->accessKeySecret;
+                        $securityToken = $credentialModel->securityToken;
                         if (!Utils::empty_($securityToken)) {
                             $_request->query["SecurityToken"] = $securityToken;
                         }
@@ -393,13 +394,13 @@ class OpenApiClient
             "socks5NetWork" => Utils::defaultString($runtime->socks5NetWork, $this->_socks5NetWork),
             "maxIdleConns" => Utils::defaultNumber($runtime->maxIdleConns, $this->_maxIdleConns),
             "retry" => [
-                    "retryable" => $runtime->autoretry,
-                    "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
-                ],
+                "retryable" => $runtime->autoretry,
+                "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
+            ],
             "backoff" => [
-                    "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
-                    "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
-                ],
+                "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
+                "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
+            ],
             "ignoreSSL" => $runtime->ignoreSSL
         ];
         $_lastRequest = null;
@@ -467,15 +468,16 @@ class OpenApiClient
                             "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ]);
                     }
-                    $credentialType = $this->getType();
+                    $credentialModel = $this->_credential->getCredential();
+                    $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
-                        $bearerToken = $this->getBearerToken();
+                        $bearerToken = $credentialModel->bearerToken;
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
                         $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
                     } else {
-                        $accessKeyId = $this->getAccessKeyId();
-                        $accessKeySecret = $this->getAccessKeySecret();
-                        $securityToken = $this->getSecurityToken();
+                        $accessKeyId = $credentialModel->accessKeyId;
+                        $accessKeySecret = $credentialModel->accessKeySecret;
+                        $securityToken = $credentialModel->securityToken;
                         if (!Utils::empty_($securityToken)) {
                             $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
                             $_request->headers["x-acs-security-token"] = $securityToken;
@@ -599,9 +601,9 @@ class OpenApiClient
                 "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
             ],
             "backoff" => [
-                    "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
-                    "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
-                ],
+                "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
+                "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
+            ],
             "ignoreSSL" => $runtime->ignoreSSL
         ];
         $_lastRequest = null;
@@ -670,15 +672,16 @@ class OpenApiClient
                             "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ]);
                     }
-                    $credentialType = $this->getType();
+                    $credentialModel = $this->_credential->getCredential();
+                    $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
-                        $bearerToken = $this->getBearerToken();
+                        $bearerToken = $credentialModel->bearerToken;
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
                         $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
                     } else {
-                        $accessKeyId = $this->getAccessKeyId();
-                        $accessKeySecret = $this->getAccessKeySecret();
-                        $securityToken = $this->getSecurityToken();
+                        $accessKeyId = $credentialModel->accessKeyId;
+                        $accessKeySecret = $credentialModel->accessKeySecret;
+                        $securityToken = $credentialModel->securityToken;
                         if (!Utils::empty_($securityToken)) {
                             $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
                             $_request->headers["x-acs-security-token"] = $securityToken;
@@ -891,9 +894,10 @@ class OpenApiClient
                             "message" => "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ]);
                     }
-                    $authType = $this->getType();
+                    $credentialModel = $this->_credential->getCredential();
+                    $authType = $credentialModel->type;
                     if (Utils::equalString($authType, "bearer")) {
-                        $bearerToken = $this->getBearerToken();
+                        $bearerToken = $credentialModel->bearerToken;
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
                         if (Utils::equalString($params->style, "RPC")) {
                             $_request->query["SignatureType"] = "BEARERTOKEN";
@@ -901,9 +905,9 @@ class OpenApiClient
                             $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
                         }
                     } else {
-                        $accessKeyId = $this->getAccessKeyId();
-                        $accessKeySecret = $this->getAccessKeySecret();
-                        $securityToken = $this->getSecurityToken();
+                        $accessKeyId = $credentialModel->accessKeyId;
+                        $accessKeySecret = $credentialModel->accessKeySecret;
+                        $securityToken = $credentialModel->securityToken;
                         if (!Utils::empty_($securityToken)) {
                             $_request->headers["x-acs-accesskey-id"] = $accessKeyId;
                             $_request->headers["x-acs-security-token"] = $securityToken;

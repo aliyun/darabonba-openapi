@@ -286,8 +286,8 @@ describe('$openapi', function () {
     client = new OpenApi(config);
     assert.strictEqual(await client.getAccessKeyId(), 'ak');
     assert.strictEqual(await client.getAccessKeySecret(), 'secret');
-    assert.strictEqual(await client.getSecurityToken(), '');
-    assert.strictEqual(await client.getBearerToken(), '');
+    assert.strictEqual(await client.getSecurityToken(), undefined);
+    assert.strictEqual(await client.getBearerToken(), undefined);
     assert.strictEqual(await client.getType(), 'access_key');
 
     assert.strictEqual(client._spi, undefined);
