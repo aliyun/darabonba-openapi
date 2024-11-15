@@ -1417,7 +1417,7 @@ class Client:
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     err = {}
-                    if not UtilClient.is_unset(_response.headers.get('content-type')) and UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8'):
+                    if not UtilClient.is_unset(_response.headers.get('content-type')) and (UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8') or UtilClient.equal_string(_response.headers.get('content-type'), 'application/xml')):
                         _str = UtilClient.read_as_string(_response.body)
                         resp_map = XMLClient.parse_xml(_str, None)
                         err = UtilClient.assert_as_map(resp_map.get('Error'))
@@ -1629,7 +1629,7 @@ class Client:
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     err = {}
-                    if not UtilClient.is_unset(_response.headers.get('content-type')) and UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8'):
+                    if not UtilClient.is_unset(_response.headers.get('content-type')) and (UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8') or UtilClient.equal_string(_response.headers.get('content-type'), 'application/xml')):
                         _str = await UtilClient.read_as_string_async(_response.body)
                         resp_map = XMLClient.parse_xml(_str, None)
                         err = UtilClient.assert_as_map(resp_map.get('Error'))
