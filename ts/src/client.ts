@@ -1,30 +1,48 @@
 // This file is auto-generated, don't edit it
 /**
+ * @remarks
  * This is for OpenApi SDK
  */
-import Util, * as $Util from '@alicloud/tea-util';
+import OpenApiUtil, * as $OpenApiUtil from './utils';
 import Credential, * as $Credential from '@alicloud/credentials';
-import OpenApiUtil from '@alicloud/openapi-util';
 import SPI, * as $SPI from '@alicloud/gateway-spi';
-import XML from '@alicloud/tea-xml';
-import { Readable } from 'stream';
-import * as $tea from '@alicloud/tea-typescript';
+import * as $dara from '@darabonba/typescript';
 
-export class GlobalParameters extends $tea.Model {
-  headers?: { [key: string]: string };
-  queries?: { [key: string]: string };
+export * as $OpenApiUtil from './utils';
+export { default as OpenApiUtil } from './utils';
+
+export class SSEResponse extends $dara.Model {
+  headers: { [key: string]: string };
+  /**
+   * @remarks
+   * HTTP Status Code
+   */
+  statusCode: number;
+  event: $dara.SSEEvent;
   static names(): { [key: string]: string } {
     return {
       headers: 'headers',
-      queries: 'queries',
+      statusCode: 'statusCode',
+      event: 'event',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
       headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      queries: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
+      statusCode: 'number',
+      event: $dara.SSEEvent,
     };
+  }
+
+  validate() {
+    if(this.headers) {
+      $dara.Model.validateMap(this.headers);
+    }
+    $dara.Model.validateRequired("headers", this.headers);
+    $dara.Model.validateRequired("statusCode", this.statusCode);
+    $dara.Model.validateRequired("event", this.event);
+    super.validate();
   }
 
   constructor(map?: { [key: string]: any }) {
@@ -32,189 +50,52 @@ export class GlobalParameters extends $tea.Model {
   }
 }
 
-/**
- * Model for initing client
- */
-export class Config extends $tea.Model {
-  accessKeyId?: string;
-  accessKeySecret?: string;
-  securityToken?: string;
-  bearerToken?: string;
-  protocol?: string;
-  method?: string;
-  regionId?: string;
-  readTimeout?: number;
-  connectTimeout?: number;
-  httpProxy?: string;
-  httpsProxy?: string;
-  credential?: Credential;
-  endpoint?: string;
-  noProxy?: string;
-  maxIdleConns?: number;
-  network?: string;
-  userAgent?: string;
-  suffix?: string;
-  socks5Proxy?: string;
-  socks5NetWork?: string;
-  endpointType?: string;
-  openPlatformEndpoint?: string;
-  type?: string;
-  signatureVersion?: string;
-  signatureAlgorithm?: string;
-  globalParameters?: GlobalParameters;
-  key?: string;
-  cert?: string;
-  ca?: string;
-  disableHttp2?: boolean;
-  static names(): { [key: string]: string } {
-    return {
-      accessKeyId: 'accessKeyId',
-      accessKeySecret: 'accessKeySecret',
-      securityToken: 'securityToken',
-      bearerToken: 'bearerToken',
-      protocol: 'protocol',
-      method: 'method',
-      regionId: 'regionId',
-      readTimeout: 'readTimeout',
-      connectTimeout: 'connectTimeout',
-      httpProxy: 'httpProxy',
-      httpsProxy: 'httpsProxy',
-      credential: 'credential',
-      endpoint: 'endpoint',
-      noProxy: 'noProxy',
-      maxIdleConns: 'maxIdleConns',
-      network: 'network',
-      userAgent: 'userAgent',
-      suffix: 'suffix',
-      socks5Proxy: 'socks5Proxy',
-      socks5NetWork: 'socks5NetWork',
-      endpointType: 'endpointType',
-      openPlatformEndpoint: 'openPlatformEndpoint',
-      type: 'type',
-      signatureVersion: 'signatureVersion',
-      signatureAlgorithm: 'signatureAlgorithm',
-      globalParameters: 'globalParameters',
-      key: 'key',
-      cert: 'cert',
-      ca: 'ca',
-      disableHttp2: 'disableHttp2',
-    };
-  }
-
-  static types(): { [key: string]: any } {
-    return {
-      accessKeyId: 'string',
-      accessKeySecret: 'string',
-      securityToken: 'string',
-      bearerToken: 'string',
-      protocol: 'string',
-      method: 'string',
-      regionId: 'string',
-      readTimeout: 'number',
-      connectTimeout: 'number',
-      httpProxy: 'string',
-      httpsProxy: 'string',
-      credential: Credential,
-      endpoint: 'string',
-      noProxy: 'string',
-      maxIdleConns: 'number',
-      network: 'string',
-      userAgent: 'string',
-      suffix: 'string',
-      socks5Proxy: 'string',
-      socks5NetWork: 'string',
-      endpointType: 'string',
-      openPlatformEndpoint: 'string',
-      type: 'string',
-      signatureVersion: 'string',
-      signatureAlgorithm: 'string',
-      globalParameters: GlobalParameters,
-      key: 'string',
-      cert: 'string',
-      ca: 'string',
-      disableHttp2: 'boolean',
-    };
-  }
+export class AlibabaCloudError extends $dara.BaseError {
+  statusCode?: number;
+  code: string;
+  message: string;
+  description?: string;
+  requestId?: string;
 
   constructor(map?: { [key: string]: any }) {
     super(map);
+    this.name = "AlibabaCloudError";
+    Object.setPrototypeOf(this, AlibabaCloudError.prototype);
+    this.statusCode = map.statusCode;
+    this.code = map.code;
+    this.description = map.description;
+    this.requestId = map.requestId;
   }
 }
 
-export class OpenApiRequest extends $tea.Model {
-  headers?: { [key: string]: string };
-  query?: { [key: string]: string };
-  body?: any;
-  stream?: Readable;
-  hostMap?: { [key: string]: string };
-  endpointOverride?: string;
-  static names(): { [key: string]: string } {
-    return {
-      headers: 'headers',
-      query: 'query',
-      body: 'body',
-      stream: 'stream',
-      hostMap: 'hostMap',
-      endpointOverride: 'endpointOverride',
-    };
-  }
-
-  static types(): { [key: string]: any } {
-    return {
-      headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      query: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      body: 'any',
-      stream: 'Readable',
-      hostMap: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      endpointOverride: 'string',
-    };
-  }
+export class ClientError extends AlibabaCloudError {
+  accessDeniedDetail?: { [key: string]: any };
 
   constructor(map?: { [key: string]: any }) {
     super(map);
+    this.name = "ClientError";
+    Object.setPrototypeOf(this, ClientError.prototype);
+    this.accessDeniedDetail = map.accessDeniedDetail;
   }
 }
 
-export class Params extends $tea.Model {
-  action: string;
-  version: string;
-  protocol: string;
-  pathname: string;
-  method: string;
-  authType: string;
-  bodyType: string;
-  reqBodyType: string;
-  style?: string;
-  static names(): { [key: string]: string } {
-    return {
-      action: 'action',
-      version: 'version',
-      protocol: 'protocol',
-      pathname: 'pathname',
-      method: 'method',
-      authType: 'authType',
-      bodyType: 'bodyType',
-      reqBodyType: 'reqBodyType',
-      style: 'style',
-    };
-  }
-
-  static types(): { [key: string]: any } {
-    return {
-      action: 'string',
-      version: 'string',
-      protocol: 'string',
-      pathname: 'string',
-      method: 'string',
-      authType: 'string',
-      bodyType: 'string',
-      reqBodyType: 'string',
-      style: 'string',
-    };
-  }
+export class ServerError extends AlibabaCloudError {
 
   constructor(map?: { [key: string]: any }) {
     super(map);
+    this.name = "ServerError";
+    Object.setPrototypeOf(this, ServerError.prototype);
+  }
+}
+
+export class ThrottlingError extends AlibabaCloudError {
+  retryAfter?: number;
+
+  constructor(map?: { [key: string]: any }) {
+    super(map);
+    this.name = "ThrottlingError";
+    Object.setPrototypeOf(this, ThrottlingError.prototype);
+    this.retryAfter = map.retryAfter;
   }
 }
 
@@ -245,26 +126,29 @@ export default class Client {
   _signatureAlgorithm: string;
   _headers: {[key: string ]: string};
   _spi: SPI;
-  _globalParameters: GlobalParameters;
+  _globalParameters: $OpenApiUtil.GlobalParameters;
   _key: string;
   _cert: string;
   _ca: string;
   _disableHttp2: boolean;
+  _retryOptions: $dara.RetryOptions;
 
   /**
+   * @remarks
    * Init client with Config
-   * @param config config contains the necessary information to create a client
+   * 
+   * @param config - config contains the necessary information to create a client
    */
-  constructor(config: Config) {
-    if (Util.isUnset(config)) {
-      throw $tea.newError({
+  constructor(config: $OpenApiUtil.Config) {
+    if ($dara.isNull(config)) {
+      throw new ClientError({
         code: "ParameterMissing",
         message: "'config' can not be unset",
       });
     }
 
-    if (!Util.empty(config.accessKeyId) && !Util.empty(config.accessKeySecret)) {
-      if (!Util.empty(config.securityToken)) {
+    if (!$dara.isNull(config.accessKeyId) && !$dara.isNull(config.accessKeySecret)) {
+      if (!$dara.isNull(config.securityToken)) {
         config.type = "sts";
       } else {
         config.type = "access_key";
@@ -277,13 +161,13 @@ export default class Client {
       });
       credentialConfig.securityToken = config.securityToken;
       this._credential = new Credential(credentialConfig);
-    } else if (!Util.empty(config.bearerToken)) {
+    } else if (!$dara.isNull(config.bearerToken)) {
       let cc = new $Credential.Config({
         type: "bearer",
         bearerToken: config.bearerToken,
       });
       this._credential = new Credential(cc);
-    } else if (!Util.isUnset(config.credential)) {
+    } else if (!$dara.isNull(config.credential)) {
       this._credential = config.credential;
     }
 
@@ -310,71 +194,68 @@ export default class Client {
     this._cert = config.cert;
     this._ca = config.ca;
     this._disableHttp2 = config.disableHttp2;
+    this._retryOptions = config.retryOptions;
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
-  async doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+  async doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
-      timeouted: "retry",
-      key: Util.defaultString(runtime.key, this._key),
-      cert: Util.defaultString(runtime.cert, this._cert),
-      ca: Util.defaultString(runtime.ca, this._ca),
-      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
-      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
-      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
-      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
-      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
-      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
-      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
-      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
-      retry: {
-        retryable: runtime.autoretry,
-        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
-      },
-      backoff: {
-        policy: Util.defaultString(runtime.backoffPolicy, "no"),
-        period: Util.defaultNumber(runtime.backoffPeriod, 1),
-      },
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
     }
 
-    let _lastRequest = null;
-    let _now = Date.now();
-    let _retryTimes = 0;
-    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
-      if (_retryTimes > 0) {
-        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
-          await $tea.sleep(_backoffTime);
+          await $dara.sleep(_backoffTime);
         }
       }
 
-      _retryTimes = _retryTimes + 1;
+      _retriesAttempted = _retriesAttempted + 1;
       try {
-        let request_ = new $tea.Request();
-        request_.protocol = Util.defaultString(this._protocol, protocol);
+        let request_ = new $dara.Request();
+        request_.protocol = this._protocol || protocol;
         request_.method = method;
         request_.pathname = "/";
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset(this._globalParameters)) {
+        if (!$dara.isNull(this._globalParameters)) {
           let globalParams = this._globalParameters;
-          if (!Util.isUnset(globalParams.queries)) {
+          if (!$dara.isNull(globalParams.queries)) {
             globalQueries = globalParams.queries;
           }
 
-          if (!Util.isUnset(globalParams.headers)) {
+          if (!$dara.isNull(globalParams.headers)) {
             globalHeaders = globalParams.headers;
           }
 
@@ -382,13 +263,13 @@ export default class Client {
 
         let extendsHeaders : {[key: string ]: string} = { };
         let extendsQueries : {[key: string ]: string} = { };
-        if (!Util.isUnset(runtime.extendsParameters)) {
+        if (!$dara.isNull(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
-          if (!Util.isUnset(extendsParameters.headers)) {
+          if (!$dara.isNull(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
-          if (!Util.isUnset(extendsParameters.queries)) {
+          if (!$dara.isNull(extendsParameters.queries)) {
             extendsQueries = extendsParameters.queries;
           }
 
@@ -399,19 +280,19 @@ export default class Client {
           Format: "json",
           Version: version,
           Timestamp: OpenApiUtil.getTimestamp(),
-          SignatureNonce: Util.getNonce(),
+          SignatureNonce: OpenApiUtil.getNonce(),
           ...globalQueries,
           ...extendsQueries,
           ...request.query,
         };
         let headers = this.getRpcHeaders();
-        if (Util.isUnset(headers)) {
+        if ($dara.isNull(headers)) {
           // endpoint is setted in product client
           request_.headers = {
             host: this._endpoint,
             'x-acs-version': version,
             'x-acs-action': action,
-            'user-agent': this.getUserAgent(),
+            'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
             ...globalHeaders,
             ...extendsHeaders,
           };
@@ -420,23 +301,23 @@ export default class Client {
             host: this._endpoint,
             'x-acs-version': version,
             'x-acs-action': action,
-            'user-agent': this.getUserAgent(),
+            'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
             ...globalHeaders,
             ...extendsHeaders,
             ...headers,
           };
         }
 
-        if (!Util.isUnset(request.body)) {
-          let m = Util.assertAsMap(request.body);
-          let tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
-          request_.body = new $tea.BytesReadable(Util.toFormString(tmp));
+        if (!$dara.isNull(request.body)) {
+          let m = request.body;
+          let tmp = OpenApiUtil.query(m);
+          request_.body = new $dara.BytesReadable($dara.Form.toFormString(tmp));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 
-        if (!Util.equalString(authType, "Anonymous")) {
-          if (Util.isUnset(this._credential)) {
-            throw $tea.newError({
+        if (authType != "Anonymous") {
+          if ($dara.isNull(this._credential)) {
+            throw new ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -444,7 +325,7 @@ export default class Client {
 
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
-          if (Util.equalString(credentialType, "bearer")) {
+          if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
             request_.query["BearerToken"] = bearerToken;
             request_.query["SignatureType"] = "BEARERTOKEN";
@@ -452,7 +333,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!Util.empty(securityToken)) {
+            if (!$dara.isNull(securityToken)) {
               request_.query["SecurityToken"] = securityToken;
             }
 
@@ -460,8 +341,8 @@ export default class Client {
             request_.query["SignatureVersion"] = "1.0";
             request_.query["AccessKeyId"] = accessKeyId;
             let t : {[key: string ]: any} = null;
-            if (!Util.isUnset(request.body)) {
-              t = Util.assertAsMap(request.body);
+            if (!$dara.isNull(request.body)) {
+              t = request.body;
             }
 
             let signedParam = {
@@ -473,54 +354,76 @@ export default class Client {
 
         }
 
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
-        let response_ = await $tea.doAction(request_, _runtime);
+        _lastResponse = response_;
 
-        if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
-          let _res = await Util.readAsJSON(response_.body);
-          let err = Util.assertAsMap(_res);
-          let requestId = Client.defaultAny(err["RequestId"], err["requestId"]);
-          err["statusCode"] = response_.statusCode;
-          throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
-            data: err,
-            description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
-          });
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+          let _res = await $dara.Stream.readAsJSON(response_.body);
+          let err = _res;
+          let requestId = err["RequestId"] || err["requestId"];
+          let code = err["Code"] || err["code"];
+          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+            throw new ThrottlingError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              requestId: `${requestId}`,
+            });
+          } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
+            throw new ClientError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              accessDeniedDetail: this.getAccessDeniedDetail(err),
+              requestId: `${requestId}`,
+            });
+          } else {
+            throw new ServerError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              requestId: `${requestId}`,
+            });
+          }
+
         }
 
-        if (Util.equalString(bodyType, "binary")) {
+        if (bodyType == "binary") {
           let resp = {
             body: response_.body,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
           return resp;
-        } else if (Util.equalString(bodyType, "byte")) {
-          let byt = await Util.readAsBytes(response_.body);
+        } else if (bodyType == "byte") {
+          let byt = await $dara.Stream.readAsBytes(response_.body);
           return {
             body: byt,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "string")) {
-          let str = await Util.readAsString(response_.body);
+        } else if (bodyType == "string") {
+          let str = await $dara.Stream.readAsString(response_.body);
           return {
             body: str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "json")) {
-          let obj = await Util.readAsJSON(response_.body);
-          let res = Util.assertAsMap(obj);
+        } else if (bodyType == "json") {
+          let obj = await $dara.Stream.readAsJSON(response_.body);
+          let res = obj;
           return {
             body: res,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "array")) {
-          let arr = await Util.readAsJSON(response_.body);
+        } else if (bodyType == "array") {
+          let arr = await $dara.Stream.readAsJSON(response_.body);
           return {
             body: arr,
             headers: response_.headers,
@@ -534,80 +437,79 @@ export default class Client {
         }
 
       } catch (ex) {
-        if ($tea.isRetryable(ex)) {
-          continue;
-        }
-        throw ex;
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
       }
     }
 
-    throw $tea.newUnretryableError(_lastRequest);
+    throw $dara.newUnretryableError(_context);
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param pathname pathname of every api
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param pathname - pathname of every api
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
-  async doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+  async doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
-      timeouted: "retry",
-      key: Util.defaultString(runtime.key, this._key),
-      cert: Util.defaultString(runtime.cert, this._cert),
-      ca: Util.defaultString(runtime.ca, this._ca),
-      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
-      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
-      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
-      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
-      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
-      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
-      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
-      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
-      retry: {
-        retryable: runtime.autoretry,
-        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
-      },
-      backoff: {
-        policy: Util.defaultString(runtime.backoffPolicy, "no"),
-        period: Util.defaultNumber(runtime.backoffPeriod, 1),
-      },
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
     }
 
-    let _lastRequest = null;
-    let _now = Date.now();
-    let _retryTimes = 0;
-    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
-      if (_retryTimes > 0) {
-        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
-          await $tea.sleep(_backoffTime);
+          await $dara.sleep(_backoffTime);
         }
       }
 
-      _retryTimes = _retryTimes + 1;
+      _retriesAttempted = _retriesAttempted + 1;
       try {
-        let request_ = new $tea.Request();
-        request_.protocol = Util.defaultString(this._protocol, protocol);
+        let request_ = new $dara.Request();
+        request_.protocol = this._protocol || protocol;
         request_.method = method;
         request_.pathname = pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset(this._globalParameters)) {
+        if (!$dara.isNull(this._globalParameters)) {
           let globalParams = this._globalParameters;
-          if (!Util.isUnset(globalParams.queries)) {
+          if (!$dara.isNull(globalParams.queries)) {
             globalQueries = globalParams.queries;
           }
 
-          if (!Util.isUnset(globalParams.headers)) {
+          if (!$dara.isNull(globalParams.headers)) {
             globalHeaders = globalParams.headers;
           }
 
@@ -615,34 +517,34 @@ export default class Client {
 
         let extendsHeaders : {[key: string ]: string} = { };
         let extendsQueries : {[key: string ]: string} = { };
-        if (!Util.isUnset(runtime.extendsParameters)) {
+        if (!$dara.isNull(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
-          if (!Util.isUnset(extendsParameters.headers)) {
+          if (!$dara.isNull(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
-          if (!Util.isUnset(extendsParameters.queries)) {
+          if (!$dara.isNull(extendsParameters.queries)) {
             extendsQueries = extendsParameters.queries;
           }
 
         }
 
         request_.headers = {
-          date: Util.getDateUTCString(),
+          date: OpenApiUtil.getDateUTCString(),
           host: this._endpoint,
           accept: "application/json",
-          'x-acs-signature-nonce': Util.getNonce(),
+          'x-acs-signature-nonce': OpenApiUtil.getNonce(),
           'x-acs-signature-method': "HMAC-SHA1",
           'x-acs-signature-version': "1.0",
           'x-acs-version': version,
           'x-acs-action': action,
-          'user-agent': Util.getUserAgent(this._userAgent),
+          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
           ...globalHeaders,
           ...extendsHeaders,
           ...request.headers,
         };
-        if (!Util.isUnset(request.body)) {
-          request_.body = new $tea.BytesReadable(Util.toJSONString(request.body));
+        if (!$dara.isNull(request.body)) {
+          request_.body = new $dara.BytesReadable(JSON.stringify(request.body));
           request_.headers["content-type"] = "application/json; charset=utf-8";
         }
 
@@ -650,16 +552,16 @@ export default class Client {
           ...globalQueries,
           ...extendsQueries,
         };
-        if (!Util.isUnset(request.query)) {
+        if (!$dara.isNull(request.query)) {
           request_.query = {
             ...request_.query,
             ...request.query,
           };
         }
 
-        if (!Util.equalString(authType, "Anonymous")) {
-          if (Util.isUnset(this._credential)) {
-            throw $tea.newError({
+        if (authType != "Anonymous") {
+          if ($dara.isNull(this._credential)) {
+            throw new ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -667,7 +569,7 @@ export default class Client {
 
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
-          if (Util.equalString(credentialType, "bearer")) {
+          if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
@@ -675,7 +577,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!Util.empty(securityToken)) {
+            if (!$dara.isNull(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
@@ -686,61 +588,83 @@ export default class Client {
 
         }
 
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
-        let response_ = await $tea.doAction(request_, _runtime);
+        _lastResponse = response_;
 
-        if (Util.equalNumber(response_.statusCode, 204)) {
+        if (response_.statusCode == 204) {
           return {
             headers: response_.headers,
           };
         }
 
-        if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
-          let _res = await Util.readAsJSON(response_.body);
-          let err = Util.assertAsMap(_res);
-          let requestId = Client.defaultAny(err["RequestId"], err["requestId"]);
-          requestId = Client.defaultAny(requestId, err["requestid"]);
-          err["statusCode"] = response_.statusCode;
-          throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
-            data: err,
-            description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
-          });
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+          let _res = await $dara.Stream.readAsJSON(response_.body);
+          let err = _res;
+          let requestId = err["RequestId"] || err["requestId"];
+          requestId = requestId || err["requestid"];
+          let code = err["Code"] || err["code"];
+          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+            throw new ThrottlingError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              requestId: `${requestId}`,
+            });
+          } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
+            throw new ClientError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              accessDeniedDetail: this.getAccessDeniedDetail(err),
+              requestId: `${requestId}`,
+            });
+          } else {
+            throw new ServerError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              requestId: `${requestId}`,
+            });
+          }
+
         }
 
-        if (Util.equalString(bodyType, "binary")) {
+        if (bodyType == "binary") {
           let resp = {
             body: response_.body,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
           return resp;
-        } else if (Util.equalString(bodyType, "byte")) {
-          let byt = await Util.readAsBytes(response_.body);
+        } else if (bodyType == "byte") {
+          let byt = await $dara.Stream.readAsBytes(response_.body);
           return {
             body: byt,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "string")) {
-          let str = await Util.readAsString(response_.body);
+        } else if (bodyType == "string") {
+          let str = await $dara.Stream.readAsString(response_.body);
           return {
             body: str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "json")) {
-          let obj = await Util.readAsJSON(response_.body);
-          let res = Util.assertAsMap(obj);
+        } else if (bodyType == "json") {
+          let obj = await $dara.Stream.readAsJSON(response_.body);
+          let res = obj;
           return {
             body: res,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "array")) {
-          let arr = await Util.readAsJSON(response_.body);
+        } else if (bodyType == "array") {
+          let arr = await $dara.Stream.readAsJSON(response_.body);
           return {
             body: arr,
             headers: response_.headers,
@@ -754,80 +678,79 @@ export default class Client {
         }
 
       } catch (ex) {
-        if ($tea.isRetryable(ex)) {
-          continue;
-        }
-        throw ex;
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
       }
     }
 
-    throw $tea.newUnretryableError(_lastRequest);
+    throw $dara.newUnretryableError(_context);
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network with form body
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param pathname pathname of every api
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param pathname - pathname of every api
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
-  async doROARequestWithForm(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+  async doROARequestWithForm(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
-      timeouted: "retry",
-      key: Util.defaultString(runtime.key, this._key),
-      cert: Util.defaultString(runtime.cert, this._cert),
-      ca: Util.defaultString(runtime.ca, this._ca),
-      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
-      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
-      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
-      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
-      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
-      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
-      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
-      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
-      retry: {
-        retryable: runtime.autoretry,
-        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
-      },
-      backoff: {
-        policy: Util.defaultString(runtime.backoffPolicy, "no"),
-        period: Util.defaultNumber(runtime.backoffPeriod, 1),
-      },
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
     }
 
-    let _lastRequest = null;
-    let _now = Date.now();
-    let _retryTimes = 0;
-    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
-      if (_retryTimes > 0) {
-        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
-          await $tea.sleep(_backoffTime);
+          await $dara.sleep(_backoffTime);
         }
       }
 
-      _retryTimes = _retryTimes + 1;
+      _retriesAttempted = _retriesAttempted + 1;
       try {
-        let request_ = new $tea.Request();
-        request_.protocol = Util.defaultString(this._protocol, protocol);
+        let request_ = new $dara.Request();
+        request_.protocol = this._protocol || protocol;
         request_.method = method;
         request_.pathname = pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset(this._globalParameters)) {
+        if (!$dara.isNull(this._globalParameters)) {
           let globalParams = this._globalParameters;
-          if (!Util.isUnset(globalParams.queries)) {
+          if (!$dara.isNull(globalParams.queries)) {
             globalQueries = globalParams.queries;
           }
 
-          if (!Util.isUnset(globalParams.headers)) {
+          if (!$dara.isNull(globalParams.headers)) {
             globalHeaders = globalParams.headers;
           }
 
@@ -835,35 +758,35 @@ export default class Client {
 
         let extendsHeaders : {[key: string ]: string} = { };
         let extendsQueries : {[key: string ]: string} = { };
-        if (!Util.isUnset(runtime.extendsParameters)) {
+        if (!$dara.isNull(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
-          if (!Util.isUnset(extendsParameters.headers)) {
+          if (!$dara.isNull(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
-          if (!Util.isUnset(extendsParameters.queries)) {
+          if (!$dara.isNull(extendsParameters.queries)) {
             extendsQueries = extendsParameters.queries;
           }
 
         }
 
         request_.headers = {
-          date: Util.getDateUTCString(),
+          date: OpenApiUtil.getDateUTCString(),
           host: this._endpoint,
           accept: "application/json",
-          'x-acs-signature-nonce': Util.getNonce(),
+          'x-acs-signature-nonce': OpenApiUtil.getNonce(),
           'x-acs-signature-method': "HMAC-SHA1",
           'x-acs-signature-version': "1.0",
           'x-acs-version': version,
           'x-acs-action': action,
-          'user-agent': Util.getUserAgent(this._userAgent),
+          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
           ...globalHeaders,
           ...extendsHeaders,
           ...request.headers,
         };
-        if (!Util.isUnset(request.body)) {
-          let m = Util.assertAsMap(request.body);
-          request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(m));
+        if (!$dara.isNull(request.body)) {
+          let m = request.body;
+          request_.body = new $dara.BytesReadable(OpenApiUtil.toForm(m));
           request_.headers["content-type"] = "application/x-www-form-urlencoded";
         }
 
@@ -871,16 +794,16 @@ export default class Client {
           ...globalQueries,
           ...extendsQueries,
         };
-        if (!Util.isUnset(request.query)) {
+        if (!$dara.isNull(request.query)) {
           request_.query = {
             ...request_.query,
             ...request.query,
           };
         }
 
-        if (!Util.equalString(authType, "Anonymous")) {
-          if (Util.isUnset(this._credential)) {
-            throw $tea.newError({
+        if (authType != "Anonymous") {
+          if ($dara.isNull(this._credential)) {
+            throw new ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -888,7 +811,7 @@ export default class Client {
 
           let credentialModel = await this._credential.getCredential();
           let credentialType = credentialModel.type;
-          if (Util.equalString(credentialType, "bearer")) {
+          if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
@@ -896,7 +819,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!Util.empty(securityToken)) {
+            if (!$dara.isNull(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
@@ -907,59 +830,82 @@ export default class Client {
 
         }
 
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
-        let response_ = await $tea.doAction(request_, _runtime);
+        _lastResponse = response_;
 
-        if (Util.equalNumber(response_.statusCode, 204)) {
+        if (response_.statusCode == 204) {
           return {
             headers: response_.headers,
           };
         }
 
-        if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
-          let _res = await Util.readAsJSON(response_.body);
-          let err = Util.assertAsMap(_res);
-          err["statusCode"] = response_.statusCode;
-          throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
-            data: err,
-            description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
-          });
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+          let _res = await $dara.Stream.readAsJSON(response_.body);
+          let err = _res;
+          let requestId = err["RequestId"] || err["requestId"];
+          let code = err["Code"] || err["code"];
+          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+            throw new ThrottlingError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              requestId: `${requestId}`,
+            });
+          } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
+            throw new ClientError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              accessDeniedDetail: this.getAccessDeniedDetail(err),
+              requestId: `${requestId}`,
+            });
+          } else {
+            throw new ServerError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              requestId: `${requestId}`,
+            });
+          }
+
         }
 
-        if (Util.equalString(bodyType, "binary")) {
+        if (bodyType == "binary") {
           let resp = {
             body: response_.body,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
           return resp;
-        } else if (Util.equalString(bodyType, "byte")) {
-          let byt = await Util.readAsBytes(response_.body);
+        } else if (bodyType == "byte") {
+          let byt = await $dara.Stream.readAsBytes(response_.body);
           return {
             body: byt,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "string")) {
-          let str = await Util.readAsString(response_.body);
+        } else if (bodyType == "string") {
+          let str = await $dara.Stream.readAsString(response_.body);
           return {
             body: str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "json")) {
-          let obj = await Util.readAsJSON(response_.body);
-          let res = Util.assertAsMap(obj);
+        } else if (bodyType == "json") {
+          let obj = await $dara.Stream.readAsJSON(response_.body);
+          let res = obj;
           return {
             body: res,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(bodyType, "array")) {
-          let arr = await Util.readAsJSON(response_.body);
+        } else if (bodyType == "array") {
+          let arr = await $dara.Stream.readAsJSON(response_.body);
           return {
             body: arr,
             headers: response_.headers,
@@ -973,79 +919,78 @@ export default class Client {
         }
 
       } catch (ex) {
-        if ($tea.isRetryable(ex)) {
-          continue;
-        }
-        throw ex;
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
       }
     }
 
-    throw $tea.newUnretryableError(_lastRequest);
+    throw $dara.newUnretryableError(_context);
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
-  async doRequest(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+  async doRequest(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
-      timeouted: "retry",
-      key: Util.defaultString(runtime.key, this._key),
-      cert: Util.defaultString(runtime.cert, this._cert),
-      ca: Util.defaultString(runtime.ca, this._ca),
-      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
-      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
-      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
-      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
-      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
-      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
-      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
-      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
-      retry: {
-        retryable: runtime.autoretry,
-        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
-      },
-      backoff: {
-        policy: Util.defaultString(runtime.backoffPolicy, "no"),
-        period: Util.defaultNumber(runtime.backoffPeriod, 1),
-      },
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
     }
 
-    let _lastRequest = null;
-    let _now = Date.now();
-    let _retryTimes = 0;
-    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
-      if (_retryTimes > 0) {
-        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
-          await $tea.sleep(_backoffTime);
+          await $dara.sleep(_backoffTime);
         }
       }
 
-      _retryTimes = _retryTimes + 1;
+      _retriesAttempted = _retriesAttempted + 1;
       try {
-        let request_ = new $tea.Request();
-        request_.protocol = Util.defaultString(this._protocol, params.protocol);
+        let request_ = new $dara.Request();
+        request_.protocol = this._protocol || params.protocol;
         request_.method = params.method;
         request_.pathname = params.pathname;
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset(this._globalParameters)) {
+        if (!$dara.isNull(this._globalParameters)) {
           let globalParams = this._globalParameters;
-          if (!Util.isUnset(globalParams.queries)) {
+          if (!$dara.isNull(globalParams.queries)) {
             globalQueries = globalParams.queries;
           }
 
-          if (!Util.isUnset(globalParams.headers)) {
+          if (!$dara.isNull(globalParams.headers)) {
             globalHeaders = globalParams.headers;
           }
 
@@ -1053,13 +998,13 @@ export default class Client {
 
         let extendsHeaders : {[key: string ]: string} = { };
         let extendsQueries : {[key: string ]: string} = { };
-        if (!Util.isUnset(runtime.extendsParameters)) {
+        if (!$dara.isNull(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
-          if (!Util.isUnset(extendsParameters.headers)) {
+          if (!$dara.isNull(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
-          if (!Util.isUnset(extendsParameters.queries)) {
+          if (!$dara.isNull(extendsParameters.queries)) {
             extendsQueries = extendsParameters.queries;
           }
 
@@ -1067,7 +1012,6 @@ export default class Client {
 
         request_.query = {
           ...globalQueries,
-          ...extendsQueries,
           ...request.query,
         };
         // endpoint is setted in product client
@@ -1075,17 +1019,17 @@ export default class Client {
           host: this._endpoint,
           'x-acs-version': params.version,
           'x-acs-action': params.action,
-          'user-agent': this.getUserAgent(),
+          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
           'x-acs-date': OpenApiUtil.getTimestamp(),
-          'x-acs-signature-nonce': Util.getNonce(),
+          'x-acs-signature-nonce': OpenApiUtil.getNonce(),
           accept: "application/json",
           ...globalHeaders,
           ...extendsHeaders,
           ...request.headers,
         };
-        if (Util.equalString(params.style, "RPC")) {
+        if (params.style == "RPC") {
           let headers = this.getRpcHeaders();
-          if (!Util.isUnset(headers)) {
+          if (!$dara.isNull(headers)) {
             request_.headers = {
               ...request_.headers,
               ...headers,
@@ -1094,29 +1038,29 @@ export default class Client {
 
         }
 
-        let signatureAlgorithm = Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256");
-        let hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(""), signatureAlgorithm));
-        if (!Util.isUnset(request.stream)) {
-          let tmp = await Util.readAsBytes(request.stream);
-          hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
-          request_.body = new $tea.BytesReadable(tmp);
+        let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
+        let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);
+        if (!$dara.isNull(request.stream)) {
+          let tmp = await $dara.Stream.readAsBytes(request.stream);
+          hashedRequestPayload = OpenApiUtil.hash(tmp, signatureAlgorithm);
+          request_.body = new $dara.BytesReadable(tmp);
           request_.headers["content-type"] = "application/octet-stream";
         } else {
-          if (!Util.isUnset(request.body)) {
-            if (Util.equalString(params.reqBodyType, "byte")) {
-              let byteObj = Util.assertAsBytes(request.body);
-              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
-              request_.body = new $tea.BytesReadable(byteObj);
-            } else if (Util.equalString(params.reqBodyType, "json")) {
-              let jsonObj = Util.toJSONString(request.body);
-              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
-              request_.body = new $tea.BytesReadable(jsonObj);
+          if (!$dara.isNull(request.body)) {
+            if (params.reqBodyType == "byte") {
+              let byteObj = Buffer.from(request.body);
+              hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(byteObj);
+            } else if (params.reqBodyType == "json") {
+              let jsonObj = JSON.stringify(request.body);
+              hashedRequestPayload = OpenApiUtil.hash(Buffer.from(jsonObj, "utf8"), signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(jsonObj);
               request_.headers["content-type"] = "application/json; charset=utf-8";
             } else {
-              let m = Util.assertAsMap(request.body);
+              let m = request.body;
               let formObj = OpenApiUtil.toForm(m);
-              hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
-              request_.body = new $tea.BytesReadable(formObj);
+              hashedRequestPayload = OpenApiUtil.hash(Buffer.from(formObj, "utf8"), signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(formObj);
               request_.headers["content-type"] = "application/x-www-form-urlencoded";
             }
 
@@ -1124,10 +1068,10 @@ export default class Client {
 
         }
 
-        request_.headers["x-acs-content-sha256"] = hashedRequestPayload;
-        if (!Util.equalString(params.authType, "Anonymous")) {
-          if (Util.isUnset(this._credential)) {
-            throw $tea.newError({
+        request_.headers["x-acs-content-sha256"] = hashedRequestPayload.toString("hex");
+        if (params.authType != "Anonymous") {
+          if ($dara.isNull(this._credential)) {
+            throw new ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -1135,10 +1079,10 @@ export default class Client {
 
           let credentialModel = await this._credential.getCredential();
           let authType = credentialModel.type;
-          if (Util.equalString(authType, "bearer")) {
+          if (authType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
-            if (Util.equalString(params.style, "RPC")) {
+            if (params.style == "RPC") {
               request_.query["SignatureType"] = "BEARERTOKEN";
             } else {
               request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
@@ -1148,78 +1092,101 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!Util.empty(securityToken)) {
+            if (!$dara.isNull(securityToken)) {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
 
-            request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+            request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload.toString("hex"), accessKeyId, accessKeySecret);
           }
 
         }
 
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
-        let response_ = await $tea.doAction(request_, _runtime);
+        _lastResponse = response_;
 
-        if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
           let err : {[key: string ]: any} = { };
-          if (!Util.isUnset(response_.headers["content-type"]) && Util.equalString(response_.headers["content-type"], "text/xml;charset=utf-8")) {
-            let _str = await Util.readAsString(response_.body);
-            let respMap = XML.parseXml(_str, null);
-            err = Util.assertAsMap(respMap["Error"]);
+          if (!$dara.isNull(response_.headers["content-type"]) && response_.headers["content-type"] == "text/xml;charset=utf-8") {
+            let _str = await $dara.Stream.readAsString(response_.body);
+            let respMap = $dara.XML.parseXml(_str, null);
+            err = respMap["Error"];
           } else {
-            let _res = await Util.readAsJSON(response_.body);
-            err = Util.assertAsMap(_res);
+            let _res = await $dara.Stream.readAsJSON(response_.body);
+            err = _res;
           }
 
-          err["statusCode"] = response_.statusCode;
-          throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
-            data: err,
-            description: `${Client.defaultAny(err["Description"], err["description"])}`,
-            accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
-          });
+          let requestId = err["RequestId"] || err["requestId"];
+          let code = err["Code"] || err["code"];
+          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+            throw new ThrottlingError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              requestId: `${requestId}`,
+            });
+          } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
+            throw new ClientError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              accessDeniedDetail: this.getAccessDeniedDetail(err),
+              requestId: `${requestId}`,
+            });
+          } else {
+            throw new ServerError({
+              statusCode: response_.statusCode,
+              code: `${code}`,
+              message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              description: `${err["Description"] || err["description"]}`,
+              requestId: `${requestId}`,
+            });
+          }
+
         }
 
-        if (Util.equalString(params.bodyType, "binary")) {
+        if (params.bodyType == "binary") {
           let resp = {
             body: response_.body,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
           return resp;
-        } else if (Util.equalString(params.bodyType, "byte")) {
-          let byt = await Util.readAsBytes(response_.body);
+        } else if (params.bodyType == "byte") {
+          let byt = await $dara.Stream.readAsBytes(response_.body);
           return {
             body: byt,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(params.bodyType, "string")) {
-          let str = await Util.readAsString(response_.body);
+        } else if (params.bodyType == "string") {
+          let str = await $dara.Stream.readAsString(response_.body);
           return {
             body: str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(params.bodyType, "json")) {
-          let obj = await Util.readAsJSON(response_.body);
-          let res = Util.assertAsMap(obj);
+        } else if (params.bodyType == "json") {
+          let obj = await $dara.Stream.readAsJSON(response_.body);
+          let res = obj;
           return {
             body: res,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
-        } else if (Util.equalString(params.bodyType, "array")) {
-          let arr = await Util.readAsJSON(response_.body);
+        } else if (params.bodyType == "array") {
+          let arr = await $dara.Stream.readAsJSON(response_.body);
           return {
             body: arr,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
         } else {
-          let anything = await Util.readAsString(response_.body);
+          let anything = await $dara.Stream.readAsString(response_.body);
           return {
             body: anything,
             headers: response_.headers,
@@ -1228,79 +1195,78 @@ export default class Client {
         }
 
       } catch (ex) {
-        if ($tea.isRetryable(ex)) {
-          continue;
-        }
-        throw ex;
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
       }
     }
 
-    throw $tea.newUnretryableError(_lastRequest);
+    throw $dara.newUnretryableError(_context);
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
-  async execute(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
+  async execute(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
-      timeouted: "retry",
-      key: Util.defaultString(runtime.key, this._key),
-      cert: Util.defaultString(runtime.cert, this._cert),
-      ca: Util.defaultString(runtime.ca, this._ca),
-      readTimeout: Util.defaultNumber(runtime.readTimeout, this._readTimeout),
-      connectTimeout: Util.defaultNumber(runtime.connectTimeout, this._connectTimeout),
-      httpProxy: Util.defaultString(runtime.httpProxy, this._httpProxy),
-      httpsProxy: Util.defaultString(runtime.httpsProxy, this._httpsProxy),
-      noProxy: Util.defaultString(runtime.noProxy, this._noProxy),
-      socks5Proxy: Util.defaultString(runtime.socks5Proxy, this._socks5Proxy),
-      socks5NetWork: Util.defaultString(runtime.socks5NetWork, this._socks5NetWork),
-      maxIdleConns: Util.defaultNumber(runtime.maxIdleConns, this._maxIdleConns),
-      retry: {
-        retryable: runtime.autoretry,
-        maxAttempts: Util.defaultNumber(runtime.maxAttempts, 3),
-      },
-      backoff: {
-        policy: Util.defaultString(runtime.backoffPolicy, "no"),
-        period: Util.defaultNumber(runtime.backoffPeriod, 1),
-      },
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
-      disableHttp2: Client.defaultAny(this._disableHttp2, false),
+      disableHttp2: this._disableHttp2 || false,
     }
 
-    let _lastRequest = null;
-    let _now = Date.now();
-    let _retryTimes = 0;
-    while ($tea.allowRetry(_runtime['retry'], _retryTimes, _now)) {
-      if (_retryTimes > 0) {
-        let _backoffTime = $tea.getBackoffTime(_runtime['backoff'], _retryTimes);
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
-          await $tea.sleep(_backoffTime);
+          await $dara.sleep(_backoffTime);
         }
       }
 
-      _retryTimes = _retryTimes + 1;
+      _retriesAttempted = _retriesAttempted + 1;
       try {
-        let request_ = new $tea.Request();
+        let request_ = new $dara.Request();
         // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
         let headers = this.getRpcHeaders();
         let globalQueries : {[key: string ]: string} = { };
         let globalHeaders : {[key: string ]: string} = { };
-        if (!Util.isUnset(this._globalParameters)) {
+        if (!$dara.isNull(this._globalParameters)) {
           let globalParams = this._globalParameters;
-          if (!Util.isUnset(globalParams.queries)) {
+          if (!$dara.isNull(globalParams.queries)) {
             globalQueries = globalParams.queries;
           }
 
-          if (!Util.isUnset(globalParams.headers)) {
+          if (!$dara.isNull(globalParams.headers)) {
             globalHeaders = globalParams.headers;
           }
 
@@ -1308,13 +1274,13 @@ export default class Client {
 
         let extendsHeaders : {[key: string ]: string} = { };
         let extendsQueries : {[key: string ]: string} = { };
-        if (!Util.isUnset(runtime.extendsParameters)) {
+        if (!$dara.isNull(runtime.extendsParameters)) {
           let extendsParameters = runtime.extendsParameters;
-          if (!Util.isUnset(extendsParameters.headers)) {
+          if (!$dara.isNull(extendsParameters.headers)) {
             extendsHeaders = extendsParameters.headers;
           }
 
-          if (!Util.isUnset(extendsParameters.queries)) {
+          if (!$dara.isNull(extendsParameters.queries)) {
             extendsQueries = extendsParameters.queries;
           }
 
@@ -1339,8 +1305,8 @@ export default class Client {
           productId: this._productId,
           action: params.action,
           version: params.version,
-          protocol: Util.defaultString(this._protocol, params.protocol),
-          method: Util.defaultString(this._method, params.method),
+          protocol: this._protocol || params.protocol,
+          method: this._method || params.method,
           authType: params.authType,
           bodyType: params.bodyType,
           reqBodyType: params.reqBodyType,
@@ -1348,11 +1314,11 @@ export default class Client {
           credential: this._credential,
           signatureVersion: this._signatureVersion,
           signatureAlgorithm: this._signatureAlgorithm,
-          userAgent: this.getUserAgent(),
+          userAgent: OpenApiUtil.getUserAgent(this._userAgent),
         });
         let configurationContext = new $SPI.InterceptorContextConfiguration({
           regionId: this._regionId,
-          endpoint: Util.defaultString(request.endpointOverride, this._endpoint),
+          endpoint: request.endpointOverride || this._endpoint,
           endpointRule: this._endpointRule,
           endpointMap: this._endpointMap,
           endpointType: this._endpointType,
@@ -1374,8 +1340,9 @@ export default class Client {
         request_.query = interceptorContext.request.query;
         request_.body = interceptorContext.request.stream;
         request_.headers = interceptorContext.request.headers;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
-        let response_ = await $tea.doAction(request_, _runtime);
+        _lastResponse = response_;
 
         let responseContext = new $SPI.InterceptorContextResponse({
           statusCode: response_.statusCode,
@@ -1391,29 +1358,225 @@ export default class Client {
           body: interceptorContext.response.deserializedBody,
         };
       } catch (ex) {
-        if ($tea.isRetryable(ex)) {
-          continue;
-        }
-        throw ex;
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
       }
     }
 
-    throw $tea.newUnretryableError(_lastRequest);
+    throw $dara.newUnretryableError(_context);
   }
 
-  async callApi(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
-    if (Util.isUnset(params)) {
-      throw $tea.newError({
+  async *callSSEApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): AsyncGenerator<SSEResponse, any, unknown> {
+    let _runtime: { [key: string]: any } = {
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
+      ignoreSSL: runtime.ignoreSSL,
+    }
+
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
+        }
+      }
+
+      _retriesAttempted = _retriesAttempted + 1;
+      try {
+        let request_ = new $dara.Request();
+        request_.protocol = this._protocol || params.protocol;
+        request_.method = params.method;
+        request_.pathname = params.pathname;
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!$dara.isNull(this._globalParameters)) {
+          let globalParams = this._globalParameters;
+          if (!$dara.isNull(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!$dara.isNull(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
+        let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
+        if (!$dara.isNull(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!$dara.isNull(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!$dara.isNull(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
+          }
+
+        }
+
+        request_.query = {
+          ...globalQueries,
+          ...extendsQueries,
+          ...request.query,
+        };
+        // endpoint is setted in product client
+        request_.headers = {
+          host: this._endpoint,
+          'x-acs-version': params.version,
+          'x-acs-action': params.action,
+          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
+          'x-acs-date': OpenApiUtil.getTimestamp(),
+          'x-acs-signature-nonce': OpenApiUtil.getNonce(),
+          accept: "application/json",
+          ...extendsHeaders,
+          ...globalHeaders,
+          ...request.headers,
+        };
+        if (params.style == "RPC") {
+          let headers = this.getRpcHeaders();
+          if (!$dara.isNull(headers)) {
+            request_.headers = {
+              ...request_.headers,
+              ...headers,
+            };
+          }
+
+        }
+
+        let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
+        let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);
+        if (!$dara.isNull(request.stream)) {
+          let tmp = await $dara.Stream.readAsBytes(request.stream);
+          hashedRequestPayload = OpenApiUtil.hash(tmp, signatureAlgorithm);
+          request_.body = new $dara.BytesReadable(tmp);
+          request_.headers["content-type"] = "application/octet-stream";
+        } else {
+          if (!$dara.isNull(request.body)) {
+            if (params.reqBodyType == "byte") {
+              let byteObj = Buffer.from(request.body);
+              hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(byteObj);
+            } else if (params.reqBodyType == "json") {
+              let jsonObj = JSON.stringify(request.body);
+              hashedRequestPayload = OpenApiUtil.hash(Buffer.from(jsonObj, "utf8"), signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(jsonObj);
+              request_.headers["content-type"] = "application/json; charset=utf-8";
+            } else {
+              let m = request.body;
+              let formObj = OpenApiUtil.toForm(m);
+              hashedRequestPayload = OpenApiUtil.hash(Buffer.from(formObj, "utf8"), signatureAlgorithm);
+              request_.body = new $dara.BytesReadable(formObj);
+              request_.headers["content-type"] = "application/x-www-form-urlencoded";
+            }
+
+          }
+
+        }
+
+        request_.headers["x-acs-content-sha256"] = hashedRequestPayload.toString("hex");
+        if (params.authType != "Anonymous") {
+          let credentialModel = await this._credential.getCredential();
+          let authType = credentialModel.type;
+          if (authType == "bearer") {
+            let bearerToken = credentialModel.bearerToken;
+            request_.headers["x-acs-bearer-token"] = bearerToken;
+          } else {
+            let accessKeyId = credentialModel.accessKeyId;
+            let accessKeySecret = credentialModel.accessKeySecret;
+            let securityToken = credentialModel.securityToken;
+            if (!$dara.isNull(securityToken)) {
+              request_.headers["x-acs-accesskey-id"] = accessKeyId;
+              request_.headers["x-acs-security-token"] = securityToken;
+            }
+
+            request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload.toString("hex"), accessKeyId, accessKeySecret);
+          }
+
+        }
+
+        let response_ = await $dara.doAction(request_, _runtime);
+        _lastRequest = request_;
+        _lastResponse = response_;
+
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+          let err : {[key: string ]: any} = { };
+          if (!$dara.isNull(response_.headers["content-type"]) && response_.headers["content-type"] == "text/xml;charset=utf-8") {
+            let _str = await $dara.Stream.readAsString(response_.body);
+            let respMap = $dara.XML.parseXml(_str, null);
+            err = respMap["Error"];
+          } else {
+            let _res = await $dara.Stream.readAsJSON(response_.body);
+            err = _res;
+          }
+
+          err["statusCode"] = response_.statusCode;
+          throw $dara.newError({
+            code: `${err["Code"] || err["code"]}`,
+            message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${err["RequestId"] || err["requestId"]}`,
+            data: err,
+            description: `${err["Description"] || err["description"]}`,
+            accessDeniedDetail: err["AccessDeniedDetail"] || err["accessDeniedDetail"],
+          });
+        }
+
+        let events = await $dara.Stream.readAsSSE(response_.body);
+
+        for await (let event of events) {
+          yield new SSEResponse({
+            statusCode: response_.statusCode,
+            headers: response_.headers,
+            event: event,
+          });
+        }
+        return null;
+      } catch (ex) {
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
+      }
+    }
+
+    throw $dara.newUnretryableError(_context);
+  }
+
+  async callApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
+    if ($dara.isNull(params)) {
+      throw new ClientError({
         code: "ParameterMissing",
         message: "'params' can not be unset",
       });
     }
 
-    if (Util.isUnset(this._signatureAlgorithm) || !Util.equalString(this._signatureAlgorithm, "v2")) {
+    if ($dara.isNull(this._signatureAlgorithm) || this._signatureAlgorithm != "v2") {
       return await this.doRequest(params, request, runtime);
-    } else if (Util.equalString(params.style, "ROA") && Util.equalString(params.reqBodyType, "json")) {
+    } else if ((params.style == "ROA") && (params.reqBodyType == "json")) {
       return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-    } else if (Util.equalString(params.style, "ROA")) {
+    } else if (params.style == "ROA") {
       return await this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
     } else {
       return await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
@@ -1422,20 +1585,12 @@ export default class Client {
   }
 
   /**
-   * Get user agent
-   * @return user agent
-   */
-  getUserAgent(): string {
-    let userAgent = Util.getUserAgent(this._userAgent);
-    return userAgent;
-  }
-
-  /**
+   * @remarks
    * Get accesskey id by using credential
-   * @return accesskey id
+   * @returns accesskey id
    */
   async getAccessKeyId(): Promise<string> {
-    if (Util.isUnset(this._credential)) {
+    if ($dara.isNull(this._credential)) {
       return "";
     }
 
@@ -1444,11 +1599,12 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get accesskey secret by using credential
-   * @return accesskey secret
+   * @returns accesskey secret
    */
   async getAccessKeySecret(): Promise<string> {
-    if (Util.isUnset(this._credential)) {
+    if ($dara.isNull(this._credential)) {
       return "";
     }
 
@@ -1457,11 +1613,12 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get security token by using credential
-   * @return security token
+   * @returns security token
    */
   async getSecurityToken(): Promise<string> {
-    if (Util.isUnset(this._credential)) {
+    if ($dara.isNull(this._credential)) {
       return "";
     }
 
@@ -1470,11 +1627,12 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get bearer token by credential
-   * @return bearer token
+   * @returns bearer token
    */
   async getBearerToken(): Promise<string> {
-    if (Util.isUnset(this._credential)) {
+    if ($dara.isNull(this._credential)) {
       return "";
     }
 
@@ -1483,11 +1641,12 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get credential type by credential
-   * @return credential type e.g. access_key
+   * @returns credential type e.g. access_key
    */
   async getType(): Promise<string> {
-    if (Util.isUnset(this._credential)) {
+    if ($dara.isNull(this._credential)) {
       return "";
     }
 
@@ -1496,26 +1655,14 @@ export default class Client {
   }
 
   /**
-   * If inputValue is not null, return it or return defaultValue
-   * @param inputValue  users input value
-   * @param defaultValue default value
-   * @return the final result
-   */
-  static defaultAny(inputValue: any, defaultValue: any): any {
-    if (Util.isUnset(inputValue)) {
-      return defaultValue;
-    }
-
-    return inputValue;
-  }
-
-  /**
+   * @remarks
    * If the endpointRule and config.endpoint are empty, throw error
-   * @param config config contains the necessary information to create a client
+   * 
+   * @param config - config contains the necessary information to create a client
    */
-  checkConfig(config: Config): void {
-    if (Util.empty(this._endpointRule) && Util.empty(config.endpoint)) {
-      throw $tea.newError({
+  checkConfig(config: $OpenApiUtil.Config): void {
+    if ($dara.isNull(this._endpointRule) && $dara.isNull(config.endpoint)) {
+      throw new ClientError({
         code: "ParameterMissing",
         message: "'config.endpoint' can not be empty",
       });
@@ -1524,28 +1671,46 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * set gateway client
-   * @param spi.
+   * 
+   * @param spi - .
    */
   setGatewayClient(spi: SPI): void {
     this._spi = spi;
   }
 
   /**
+   * @remarks
    * set RPC header for debug
-   * @param headers headers for debug, this header can be used only once.
+   * 
+   * @param headers - headers for debug, this header can be used only once.
    */
   setRpcHeaders(headers: {[key: string ]: string}): void {
     this._headers = headers;
   }
 
   /**
+   * @remarks
    * get RPC header for debug
    */
   getRpcHeaders(): {[key: string ]: string} {
     let headers : {[key: string ]: string} = this._headers;
     this._headers = null;
     return headers;
+  }
+
+  getAccessDeniedDetail(err: {[key: string ]: any}): {[key: string ]: any} {
+    let accessDeniedDetail : {[key: string ]: any} = null;
+    if (!$dara.isNull(err["AccessDeniedDetail"])) {
+      let detail1 = err["AccessDeniedDetail"];
+      accessDeniedDetail = detail1;
+    } else if (!$dara.isNull(err["accessDeniedDetail"])) {
+      let detail2 = err["accessDeniedDetail"];
+      accessDeniedDetail = detail2;
+    }
+
+    return accessDeniedDetail;
   }
 
 }

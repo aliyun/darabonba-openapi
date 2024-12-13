@@ -2,11 +2,9 @@
  * This is for OpenApi SDK
  */
 
-import Util;
+import './utils' OpenApiUtil;
 import Credential;
-import OpenApiUtil;
 import SPI;
-import XML;
 
 type @endpoint = string
 type @regionId = string
@@ -33,66 +31,53 @@ type @signatureVersion = string
 type @signatureAlgorithm = string
 type @headers = map[string]string
 type @spi = SPI
-type @globalParameters = GlobalParameters
+type @globalParameters = OpenApiUtil.GlobalParameters
 type @key = string
 type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
+type @retryOptions = $RetryOptions
 
-model GlobalParameters {
-  headers?: map[string]string,
-  queries?: map[string]string,
+
+model SSEResponse {
+  headers: map[string]string,
+  statusCode: number(description='HTTP Status Code'),
+  event: $SSEEvent
 }
-/**
- * Model for initing client
- */
-model Config {
-  accessKeyId?: string(description='accesskey id',default=''),
-  accessKeySecret?: string(description='accesskey secret',default=''),
-  securityToken?: string(description='security token',example='a.txt',default=''),
-  bearerToken?: string(description='bearer token',example='the-bearer-token',default=''),
-  protocol?: string(description='http protocol',example='http',default='http'),
-  method?: string(description='http method',example='GET',default=''),
-  regionId?: string(description='region id',example='cn-hangzhou',default=''),
-  readTimeout?: integer(description='read timeout',example='10',default=''),
-  connectTimeout?: integer(description='connect timeout',example='10',default=''),
-  httpProxy?: string(description='http proxy',example='http://localhost',default=''),
-  httpsProxy?: string(description='https proxy',example='https://localhost',default=''),
-  credential?: Credential(description='credential',example='',default=''),
-  endpoint?: string(description='endpoint',example='cs.aliyuncs.com',default=''),
-  noProxy?: string(description='proxy white list',example='http://localhost',default=''),
-  maxIdleConns?: integer(description='max idle conns',example='3',default=''),
-  network?: string(description='network for endpoint',example='public',default=''),
-  userAgent?: string(description='user agent',example='Alibabacloud/1',default=''),
-  suffix?: string(description='suffix for endpoint',example='aliyun',default=''),
-  socks5Proxy?: string(description='socks5 proxy',default=''),
-  socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
-  endpointType?: string(description='endpoint type',example='internal',default=''),
-  openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
-  type?: string(description='credential type',example='access_key',default='',deprecated=true),
-  signatureVersion?: string(description='Signature Version',example='v1',default=''),
-  signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
-  globalParameters?: GlobalParameters(description='Global Parameters'),
-  key?: string(description='privite key for client certificate', example='MIIEvQ',default=''),
-  cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
-  ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
-  disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+
+exception AlibabaCloud extends $Error {
+  statusCode?: number(description='HTTP Status Code'),
+  code?: string(description="Error Code"),
+  message?: string(description="Error Message"),
+  description?: string(description="Error Description"),
+  requestId?: string(description="Request ID"),
+}
+
+exception Client extends AlibabaCloud {
+  accessDeniedDetail?: map[string]any(description="Access Denied Detail"),
+}
+
+exception Server extends AlibabaCloud {
+}
+
+exception Throttling extends AlibabaCloud {
+  retryAfter?: long(description="Retry After(ms)"),
 }
 
 /**
  * Init client with Config
  * @param config config contains the necessary information to create a client
  */
-init(config: Config) {
-  if (Util.isUnset(config)) {
-    throw {
+init(config: OpenApiUtil.Config) {
+  if ($isNull(config)) {
+    throw new Client {
       code = 'ParameterMissing',
       message = '\'config\' can not be unset'
     };
   }
 
-  if(!Util.empty(config.accessKeyId) && !Util.empty(config.accessKeySecret)){
-    if (!Util.empty(config.securityToken)) {
+  if(!$isNull(config.accessKeyId) && !$isNull(config.accessKeySecret)){
+    if (!$isNull(config.securityToken)) {
       config.type = 'sts';
     } else {
       config.type = 'access_key';
@@ -104,13 +89,13 @@ init(config: Config) {
     };
     credentialConfig.securityToken = config.securityToken;
     @credential = new Credential(credentialConfig);
-  } else if (!Util.empty(config.bearerToken)) {
+  } else if (!$isNull(config.bearerToken)) {
     var cc = new Credential.Config{
       type = 'bearer',
       bearerToken = config.bearerToken
     };
     @credential = new Credential(cc);
-  } else if(!Util.isUnset(config.credential)) {
+  } else if(!$isNull(config.credential)) {
     @credential = config.credential;
   }
   @endpoint = config.endpoint;
@@ -136,15 +121,7 @@ init(config: Config) {
   @cert = config.cert;
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
-}
-
-model OpenApiRequest {
-  headers?: map[string]string,
-  query?: map[string]string,
-  body?: any,
-  stream?: readable,
-  hostMap?: map[string]string,
-  endpointOverride?: string,
+  @retryOptions = config.retryOptions;
 }
 
 /**
@@ -159,29 +136,29 @@ model OpenApiRequest {
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
-api doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
-  __request.protocol = Util.defaultString(@protocol, protocol);
+api doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
   __request.pathname = '/';
   var globalQueries : map[string]string = {};
   var globalHeaders : map[string]string = {};
-  if (!Util.isUnset(@globalParameters)) {
+  if (!$isNull(@globalParameters)) {
     var globalParams = @globalParameters;
-    if (!Util.isUnset(globalParams.queries)) {
+    if (!$isNull(globalParams.queries)) {
       globalQueries = globalParams.queries;
     }
-    if (!Util.isUnset(globalParams.headers)) {
+    if (!$isNull(globalParams.headers)) {
       globalHeaders = globalParams.headers;
     }
   }
   var extendsHeaders : map[string]string = {};
   var extendsQueries : map[string]string = {};
-  if (!Util.isUnset(runtime.extendsParameters)) {
+  if (!$isNull(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
-    if (!Util.isUnset(extendsParameters.headers)) {
+    if (!$isNull(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
-    if (!Util.isUnset(extendsParameters.queries)) {
+    if (!$isNull(extendsParameters.queries)) {
       extendsQueries = extendsParameters.queries;
     }
   }
@@ -190,20 +167,20 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     Format = 'json',
     Version = version,
     Timestamp = OpenApiUtil.getTimestamp(),
-    SignatureNonce = Util.getNonce(),
+    SignatureNonce = OpenApiUtil.getNonce(),
     ...globalQueries,
     ...extendsQueries,
     ...request.query
   };
 
   var headers = getRpcHeaders();
-  if(Util.isUnset(headers)){
+  if($isNull(headers)){
     // endpoint is setted in product client
     __request.headers = {
       host = @endpoint,
       x-acs-version = version,
       x-acs-action = action,
-      user-agent = getUserAgent(),
+      user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
       ...extendsHeaders
     };
@@ -212,30 +189,31 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       host = @endpoint,
       x-acs-version = version,
       x-acs-action = action,
-      user-agent = getUserAgent(),
+      user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
       ...extendsHeaders,
       ...headers
     };
   }
 
-  if (!Util.isUnset(request.body)) {
-    var m = Util.assertAsMap(request.body);
-    var tmp = Util.anyifyMapValue(OpenApiUtil.query(m));
-    __request.body = Util.toFormString(tmp);
+  if (!$isNull(request.body)) {
+    var m = $object(request.body);
+    var tmp = $object(OpenApiUtil.query(m));
+    __request.body = $Form.toFormString(tmp);
     __request.headers.content-type = 'application/x-www-form-urlencoded';
   }
 
-  if (!Util.equalString(authType, 'Anonymous')) {
-    if (Util.isUnset(@credential)) {
-      throw {
+
+  if (authType != 'Anonymous') {
+    if ($isNull(@credential)) {
+      throw new Client{
         code = `InvalidCredentials`,
         message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
       }
     }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
-    if (Util.equalString(credentialType, 'bearer')) {
+    if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.query.BearerToken = bearerToken;
       __request.query.SignatureType = 'BEARERTOKEN';
@@ -243,15 +221,15 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!Util.empty(securityToken)) {
+      if (!$isNull(securityToken)) {
         __request.query.SecurityToken = securityToken;
       }
       __request.query.SignatureMethod = 'HMAC-SHA1';
       __request.query.SignatureVersion = '1.0';
       __request.query.AccessKeyId = accessKeyId;
       var t : map[string]any = null;
-      if (!Util.isUnset(request.body)) {
-        t = Util.assertAsMap(request.body);
+      if (!$isNull(request.body)) {
+        t = $object(request.body);
       }
       var signedParam = {
         ...__request.query,
@@ -261,50 +239,70 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     }
   }
 } returns {
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
-    var _res = Util.readAsJSON(__response.body);
-    var err = Util.assertAsMap(_res);
-    var requestId = defaultAny(err.RequestId, err.requestId);
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
+    var _res = $Stream.readAsJSON(__response.body);
+    var err = $object(_res);
+    var requestId = $default(err.RequestId, err.requestId);
+    var code = $default(err.Code, err.code);
+    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+      throw new Throttling{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
+      throw new Client{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new Server{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
-  if (Util.equalString(bodyType, 'binary')) {
+  if (bodyType == 'binary') {
     var resp = {
       body = __response.body,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
     return resp;
-  } else if (Util.equalString(bodyType, 'byte')) {
-    var byt = Util.readAsBytes(__response.body);
+  } else if (bodyType == 'byte') {
+    var byt = $Stream.readAsBytes(__response.body);
     return {
       body = byt,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'string')) {
-    var str = Util.readAsString(__response.body);
+  } else if (bodyType == 'string') {
+    var str = $Stream.readAsString(__response.body);
     return {
       body = str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'json')){
-    var obj = Util.readAsJSON(__response.body);
-    var res = Util.assertAsMap(obj);
+  } else if (bodyType == 'json'){
+    var obj = $Stream.readAsJSON(__response.body);
+    var res = $object(obj);
     return {
       body = res,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'array')){
-    var arr = Util.readAsJSON(__response.body);
+  } else if (bodyType == 'array'){
+    var arr = $Stream.readAsJSON(__response.body);
     return {
       body = arr,
       headers = __response.headers,
@@ -317,26 +315,18 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     };
   }
 } runtime {
-  timeouted = 'retry',
-  key = Util.defaultString(runtime.key, @key),
-  cert = Util.defaultString(runtime.cert, @cert),
-  ca = Util.defaultString(runtime.ca, @ca),
-  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
-  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
-  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
-  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
-  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
-  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
-  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
-  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -353,49 +343,51 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
-api doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
-  __request.protocol = Util.defaultString(@protocol, protocol);
+api doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
   __request.pathname = pathname;
   var globalQueries : map[string]string = {};
   var globalHeaders : map[string]string = {};
-  if (!Util.isUnset(@globalParameters)) {
+  if (!$isNull(@globalParameters)) {
     var globalParams = @globalParameters;
-    if (!Util.isUnset(globalParams.queries)) {
+    if (!$isNull(globalParams.queries)) {
       globalQueries = globalParams.queries;
     }
-    if (!Util.isUnset(globalParams.headers)) {
+    if (!$isNull(globalParams.headers)) {
       globalHeaders = globalParams.headers;
     }
   }
+
   var extendsHeaders : map[string]string = {};
   var extendsQueries : map[string]string = {};
-  if (!Util.isUnset(runtime.extendsParameters)) {
+  if (!$isNull(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
-    if (!Util.isUnset(extendsParameters.headers)) {
+    if (!$isNull(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
-    if (!Util.isUnset(extendsParameters.queries)) {
+    if (!$isNull(extendsParameters.queries)) {
       extendsQueries = extendsParameters.queries;
     }
   }
+
   __request.headers = {
-    date = Util.getDateUTCString(),
+    date = OpenApiUtil.getDateUTCString(),
     host = @endpoint,
     accept = 'application/json',
-    x-acs-signature-nonce = Util.getNonce(),
+    x-acs-signature-nonce = OpenApiUtil.getNonce(),
     x-acs-signature-method = 'HMAC-SHA1',
     x-acs-signature-version = '1.0',
     x-acs-version = version,
     x-acs-action = action,
-    user-agent = Util.getUserAgent(@userAgent),
+    user-agent = OpenApiUtil.getUserAgent(@userAgent),
     ...globalHeaders,
     ...extendsHeaders,
     ...request.headers
   };
 
-  if (!Util.isUnset(request.body)) {
-    __request.body = Util.toJSONString(request.body);
+  if (!$isNull(request.body)) {
+    __request.body = $JSON.stringify(request.body);
     __request.headers.content-type = 'application/json; charset=utf-8';
   }
 
@@ -403,23 +395,23 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     ...globalQueries,
     ...extendsQueries,
   };
-  if (!Util.isUnset(request.query)) {
+  if (!$isNull(request.query)) {
     __request.query = {
       ...__request.query,
       ...request.query
     };
   }
 
-  if (!Util.equalString(authType, 'Anonymous')) {
-    if (Util.isUnset(@credential)) {
-      throw {
+  if (authType != 'Anonymous') {
+    if ($isNull(@credential)) {
+      throw new Client{
         code = `InvalidCredentials`,
         message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
       }
     }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
-    if (Util.equalString(credentialType, 'bearer')) {
+    if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
@@ -427,7 +419,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!Util.empty(securityToken)) {
+      if (!$isNull(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
@@ -437,57 +429,77 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     }
   }
 } returns {
-  if (Util.equalNumber(__response.statusCode, 204)) {
+  if (__response.statusCode == 204) {
     return {
       headers = __response.headers
     };
   }
 
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
-    var _res = Util.readAsJSON(__response.body);
-    var err = Util.assertAsMap(_res);
-    var requestId = defaultAny(err.RequestId, err.requestId);
-    requestId = defaultAny(requestId, err.requestid);
-    err.statusCode = __response.statusCode;
-     throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${requestId}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
+    var _res = $Stream.readAsJSON(__response.body);
+    var err = $object(_res);
+    var requestId = $string($default(err.RequestId, err.requestId));
+    requestId = $string($default(requestId, err.requestid));
+    var code = $string($default(err.Code, err.code));
+    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+      throw new Throttling{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
+      throw new Client{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new Server{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
-  if (Util.equalString(bodyType, 'binary')) {
+  if (bodyType == 'binary') {
     var resp = {
       body = __response.body,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
     return resp;
-  } else if (Util.equalString(bodyType, 'byte')) {
-    var byt = Util.readAsBytes(__response.body);
+  } else if (bodyType == 'byte') {
+    var byt = $Stream.readAsBytes(__response.body);
     return {
       body = byt,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'string')) {
-    var str = Util.readAsString(__response.body);
+  } else if (bodyType == 'string') {
+    var str = $Stream.readAsString(__response.body);
     return {
       body = str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'json')){
-    var obj = Util.readAsJSON(__response.body);
-    var res = Util.assertAsMap(obj);
+  } else if (bodyType == 'json'){
+    var obj = $Stream.readAsJSON(__response.body);
+    var res = $object(obj);
     return {
       body = res,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'array')){
-    var arr = Util.readAsJSON(__response.body);
+  } else if (bodyType == 'array'){
+    var arr = $Stream.readAsJSON(__response.body);
     return {
       body = arr,
       headers = __response.headers,
@@ -500,26 +512,18 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     };
   }
 } runtime {
-  timeouted = 'retry',
-  key = Util.defaultString(runtime.key, @key),
-  cert = Util.defaultString(runtime.cert, @cert),
-  ca = Util.defaultString(runtime.ca, @ca),
-  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
-  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
-  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
-  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
-  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
-  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
-  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
-  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -536,49 +540,49 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
-api doROARequestWithForm(action: string, version: string, protocol: string, method: string,  authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
-  __request.protocol = Util.defaultString(@protocol, protocol);
+api doROARequestWithForm(action: string, version: string, protocol: string, method: string,  authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
   __request.pathname = pathname;
   var globalQueries : map[string]string = {};
   var globalHeaders : map[string]string = {};
-  if (!Util.isUnset(@globalParameters)) {
+  if (!$isNull(@globalParameters)) {
     var globalParams = @globalParameters;
-    if (!Util.isUnset(globalParams.queries)) {
+    if (!$isNull(globalParams.queries)) {
       globalQueries = globalParams.queries;
     }
-    if (!Util.isUnset(globalParams.headers)) {
+    if (!$isNull(globalParams.headers)) {
       globalHeaders = globalParams.headers;
     }
   }
   var extendsHeaders : map[string]string = {};
   var extendsQueries : map[string]string = {};
-  if (!Util.isUnset(runtime.extendsParameters)) {
+  if (!$isNull(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
-    if (!Util.isUnset(extendsParameters.headers)) {
+    if (!$isNull(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
-    if (!Util.isUnset(extendsParameters.queries)) {
+    if (!$isNull(extendsParameters.queries)) {
       extendsQueries = extendsParameters.queries;
     }
   }
   __request.headers = {
-    date = Util.getDateUTCString(),
+    date = OpenApiUtil.getDateUTCString(),
     host = @endpoint,
     accept = 'application/json',
-    x-acs-signature-nonce = Util.getNonce(),
+    x-acs-signature-nonce = OpenApiUtil.getNonce(),
     x-acs-signature-method = 'HMAC-SHA1',
     x-acs-signature-version = '1.0',
     x-acs-version = version,
     x-acs-action = action,
-    user-agent = Util.getUserAgent(@userAgent),
+    user-agent = OpenApiUtil.getUserAgent(@userAgent),
     ...globalHeaders,
     ...extendsHeaders,
     ...request.headers
   };
 
-  if (!Util.isUnset(request.body)) {
-    var m = Util.assertAsMap(request.body);
+  if (!$isNull(request.body)) {
+    var m = $object(request.body);
     __request.body = OpenApiUtil.toForm(m);
     __request.headers.content-type = 'application/x-www-form-urlencoded';
   }
@@ -588,23 +592,23 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     ...globalQueries,
     ...extendsQueries,
   };
-  if (!Util.isUnset(request.query)) {
+  if (!$isNull(request.query)) {
     __request.query = {
       ...__request.query,
       ...request.query
     };
   }
 
-  if (!Util.equalString(authType, 'Anonymous')) {
-    if (Util.isUnset(@credential)) {
-      throw {
+  if (authType != 'Anonymous') {
+    if ($isNull(@credential)) {
+      throw new Client{
         code = `InvalidCredentials`,
         message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
       }
     }
     var credentialModel = @credential.getCredential();
     var credentialType = credentialModel.type;
-    if (Util.equalString(credentialType, 'bearer')) {
+    if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
@@ -612,65 +616,85 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!Util.empty(securityToken)) {
+      if (!$isNull(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
-
       var stringToSign = OpenApiUtil.getStringToSign(__request);
       __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
     }
   }
 } returns {
-  if (Util.equalNumber(__response.statusCode, 204)) {
+  if (__response.statusCode == 204) {
     return {
       headers = __response.headers
     };
   }
 
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
-    var _res = Util.readAsJSON(__response.body);
-    var err = Util.assertAsMap(_res);
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
+    var _res = $Stream.readAsJSON(__response.body);
+    var err = $object(_res);
+    var requestId = $string($default(err.RequestId, err.requestId));
+    var code = $string($default(err.Code, err.code));
+    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+      throw new Throttling{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
+      throw new Client{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new Server{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
-  if (Util.equalString(bodyType, 'binary')) {
+  if (bodyType == 'binary') {
     var resp = {
       body = __response.body,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
     return resp;
-  } else if (Util.equalString(bodyType, 'byte')) {
-    var byt = Util.readAsBytes(__response.body);
+  } else if (bodyType == 'byte') {
+    var byt = $Stream.readAsBytes(__response.body);
     return {
       body = byt,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'string')) {
-    var str = Util.readAsString(__response.body);
+  } else if (bodyType == 'string') {
+    var str = $Stream.readAsString(__response.body);
     return {
       body = str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'json')){
-    var obj = Util.readAsJSON(__response.body);
-    var res = Util.assertAsMap(obj);
+  } else if (bodyType == 'json'){
+    var obj = $Stream.readAsJSON(__response.body);
+    var res = $object(obj);
     return {
       body = res,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(bodyType, 'array')){
-    var arr = Util.readAsJSON(__response.body);
+  } else if (bodyType == 'array'){
+    var arr = $Stream.readAsJSON(__response.body);
     return {
       body = arr,
       headers = __response.headers,
@@ -683,53 +707,33 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     };
   }
 } runtime {
-  timeouted = 'retry',
-  key = Util.defaultString(runtime.key, @key),
-  cert = Util.defaultString(runtime.cert, @cert),
-  ca = Util.defaultString(runtime.ca, @ca),
-  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
-  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
-  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
-  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
-  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
-  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
-  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
-  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
-model Params = {
-  action: string,
-  version: string,
-  protocol: string,
-  pathname: string,
-  method: string,
-  authType: string,
-  bodyType: string,
-  reqBodyType: string,
-  style?: string
-}
-
-async function callApi(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
-  if (Util.isUnset(params)) {
-    throw {
+async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  if ($isNull(params)) {
+    throw new Client {
       code = 'ParameterMissing',
       message = '\'params\' can not be unset'
     };
   }
-  if (Util.isUnset(@signatureAlgorithm) || !Util.equalString(@signatureAlgorithm, 'v2')) {
+  if ($isNull(@signatureAlgorithm) || @signatureAlgorithm != 'v2') {
     return doRequest(params, request, runtime);
-  } else if (Util.equalString(params.style, 'ROA') && Util.equalString(params.reqBodyType, 'json')) {
+  } else if ((params.style == 'ROA') && (params.reqBodyType == 'json')) {
     return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-  } else if (Util.equalString(params.style, 'ROA')) {
+  } else if (params.style == 'ROA') {
     return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
   } else {
     return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
@@ -747,35 +751,34 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
-api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
-  __request.protocol = Util.defaultString(@protocol, params.protocol);
+api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
   __request.pathname = params.pathname;
   var globalQueries : map[string]string = {};
   var globalHeaders : map[string]string = {};
-  if (!Util.isUnset(@globalParameters)) {
+  if (!$isNull(@globalParameters)) {
     var globalParams = @globalParameters;
-    if (!Util.isUnset(globalParams.queries)) {
+    if (!$isNull(globalParams.queries)) {
       globalQueries = globalParams.queries;
     }
-    if (!Util.isUnset(globalParams.headers)) {
+    if (!$isNull(globalParams.headers)) {
       globalHeaders = globalParams.headers;
     }
   }
   var extendsHeaders : map[string]string = {};
   var extendsQueries : map[string]string = {};
-  if (!Util.isUnset(runtime.extendsParameters)) {
+  if (!$isNull(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
-    if (!Util.isUnset(extendsParameters.headers)) {
+    if (!$isNull(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
-    if (!Util.isUnset(extendsParameters.queries)) {
+    if (!$isNull(extendsParameters.queries)) {
       extendsQueries = extendsParameters.queries;
     }
   }
   __request.query = {
     ...globalQueries,
-    ...extendsQueries,
     ...request.query,
   };
 
@@ -784,17 +787,17 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     host = @endpoint,
     x-acs-version = params.version,
     x-acs-action = params.action,
-    user-agent = getUserAgent(),
+    user-agent = OpenApiUtil.getUserAgent(@userAgent),
     x-acs-date= OpenApiUtil.getTimestamp(),
-    x-acs-signature-nonce = Util.getNonce(),
+    x-acs-signature-nonce = OpenApiUtil.getNonce(),
     accept = 'application/json',
     ...globalHeaders,
     ...extendsHeaders,
     ...request.headers,
   };
-  if (Util.equalString(params.style, 'RPC')) {
+  if (params.style == 'RPC') {
     var headers = getRpcHeaders();
-    if (!Util.isUnset(headers)) {
+    if (!$isNull(headers)) {
       __request.headers = {
         ...__request.headers,
         ...headers
@@ -802,125 +805,145 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     }
   }
 
-  var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');
-  var hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(''), signatureAlgorithm));
+  var signatureAlgorithm = $string($default(@signatureAlgorithm, 'ACS3-HMAC-SHA256'));
+  var hashedRequestPayload = OpenApiUtil.hash($Bytes.from('', 'utf-8'), signatureAlgorithm);
 
-  if (!Util.isUnset(request.stream)) {
-    var tmp = Util.readAsBytes(request.stream);
-    hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(tmp, signatureAlgorithm));
+  if (!$isNull(request.stream)) {
+    var tmp = $Stream.readAsBytes(request.stream);
+    hashedRequestPayload = OpenApiUtil.hash(tmp, signatureAlgorithm);
     __request.body = tmp;
     __request.headers.content-type = 'application/octet-stream';
   } else {
-    if (!Util.isUnset(request.body)) {
-      if (Util.equalString(params.reqBodyType, 'byte')) {
-        var byteObj = Util.assertAsBytes(request.body);
-        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(byteObj, signatureAlgorithm));
+    if (!$isNull(request.body)) {
+      if (params.reqBodyType == 'byte') {
+        var byteObj = $bytes(request.body);
+        hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
         __request.body = byteObj;
-      } else if (Util.equalString(params.reqBodyType, 'json')) {
-        var jsonObj = Util.toJSONString(request.body);
-        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(jsonObj), signatureAlgorithm));
+      } else if (params.reqBodyType == 'json') {
+        var jsonObj = $JSON.stringify(request.body);
+        hashedRequestPayload = OpenApiUtil.hash(jsonObj.toBytes('utf8'), signatureAlgorithm);
         __request.body = jsonObj;
         __request.headers.content-type = 'application/json; charset=utf-8';
       } else {
-        var m = Util.assertAsMap(request.body);
+        var m = $object(request.body);
         var formObj = OpenApiUtil.toForm(m);
-        hashedRequestPayload = OpenApiUtil.hexEncode(OpenApiUtil.hash(Util.toBytes(formObj), signatureAlgorithm));
+        hashedRequestPayload = OpenApiUtil.hash(formObj.toBytes('utf8'), signatureAlgorithm);
         __request.body = formObj;
         __request.headers.content-type = 'application/x-www-form-urlencoded';
       }
     }
   }
 
-  __request.headers.x-acs-content-sha256 = hashedRequestPayload;
+  __request.headers.x-acs-content-sha256 = hashedRequestPayload.toHex();
 
-  if (!Util.equalString(params.authType, 'Anonymous')) {
-    if (Util.isUnset(@credential)) {
-      throw {
+  if (params.authType != 'Anonymous') {
+    if ($isNull(@credential)) {
+      throw new Client{
         code = `InvalidCredentials`,
         message = `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`
       }
     }
     var credentialModel = @credential.getCredential();
     var authType = credentialModel.type;
-    if (Util.equalString(authType, 'bearer')) {
+    if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
-      if (Util.equalString(params.style, 'RPC')) {
+      if (params.style == 'RPC') {
         __request.query.SignatureType = 'BEARERTOKEN';
       } else {
         __request.headers.x-acs-signature-type = 'BEARERTOKEN';
       }
-      
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
 
-      if (!Util.empty(securityToken)) {
+      if (!$isNull(securityToken)) {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
-      __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload, accessKeyId, accessKeySecret);
+      __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload.toHex(), accessKeyId, accessKeySecret);
     }
   }
 } returns {
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
     var err : map[string]any = {};
-    if (!Util.isUnset(__response.headers.content-type) && Util.equalString(__response.headers.content-type, 'text/xml;charset=utf-8')) {
-      var _str = Util.readAsString(__response.body);
-      var respMap = XML.parseXml(_str, null);
-      err = Util.assertAsMap(respMap.Error);
+    if (!$isNull(__response.headers.content-type) && __response.headers.content-type == 'text/xml;charset=utf-8') {
+      var _str = $Stream.readAsString(__response.body);
+      var respMap = $XML.parseXml(_str, null);
+      err = $object(respMap.Error);
     } else {
-      var _res = Util.readAsJSON(__response.body);
-      err = Util.assertAsMap(_res);
+      var _res = $Stream.readAsJSON(__response.body);
+      err = $object(_res);
     }
-    err.statusCode = __response.statusCode;
-    throw {
-      code = `${defaultAny(err.Code, err.code)}`,
-      message = `code: ${__response.statusCode}, ${defaultAny(err.Message, err.message)} request id: ${defaultAny(err.RequestId, err.requestId)}`,
-      data = err,
-      description = `${defaultAny(err.Description, err.description)}`,
-      accessDeniedDetail = defaultAny(err.AccessDeniedDetail, err.accessDeniedDetail),
-    };
+    var requestId = $string($default(err.RequestId, err.requestId));
+    var code = $string($default(err.Code, err.code));
+    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+      throw new Throttling{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        requestId = `${requestId}`,
+      };
+    } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
+      throw new Client{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        accessDeniedDetail = getAccessDeniedDetail(err),
+        requestId = `${requestId}`,
+      };
+    } else {
+      throw new Server{
+        statusCode = __response.statusCode,
+        code = `${code}`,
+        message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        description = `${$default(err.Description, err.description)}`,
+        requestId = `${requestId}`,
+      };
+    }
   }
-  if (Util.equalString(params.bodyType, 'binary')) {
+  if (params.bodyType == 'binary') {
     var resp = {
       body = __response.body,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
     return resp;
-  } else if (Util.equalString(params.bodyType, 'byte')) {
-    var byt = Util.readAsBytes(__response.body);
+  } else if (params.bodyType == 'byte') {
+    var byt = $Stream.readAsBytes(__response.body);
     return {
       body = byt,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(params.bodyType, 'string')) {
-    var str = Util.readAsString(__response.body);
+  } else if (params.bodyType == 'string') {
+    var str = $Stream.readAsString(__response.body);
     return {
       body = str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(params.bodyType, 'json')){
-    var obj = Util.readAsJSON(__response.body);
-    var res = Util.assertAsMap(obj);
+  } else if (params.bodyType == 'json'){
+    var obj = $Stream.readAsJSON(__response.body);
+    var res = $object(obj);
     return {
       body = res,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
-  } else if (Util.equalString(params.bodyType, 'array')){
-    var arr = Util.readAsJSON(__response.body);
+  } else if (params.bodyType == 'array'){
+    var arr = $Stream.readAsJSON(__response.body);
     return {
       body = arr,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
   } else {
-    var anything = Util.readAsString(__response.body);
+    var anything = $Stream.readAsString(__response.body);
     return {
       body = anything,
       headers = __response.headers,
@@ -928,26 +951,18 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     };
   }
 } runtime {
-  timeouted = 'retry',
-  key = Util.defaultString(runtime.key, @key),
-  cert = Util.defaultString(runtime.cert, @cert),
-  ca = Util.defaultString(runtime.ca, @ca),
-  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
-  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
-  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
-  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
-  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
-  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
-  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
-  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL
 }
 
@@ -964,28 +979,28 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
-api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOptions): object {
+api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
   var headers = getRpcHeaders();
   var globalQueries : map[string]string = {};
   var globalHeaders : map[string]string = {};
-  if (!Util.isUnset(@globalParameters)) {
+  if (!$isNull(@globalParameters)) {
     var globalParams = @globalParameters;
-    if (!Util.isUnset(globalParams.queries)) {
+    if (!$isNull(globalParams.queries)) {
       globalQueries = globalParams.queries;
     }
-    if (!Util.isUnset(globalParams.headers)) {
+    if (!$isNull(globalParams.headers)) {
       globalHeaders = globalParams.headers;
     }
   }
   var extendsHeaders : map[string]string = {};
   var extendsQueries : map[string]string = {};
-  if (!Util.isUnset(runtime.extendsParameters)) {
+  if (!$isNull(runtime.extendsParameters)) {
     var extendsParameters = runtime.extendsParameters;
-    if (!Util.isUnset(extendsParameters.headers)) {
+    if (!$isNull(extendsParameters.headers)) {
       extendsHeaders = extendsParameters.headers;
     }
-    if (!Util.isUnset(extendsParameters.queries)) {
+    if (!$isNull(extendsParameters.queries)) {
       extendsQueries = extendsParameters.queries;
     }
   }
@@ -1008,8 +1023,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     productId = @productId,
     action = params.action,
     version = params.version,
-    protocol = Util.defaultString(@protocol, params.protocol),
-    method = Util.defaultString(@method, params.method),
+    protocol = $string($default(@protocol, params.protocol)),
+    method = $string($default(@method, params.method)),
     authType = params.authType,
     bodyType = params.bodyType,
     reqBodyType = params.reqBodyType,
@@ -1017,11 +1032,11 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     credential = @credential,
     signatureVersion = @signatureVersion,
     signatureAlgorithm = @signatureAlgorithm,
-    userAgent = getUserAgent()
+    userAgent = OpenApiUtil.getUserAgent(@userAgent)
   };
   var configurationContext = new SPI.InterceptorContext.configuration{
     regionId = @regionId,
-    endpoint = Util.defaultString(request.endpointOverride, @endpoint),
+    endpoint = $string($default(request.endpointOverride, @endpoint)),
     endpointRule = @endpointRule,
     endpointMap = @endpointMap,
     endpointType = @endpointType,
@@ -1065,37 +1080,169 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   };
 
 } runtime {
-  timeouted = 'retry',
-  key = Util.defaultString(runtime.key, @key),
-  cert = Util.defaultString(runtime.cert, @cert),
-  ca = Util.defaultString(runtime.ca, @ca),
-  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
-  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
-  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
-  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
-  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
-  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
-  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
-  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  retry = {
-    retryable = runtime.autoretry,
-    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
-  },
-  backoff = {
-    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
-    period = Util.defaultNumber(runtime.backoffPeriod, 1)
-  },
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
-  disableHttp2 = defaultAny(@disableHttp2, false)
+  disableHttp2 = $boolean($default(@disableHttp2, false))
 }
 
-/**
- * Get user agent
- * @return user agent
- */
-function getUserAgent(): string {
-  var userAgent = Util.getUserAgent(@userAgent);
-  return userAgent;
+api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
+  __request.protocol = $string($default(@protocol, params.protocol));
+  __request.method = params.method;
+  __request.pathname = params.pathname;
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!$isNull(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!$isNull(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!$isNull(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
+  var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
+  if (!$isNull(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!$isNull(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+    if (!$isNull(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
+    }
+  }
+  __request.query = {
+    ...globalQueries,
+    ...extendsQueries,
+    ...request.query,
+  };
+
+  // endpoint is setted in product client
+  __request.headers = {
+    host = @endpoint,
+    x-acs-version = params.version,
+    x-acs-action = params.action,
+    user-agent = OpenApiUtil.getUserAgent(@userAgent),
+    x-acs-date= OpenApiUtil.getTimestamp(),
+    x-acs-signature-nonce = OpenApiUtil.getNonce(),
+    accept = 'application/json',
+    ...extendsHeaders,
+    ...globalHeaders,
+    ...request.headers,
+  };
+  if (params.style == 'RPC') {
+    var headers = getRpcHeaders();
+    if (!$isNull(headers)) {
+      __request.headers = {
+        ...__request.headers,
+        ...headers
+      };
+    }
+  }
+
+  var signatureAlgorithm = $string($default(@signatureAlgorithm, 'ACS3-HMAC-SHA256'));
+  var hashedRequestPayload = OpenApiUtil.hash($Bytes.from('', 'utf-8'), signatureAlgorithm);
+
+  if (!$isNull(request.stream)) {
+    var tmp = $Stream.readAsBytes(request.stream);
+    hashedRequestPayload = OpenApiUtil.hash(tmp, signatureAlgorithm);
+    __request.body = tmp;
+    __request.headers.content-type = 'application/octet-stream';
+  } else {
+    if (!$isNull(request.body)) {
+      if (params.reqBodyType == 'byte') {
+        var byteObj = $bytes(request.body);
+        hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
+        __request.body = byteObj;
+      } else if (params.reqBodyType == 'json') {
+        var jsonObj = $JSON.stringify(request.body);
+        hashedRequestPayload = OpenApiUtil.hash(jsonObj.toBytes('utf8'), signatureAlgorithm);
+        __request.body = jsonObj;
+        __request.headers.content-type = 'application/json; charset=utf-8';
+      } else {
+        var m = $object(request.body);
+        var formObj = OpenApiUtil.toForm(m);
+        hashedRequestPayload = OpenApiUtil.hash(formObj.toBytes('utf8'), signatureAlgorithm);
+        __request.body = formObj;
+        __request.headers.content-type = 'application/x-www-form-urlencoded';
+      }
+    }
+  }
+
+  __request.headers.x-acs-content-sha256 = hashedRequestPayload.toHex();
+
+  if (params.authType != 'Anonymous') {
+    var credentialModel = @credential.getCredential();
+    var authType = credentialModel.type;
+    if (authType == 'bearer') {
+      var bearerToken = credentialModel.bearerToken;
+      __request.headers.x-acs-bearer-token = bearerToken;
+    } else {
+      var accessKeyId = credentialModel.accessKeyId;
+      var accessKeySecret = credentialModel.accessKeySecret;
+      var securityToken = credentialModel.securityToken;
+
+      if (!$isNull(securityToken)) {
+        __request.headers.x-acs-accesskey-id = accessKeyId;
+        __request.headers.x-acs-security-token = securityToken;
+      }
+      __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload.toHex(), accessKeyId, accessKeySecret);
+    }
+  }
+} returns {
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
+    var err : map[string]any = {};
+    if (!$isNull(__response.headers.content-type) && __response.headers.content-type == 'text/xml;charset=utf-8') {
+      var _str = $Stream.readAsString(__response.body);
+      var respMap = $XML.parseXml(_str, null);
+      err = $object(respMap.Error);
+    } else {
+      var _res = $Stream.readAsJSON(__response.body);
+      err = $object(_res);
+    }
+    err.statusCode = __response.statusCode;
+    throw {
+      code = `${$default(err.Code, err.code)}`,
+      message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${$default(err.RequestId, err.requestId)}`,
+      data = err,
+      description = `${$default(err.Description, err.description)}`,
+      accessDeniedDetail = $default(err.AccessDeniedDetail, err.accessDeniedDetail),
+    };
+  }
+  var events = $Stream.readAsSSE(__response.body);
+  for(var event : events) {
+    yield new SSEResponse{
+      statusCode = __response.statusCode,
+      headers = __response.headers,
+      event = event,
+    };
+  }
+  return null;
+} runtime {
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
+  ignoreSSL = runtime.ignoreSSL
 }
 
 /**
@@ -1103,7 +1250,7 @@ function getUserAgent(): string {
  * @return accesskey id
  */
 async function getAccessKeyId(): string {
-  if (Util.isUnset(@credential)) {
+  if ($isNull(@credential)) {
     return '';
   }
   var accessKeyId = @credential.getAccessKeyId();
@@ -1115,7 +1262,7 @@ async function getAccessKeyId(): string {
  * @return accesskey secret
  */
 async function getAccessKeySecret(): string {
-  if (Util.isUnset(@credential)) {
+  if ($isNull(@credential)) {
     return '';
   }
   var secret = @credential.getAccessKeySecret();
@@ -1127,7 +1274,7 @@ async function getAccessKeySecret(): string {
  * @return security token
  */
 async function getSecurityToken(): string {
-  if (Util.isUnset(@credential)) {
+  if ($isNull(@credential)) {
     return '';
   }
   var token = @credential.getSecurityToken();
@@ -1139,7 +1286,7 @@ async function getSecurityToken(): string {
  * @return bearer token
  */
 async function getBearerToken(): string {
-  if (Util.isUnset(@credential)) {
+  if ($isNull(@credential)) {
     return '';
   }
   var token = @credential.getBearerToken();
@@ -1151,7 +1298,7 @@ async function getBearerToken(): string {
  * @return credential type e.g. access_key
  */
 async function getType(): string {
-  if (Util.isUnset(@credential)) {
+  if ($isNull(@credential)) {
     return '';
   }
   var authType = @credential.getType();
@@ -1159,25 +1306,12 @@ async function getType(): string {
 }
 
 /**
- * If inputValue is not null, return it or return defaultValue
- * @param inputValue  users input value
- * @param defaultValue default value
- * @return the final result
- */
-static function defaultAny(inputValue: any, defaultValue: any): any {
-  if (Util.isUnset(inputValue)) {
-    return defaultValue;
-  }
-  return inputValue;
-}
-
-/**
  * If the endpointRule and config.endpoint are empty, throw error
  * @param config config contains the necessary information to create a client
  */
-function checkConfig(config: Config)throws : void {
-  if (Util.empty(@endpointRule) && Util.empty(config.endpoint)) {
-    throw {
+function checkConfig(config: OpenApiUtil.Config)throws : void {
+  if ($isNull(@endpointRule) && $isNull(config.endpoint)) {
+    throw new Client {
       code = 'ParameterMissing',
       message = '\'config.endpoint\' can not be empty'
     };
@@ -1207,4 +1341,16 @@ function getRpcHeaders() throws : map[string] string {
   var headers: map[string] string = @headers;
   @headers = null;
   return headers;
+}
+
+function getAccessDeniedDetail(err: map[string] any): map[string] any {
+  var accessDeniedDetail : map[string] any = null;
+  if (!$isNull(err.AccessDeniedDetail)) {
+    var detail1 = $object(err.AccessDeniedDetail);
+    accessDeniedDetail = detail1;
+  } else if (!$isNull(err.accessDeniedDetail)) {
+    var detail2 = $object(err.accessDeniedDetail);
+    accessDeniedDetail = detail2;
+  }
+  return accessDeniedDetail;
 }
