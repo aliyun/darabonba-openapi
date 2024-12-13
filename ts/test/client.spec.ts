@@ -8,14 +8,12 @@ import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
 import OpenApi, * as $OpenApi from "../src/client";
-import OpenApiUtil from '@alicloud/openapi-util';
-import Util, * as $Util from '@alicloud/tea-util';
+import OpenApiUtil, * as $OpenApiUtil from '../src/utils';
 import Credential, * as $Credential from '@alicloud/credentials';
-import * as $tea from '@alicloud/tea-typescript';
+import * as $dara from '@darabonba/typescript';
 import POP, * as $POP from '@alicloud/gateway-pop';
 
 const server = http.createServer((req, res) => {
-
   if (req.headers['timeout'] === 'true') {
     const timeout = setTimeout(() => {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -39,6 +37,7 @@ const server = http.createServer((req, res) => {
         let key = keys[index];
         headers[key] = <string>req.headers[key];
       }
+      
       headers = {
         ...headers,
         'pathname': urlObj.pathname,
@@ -47,6 +46,23 @@ const server = http.createServer((req, res) => {
         'raw-body': data,
         'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4',
       };
+      if(urlObj.pathname === '/sse') {
+          res.writeHead(200, {
+            ...headers,
+          });
+          let count = 0;
+          const timer = setInterval(() => {
+            if (count >= 5) {
+              clearInterval(timer);
+              res.end();
+              return;
+            }
+            res.write(`data: ${JSON.stringify({ count: count })}\nevent: flow\nid: sse-test\nretry: 3\n:heartbeat\n\n`);
+            count++;
+          }, 100);
+          return;
+      }
+      
       let responseBody = "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}";
       switch (headers['bodytype']) {
         case 'array':
@@ -104,8 +120,8 @@ class BytesReadable extends Readable {
   }
 }
 
-function createConfig(): $OpenApi.Config {
-  let globalParameters = new $OpenApi.GlobalParameters({
+function createConfig(): $OpenApiUtil.Config {
+  let globalParameters = new $OpenApiUtil.GlobalParameters({
     headers: {
       'global-key': "global-value",
     },
@@ -113,7 +129,7 @@ function createConfig(): $OpenApi.Config {
       'global-query': "global-value",
     },
   });
-  let config = new $OpenApi.Config({
+  let config = new $OpenApiUtil.Config({
     accessKeyId: "ak",
     accessKeySecret: "secret",
     securityToken: "token",
@@ -129,29 +145,29 @@ function createConfig(): $OpenApi.Config {
   return config;
 }
 
-function createBearerTokenConfig(): $OpenApi.Config {
+function createBearerTokenConfig(): $OpenApiUtil.Config {
   let creConfig = new $Credential.Config({
     bearerToken: "token",
     type: "bearer",
   });
   let credential = new Credential(creConfig);
-  let config = new $OpenApi.Config({
+  let config = new $OpenApiUtil.Config({
     credential: credential,
   });
   return config;
 }
 
-function createAnonymousConfig(): $OpenApi.Config {
-  return new $OpenApi.Config();
+function createAnonymousConfig(): $OpenApiUtil.Config {
+  return new $OpenApiUtil.Config();
 }
 
-function createRuntimeOptions(): $Util.RuntimeOptions {
-  let extendsParameters = new $Util.ExtendsParameters({
+function createRuntimeOptions(): $dara.RuntimeOptions {
+  let extendsParameters = new $dara.ExtendsParameters({
     headers: {
       'extends-key': "extends-value",
     },
   });
-  let runtime = new $Util.RuntimeOptions({
+  let runtime = new $dara.RuntimeOptions({
     readTimeout: 4000,
     connectTimeout: 4000,
     maxIdleConns: 100,
@@ -165,7 +181,7 @@ function createRuntimeOptions(): $Util.RuntimeOptions {
   return runtime;
 }
 
-function createOpenApiRequest(): $OpenApi.OpenApiRequest {
+function createOpenApiRequest(): $OpenApiUtil.OpenApiRequest {
   let query: { [key: string]: any } = {};
   query["key1"] = "value";
   query["key2"] = 1;
@@ -177,7 +193,7 @@ function createOpenApiRequest(): $OpenApi.OpenApiRequest {
   let headers: { [key: string]: string } = {
     'for-test': "sdk",
   };
-  let req = new $OpenApi.OpenApiRequest({
+  let req = new $OpenApiUtil.OpenApiRequest({
     headers: headers,
     query: OpenApiUtil.query(query),
     body: OpenApiUtil.parseToMap(body),
@@ -197,7 +213,7 @@ describe('$openapi', function () {
   });
 
   it('config should ok', async function () {
-    let globalParameters = new $OpenApi.GlobalParameters({
+    let globalParameters = new $OpenApiUtil.GlobalParameters({
       headers: {
         'global-key': "global-value",
       },
@@ -205,7 +221,7 @@ describe('$openapi', function () {
         'global-query': "global-value",
       },
     });
-    let config = new $OpenApi.Config({
+    let config = new $OpenApiUtil.Config({
       endpoint: "config.endpoint",
       endpointType: "public",
       network: "config.network",
@@ -328,7 +344,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -344,7 +360,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA1&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
     assert.ok(regexp.test(headers["raw-query"]));
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["global-key"], "global-value");
     assert.strictEqual(headers["extends-key"], "extends-value");
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
@@ -396,7 +412,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -412,7 +428,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true/;
     assert.ok(regexp.test(headers["raw-query"]));
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["global-key"], "global-value");
     assert.strictEqual(headers["extends-key"], "extends-value");
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
@@ -439,7 +455,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -454,7 +470,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -515,7 +531,7 @@ describe('$openapi', function () {
     config.signatureAlgorithm = "v2";
     config.endpoint = `127.0.0.1:${port}`;
     client = new OpenApi(config);
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -560,7 +576,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -575,7 +591,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
@@ -607,7 +623,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -622,7 +638,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -688,7 +704,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -703,7 +719,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
@@ -733,7 +749,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -748,7 +764,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -813,7 +829,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -828,7 +844,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
@@ -850,10 +866,81 @@ describe('$openapi', function () {
     assert.strictEqual(result["statusCode"], 200);
   });
 
+  it("call api for SSE With V3Sign AK should ok", async function () {
+    let config = createConfig();
+    let runtime = createRuntimeOptions();
+    config.protocol = "HTTP";
+    let port = (server.address() as AddressInfo).port;
+    config.endpoint = `127.0.0.1:${port}`;
+    let client = new OpenApi(config);
+    let request = createOpenApiRequest();
+    let params = new $OpenApiUtil.Params({
+      action: "TestAPI",
+      version: "2022-06-01",
+      protocol: "HTTPS",
+      pathname: "/sse",
+      method: "POST",
+      authType: "AK",
+      style: "ROA",
+      reqBodyType: "json",
+      bodyType: "sse",
+    });
+    let result = client.callSSEApi(params, request, runtime);
+    const events: $dara.SSEEvent[] = [];
+    for await (const event of result) {
+      let headers = event["headers"];
+      assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
+      assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
+      assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
+      assert.strictEqual(headers["x-acs-version"], "2022-06-01");
+      assert.strictEqual(headers["x-acs-action"], "TestAPI");
+      assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
+      assert.strictEqual(headers["x-acs-request-id"], "A45EE076-334D-5012-9746-A8F828D20FD4");
+      assert.strictEqual(headers["http-method"], "POST");
+      assert.strictEqual(headers["pathname"], "/sse");
+      assert.strictEqual(headers["connection"], "keep-alive");
+      assert.strictEqual(headers["for-test"], "sdk");
+      assert.strictEqual(headers["global-key"], "global-value");
+      assert.strictEqual(headers["extends-key"], "extends-value");
+      assert.ok(headers["x-acs-signature-nonce"].length > 0);
+      assert.ok(headers["x-acs-date"].length > 0);
+      assert.strictEqual(headers["accept"], "application/json");
+      events.push(event.event);
+    }
+    assert.strictEqual(events.length, 5);
+
+    assert.deepStrictEqual([new $dara.SSEEvent({
+      data: '{"count":0}',
+      event: 'flow',
+      id: 'sse-test',
+      retry: 3,
+    }), new $dara.SSEEvent({
+      data: '{"count":1}',
+      event: 'flow',
+      id: 'sse-test',
+      retry: 3,
+    }), new $dara.SSEEvent({
+      data: '{"count":2}',
+      event: 'flow',
+      id: 'sse-test',
+      retry: 3,
+    }), new $dara.SSEEvent({
+      data: '{"count":3}',
+      event: 'flow',
+      id: 'sse-test',
+      retry: 3,
+    }), new $dara.SSEEvent({
+      data: '{"count":4}',
+      event: 'flow',
+      id: 'sse-test',
+      retry: 3,
+    })], events);
+  });
+
   it("response body should ok", async function () {
     let config = createConfig();
     let runtime = createRuntimeOptions();
-    let extendsParameters = new $Util.ExtendsParameters();
+    let extendsParameters = new $dara.ExtendsParameters();
     extendsParameters.headers = runtime.extendsParameters?.headers || {};
     extendsParameters.headers['bodyType'] = 'json';
     runtime.extendsParameters = extendsParameters;
@@ -863,7 +950,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -928,7 +1015,7 @@ describe('$openapi', function () {
     runtime.extendsParameters = extendsParameters;
     params.bodyType = "binary";
     result = await client.callApi(params, request, runtime);
-    body = await Util.readAsBytes(result["body"]);
+    body = await $dara.Stream.readAsBytes(result["body"]);
     assert.ok(body instanceof Buffer);
     assert.strictEqual(body.toString(), "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
     assert.strictEqual(result["statusCode"], 200);
@@ -978,7 +1065,7 @@ describe('$openapi', function () {
     port = (server.address() as AddressInfo).port;
     config.endpoint = `127.0.0.1:${port}`;
     client = new OpenApi(config);
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1049,7 +1136,7 @@ describe('$openapi', function () {
     runtime.extendsParameters = extendsParameters;
     params.bodyType = "binary";
     result = await client.callApi(params, request, runtime);
-    body = await Util.readAsBytes(result["body"]);
+    body = await $dara.Stream.readAsBytes(result["body"]);
     assert.ok(body instanceof Buffer);
     assert.strictEqual(body.toString(), "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
     assert.strictEqual(result["statusCode"], 200);
@@ -1099,7 +1186,7 @@ describe('$openapi', function () {
     port = (server.address() as AddressInfo).port;
     config.endpoint = `127.0.0.1:${port}`;
     client = new OpenApi(config);
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1170,7 +1257,7 @@ describe('$openapi', function () {
     runtime.extendsParameters = extendsParameters;
     params.bodyType = "binary";
     result = await client.callApi(params, request, runtime);
-    body = await Util.readAsBytes(result["body"]);
+    body = await $dara.Stream.readAsBytes(result["body"]);
     assert.ok(body instanceof Buffer);
     assert.strictEqual(body.toString(), "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
     assert.strictEqual(result["statusCode"], 200);
@@ -1221,7 +1308,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     config.signatureAlgorithm = undefined;
     client = new OpenApi(config);
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1292,7 +1379,7 @@ describe('$openapi', function () {
     runtime.extendsParameters = extendsParameters;
     params.bodyType = "binary";
     result = await client.callApi(params, request, runtime);
-    body = await Util.readAsBytes(result["body"]);
+    body = await $dara.Stream.readAsBytes(result["body"]);
     assert.ok(body instanceof Buffer);
     assert.strictEqual(body.toString(), "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}");
     assert.strictEqual(result["statusCode"], 200);
@@ -1349,7 +1436,7 @@ describe('$openapi', function () {
     config.endpoint = `127.0.0.1:${port}`;
     let client = new OpenApi(config);
     // formData
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1364,7 +1451,7 @@ describe('$openapi', function () {
     body["key1"] = "value";
     body["key2"] = 1;
     body["key3"] = true;
-    let request = new $OpenApi.OpenApiRequest({
+    let request = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),
     });
     let result = await client.callApi(params, request, runtime);
@@ -1381,8 +1468,8 @@ describe('$openapi', function () {
 
     // byte
     params.reqBodyType = "byte";
-    let byteBody = Util.toBytes("test byte");
-    request = new $OpenApi.OpenApiRequest({
+    let byteBody = Buffer.from("test byte");
+    request = new $OpenApiUtil.OpenApiRequest({
       body: byteBody,
     });
     result = await client.callApi(params, request, runtime);
@@ -1392,7 +1479,7 @@ describe('$openapi', function () {
 
     // stream
     params.reqBodyType = "binary";
-    request = new $OpenApi.OpenApiRequest({
+    request = new $OpenApiUtil.OpenApiRequest({
       stream: new BytesReadable(byteBody),
     });
     result = await client.callApi(params, request, runtime);
@@ -1408,9 +1495,9 @@ describe('$openapi', function () {
     runtime.maxAttempts = 1;
     runtime.backoffPolicy = "fix";
     runtime.backoffPeriod = 1;
-    runtime.connectTimeout = 10;
+    runtime.connectTimeout = 100;
     runtime.readTimeout = 10;
-    let extendsParameters = new $Util.ExtendsParameters();
+    let extendsParameters = new $dara.ExtendsParameters();
     extendsParameters.headers = runtime.extendsParameters?.headers || {};
     extendsParameters.headers['timeout'] = 'true';
     runtime.extendsParameters = extendsParameters;
@@ -1421,7 +1508,7 @@ describe('$openapi', function () {
     let client = new OpenApi(config);
 
     let request = createOpenApiRequest();
-    let params = new $OpenApi.Params({
+    let params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1439,7 +1526,7 @@ describe('$openapi', function () {
       assert.ok(error.message.indexOf('ReadTimeout(10)') !== -1);
     }
 
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1457,7 +1544,7 @@ describe('$openapi', function () {
       assert.ok(error.message.indexOf('ReadTimeout(10)') !== -1);
     }
 
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1477,7 +1564,7 @@ describe('$openapi', function () {
 
     config.signatureAlgorithm = undefined;
     client = new OpenApi(config);
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",
@@ -1497,7 +1584,7 @@ describe('$openapi', function () {
 
     client._productId = "test";
     client.setGatewayClient(new POP());
-    params = new $OpenApi.Params({
+    params = new $OpenApiUtil.Params({
       action: "TestAPI",
       version: "2022-06-01",
       protocol: "HTTPS",

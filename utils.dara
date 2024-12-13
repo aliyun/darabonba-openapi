@@ -1,0 +1,224 @@
+@clientName("Utils")
+@overwrite(false)
+/**
+ * This is for OpenApi Util 
+ */
+import Credential;
+
+model GlobalParameters {
+  headers?: map[string]string,
+  queries?: map[string]string,
+}
+
+
+/**
+ * Model for initing client
+ */
+model Config {
+  accessKeyId?: string(description='accesskey id',default=''),
+  accessKeySecret?: string(description='accesskey secret',default=''),
+  securityToken?: string(description='security token',example='',default=''),
+  bearerToken?: string(description='bearer token',example='the-bearer-token',default=''),
+  protocol?: string(description='http protocol',example='http',default='http'),
+  method?: string(description='http method',example='GET',default=''),
+  regionId?: string(description='region id',example='cn-hangzhou',default=''),
+  readTimeout?: integer(description='read timeout',example='10',default=''),
+  connectTimeout?: integer(description='connect timeout',example='10',default=''),
+  httpProxy?: string(description='http proxy',example='http://localhost',default=''),
+  httpsProxy?: string(description='https proxy',example='https://localhost',default=''),
+  credential?: Credential(description='credential',example='',default=''),
+  endpoint?: string(description='endpoint',example='cs.aliyuncs.com',default=''),
+  noProxy?: string(description='proxy white list',example='http://localhost',default=''),
+  maxIdleConns?: integer(description='max idle conns',example='3',default=''),
+  network?: string(description='network for endpoint',example='public',default=''),
+  userAgent?: string(description='user agent',example='Alibabacloud/1',default=''),
+  suffix?: string(description='suffix for endpoint',example='aliyun',default=''),
+  socks5Proxy?: string(description='socks5 proxy',default=''),
+  socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
+  endpointType?: string(description='endpoint type',example='internal',default=''),
+  openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
+  type?: string(description='credential type',example='access_key',default='',deprecated=true),
+  signatureVersion?: string(description='Signature Version',example='v1',default=''),
+  signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
+  globalParameters?: GlobalParameters(description='Global Parameters'),
+  key?: string(description='privite key for client certificate', example='MIIEvQ',default=''),
+  cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
+  ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
+  disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+  retryOptions?: $RetryOptions(description='retry options'),
+}
+
+
+model Params = {
+  action: string,
+  version: string,
+  protocol: string,
+  pathname: string,
+  method: string,
+  authType: string,
+  bodyType: string,
+  reqBodyType: string,
+  style?: string
+}
+
+
+model OpenApiRequest {
+  headers?: map[string]string,
+  query?: map[string]string,
+  body?: any,
+  stream?: readable,
+  hostMap?: map[string]string,
+  endpointOverride?: string,
+}
+
+/**
+ * Convert all params of body other than type of readable into content 
+ * @param body source Model
+ * @param content target Model
+ * @return void
+ */
+static function convert(body: $Model, content: $Model): void;
+
+
+/**
+ * If endpointType is internal, use internal endpoint
+ * If serverUse is true and endpointType is accelerate, use accelerate endpoint
+ * Default return endpoint
+ * @param serverUse whether use accelerate endpoint
+ * @param endpointType value must be internal or accelerate
+ * @return the final endpoint
+ */
+static function getEndpoint(endpoint: string, serverUse: boolean, endpointType: string): string;
+
+/**
+ * Get throttling param
+ * @param the response headers
+ * @return time left
+ */
+static function getThrottlingTimeLeft(headers: map[string]string): long;
+
+/**
+ * Hash the raw data with signatureAlgorithm
+ * @param raw hashing data
+ * @param signatureAlgorithm the autograph method
+ * @return hashed bytes
+ */
+static function hash(raw: bytes, signatureAlgorithm: string): bytes;
+
+/**
+ * Get throttling param
+ * @param the response headers
+ * @return time left
+ */
+static function flatMap(params: map[string]any, prefix: string): map[string]string;
+
+/**
+ * Generate a nonce string
+ * @return the nonce string
+ */
+static function getNonce(): string;
+
+/**
+ * Get the string to be signed according to request
+ * @param request  which contains signed messages
+ * @return the signed string
+ */
+static function getStringToSign(request: $Request): string;
+
+/**
+ * Get signature according to stringToSign, secret
+ * @param stringToSign  the signed string
+ * @param secret accesskey secret
+ * @return the signature
+ */
+static function getROASignature(stringToSign: string, secret: string): string;
+
+/**
+ * Parse filter into a form string
+ * @param filter object
+ * @return the string
+ */
+static function toForm(filter: object): string;
+
+/**
+ * Get timestamp
+ * @return the timestamp string
+ */
+static function getTimestamp(): string;
+
+
+/**
+ * Get UTC string
+ * @return the UTC string
+ */
+static function getDateUTCString(): string;
+
+/**
+ * Parse filter into a object which's type is map[string]string
+ * @param filter query param
+ * @return the object
+ */
+static function query(filter: object): map[string]string;
+
+/**
+ * Get signature according to signedParams, method and secret
+ * @param signedParams params which need to be signed
+ * @param method http method e.g. GET
+ * @param secret AccessKeySecret
+ * @return the signature
+ */
+static function getRPCSignature(signedParams: map[string]string, method: string, secret: string): string;
+
+/**
+ * Parse array into a string with specified style
+ * @param array the array
+ * @param prefix the prefix string
+ * @style specified style e.g. repeatList
+ * @return the string
+ */
+static function arrayToStringWithSpecifiedStyle(array: any, prefix: string, style: string): string;
+
+/**
+ * Stringify the value of map
+ * @return the new stringified map
+ */
+static function stringifyMapValue(m: map[string]any): map[string]string;
+
+/**
+ * Transform input as array.
+ */
+static function toArray(input: any): [ map[string]any ];
+
+/**
+ * Parse map with flat style
+ *
+ * @param any the input
+ * @return any
+ */
+static function mapToFlatStyle(input: any): any;
+
+/**
+ * Transform input as map.
+ */
+static function parseToMap(input: any): map[string]any;
+
+
+/**
+ * Get the authorization 
+ * @param request request params
+ * @param signatureAlgorithm the autograph method
+ * @param payload the hashed request
+ * @param accesskey the accesskey string
+ * @param accessKeySecret the accessKeySecret string
+ * @return authorization string
+ */
+static function getAuthorization(request: $Request, signatureAlgorithm: string, payload: string, accesskey: string, accessKeySecret: string): string;
+
+
+static function getUserAgent(userAgent: string): string;
+ 
+/**
+ * Get endpoint according to productId, regionId, endpointType, network and suffix
+ * @return endpoint
+ */
+static function getEndpointRules(product: string, regionId: string, endpointType: string, network: string, suffix: string) throws: string;

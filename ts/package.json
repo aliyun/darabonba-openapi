@@ -1,11 +1,13 @@
 {
-  "name": "@alicloud/openapi-client",
-  "version": "0.4.12",
+  "name": "@alicloud/openapi-core",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/client.js",
   "scripts": {
     "test": "mocha -r ts-node/register -r source-map-support/register test/**/*.spec.ts --timeout=10000",
     "test-cov": "nyc -e .ts -r=html -r=text -r=lcov npm run test",
+    "select-version": "node scripts/ts_version.js",
+    "postinstall": "npm run select-version",
     "build": "tsc",
     "prepublishOnly": "tsc"
   },
@@ -14,20 +16,16 @@
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "mocha": "^6.2.0",
-    "@types/node": "^12.12.26",
-    "nyc": "^15.0.0",
+    "@types/node": "^18.0.0",
+    "nyc": "^14.1.1",
     "source-map-support": "^0.5.16",
-    "ts-node": "^8.6.2",
-    "typescript": "^3.7.5",
-    "@alicloud/gateway-pop": "0.0.6"
+    "ts-node": "^10.0.0",
+    "typescript": "^5.6.0"
   },
   "dependencies": {
-    "@alicloud/tea-typescript": "^1.7.1",
-    "@alicloud/tea-util": "^1.4.9",
-    "@alicloud/credentials": "^2.3.1",
-    "@alicloud/openapi-util": "^0.3.2",
+    "@alicloud/gateway-pop": "0.0.6",
     "@alicloud/gateway-spi": "^0.0.8",
-    "@alicloud/tea-xml": "0.0.3"
+    "@darabonba/typescript": "^1.0.2"
   },
   "files": [
     "dist",
