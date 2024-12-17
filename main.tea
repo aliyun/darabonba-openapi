@@ -1096,6 +1096,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   disableHttp2 = $boolean($default(@disableHttp2, false))
 }
 
+@sse(true)
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;

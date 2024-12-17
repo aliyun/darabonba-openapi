@@ -4,18 +4,24 @@
  
 namespace Darabonba\OpenApi\Models;
 use AlibabaCloud\Dara\Model;
-class GlobalParameters extends Model {
+use AlibabaCloud\Dara\SSE\Event;
+class SSEResponse extends Model {
   /**
    * @var string[]
    */
   public $headers;
   /**
-   * @var string[]
+   * @var int
    */
-  public $queries;
+  public $statusCode;
+  /**
+   * @var Event
+   */
+  public $event;
   protected $_name = [
       'headers' => 'headers',
-      'queries' => 'queries',
+      'statusCode' => 'statusCode',
+      'event' => 'event',
   ];
 
   public function validate()
@@ -23,9 +29,9 @@ class GlobalParameters extends Model {
     if(is_array($this->headers)) {
       Model::validateArray($this->headers);
     }
-    if(is_array($this->queries)) {
-      Model::validateArray($this->queries);
-    }
+    Model::validateRequired('headers', $this->headers, true);
+    Model::validateRequired('statusCode', $this->statusCode, true);
+    Model::validateRequired('event', $this->event, true);
     parent::validate();
   }
 
@@ -41,13 +47,12 @@ class GlobalParameters extends Model {
       }
     }
 
-    if (null !== $this->queries) {
-      if(is_array($this->queries)) {
-        $res['queries'] = [];
-        foreach($this->queries as $key1 => $value1) {
-          $res['queries'][$key1] = $value1;
-        }
-      }
+    if (null !== $this->statusCode) {
+      $res['statusCode'] = $this->statusCode;
+    }
+
+    if (null !== $this->event) {
+      $res['event'] = null !== $this->event ? $this->event->toArray($noStream) : $this->event;
     }
 
     return $res;
@@ -70,13 +75,12 @@ class GlobalParameters extends Model {
       }
     }
 
-    if (isset($map['queries'])) {
-      if(!empty($map['queries'])) {
-        $model->queries = [];
-        foreach($map['queries'] as $key1 => $value1) {
-          $model->queries[$key1] = $value1;
-        }
-      }
+    if (isset($map['statusCode'])) {
+      $model->statusCode = $map['statusCode'];
+    }
+
+    if (isset($map['event'])) {
+      $model->event = Event::fromMap($map['event']);
     }
 
     return $model;
