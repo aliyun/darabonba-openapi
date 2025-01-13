@@ -1,6 +1,6 @@
 {
   "name": "@alicloud/openapi-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/client.js",
   "scripts": {
@@ -29,6 +29,7 @@
   },
   "files": [
     "dist",
+    "scripts",
     "src"
   ],
   "repository": "git@github.com:aliyun/darabonba-openapi.git"
