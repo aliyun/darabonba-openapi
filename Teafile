@@ -46,7 +46,8 @@
   },
   "go": {
     "package": [
-      "io"
+      "io",
+      "models \"github.com/alibabacloud-go/darabonba-openapi/v2/models\""
     ]
   },
   "php": {
