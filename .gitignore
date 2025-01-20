@@ -5,8 +5,8 @@ ts/dist
 ts/.nyc_output
 ts/coverage
 ts/package-lock.json
-go.sum
 .DS_Store
+**/golang/**/vendor/
 
 .classpath
 .settings/

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
-	openapiutil "github.com/alibabacloud-go/openapi-util/service"
+	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	tea_util "github.com/alibabacloud-go/tea/utils"
@@ -201,17 +201,11 @@ func TestConfig(t *testing.T) {
 
 	config.SetType("bearer")
 	config.SetBearerToken("token")
-	config.SetAccessKeyId("")
-	config.SetAccessKeySecret("")
-	config.SetSecurityToken("")
+	config.AccessKeyId = nil
+	config.AccessKeySecret = nil
+	config.SecurityToken = nil
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
-	ak, _ = client.GetAccessKeyId()
-	tea_util.AssertEqual(t, "", tea.StringValue(ak))
-	sk, _ = client.GetAccessKeySecret()
-	tea_util.AssertEqual(t, "", tea.StringValue(sk))
-	token, _ = client.GetSecurityToken()
-	tea_util.AssertEqual(t, "", tea.StringValue(token))
 	token, _ = client.GetBearerToken()
 	tea_util.AssertEqual(t, "token", tea.StringValue(token))
 	ty, _ = client.GetType()
@@ -460,7 +454,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
 	str, _ = util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "2022-06-01", headers["x-acs-version"])
@@ -549,7 +543,7 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
 	str, _ = util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
@@ -612,7 +606,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "acs ak:")
@@ -754,7 +748,7 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
@@ -822,7 +816,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
@@ -922,7 +916,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
@@ -989,7 +983,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
@@ -1090,7 +1084,7 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "TeaDSL/1 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
