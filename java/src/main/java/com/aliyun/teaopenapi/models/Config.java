@@ -4,7 +4,8 @@ package com.aliyun.teaopenapi.models;
 import com.aliyun.tea.*;
 
 /**
- * Model for initing client
+ * <b>description</b> :
+ * <p>Model for initing client</p>
  */
 public class Config extends TeaModel {
     /**
@@ -21,54 +22,81 @@ public class Config extends TeaModel {
 
     /**
      * <p>security token</p>
+     * 
+     * <strong>example:</strong>
+     * <p>a.txt</p>
      */
     @NameInMap("securityToken")
     public String securityToken;
 
     /**
      * <p>bearer token</p>
+     * 
+     * <strong>example:</strong>
+     * <p>the-bearer-token</p>
      */
     @NameInMap("bearerToken")
     public String bearerToken;
 
     /**
      * <p>http protocol</p>
+     * 
+     * <strong>example:</strong>
+     * <p>http</p>
      */
     @NameInMap("protocol")
     public String protocol;
 
     /**
      * <p>http method</p>
+     * 
+     * <strong>example:</strong>
+     * <p>GET</p>
      */
     @NameInMap("method")
     public String method;
 
     /**
      * <p>region id</p>
+     * 
+     * <strong>example:</strong>
+     * <p>cn-hangzhou</p>
      */
     @NameInMap("regionId")
     public String regionId;
 
     /**
      * <p>read timeout</p>
+     * 
+     * <strong>example:</strong>
+     * <p>10</p>
      */
     @NameInMap("readTimeout")
     public Integer readTimeout;
 
     /**
      * <p>connect timeout</p>
+     * 
+     * <strong>example:</strong>
+     * <p>10</p>
      */
     @NameInMap("connectTimeout")
     public Integer connectTimeout;
 
     /**
      * <p>http proxy</p>
+     * 
+     * <strong>example:</strong>
+     * <p><a href="http://localhost">http://localhost</a></p>
      */
     @NameInMap("httpProxy")
     public String httpProxy;
 
     /**
      * <p>https proxy</p>
+     * 
+     * <strong>example:</strong>
+     * <p><a href="https://localhost">https://localhost</a></p>
      */
     @NameInMap("httpsProxy")
     public String httpsProxy;
@@ -81,36 +109,54 @@ public class Config extends TeaModel {
 
     /**
      * <p>endpoint</p>
+     * 
+     * <strong>example:</strong>
+     * <p>cs.aliyuncs.com</p>
      */
     @NameInMap("endpoint")
     public String endpoint;
 
     /**
      * <p>proxy white list</p>
+     * 
+     * <strong>example:</strong>
+     * <p><a href="http://localhost">http://localhost</a></p>
      */
     @NameInMap("noProxy")
     public String noProxy;
 
     /**
      * <p>max idle conns</p>
+     * 
+     * <strong>example:</strong>
+     * <p>3</p>
      */
     @NameInMap("maxIdleConns")
     public Integer maxIdleConns;
 
     /**
      * <p>network for endpoint</p>
+     * 
+     * <strong>example:</strong>
+     * <p>public</p>
      */
     @NameInMap("network")
     public String network;
 
     /**
      * <p>user agent</p>
+     * 
+     * <strong>example:</strong>
+     * <p>Alibabacloud/1</p>
      */
     @NameInMap("userAgent")
     public String userAgent;
 
     /**
      * <p>suffix for endpoint</p>
+     * 
+     * <strong>example:</strong>
+     * <p>aliyun</p>
      */
     @NameInMap("suffix")
     public String suffix;
@@ -123,24 +169,36 @@ public class Config extends TeaModel {
 
     /**
      * <p>socks5 network</p>
+     * 
+     * <strong>example:</strong>
+     * <p>TCP</p>
      */
     @NameInMap("socks5NetWork")
     public String socks5NetWork;
 
     /**
      * <p>endpoint type</p>
+     * 
+     * <strong>example:</strong>
+     * <p>internal</p>
      */
     @NameInMap("endpointType")
     public String endpointType;
 
     /**
      * <p>OpenPlatform endpoint</p>
+     * 
+     * <strong>example:</strong>
+     * <p>openplatform.aliyuncs.com</p>
      */
     @NameInMap("openPlatformEndpoint")
     public String openPlatformEndpoint;
 
     /**
      * <p>credential type</p>
+     * 
+     * <strong>example:</strong>
+     * <p>access_key</p>
      */
     @NameInMap("type")
     @Deprecated
@@ -148,12 +206,18 @@ public class Config extends TeaModel {
 
     /**
      * <p>Signature Version</p>
+     * 
+     * <strong>example:</strong>
+     * <p>v1</p>
      */
     @NameInMap("signatureVersion")
     public String signatureVersion;
 
     /**
      * <p>Signature Algorithm</p>
+     * 
+     * <strong>example:</strong>
+     * <p>ACS3-HMAC-SHA256</p>
      */
     @NameInMap("signatureAlgorithm")
     public String signatureAlgorithm;
@@ -166,27 +230,50 @@ public class Config extends TeaModel {
 
     /**
      * <p>privite key for client certificate</p>
+     * 
+     * <strong>example:</strong>
+     * <p>MIIEvQ</p>
      */
     @NameInMap("key")
     public String key;
 
     /**
      * <p>client certificate</p>
+     * 
+     * <strong>example:</strong>
+     * <p>-----BEGIN CERTIFICATE-----
+     * xxx-----END CERTIFICATE-----</p>
      */
     @NameInMap("cert")
     public String cert;
 
     /**
      * <p>server certificate</p>
+     * 
+     * <strong>example:</strong>
+     * <p>-----BEGIN CERTIFICATE-----
+     * xxx-----END CERTIFICATE-----</p>
      */
     @NameInMap("ca")
     public String ca;
 
     /**
      * <p>disable HTTP/2</p>
+     * 
+     * <strong>example:</strong>
+     * <p>false</p>
      */
     @NameInMap("disableHttp2")
     public Boolean disableHttp2;
+
+    /**
+     * <p>TLS Minimum Version</p>
+     * 
+     * <strong>example:</strong>
+     * <p>TLSv1, TLSv1.1, TLSv1.2, TLSv1.3</p>
+     */
+    @NameInMap("tlsMinVersion")
+    public String tlsMinVersion;
 
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
@@ -369,6 +456,7 @@ public class Config extends TeaModel {
         return this.openPlatformEndpoint;
     }
 
+    @Deprecated
     public Config setType(String type) {
         this.type = type;
         return this;
@@ -431,6 +519,14 @@ public class Config extends TeaModel {
     }
     public Boolean getDisableHttp2() {
         return this.disableHttp2;
+    }
+
+    public Config setTlsMinVersion(String tlsMinVersion) {
+        this.tlsMinVersion = tlsMinVersion;
+        return this;
+    }
+    public String getTlsMinVersion() {
+        return this.tlsMinVersion;
     }
 
 }

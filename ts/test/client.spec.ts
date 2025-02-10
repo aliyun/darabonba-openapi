@@ -125,6 +125,7 @@ function createConfig(): $OpenApi.Config {
     signatureVersion: "config.signatureVersion",
     signatureAlgorithm: "ACS3-HMAC-SHA256",
     globalParameters: globalParameters,
+    tlsMinVersion: "TLSv1.2",
   });
   return config;
 }

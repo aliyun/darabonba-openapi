@@ -57,7 +57,8 @@ public class ClientTest {
                 new TeaPair("key", "config.key"),
                 new TeaPair("cert", "config.cert"),
                 new TeaPair("ca", "config.ca"),
-                new TeaPair("disableHttp2", false)
+                new TeaPair("disableHttp2", false),
+                new TeaPair("tlsMinVersion", "config.tlsMinVersion")
         ));
         com.aliyun.credentials.models.Config creConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
                 new TeaPair("accessKeyId", "accessKeyId"),
@@ -149,6 +150,7 @@ public class ClientTest {
         Assert.assertEquals("config.cert", client._cert);
         Assert.assertEquals("config.ca", client._ca);
         Assert.assertEquals(false, client._disableHttp2);
+        Assert.assertEquals("config.tlsMinVersion", client._tlsMinVersion);
 
         client.addRequestInterceptor(new RequestInterceptor() {
             @Override
@@ -194,7 +196,8 @@ public class ClientTest {
                 new TeaPair("signatureVersion", "config.signatureVersion"),
                 new TeaPair("signatureAlgorithm", "ACS3-HMAC-SHA256"),
                 new TeaPair("globalParameters", globalParameters),
-                new TeaPair("disableHttp2", true)
+                new TeaPair("disableHttp2", true),
+                new TeaPair("tlsMinVersion", "TLSv1.2")
         ));
         return config;
     }

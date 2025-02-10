@@ -208,6 +208,12 @@ type Config struct {
 	//
 	// false
 	DisableHttp2 *bool `json:"disableHttp2,omitempty" xml:"disableHttp2,omitempty"`
+	// TLS Minimum Version
+	//
+	// example:
+	//
+	// TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
+	TlsMinVersion *string `json:"tlsMinVersion,omitempty" xml:"tlsMinVersion,omitempty"`
 }
 
 func (s Config) String() string {
@@ -368,6 +374,11 @@ func (s *Config) SetDisableHttp2(v bool) *Config {
 	return s
 }
 
+func (s *Config) SetTlsMinVersion(v string) *Config {
+	s.TlsMinVersion = &v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
@@ -511,6 +522,7 @@ type Client struct {
 	Cert                 *string
 	Ca                   *string
 	DisableHttp2         *bool
+	TlsMinVersion        *string
 }
 
 // Description:
@@ -588,6 +600,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Cert = config.Cert
 	client.Ca = config.Ca
 	client.DisableHttp2 = config.DisableHttp2
+	client.TlsMinVersion = config.TlsMinVersion
 	return nil
 }
 
@@ -642,7 +655,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":     tea.BoolValue(runtime.IgnoreSSL),
+		"tlsMinVersion": tea.StringValue(client.TlsMinVersion),
 	}
 
 	_resp := make(map[string]interface{})
@@ -941,7 +955,8 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":     tea.BoolValue(runtime.IgnoreSSL),
+		"tlsMinVersion": tea.StringValue(client.TlsMinVersion),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1217,7 +1232,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":     tea.BoolValue(runtime.IgnoreSSL),
+		"tlsMinVersion": tea.StringValue(client.TlsMinVersion),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1498,7 +1514,8 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL": tea.BoolValue(runtime.IgnoreSSL),
+		"ignoreSSL":     tea.BoolValue(runtime.IgnoreSSL),
+		"tlsMinVersion": tea.StringValue(client.TlsMinVersion),
 	}
 
 	_resp := make(map[string]interface{})
@@ -1838,8 +1855,9 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 			"policy": tea.StringValue(util.DefaultString(runtime.BackoffPolicy, tea.String("no"))),
 			"period": tea.IntValue(util.DefaultNumber(runtime.BackoffPeriod, tea.Int(1))),
 		},
-		"ignoreSSL":    tea.BoolValue(runtime.IgnoreSSL),
-		"disableHttp2": DefaultAny(client.DisableHttp2, tea.Bool(false)),
+		"ignoreSSL":     tea.BoolValue(runtime.IgnoreSSL),
+		"disableHttp2":  DefaultAny(client.DisableHttp2, tea.Bool(false)),
+		"tlsMinVersion": tea.StringValue(client.TlsMinVersion),
 	}
 
 	_resp := make(map[string]interface{})

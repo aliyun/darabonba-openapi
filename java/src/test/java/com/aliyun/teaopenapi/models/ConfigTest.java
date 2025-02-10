@@ -72,5 +72,7 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getCa());
         config.setDisableHttp2(true);
         Assert.assertTrue(config.getDisableHttp2());
+        config.setTlsMinVersion("TLSv1.2");
+        Assert.assertEquals("TLSv1.2", config.getTlsMinVersion());
     }
 }

@@ -109,6 +109,7 @@ func TestConfig(t *testing.T) {
 		Key:                tea.String("config.key"),
 		Cert:               tea.String("config.cert"),
 		Ca:                 tea.String("config.ca"),
+		TlsMinVersion:      tea.String("config.tlsMinVersion"),
 	}
 	config.SetEndpoint("config.endpoint")
 	config.SetEndpointType("public")
@@ -134,6 +135,7 @@ func TestConfig(t *testing.T) {
 	config.SetCa("config.ca")
 	config.SetOpenPlatformEndpoint("openPlatform.aliyuncs.com")
 	config.SetDisableHttp2(true)
+	config.SetTlsMinVersion("config.tlsMinVersion")
 
 	creConfig := &credential.Config{
 		AccessKeyId:     tea.String("accessKeyId"),
@@ -257,6 +259,7 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "config.cert", tea.StringValue(client.Cert))
 	tea_util.AssertEqual(t, "config.ca", tea.StringValue(client.Ca))
 	tea_util.AssertEqual(t, true, tea.BoolValue(client.DisableHttp2))
+	tea_util.AssertEqual(t, "config.tlsMinVersion", tea.StringValue(client.TlsMinVersion))
 
 	globalParameters.SetHeaders(map[string]*string{
 		"global-key": tea.String("test"),
@@ -348,6 +351,7 @@ func CreateConfig() (_result *Config) {
 		SignatureVersion:   tea.String("config.signatureVersion"),
 		SignatureAlgorithm: tea.String("ACS3-HMAC-SHA256"),
 		GlobalParameters:   globalParameters,
+		TlsMinVersion:      tea.String("TLSv1.2"),
 	}
 	_result = config
 	return _result
