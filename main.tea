@@ -850,7 +850,9 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       } else {
         __request.headers.x-acs-signature-type = 'BEARERTOKEN';
       }
-      
+    } else if (Util.equalString(authType, 'id_token')) {
+      var idToken = credentialModel.securityToken;
+      __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;

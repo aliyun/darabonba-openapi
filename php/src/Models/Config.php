@@ -43,9 +43,7 @@ class Config extends Model
         'cert' => '',
         'ca' => '',
     ];
-    public function validate()
-    {
-    }
+    public function validate() {}
     public function toMap()
     {
         $res = [];
@@ -446,5 +444,4 @@ class Config extends Model
      * @var bool
      */
     public $disableHttp2;
-
 }

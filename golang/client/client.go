@@ -1638,6 +1638,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 						request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
 					}
 
+				} else if tea.BoolValue(util.EqualString(authType, tea.String("id_token"))) {
+					idToken := credentialModel.SecurityToken
+					request_.Headers["x-acs-zero-trust-idtoken"] = idToken
 				} else {
 					accessKeyId := credentialModel.AccessKeyId
 					accessKeySecret := credentialModel.AccessKeySecret
