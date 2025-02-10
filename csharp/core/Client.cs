@@ -45,11 +45,16 @@ namespace AlibabaCloud.OpenApiClient
         protected string _cert;
         protected string _ca;
         protected bool? _disableHttp2;
+        protected string _tlsMinVersion;
 
-        /**
-         * Init client with Config
-         * @param config config contains the necessary information to create a client
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Init client with Config</para>
+        /// </description>
+        /// 
+        /// <param name="config">
+        /// config contains the necessary information to create a client
+        /// </param>
         public Client(Config config)
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(config))
@@ -115,20 +120,42 @@ namespace AlibabaCloud.OpenApiClient
             this._cert = config.Cert;
             this._ca = config.Ca;
             this._disableHttp2 = config.DisableHttp2;
+            this._tlsMinVersion = config.TlsMinVersion;
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -157,6 +184,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -397,18 +425,39 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -437,6 +486,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -677,19 +727,42 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param pathname pathname of every api
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -718,6 +791,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -937,19 +1011,42 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param pathname pathname of every api
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -978,6 +1075,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -1197,19 +1295,42 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network with form body
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param pathname pathname of every api
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network with form body</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -1238,6 +1359,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -1456,19 +1578,42 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network with form body
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param pathname pathname of every api
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network with form body</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             request.Validate();
@@ -1497,6 +1642,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -1715,18 +1861,39 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             params_.Validate();
@@ -1756,6 +1923,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -2020,18 +2188,39 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             params_.Validate();
@@ -2061,6 +2250,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -2325,18 +2515,39 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             params_.Validate();
@@ -2367,6 +2578,7 @@ namespace AlibabaCloud.OpenApiClient
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"disableHttp2", DefaultAny(_disableHttp2, false)},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -2509,18 +2721,39 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
-        /**
-         * Encapsulate the request and invoke the network
-         * @param action api name
-         * @param version product version
-         * @param protocol http or https
-         * @param method e.g. GET
-         * @param authType authorization type e.g. AK
-         * @param bodyType response body type e.g. String
-         * @param request object of OpenApiRequest
-         * @param runtime which controls some details of call api, such as retry times
-         * @return the response
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             params_.Validate();
@@ -2551,6 +2784,7 @@ namespace AlibabaCloud.OpenApiClient
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"disableHttp2", DefaultAny(_disableHttp2, false)},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             TeaRequest _lastRequest = null;
@@ -2749,20 +2983,28 @@ namespace AlibabaCloud.OpenApiClient
             }
         }
 
-        /**
-         * Get user agent
-         * @return user agent
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get user agent</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// user agent
+        /// </returns>
         public string GetUserAgent()
         {
             string userAgent = AlibabaCloud.TeaUtil.Common.GetUserAgent(_userAgent);
             return userAgent;
         }
 
-        /**
-         * Get accesskey id by using credential
-         * @return accesskey id
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get accesskey id by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// accesskey id
+        /// </returns>
         public string GetAccessKeyId()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2773,10 +3015,14 @@ namespace AlibabaCloud.OpenApiClient
             return accessKeyId;
         }
 
-        /**
-         * Get accesskey id by using credential
-         * @return accesskey id
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get accesskey id by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// accesskey id
+        /// </returns>
         public async Task<string> GetAccessKeyIdAsync()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2787,10 +3033,14 @@ namespace AlibabaCloud.OpenApiClient
             return accessKeyId;
         }
 
-        /**
-         * Get accesskey secret by using credential
-         * @return accesskey secret
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get accesskey secret by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// accesskey secret
+        /// </returns>
         public string GetAccessKeySecret()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2801,10 +3051,14 @@ namespace AlibabaCloud.OpenApiClient
             return secret;
         }
 
-        /**
-         * Get accesskey secret by using credential
-         * @return accesskey secret
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get accesskey secret by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// accesskey secret
+        /// </returns>
         public async Task<string> GetAccessKeySecretAsync()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2815,10 +3069,14 @@ namespace AlibabaCloud.OpenApiClient
             return secret;
         }
 
-        /**
-         * Get security token by using credential
-         * @return security token
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get security token by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// security token
+        /// </returns>
         public string GetSecurityToken()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2829,10 +3087,14 @@ namespace AlibabaCloud.OpenApiClient
             return token;
         }
 
-        /**
-         * Get security token by using credential
-         * @return security token
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get security token by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// security token
+        /// </returns>
         public async Task<string> GetSecurityTokenAsync()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2843,10 +3105,14 @@ namespace AlibabaCloud.OpenApiClient
             return token;
         }
 
-        /**
-         * Get bearer token by credential
-         * @return bearer token
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get bearer token by credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// bearer token
+        /// </returns>
         public string GetBearerToken()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2857,10 +3123,14 @@ namespace AlibabaCloud.OpenApiClient
             return token;
         }
 
-        /**
-         * Get bearer token by credential
-         * @return bearer token
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get bearer token by credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// bearer token
+        /// </returns>
         public async Task<string> GetBearerTokenAsync()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2871,10 +3141,14 @@ namespace AlibabaCloud.OpenApiClient
             return token;
         }
 
-        /**
-         * Get credential type by credential
-         * @return credential type e.g. access_key
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get credential type by credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// credential type e.g. access_key
+        /// </returns>
         public string GetType()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2885,10 +3159,14 @@ namespace AlibabaCloud.OpenApiClient
             return authType;
         }
 
-        /**
-         * Get credential type by credential
-         * @return credential type e.g. access_key
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get credential type by credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// credential type e.g. access_key
+        /// </returns>
         public async Task<string> GetTypeAsync()
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(_credential))
@@ -2899,12 +3177,21 @@ namespace AlibabaCloud.OpenApiClient
             return authType;
         }
 
-        /**
-         * If inputValue is not null, return it or return defaultValue
-         * @param inputValue  users input value
-         * @param defaultValue default value
-         * @return the final result
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>If inputValue is not null, return it or return defaultValue</para>
+        /// </description>
+        /// 
+        /// <param name="inputValue">
+        /// users input value
+        /// </param>
+        /// <param name="defaultValue">
+        /// default value
+        /// </param>
+        /// 
+        /// <returns>
+        /// the final result
+        /// </returns>
         public static object DefaultAny(object inputValue, object defaultValue)
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(inputValue))
@@ -2914,10 +3201,14 @@ namespace AlibabaCloud.OpenApiClient
             return inputValue;
         }
 
-        /**
-         * If the endpointRule and config.endpoint are empty, throw error
-         * @param config config contains the necessary information to create a client
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>If the endpointRule and config.endpoint are empty, throw error</para>
+        /// </description>
+        /// 
+        /// <param name="config">
+        /// config contains the necessary information to create a client
+        /// </param>
         public void CheckConfig(Config config)
         {
             if (AlibabaCloud.TeaUtil.Common.Empty(_endpointRule) && AlibabaCloud.TeaUtil.Common.Empty(config.Endpoint))
@@ -2930,27 +3221,36 @@ namespace AlibabaCloud.OpenApiClient
             }
         }
 
-        /**
-         * set gateway client
-         * @param spi.
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>set gateway client</para>
+        /// </description>
+        /// 
+        /// <param name="spi">
+        /// .
+        /// </param>
         public void SetGatewayClient(AlibabaCloud.GatewaySpi.Client spi)
         {
             this._spi = spi;
         }
 
-        /**
-         * set RPC header for debug
-         * @param headers headers for debug, this header can be used only once.
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>set RPC header for debug</para>
+        /// </description>
+        /// 
+        /// <param name="headers">
+        /// headers for debug, this header can be used only once.
+        /// </param>
         public void SetRpcHeaders(Dictionary<string, string> headers)
         {
             this._headers = headers;
         }
 
-        /**
-         * get RPC header for debug
-         */
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>get RPC header for debug</para>
+        /// </description>
         public Dictionary<string, string> GetRpcHeaders()
         {
             Dictionary<string, string> headers = _headers;

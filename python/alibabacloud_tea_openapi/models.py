@@ -42,7 +42,6 @@ class GlobalParameters(TeaModel):
 class Config(TeaModel):
     """
     Model for initing client
-    `tls_min_version`: optional, TLS minimum version, support TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
     """
     def __init__(
         self,

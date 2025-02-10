@@ -88,6 +88,8 @@ class OpenApiClient
 
     protected $_disableHttp2;
 
+    protected $_tlsMinVersion;
+
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -145,6 +147,7 @@ class OpenApiClient
         $this->_cert = $config->cert;
         $this->_ca = $config->ca;
         $this->_disableHttp2 = $config->disableHttp2;
+        $this->_tlsMinVersion = $config->tlsMinVersion;
     }
 
     /**
@@ -187,7 +190,8 @@ class OpenApiClient
                 "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
                 "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
             ],
-            "ignoreSSL" => $runtime->ignoreSSL
+            "ignoreSSL" => $runtime->ignoreSSL,
+            "tlsMinVersion" => $this->_tlsMinVersion
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -401,7 +405,8 @@ class OpenApiClient
                 "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
                 "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
             ],
-            "ignoreSSL" => $runtime->ignoreSSL
+            "ignoreSSL" => $runtime->ignoreSSL,
+            "tlsMinVersion" => $this->_tlsMinVersion
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -604,7 +609,8 @@ class OpenApiClient
                 "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
                 "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
             ],
-            "ignoreSSL" => $runtime->ignoreSSL
+            "ignoreSSL" => $runtime->ignoreSSL,
+            "tlsMinVersion" => $this->_tlsMinVersion
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -801,7 +807,8 @@ class OpenApiClient
                 "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
                 "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
             ],
-            "ignoreSSL" => $runtime->ignoreSSL
+            "ignoreSSL" => $runtime->ignoreSSL,
+            "tlsMinVersion" => $this->_tlsMinVersion
         ];
         $_lastRequest = null;
         $_lastException = null;
@@ -1024,7 +1031,8 @@ class OpenApiClient
                 "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
             ],
             "ignoreSSL" => $runtime->ignoreSSL,
-            "disableHttp2" => self::defaultAny($this->_disableHttp2, false)
+            "disableHttp2" => self::defaultAny($this->_disableHttp2, false),
+            "tlsMinVersion" => $this->_tlsMinVersion
         ];
         $_lastRequest = null;
         $_lastException = null;
