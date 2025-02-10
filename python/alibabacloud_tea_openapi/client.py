@@ -1405,6 +1405,9 @@ class Client:
                             _request.query['SignatureType'] = 'BEARERTOKEN'
                         else:
                             _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    elif UtilClient.equal_string(auth_type, 'id_token'):
+                        id_token = credential_model.security_token
+                        _request.headers['x-acs-zero-trust-idtoken'] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1617,6 +1620,9 @@ class Client:
                             _request.query['SignatureType'] = 'BEARERTOKEN'
                         else:
                             _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                    elif UtilClient.equal_string(auth_type, 'id_token'):
+                        id_token = credential_model.security_token
+                        _request.headers['x-acs-zero-trust-idtoken'] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret

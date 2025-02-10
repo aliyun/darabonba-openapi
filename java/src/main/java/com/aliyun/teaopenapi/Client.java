@@ -43,7 +43,9 @@ public class Client {
     public String _ca;
     public Boolean _disableHttp2;
     /**
-     * Init client with Config
+     * <b>description</b> :
+     * <p>Init client with Config</p>
+     * 
      * @param config config contains the necessary information to create a client
      */
     public Client(com.aliyun.teaopenapi.models.Config config) throws Exception {
@@ -104,7 +106,9 @@ public class Client {
     }
 
     /**
-     * Encapsulate the request and invoke the network
+     * <b>description</b> :
+     * <p>Encapsulate the request and invoke the network</p>
+     * 
      * @param action api name
      * @param version product version
      * @param protocol http or https
@@ -343,7 +347,9 @@ public class Client {
     }
 
     /**
-     * Encapsulate the request and invoke the network
+     * <b>description</b> :
+     * <p>Encapsulate the request and invoke the network</p>
+     * 
      * @param action api name
      * @param version product version
      * @param protocol http or https
@@ -566,7 +572,9 @@ public class Client {
     }
 
     /**
-     * Encapsulate the request and invoke the network with form body
+     * <b>description</b> :
+     * <p>Encapsulate the request and invoke the network with form body</p>
+     * 
      * @param action api name
      * @param version product version
      * @param protocol http or https
@@ -788,7 +796,9 @@ public class Client {
     }
 
     /**
-     * Encapsulate the request and invoke the network
+     * <b>description</b> :
+     * <p>Encapsulate the request and invoke the network</p>
+     * 
      * @param action api name
      * @param version product version
      * @param protocol http or https
@@ -952,6 +962,9 @@ public class Client {
                             request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
                         }
 
+                    } else if (com.aliyun.teautil.Common.equalString(authType, "id_token")) {
+                        String idToken = credentialModel.securityToken;
+                        request_.headers.put("x-acs-zero-trust-idtoken", idToken);
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;
@@ -1047,7 +1060,9 @@ public class Client {
     }
 
     /**
-     * Encapsulate the request and invoke the network
+     * <b>description</b> :
+     * <p>Encapsulate the request and invoke the network</p>
+     * 
      * @param action api name
      * @param version product version
      * @param protocol http or https
@@ -1244,7 +1259,8 @@ public class Client {
     }
 
     /**
-     * Get user agent
+     * <b>description</b> :
+     * <p>Get user agent</p>
      * @return user agent
      */
     public String getUserAgent() throws Exception {
@@ -1253,7 +1269,8 @@ public class Client {
     }
 
     /**
-     * Get accesskey id by using credential
+     * <b>description</b> :
+     * <p>Get accesskey id by using credential</p>
      * @return accesskey id
      */
     public String getAccessKeyId() throws Exception {
@@ -1266,7 +1283,8 @@ public class Client {
     }
 
     /**
-     * Get accesskey secret by using credential
+     * <b>description</b> :
+     * <p>Get accesskey secret by using credential</p>
      * @return accesskey secret
      */
     public String getAccessKeySecret() throws Exception {
@@ -1279,7 +1297,8 @@ public class Client {
     }
 
     /**
-     * Get security token by using credential
+     * <b>description</b> :
+     * <p>Get security token by using credential</p>
      * @return security token
      */
     public String getSecurityToken() throws Exception {
@@ -1292,7 +1311,8 @@ public class Client {
     }
 
     /**
-     * Get bearer token by credential
+     * <b>description</b> :
+     * <p>Get bearer token by credential</p>
      * @return bearer token
      */
     public String getBearerToken() throws Exception {
@@ -1305,7 +1325,8 @@ public class Client {
     }
 
     /**
-     * Get credential type by credential
+     * <b>description</b> :
+     * <p>Get credential type by credential</p>
      * @return credential type e.g. access_key
      */
     public String getType() throws Exception {
@@ -1318,8 +1339,10 @@ public class Client {
     }
 
     /**
-     * If inputValue is not null, return it or return defaultValue
-     * @param inputValue  users input value
+     * <b>description</b> :
+     * <p>If inputValue is not null, return it or return defaultValue</p>
+     * 
+     * @param inputValue users input value
      * @param defaultValue default value
      * @return the final result
      */
@@ -1332,7 +1355,9 @@ public class Client {
     }
 
     /**
-     * If the endpointRule and config.endpoint are empty, throw error
+     * <b>description</b> :
+     * <p>If the endpointRule and config.endpoint are empty, throw error</p>
+     * 
      * @param config config contains the necessary information to create a client
      */
     public void checkConfig(com.aliyun.teaopenapi.models.Config config) throws Exception {
@@ -1346,15 +1371,19 @@ public class Client {
     }
 
     /**
-     * set gateway client
-     * @param spi.
+     * <b>description</b> :
+     * <p>set gateway client</p>
+     * 
+     * @param spi .
      */
     public void setGatewayClient(com.aliyun.gateway.spi.Client spi) throws Exception {
         this._spi = spi;
     }
 
     /**
-     * set RPC header for debug
+     * <b>description</b> :
+     * <p>set RPC header for debug</p>
+     * 
      * @param headers headers for debug, this header can be used only once.
      */
     public void setRpcHeaders(java.util.Map<String, String> headers) throws Exception {
@@ -1362,7 +1391,8 @@ public class Client {
     }
 
     /**
-     * get RPC header for debug
+     * <b>description</b> :
+     * <p>get RPC header for debug</p>
      */
     public java.util.Map<String, String> getRpcHeaders() throws Exception {
         java.util.Map<String, String> headers = _headers;

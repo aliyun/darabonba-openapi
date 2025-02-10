@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
 /**
+ * @remarks
  * This is for OpenApi SDK
  */
 import Util, * as $Util from '@alicloud/tea-util';
@@ -33,38 +34,238 @@ export class GlobalParameters extends $tea.Model {
 }
 
 /**
+ * @remarks
  * Model for initing client
  */
 export class Config extends $tea.Model {
+  /**
+   * @remarks
+   * accesskey id
+   */
   accessKeyId?: string;
+  /**
+   * @remarks
+   * accesskey secret
+   */
   accessKeySecret?: string;
+  /**
+   * @remarks
+   * security token
+   * 
+   * @example
+   * a.txt
+   */
   securityToken?: string;
+  /**
+   * @remarks
+   * bearer token
+   * 
+   * @example
+   * the-bearer-token
+   */
   bearerToken?: string;
+  /**
+   * @remarks
+   * http protocol
+   * 
+   * @example
+   * http
+   */
   protocol?: string;
+  /**
+   * @remarks
+   * http method
+   * 
+   * @example
+   * GET
+   */
   method?: string;
+  /**
+   * @remarks
+   * region id
+   * 
+   * @example
+   * cn-hangzhou
+   */
   regionId?: string;
+  /**
+   * @remarks
+   * read timeout
+   * 
+   * @example
+   * 10
+   */
   readTimeout?: number;
+  /**
+   * @remarks
+   * connect timeout
+   * 
+   * @example
+   * 10
+   */
   connectTimeout?: number;
+  /**
+   * @remarks
+   * http proxy
+   * 
+   * @example
+   * http://localhost
+   */
   httpProxy?: string;
+  /**
+   * @remarks
+   * https proxy
+   * 
+   * @example
+   * https://localhost
+   */
   httpsProxy?: string;
+  /**
+   * @remarks
+   * credential
+   */
   credential?: Credential;
+  /**
+   * @remarks
+   * endpoint
+   * 
+   * @example
+   * cs.aliyuncs.com
+   */
   endpoint?: string;
+  /**
+   * @remarks
+   * proxy white list
+   * 
+   * @example
+   * http://localhost
+   */
   noProxy?: string;
+  /**
+   * @remarks
+   * max idle conns
+   * 
+   * @example
+   * 3
+   */
   maxIdleConns?: number;
+  /**
+   * @remarks
+   * network for endpoint
+   * 
+   * @example
+   * public
+   */
   network?: string;
+  /**
+   * @remarks
+   * user agent
+   * 
+   * @example
+   * Alibabacloud/1
+   */
   userAgent?: string;
+  /**
+   * @remarks
+   * suffix for endpoint
+   * 
+   * @example
+   * aliyun
+   */
   suffix?: string;
+  /**
+   * @remarks
+   * socks5 proxy
+   */
   socks5Proxy?: string;
+  /**
+   * @remarks
+   * socks5 network
+   * 
+   * @example
+   * TCP
+   */
   socks5NetWork?: string;
+  /**
+   * @remarks
+   * endpoint type
+   * 
+   * @example
+   * internal
+   */
   endpointType?: string;
+  /**
+   * @remarks
+   * OpenPlatform endpoint
+   * 
+   * @example
+   * openplatform.aliyuncs.com
+   */
   openPlatformEndpoint?: string;
+  /**
+   * @remarks
+   * credential type
+   * 
+   * @example
+   * access_key
+   * 
+   * @deprecated
+   */
   type?: string;
+  /**
+   * @remarks
+   * Signature Version
+   * 
+   * @example
+   * v1
+   */
   signatureVersion?: string;
+  /**
+   * @remarks
+   * Signature Algorithm
+   * 
+   * @example
+   * ACS3-HMAC-SHA256
+   */
   signatureAlgorithm?: string;
+  /**
+   * @remarks
+   * Global Parameters
+   */
   globalParameters?: GlobalParameters;
+  /**
+   * @remarks
+   * privite key for client certificate
+   * 
+   * @example
+   * MIIEvQ
+   */
   key?: string;
+  /**
+   * @remarks
+   * client certificate
+   * 
+   * @example
+   * -----BEGIN CERTIFICATE-----
+   * xxx-----END CERTIFICATE-----
+   */
   cert?: string;
+  /**
+   * @remarks
+   * server certificate
+   * 
+   * @example
+   * -----BEGIN CERTIFICATE-----
+   * xxx-----END CERTIFICATE-----
+   */
   ca?: string;
+  /**
+   * @remarks
+   * disable HTTP/2
+   * 
+   * @example
+   * false
+   */
   disableHttp2?: boolean;
   static names(): { [key: string]: string } {
     return {
@@ -252,8 +453,10 @@ export default class Client {
   _disableHttp2: boolean;
 
   /**
+   * @remarks
    * Init client with Config
-   * @param config config contains the necessary information to create a client
+   * 
+   * @param config - config contains the necessary information to create a client
    */
   constructor(config: Config) {
     if (Util.isUnset(config)) {
@@ -313,16 +516,18 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
   async doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
@@ -545,17 +750,19 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param pathname pathname of every api
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param pathname - pathname of every api
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
   async doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
@@ -765,17 +972,19 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network with form body
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param pathname pathname of every api
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param pathname - pathname of every api
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
   async doROARequestWithForm(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
@@ -984,16 +1193,18 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
   async doRequest(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
@@ -1144,6 +1355,9 @@ export default class Client {
               request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
             }
 
+          } else if (Util.equalString(authType, "id_token")) {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -1239,16 +1453,18 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Encapsulate the request and invoke the network
-   * @param action api name
-   * @param version product version
-   * @param protocol http or https
-   * @param method e.g. GET
-   * @param authType authorization type e.g. AK
-   * @param bodyType response body type e.g. String
-   * @param request object of OpenApiRequest
-   * @param runtime which controls some details of call api, such as retry times
-   * @return the response
+   * 
+   * @param action - api name
+   * @param version - product version
+   * @param protocol - http or https
+   * @param method - e.g. GET
+   * @param authType - authorization type e.g. AK
+   * @param bodyType - response body type e.g. String
+   * @param request - object of OpenApiRequest
+   * @param runtime - which controls some details of call api, such as retry times
+   * @returns the response
    */
   async execute(params: Params, request: OpenApiRequest, runtime: $Util.RuntimeOptions): Promise<{[key: string]: any}> {
     let _runtime: { [key: string]: any } = {
@@ -1422,8 +1638,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get user agent
-   * @return user agent
+   * @returns user agent
    */
   getUserAgent(): string {
     let userAgent = Util.getUserAgent(this._userAgent);
@@ -1431,8 +1648,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get accesskey id by using credential
-   * @return accesskey id
+   * @returns accesskey id
    */
   async getAccessKeyId(): Promise<string> {
     if (Util.isUnset(this._credential)) {
@@ -1444,8 +1662,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get accesskey secret by using credential
-   * @return accesskey secret
+   * @returns accesskey secret
    */
   async getAccessKeySecret(): Promise<string> {
     if (Util.isUnset(this._credential)) {
@@ -1457,8 +1676,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get security token by using credential
-   * @return security token
+   * @returns security token
    */
   async getSecurityToken(): Promise<string> {
     if (Util.isUnset(this._credential)) {
@@ -1470,8 +1690,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get bearer token by credential
-   * @return bearer token
+   * @returns bearer token
    */
   async getBearerToken(): Promise<string> {
     if (Util.isUnset(this._credential)) {
@@ -1483,8 +1704,9 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * Get credential type by credential
-   * @return credential type e.g. access_key
+   * @returns credential type e.g. access_key
    */
   async getType(): Promise<string> {
     if (Util.isUnset(this._credential)) {
@@ -1496,10 +1718,12 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * If inputValue is not null, return it or return defaultValue
-   * @param inputValue  users input value
-   * @param defaultValue default value
-   * @return the final result
+   * 
+   * @param inputValue - users input value
+   * @param defaultValue - default value
+   * @returns the final result
    */
   static defaultAny(inputValue: any, defaultValue: any): any {
     if (Util.isUnset(inputValue)) {
@@ -1510,8 +1734,10 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * If the endpointRule and config.endpoint are empty, throw error
-   * @param config config contains the necessary information to create a client
+   * 
+   * @param config - config contains the necessary information to create a client
    */
   checkConfig(config: Config): void {
     if (Util.empty(this._endpointRule) && Util.empty(config.endpoint)) {
@@ -1524,22 +1750,27 @@ export default class Client {
   }
 
   /**
+   * @remarks
    * set gateway client
-   * @param spi.
+   * 
+   * @param spi - .
    */
   setGatewayClient(spi: SPI): void {
     this._spi = spi;
   }
 
   /**
+   * @remarks
    * set RPC header for debug
-   * @param headers headers for debug, this header can be used only once.
+   * 
+   * @param headers - headers for debug, this header can be used only once.
    */
   setRpcHeaders(headers: {[key: string ]: string}): void {
     this._headers = headers;
   }
 
   /**
+   * @remarks
    * get RPC header for debug
    */
   getRpcHeaders(): {[key: string ]: string} {
