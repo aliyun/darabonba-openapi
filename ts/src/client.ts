@@ -50,7 +50,7 @@ export class SSEResponse extends $dara.Model {
   }
 }
 
-export class AlibabaCloudError extends $dara.BaseError {
+export class AlibabaCloudError extends $dara.ResponseError {
   statusCode?: number;
   code: string;
   message: string;
@@ -1012,6 +1012,7 @@ export default class Client {
 
         request_.query = {
           ...globalQueries,
+          ...extendsQueries,
           ...request.query,
         };
         // endpoint is setted in product client

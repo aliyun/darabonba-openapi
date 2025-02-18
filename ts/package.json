@@ -16,11 +16,11 @@
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "mocha": "^6.2.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^12.12.26",
     "nyc": "^14.1.1",
     "source-map-support": "^0.5.16",
-    "ts-node": "^10.0.0",
-    "typescript": "^5.6.0"
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
   },
   "dependencies": {
     "@alicloud/gateway-pop": "0.0.6",
