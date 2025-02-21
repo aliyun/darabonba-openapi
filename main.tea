@@ -38,6 +38,7 @@ type @key = string
 type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
+type @tlsMinVersion = string
 
 model GlobalParameters {
   headers?: map[string]string,
@@ -77,6 +78,7 @@ model Config {
   cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+  tlsMinVersion?: string(description='TLS Minimum Version', example='TLSv1, TLSv1.1, TLSv1.2, TLSv1.3',default=''),
 }
 
 /**
@@ -136,6 +138,7 @@ init(config: Config) {
   @cert = config.cert;
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
+  @tlsMinVersion = config.tlsMinVersion;
 }
 
 model OpenApiRequest {
@@ -337,7 +340,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -520,7 +524,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -703,7 +708,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 model Params = {
@@ -948,7 +954,8 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     policy = Util.defaultString(runtime.backoffPolicy, 'no'),
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 
@@ -1086,7 +1093,8 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     period = Util.defaultNumber(runtime.backoffPeriod, 1)
   },
   ignoreSSL = runtime.ignoreSSL,
-  disableHttp2 = defaultAny(@disableHttp2, false)
+  disableHttp2 = defaultAny(@disableHttp2, false),
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**

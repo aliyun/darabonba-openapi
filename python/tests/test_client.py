@@ -52,7 +52,8 @@ class TestClient(unittest.TestCase):
             key='config.key',
             cert='config.cert',
             ca='config.ca',
-            disable_http_2=True
+            disable_http_2=True,
+            tls_min_version='config.tlsMinVersion'
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -144,6 +145,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.cert", client._cert)
         self.assertEqual("config.ca", client._ca)
         self.assertEqual(True, client._disable_http_2)
+        self.assertEqual("config.tlsMinVersion", client._tls_min_version)
 
     def create_config(self) -> open_api_models.Config:
         global_parameters = open_api_models.GlobalParameters(
@@ -165,7 +167,8 @@ class TestClient(unittest.TestCase):
             max_idle_conns=128,
             signature_version='config.signatureVersion',
             signature_algorithm='ACS3-HMAC-SHA256',
-            global_parameters=global_parameters
+            global_parameters=global_parameters,
+            tls_min_version='TLSv1.2',
         )
         return config
 

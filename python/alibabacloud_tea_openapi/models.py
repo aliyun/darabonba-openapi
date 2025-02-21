@@ -42,6 +42,7 @@ class GlobalParameters(TeaModel):
 class Config(TeaModel):
     """
     Model for initing client
+    `tls_min_version`: optional, TLS minimum version, support TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
     """
     def __init__(
         self,
@@ -75,6 +76,7 @@ class Config(TeaModel):
         cert: str = None,
         ca: str = None,
         disable_http_2: bool = None,
+        tls_min_version: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -136,6 +138,8 @@ class Config(TeaModel):
         self.ca = ca
         # disable HTTP/2
         self.disable_http_2 = disable_http_2
+        # TLS Minimum Version
+        self.tls_min_version = tls_min_version
 
     def validate(self):
         if self.global_parameters:
@@ -207,6 +211,8 @@ class Config(TeaModel):
             result['ca'] = self.ca
         if self.disable_http_2 is not None:
             result['disableHttp2'] = self.disable_http_2
+        if self.tls_min_version is not None:
+            result['tlsMinVersion'] = self.tls_min_version
         return result
 
     def from_map(self, m: dict = None):
@@ -272,6 +278,8 @@ class Config(TeaModel):
             self.ca = m.get('ca')
         if m.get('disableHttp2') is not None:
             self.disable_http_2 = m.get('disableHttp2')
+        if m.get('tlsMinVersion') is not None:
+            self.tls_min_version = m.get('tlsMinVersion')
         return self
 
 
