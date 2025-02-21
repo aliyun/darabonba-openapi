@@ -5,9 +5,9 @@ name: Java CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 1.x ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, 1.x ]
 defaults:
   run:
     shell: bash

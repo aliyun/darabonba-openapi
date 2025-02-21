@@ -52,7 +52,8 @@ class TestClient(unittest.TestCase):
             key='config.key',
             cert='config.cert',
             ca='config.ca',
-            disable_http_2=True
+            disable_http_2=True,
+            tls_min_version='config.tlsMinVersion'
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -144,6 +145,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.cert", client._cert)
         self.assertEqual("config.ca", client._ca)
         self.assertEqual(True, client._disable_http_2)
+        self.assertEqual("config.tlsMinVersion", client._tls_min_version)
 
     def create_config(self) -> open_api_models.Config:
         global_parameters = open_api_models.GlobalParameters(
@@ -165,7 +167,8 @@ class TestClient(unittest.TestCase):
             max_idle_conns=128,
             signature_version='config.signatureVersion',
             signature_algorithm='ACS3-HMAC-SHA256',
-            global_parameters=global_parameters
+            global_parameters=global_parameters,
+            tls_min_version='TLSv1.2',
         )
         return config
 
@@ -232,7 +235,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -265,7 +268,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['Signature'][0]
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
@@ -278,7 +281,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com",
+            httpretty.POST, "http://test.alibabacloud.com",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -291,7 +294,7 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
@@ -311,7 +314,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test1.aliyuncs.com",
+            httpretty.POST, "http://test1.alibabacloud.com",
             body=bearer_request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -321,7 +324,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             client.call_api(params, request, runtime)
@@ -337,7 +340,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -358,7 +361,7 @@ class TestClient(unittest.TestCase):
                 str(url))
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
@@ -369,7 +372,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post(re.compile(r'http://test\.aliyuncs\.com/.*'),
+        m.post(re.compile(r'http://test\.alibabacloud\.com/.*'),
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -391,7 +394,7 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
@@ -405,7 +408,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post(re.compile(r'http://test1\.aliyuncs\.com/.*'),
+        m.post(re.compile(r'http://test1\.alibabacloud\.com/.*'),
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -424,7 +427,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             loop.run_until_complete(client.call_api_async(params, request, runtime))
@@ -441,7 +444,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -469,7 +472,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.querystring['SignatureNonce'][0]
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
@@ -482,7 +485,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com",
+            httpretty.POST, "http://test.alibabacloud.com",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -499,7 +502,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -520,7 +523,7 @@ class TestClient(unittest.TestCase):
                 str(url))
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
@@ -531,7 +534,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post(re.compile(r'http://test\.aliyuncs\.com/.*'),
+        m.post(re.compile(r'http://test\.alibabacloud\.com/.*'),
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -557,7 +560,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -581,7 +584,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -602,7 +605,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test",
+            httpretty.POST, "http://test.alibabacloud.com/test",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -615,7 +618,7 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
@@ -633,7 +636,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test1.aliyuncs.com/test",
+            httpretty.POST, "http://test1.alibabacloud.com/test",
             body=bearer_request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -643,7 +646,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             client.call_api(params, request, runtime)
@@ -656,7 +659,7 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test2.aliyuncs.com'
+        config.endpoint = 'test2.alibabacloud.com'
         client = OpenApiClient(config)
         params = open_api_models.Params(
             action='TestAPI',
@@ -685,7 +688,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test2.aliyuncs.com/test",
+            httpretty.POST, "http://test2.alibabacloud.com/test",
             body=bearer_json_request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -695,7 +698,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             client.call_api(params, request, runtime)
@@ -711,7 +714,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -727,11 +730,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
             assert 'sdk' == request['headers'].get('for-test')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -750,7 +753,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -772,11 +775,11 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -788,7 +791,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
+        m.post('http://test1.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -807,7 +810,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             loop.run_until_complete(client.call_api_async(params, request, runtime))
@@ -821,7 +824,7 @@ class TestClient(unittest.TestCase):
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test2.aliyuncs.com'
+        config.endpoint = 'test2.alibabacloud.com'
         client = OpenApiClient(config)
         params = open_api_models.Params(
             action='TestAPI',
@@ -836,7 +839,7 @@ class TestClient(unittest.TestCase):
         )
 
         def bearer_json_request_callback(url, **request):
-            assert 'http://test2.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test2.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -848,7 +851,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test2.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
+        m.post('http://test2.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -867,7 +870,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             loop.run_until_complete(client.call_api_async(params, request, runtime))
@@ -884,7 +887,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -908,7 +911,7 @@ class TestClient(unittest.TestCase):
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
             assert 'sdk' == request.headers.get('for-test')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -925,7 +928,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test",
+            httpretty.POST, "http://test.alibabacloud.com/test",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -942,7 +945,7 @@ class TestClient(unittest.TestCase):
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -958,11 +961,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
             assert 'sdk' == request['headers'].get('for-test')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -977,7 +980,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1002,7 +1005,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1026,7 +1029,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -1049,7 +1052,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com",
+            httpretty.POST, "http://test.alibabacloud.com",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1061,7 +1064,7 @@ class TestClient(unittest.TestCase):
         # bearer token
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
@@ -1079,7 +1082,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test1.aliyuncs.com",
+            httpretty.POST, "http://test1.alibabacloud.com",
             body=bearer_request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1089,7 +1092,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             client.call_api(params, request, runtime)
@@ -1104,7 +1107,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1120,11 +1123,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1145,7 +1148,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1166,11 +1169,11 @@ class TestClient(unittest.TestCase):
         # bearer token
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.alibabacloud.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1182,7 +1185,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test1.aliyuncs.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True',
+        m.post('http://test1.alibabacloud.com/?SignatureType=BEARERTOKEN&extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1201,7 +1204,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             loop.run_until_complete(client.call_api_async(params, request, runtime))
@@ -1217,7 +1220,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1241,7 +1244,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -1258,7 +1261,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com",
+            httpretty.POST, "http://test.alibabacloud.com",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1274,7 +1277,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1290,11 +1293,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1309,7 +1312,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1334,7 +1337,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1358,7 +1361,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -1381,7 +1384,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test",
+            httpretty.POST, "http://test.alibabacloud.com/test",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1393,7 +1396,7 @@ class TestClient(unittest.TestCase):
         # bearer token
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
@@ -1411,7 +1414,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test1.aliyuncs.com/test",
+            httpretty.POST, "http://test1.alibabacloud.com/test",
             body=bearer_request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1421,7 +1424,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             client.call_api(params, request, runtime)
@@ -1436,7 +1439,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1452,11 +1455,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1477,7 +1480,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1498,11 +1501,11 @@ class TestClient(unittest.TestCase):
         # bearer token
         config = self.create_bearer_token_config()
         config.protocol = 'HTTP'
-        config.endpoint = 'test1.aliyuncs.com'
+        config.endpoint = 'test1.alibabacloud.com'
         client = OpenApiClient(config)
 
         def bearer_request_callback(url, **request):
-            assert 'http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test1.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True' == str(url)
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1514,7 +1517,7 @@ class TestClient(unittest.TestCase):
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test1.aliyuncs.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
+        m.post('http://test1.alibabacloud.com/test?extends-key=extends-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1533,7 +1536,7 @@ class TestClient(unittest.TestCase):
         config = self.create_anonymous_config()
         config.protocol = 'HTTP'
         config.signature_algorithm = 'v2'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         try:
             loop.run_until_complete(client.call_api_async(params, request, runtime))
@@ -1549,7 +1552,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1573,7 +1576,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -1590,7 +1593,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test",
+            httpretty.POST, "http://test.alibabacloud.com/test",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1606,7 +1609,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         params = open_api_models.Params(
@@ -1622,11 +1625,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1641,7 +1644,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -1665,7 +1668,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         request.headers['type'] = 'json'
@@ -1690,7 +1693,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -1723,7 +1726,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test",
+            httpretty.POST, "http://test.alibabacloud.com/test",
             body=request_callback)
         result = client.call_api(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -1783,7 +1786,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
         request.headers['type'] = 'json'
@@ -1800,11 +1803,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -1821,7 +1824,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                headers=responseHeaders,
@@ -1839,7 +1842,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1860,7 +1863,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('UserId', result.get('body')[2])
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1877,7 +1880,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='["AppId", "ClassId", "UserId"]',
                status=200,
                headers=responseHeaders,
@@ -1894,7 +1897,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('["AppId", "ClassId", "UserId"]', result.get('body').decode('utf-8'))
         self.assertEqual(200, result.get('statusCode'))
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "AccessDeniedDetail":{}}',
@@ -1911,7 +1914,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('error code', e.code)
             self.assertFalse('test' in e.accessDeniedDetail)
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "AccessDeniedDetail":{}, "accessDeniedDetail":{"test": 0}}',
@@ -1928,7 +1931,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('error code', e.code)
             self.assertFalse('test' in e.accessDeniedDetail)
 
-        m.post('http://test.aliyuncs.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/test?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body='{"Code":"error code", "Message":"error message", '
                     '"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4", '
                     '"Description":"error description", "accessDeniedDetail":{"test": 0}}',
@@ -1950,7 +1953,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         # formData
         params = open_api_models.Params(
@@ -1981,7 +1984,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test1",
+            httpretty.POST, "http://test.alibabacloud.com/test1",
             body=request_callback_1)
         result = client.call_api(params, request, runtime)
         self.assertEqual(200, result.get('statusCode'))
@@ -1999,7 +2002,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test2",
+            httpretty.POST, "http://test.alibabacloud.com/test2",
             body=request_callback_2)
         result = client.call_api(params, request, runtime)
         self.assertEqual(200, result.get('statusCode'))
@@ -2020,7 +2023,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test3",
+            httpretty.POST, "http://test.alibabacloud.com/test3",
             body=request_callback_3)
         result = client.call_api(params, request, runtime)
         self.assertEqual(200, result.get('statusCode'))
@@ -2040,7 +2043,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com/test4",
+            httpretty.POST, "http://test.alibabacloud.com/test4",
             body=request_callback_4)
         result = client.call_api(params, request, runtime)
         self.assertEqual(200, result.get('statusCode'))
@@ -2050,7 +2053,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         # formData
         params = open_api_models.Params(
@@ -2073,14 +2076,14 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_1(url, **request):
-            assert 'http://test.aliyuncs.com/test1?extends-key=extends-value&global-query=global-value' == str(url)
+            assert 'http://test.alibabacloud.com/test1?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == 'key1=value&key2=1&key3=True', 'unexpected body: {}'.format(
                 request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test1?extends-key=extends-value&global-query=global-value',
+        m.post('http://test.alibabacloud.com/test1?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_1)
@@ -2098,14 +2101,14 @@ class TestClient(unittest.TestCase):
         params.req_body_type = 'json'
 
         def request_callback_2(url, **request):
-            assert 'http://test.aliyuncs.com/test2?extends-key=extends-value&global-query=global-value' == str(url)
+            assert 'http://test.alibabacloud.com/test2?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode(
                 'utf-8') == '{"key1":"value","key2":1,"key3":true}', 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test2?extends-key=extends-value&global-query=global-value',
+        m.post('http://test.alibabacloud.com/test2?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_2)
@@ -2127,13 +2130,13 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_3(url, **request):
-            assert 'http://test.aliyuncs.com/test3?extends-key=extends-value&global-query=global-value' == str(url)
+            assert 'http://test.alibabacloud.com/test3?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'] == UtilClient.to_bytes('test byte'), 'unexpected body: {}'.format(request['data'])
             assert content_type is None, 'expected text/plain but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test3?extends-key=extends-value&global-query=global-value',
+        m.post('http://test.alibabacloud.com/test3?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_3)
@@ -2154,13 +2157,13 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback_4(url, **request):
-            assert 'http://test.aliyuncs.com/test4?extends-key=extends-value&global-query=global-value' == str(url)
+            assert 'http://test.alibabacloud.com/test4?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == 'test byte', 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/octet-stream', 'expected application/octet-stream but received Content-Type: {}'.format(
                 content_type)
 
-        m.post('http://test.aliyuncs.com/test4?extends-key=extends-value&global-query=global-value',
+        m.post('http://test.alibabacloud.com/test4?extends-key=extends-value&global-query=global-value',
                body='{"AppId":"test", "ClassId":"test", "UserId":123}',
                status=200,
                callback=request_callback_4)
@@ -2180,7 +2183,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         client._product_id = 'test'
         gateway_client = PopClient()
@@ -2207,7 +2210,7 @@ class TestClient(unittest.TestCase):
             assert 'sdk' == request.headers.get('for-test')
             assert 'global-value' == request.headers.get('global-key')
             assert 'extends-value' == request.headers.get('extends-key')
-            assert 'test.aliyuncs.com' == request.headers.get('host')
+            assert 'test.alibabacloud.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
@@ -2224,7 +2227,7 @@ class TestClient(unittest.TestCase):
             return [200, headers, responseBody]
 
         httpretty.register_uri(
-            httpretty.POST, "http://test.aliyuncs.com",
+            httpretty.POST, "http://test.alibabacloud.com",
             body=request_callback)
         result = client.execute(params, request, runtime)
         self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get("headers").get("x-acs-request-id"))
@@ -2240,7 +2243,7 @@ class TestClient(unittest.TestCase):
         config = self.create_config()
         runtime = self.create_runtime_options()
         config.protocol = 'HTTP'
-        config.endpoint = 'test.aliyuncs.com'
+        config.endpoint = 'test.alibabacloud.com'
         client = OpenApiClient(config)
         client._product_id = 'test'
         gateway_client = PopClient()
@@ -2259,11 +2262,11 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert 'http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
-            assert 'test.aliyuncs.com' == request['headers'].get('host')
+            assert 'test.alibabacloud.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
@@ -2278,7 +2281,7 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post('http://test.alibabacloud.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                body=responseBody,
                status=200,
                headers=responseHeaders,
