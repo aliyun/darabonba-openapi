@@ -9,11 +9,13 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"fmt"
 
 	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/alibabacloud-go/tea/dara"
 	tea_util "github.com/alibabacloud-go/tea/utils"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -22,7 +24,53 @@ type mockHandler struct {
 	content string
 }
 
+func (mock *mockHandler) handleSSE(w http.ResponseWriter, req *http.Request) {
+	headers := map[string]string{
+		"Content-Type":  "text/event-stream",
+		"Cache-Control": "no-cache",
+		"Connection":    "keep-alive",
+	}
+	w.WriteHeader(200)
+	for key, value := range headers {
+		w.Header().Set(key, value)
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming not supported", http.StatusInternalServerError)
+		return
+	}
+
+	count := 0
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if count >= 5 {
+			break
+		}
+
+		_, err := fmt.Fprintf(w, "data: %s\nevent: flow\nid: sse-test\nretry: 3\n:heartbeat\n\n", fmt.Sprintf(`{"count": %d}`, count))
+		if err != nil {
+			fmt.Println("Error writing to client:", err)
+			break
+		}
+
+		flusher.Flush()
+		count++
+	}
+
+	// Ensure any buffered data is sent to client before closing
+	flusher.Flush()
+}
+
+
 func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.URL.Path == "/sse" {
+		mock.handleSSE(w, req)
+		return
+	}
+
 	if req.Header != nil {
 		nv := 0
 		for k, vv := range req.Header {
@@ -454,7 +502,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
 	str, _ = util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "2022-06-01", headers["x-acs-version"])
@@ -500,6 +548,11 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
 	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
+	client.DisableSDKError = tea.Bool(true);
+	_, _err = client.CallApi(params, request, runtime)
+	err2 := _err.(*ClientError)
+	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err2.GetCode()))
+	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", err2.Error())
 }
 
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
@@ -543,7 +596,7 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	find := regx.FindAllString(tea.StringValue(str), -1)
 	tea_util.AssertNotNil(t, find)
 	str, _ = util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
@@ -606,7 +659,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "acs ak:")
@@ -748,7 +801,7 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
 	tea_util.AssertEqual(t, "extends-value", headers["extends-key"])
@@ -816,7 +869,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
@@ -916,7 +969,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
@@ -983,7 +1036,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
@@ -1084,7 +1137,7 @@ func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
 	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
-	has := strings.Contains(tea.StringValue(str), "Darabonba/2 config.userAgent")
+	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
 	tea_util.AssertEqual(t, "global-value", headers["global-key"])
@@ -1552,7 +1605,14 @@ func TestRetryWithError(t *testing.T) {
 	tea_util.AssertNotNil(t, _err)
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
+	client.DisableSDKError = tea.Bool(true);
+	_, _err = client.CallApi(params, request, runtime)
+	err2 := _err.(*ServerError)
+	tea_util.AssertEqual(t, 500, tea.IntValue(err2.GetStatusCode()))
+	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err2.GetRequestId()))
+	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", err2.Error())
 
+	client.DisableSDKError = tea.Bool(false);
 	params = &Params{
 		Action:      tea.String("TestAPI"),
 		Version:     tea.String("2022-06-01"),
@@ -1602,4 +1662,64 @@ func TestRetryWithError(t *testing.T) {
 	client.SetGatewayClient(gatewayClient)
 	_, _err = client.Execute(params, request, runtime)
 	tea_util.AssertNotNil(t, _err)
+}
+
+func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/sse", &mockHandler{content: "json"})
+	var server *http.Server
+	server = &http.Server{
+		Addr:         ":9014",
+		WriteTimeout: time.Second * 60,
+		Handler:      mux,
+	}
+	go server.ListenAndServe()
+	config := CreateConfig()
+	runtime := CreateRuntimeOptions()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String("127.0.0.1:9014")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	request := CreateOpenApiRequest()
+	params := &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/sse"),
+		Method:      tea.String("GET"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+
+
+    // fmt.Println("response:", result)
+	// fmt.Println("response error:", _err)
+	// tea_util.AssertNil(t, _err)
+	events := []*dara.SSEEvent{}
+
+	result := make(chan *SSEResponse, 1)
+	yieldErr := make(chan error, 1)
+	go client.CallSSEApi(params, request, runtime, result, yieldErr)
+
+	for resp := range result {
+		events = append(events, resp.Event)
+	}
+
+	_err = <- yieldErr
+	tea_util.AssertNil(t, _err)
+
+	
+	// for _err = range yieldErr {
+	// 	tea_util.AssertNil(t, _err)
+	// }
+	tea_util.AssertEqual(t, len(events), 5)
+
+	for index, event := range events {
+		data := fmt.Sprintf(`{"count": %d}`, index)
+		tea_util.AssertEqual(t, data, tea.StringValue(event.Data))
+		tea_util.AssertEqual(t, "sse-test", tea.StringValue(event.ID))
+		tea_util.AssertEqual(t, "flow", tea.StringValue(event.Event))
+	}
 }

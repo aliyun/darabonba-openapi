@@ -33,7 +33,7 @@ jobs:
     - name: Build
       run: go mod tidy
     - name: Test
-      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/...
+      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/... ./utils/...
     - uses: codecov/codecov-action@v4
       with:
         flags: golang # optional

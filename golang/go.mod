@@ -6,7 +6,7 @@ require (
 	github.com/alibabacloud-go/alibabacloud-gateway-pop v0.0.6
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5
 	github.com/alibabacloud-go/openapi-util v0.1.0
-	github.com/alibabacloud-go/tea v1.3.2-0.20250217084427-cf679a8bddfe
+	github.com/alibabacloud-go/tea v1.3.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/credentials-go v1.3.10
 	github.com/tjfoc/gmsm v1.4.1

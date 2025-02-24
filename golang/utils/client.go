@@ -4,8 +4,8 @@ package utils
 import (
 	"bytes"
 	"crypto"
-  "crypto/md5"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
@@ -19,23 +19,22 @@ import (
 	"fmt"
 	"hash"
 	"io"
-  "runtime"
-  "sync/atomic"
+	mathRand "math/rand"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"reflect"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
-  mathRand "math/rand"
 
+	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	"github.com/alibabacloud-go/tea/dara"
-  models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	"github.com/tjfoc/gmsm/sm3"
 )
-
 
 type Config = models.Config
 type GlobalParameters = models.GlobalParameters
@@ -47,8 +46,7 @@ const (
 	PEM_END   = "\n-----END RSA PRIVATE KEY-----"
 )
 
-
-var defaultUserAgent = fmt.Sprintf("AlibabaCloud (%s; %s) Golang/%s Core/%s Darabonba/2", runtime.GOOS, runtime.GOARCH, strings.Trim(runtime.Version(), "go"), "0.01")
+var defaultUserAgent = fmt.Sprintf("AlibabaCloud (%s; %s) Golang/%s Core/%s TeaDSL/2", runtime.GOOS, runtime.GOARCH, strings.Trim(runtime.Version(), "go"), "0.01")
 var seqId int64 = 0
 var processStartTime int64 = time.Now().UnixNano() / 1e6
 
@@ -92,20 +90,20 @@ func (hs *Sorter) Swap(i, j int) {
 }
 
 // Description:
-// 
+//
 // This is for OpenApi Util
 
 // Description:
-// 
-// Convert all params of body other than type of readable into content
-// 
+//
+// # Convert all params of body other than type of readable into content
+//
 // @param body - source Model
-// 
+//
 // @param content - target Model
-// 
+//
 // @return void
-func Convert (body interface{}, content interface{}) {
-  res := make(map[string]interface{})
+func Convert(body interface{}, content interface{}) {
+	res := make(map[string]interface{})
 	val := reflect.ValueOf(body).Elem()
 	dataType := val.Type()
 	for i := 0; i < dataType.NumField(); i++ {
@@ -122,14 +120,14 @@ func Convert (body interface{}, content interface{}) {
 }
 
 // Description:
-// 
-// Get throttling param
-// 
+//
+// # Get throttling param
+//
 // @param the - response headers
-// 
+//
 // @return time left
-func GetThrottlingTimeLeft (headers map[string]*string) (_result *int64) {
-  	rateLimitForUserApi := headers["x-ratelimit-user-api"]
+func GetThrottlingTimeLeft(headers map[string]*string) (_result *int64) {
+	rateLimitForUserApi := headers["x-ratelimit-user-api"]
 	rateLimitForUser := headers["x-ratelimit-user"]
 	timeLeftForUserApi := getTimeLeft(rateLimitForUserApi)
 	timeLeftForUser := getTimeLeft(rateLimitForUser)
@@ -141,16 +139,16 @@ func GetThrottlingTimeLeft (headers map[string]*string) (_result *int64) {
 }
 
 // Description:
-// 
-// Hash the raw data with signatureAlgorithm
-// 
+//
+// # Hash the raw data with signatureAlgorithm
+//
 // @param raw - hashing data
-// 
+//
 // @param signatureAlgorithm - the autograph method
-// 
+//
 // @return hashed bytes
-func Hash (raw []byte, signatureAlgorithm *string) (_result []byte) {
-  signType := dara.StringValue(signatureAlgorithm)
+func Hash(raw []byte, signatureAlgorithm *string) (_result []byte) {
+	signType := dara.StringValue(signatureAlgorithm)
 	if signType == "ACS3-HMAC-SHA256" || signType == "ACS3-RSA-SHA256" {
 		h := sha256.New()
 		h.Write(raw)
@@ -174,12 +172,12 @@ func getGID() uint64 {
 }
 
 // Description:
-// 
-// Generate a nonce string
-// 
+//
+// # Generate a nonce string
+//
 // @return the nonce string
-func GetNonce () (_result *string) {
-  routineId := getGID()
+func GetNonce() (_result *string) {
+	routineId := getGID()
 	currentTime := time.Now().UnixNano() / 1e6
 	seq := atomic.AddInt64(&seqId, 1)
 	randNum := mathRand.Int63()
@@ -191,21 +189,21 @@ func GetNonce () (_result *string) {
 }
 
 // Description:
-// 
-// Get the string to be signed according to request
-// 
+//
+// # Get the string to be signed according to request
+//
 // @param request - which contains signed messages
-// 
+//
 // @return the signed string
 func GetStringToSign(request *dara.Request) (_result *string) {
 	return dara.String(getStringToSign(request))
 }
 
 func getStringToSign(request *dara.Request) string {
-	resource := dara.StringValue(request.Pathname)
-	queryParams := request.Query
 	// sort QueryParams by key
 	var queryKeys []string
+	resource := dara.StringValue(request.Pathname)
+	queryParams := request.Query
 	for key := range queryParams {
 		queryKeys = append(queryKeys, key)
 	}
@@ -258,30 +256,30 @@ func getSignedStr(req *dara.Request, canonicalizedResource string) string {
 }
 
 // Description:
-// 
-// Get signature according to stringToSign, secret
-// 
+//
+// # Get signature according to stringToSign, secret
+//
 // @param stringToSign - the signed string
-// 
+//
 // @param secret - accesskey secret
-// 
+//
 // @return the signature
-func GetROASignature (stringToSign *string, secret *string) (_result *string) {
-  h := hmac.New(func() hash.Hash { return sha1.New() }, []byte(dara.StringValue(secret)))
+func GetROASignature(stringToSign *string, secret *string) (_result *string) {
+	h := hmac.New(func() hash.Hash { return sha1.New() }, []byte(dara.StringValue(secret)))
 	io.WriteString(h, dara.StringValue(stringToSign))
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	return dara.String(signedStr)
 }
 
 // Description:
-// 
-// Parse filter into a form string
-// 
+//
+// # Parse filter into a form string
+//
 // @param filter - object
-// 
+//
 // @return the string
-func ToForm (filter map[string]interface{}) (_result *string) {
-  tmp := make(map[string]interface{})
+func ToForm(filter map[string]interface{}) (_result *string) {
+	tmp := make(map[string]interface{})
 	byt, _ := json.Marshal(filter)
 	d := json.NewDecoder(bytes.NewReader(byt))
 	d.UseNumber()
@@ -293,7 +291,7 @@ func ToForm (filter map[string]interface{}) (_result *string) {
 		flatRepeatedList(filterValue, result, key)
 	}
 
-  m := make(map[string]interface{})
+	m := make(map[string]interface{})
 	for key, value := range result {
 		m[key] = dara.StringValue(value)
 	}
@@ -353,34 +351,35 @@ func handleMap(valueField reflect.Value, result map[string]*string, prefix strin
 		}
 	}
 }
+
 // Description:
-// 
-// Get timestamp
-// 
+//
+// # Get timestamp
+//
 // @return the timestamp string
-func GetTimestamp () (_result *string) {
-  gmt := time.FixedZone("GMT", 0)
+func GetTimestamp() (_result *string) {
+	gmt := time.FixedZone("GMT", 0)
 	return dara.String(time.Now().In(gmt).Format("2006-01-02T15:04:05Z"))
 }
 
 // Description:
-// 
-// Get UTC string
-// 
+//
+// # Get UTC string
+//
 // @return the UTC string
-func GetDateUTCString () (_result *string) {
-  return dara.String(time.Now().UTC().Format(http.TimeFormat))
+func GetDateUTCString() (_result *string) {
+	return dara.String(time.Now().UTC().Format(http.TimeFormat))
 }
 
 // Description:
-// 
+//
 // Parse filter into a object which's type is map[string]string
-// 
+//
 // @param filter - query param
-// 
+//
 // @return the object
-func Query (filter interface{}) (_result map[string]*string) {
-  tmp := make(map[string]interface{})
+func Query(filter interface{}) (_result map[string]*string) {
+	tmp := make(map[string]interface{})
 	byt, _ := json.Marshal(filter)
 	d := json.NewDecoder(bytes.NewReader(byt))
 	d.UseNumber()
@@ -396,33 +395,33 @@ func Query (filter interface{}) (_result map[string]*string) {
 }
 
 // Description:
-// 
-// Get signature according to signedParams, method and secret
-// 
+//
+// # Get signature according to signedParams, method and secret
+//
 // @param signedParams - params which need to be signed
-// 
+//
 // @param method - http method e.g. GET
-// 
+//
 // @param secret - AccessKeySecret
-// 
+//
 // @return the signature
-func GetRPCSignature (signedParams map[string]*string, method *string, secret *string) (_result *string) {
-  stringToSign := buildRpcStringToSign(signedParams, dara.StringValue(method))
+func GetRPCSignature(signedParams map[string]*string, method *string, secret *string) (_result *string) {
+	stringToSign := buildRpcStringToSign(signedParams, dara.StringValue(method))
 	signature := sign(stringToSign, dara.StringValue(secret), "&")
 	return dara.String(signature)
 }
 
 // Description:
-// 
-// Parse array into a string with specified style
-// 
+//
+// # Parse array into a string with specified style
+//
 // @param array - the array
-// 
+//
 // @param prefix - the prefix string
-// 
+//
 // @return the string
-func ArrayToStringWithSpecifiedStyle (array interface{}, prefix *string, style *string) (_result *string) {
-  if dara.IsNil(array) {
+func ArrayToStringWithSpecifiedStyle(array interface{}, prefix *string, style *string) (_result *string) {
+	if dara.IsNil(array) {
 		return dara.String("")
 	}
 
@@ -441,22 +440,22 @@ func ArrayToStringWithSpecifiedStyle (array interface{}, prefix *string, style *
 }
 
 // Description:
-// 
-// Get the authorization
-// 
+//
+// # Get the authorization
+//
 // @param request - request params
-// 
+//
 // @param signatureAlgorithm - the autograph method
-// 
+//
 // @param payload - the hashed request
-// 
+//
 // @param accessKey - the accessKey string
-// 
+//
 // @param accessKeySecret - the accessKeySecret string
-// 
+//
 // @return authorization string
-func GetAuthorization (request *dara.Request, signatureAlgorithm *string, payload *string, accessKey *string, accessKeySecret *string) (_result *string) {
-  canonicalURI := dara.StringValue(request.Pathname)
+func GetAuthorization(request *dara.Request, signatureAlgorithm *string, payload *string, accessKey *string, accessKeySecret *string) (_result *string) {
+	canonicalURI := dara.StringValue(request.Pathname)
 	if canonicalURI == "" {
 		canonicalURI = "/"
 	}
@@ -473,16 +472,15 @@ func GetAuthorization (request *dara.Request, signatureAlgorithm *string, payloa
 		strings.Join(signedHeaders, ";") + "\n" + dara.StringValue(payload)
 	signType := dara.StringValue(signatureAlgorithm)
 	StringToSign := signType + "\n" + hex.EncodeToString(Hash([]byte(canonicalRequest), signatureAlgorithm))
-  fmt.Printf("fasdfasdf: %s\n", hex.EncodeToString(Hash([]byte(canonicalRequest), signatureAlgorithm)))
 	signature := hex.EncodeToString(SignatureMethod(dara.StringValue(accessKeySecret), StringToSign, signType))
 	auth := signType + " Credential=" + dara.StringValue(accessKey) + ",SignedHeaders=" +
 		strings.Join(signedHeaders, ";") + ",Signature=" + signature
-  fmt.Printf("%s\n", auth);
+	fmt.Printf("%s\n", auth)
 	return dara.String(auth)
 }
 
-func GetUserAgent (userAgent *string) (_result *string) {
-  if userAgent != nil && dara.StringValue(userAgent) != "" {
+func GetUserAgent(userAgent *string) (_result *string) {
+	if userAgent != nil && dara.StringValue(userAgent) != "" {
 		return dara.String(defaultUserAgent + " " + dara.StringValue(userAgent))
 	}
 	return dara.String(defaultUserAgent)
@@ -689,7 +687,6 @@ func getCanonicalHeaders(headers map[string]*string) (string, []string) {
 		sort.Strings(vals)
 		canonicalheaders += key + ":" + strings.Join(vals, ",") + "\n"
 	}
-  
 
 	return canonicalheaders, hs.Keys
 }

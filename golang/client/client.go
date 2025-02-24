@@ -1523,7 +1523,9 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
   return _result, _resultErr
 }
 
-func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result <-chan *SSEResponse, _err error) {
+func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions, _yield chan *SSEResponse, _yieldErr chan error) {
+  defer close(_yield)
+  defer close(_yieldErr)
   _runtime := dara.NewRuntimeObject(map[string]interface{}{
     "key": dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
     "cert": dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -1710,9 +1712,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
       continue
     }
 
-    _yield := make(chan *SSEResponse)
-    _yieldErr := make(chan error, 1)
-    go callSSEApi_opResponse(_yield, _yieldErr, response_)
+    callSSEApi_opResponse(_yield, _yieldErr, response_)
     _err = <-_yieldErr
     if _err != nil {
       retriesAttempted++
@@ -1726,13 +1726,10 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
       continue
     }
 
-    _result = _yield
-    return _result, _err
+    return
   }
-  if dara.BoolValue(client.DisableSDKError) != true {
-    _resultErr = dara.TeaSDKError(_resultErr)
-  }
-  return _result, _resultErr
+  _yieldErr <- _resultErr
+  return
 }
 
 
@@ -2428,9 +2425,7 @@ func doRequest_opResponse (response_ *dara.Response, client *Client, params *ope
 
 }
 
-func callSSEApi_opResponse(_yield chan<- *SSEResponse, _yieldErr chan<- error, response_ *dara.Response) {
-  defer close(_yield)
-  defer close(_yieldErr)
+func callSSEApi_opResponse(_yield chan *SSEResponse, _yieldErr chan error, response_ *dara.Response) {
   if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 600) {
     err := map[string]interface{}{}
     if !dara.IsNil(response_.Headers["content-type"]) && dara.StringValue(response_.Headers["content-type"]) == "text/xml;charset=utf-8" {
@@ -2464,14 +2459,8 @@ func callSSEApi_opResponse(_yield chan<- *SSEResponse, _yieldErr chan<- error, r
     return
   }
 
-  events, _err := dara.ReadAsSSE(response_.Body)
-  if _err != nil {
-    for tmpErr := range _err {
-      _yieldErr <- tmpErr
-    }
-    return
-  }
-
+  events := make(chan *dara.SSEEvent, 1)
+  dara.ReadAsSSE(response_.Body, events, _yieldErr)
   for event := range events {
     _yield <- &SSEResponse{
       StatusCode: response_.StatusCode,
