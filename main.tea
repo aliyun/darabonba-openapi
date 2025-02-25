@@ -6,6 +6,12 @@ import './utils' OpenApiUtil;
 import Credential;
 import SPI;
 
+@go("type Config = models.Config
+type GlobalParameters = models.GlobalParameters
+type Params = models.Params
+type OpenApiRequest = models.OpenApiRequest
+")
+
 type @endpoint = string
 type @regionId = string
 type @protocol = string
@@ -45,7 +51,7 @@ model SSEResponse {
   event: $SSEEvent
 }
 
-exception AlibabaCloud extends $Error {
+exception AlibabaCloud extends $ResponseError {
   statusCode?: number(description='HTTP Status Code'),
   code?: string(description="Error Code"),
   message?: string(description="Error Message"),
@@ -779,6 +785,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
   }
   __request.query = {
     ...globalQueries,
+    ...extendsQueries,
     ...request.query,
   };
 
