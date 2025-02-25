@@ -77,6 +77,7 @@ class TestConfig(unittest.TestCase):
             ca='config.ca',
             credential=self.credential_client,
             disable_http_2=True,
+            tls_min_version='config.tlsMinVersion',
             open_platform_endpoint='config.openPlatformEndpoint',
         )
         self.assertEqual(config.access_key_id, 'ak')
@@ -108,6 +109,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.ca, 'config.ca')
         self.assertEqual(config.credential, self.credential_client)
         self.assertEqual(config.disable_http_2, True)
+        self.assertEqual(config.tls_min_version, 'config.tlsMinVersion')
         self.assertEqual(config.open_platform_endpoint, 'config.openPlatformEndpoint')
 
     def test_to_from_map(self):
@@ -141,6 +143,7 @@ class TestConfig(unittest.TestCase):
             ca='config.ca',
             credential=self.credential_client,
             disable_http_2=True,
+            tls_min_version='config.tlsMinVersion',
             open_platform_endpoint='config.openPlatformEndpoint',
         )
         map_data = config.to_map()
@@ -173,6 +176,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual('config.ca', map_data['ca'])
         self.assertEqual(self.credential_client, map_data['credential'])
         self.assertEqual(True, map_data['disableHttp2'])
+        self.assertEqual('config.tlsMinVersion', map_data['tlsMinVersion'])
         self.assertEqual('config.openPlatformEndpoint', map_data['openPlatformEndpoint'])
         config = Config()
         config.from_map(map_data)
@@ -205,6 +209,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.ca, 'config.ca')
         self.assertEqual(config.credential, self.credential_client)
         self.assertEqual(config.disable_http_2, True)
+        self.assertEqual(config.tls_min_version, 'config.tlsMinVersion')
         self.assertEqual(config.open_platform_endpoint, 'config.openPlatformEndpoint')
 
     def test_validate(self):

@@ -52,6 +52,7 @@ class Client:
     _cert: str = None
     _ca: str = None
     _disable_http_2: bool = None
+    _tls_min_version: str = None
 
     def __init__(
         self, 
@@ -109,6 +110,7 @@ class Client:
         self._cert = config.cert
         self._ca = config.ca
         self._disable_http_2 = config.disable_http_2
+        self._tls_min_version = config.tls_min_version
 
     def do_rpcrequest(
         self,
@@ -156,7 +158,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -357,7 +360,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -560,7 +564,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -750,7 +755,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -940,7 +946,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -1129,7 +1136,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -1312,7 +1320,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -1524,7 +1533,8 @@ class Client:
                 'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
-            'ignoreSSL': runtime.ignore_ssl
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -1737,7 +1747,8 @@ class Client:
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
             'ignoreSSL': runtime.ignore_ssl,
-            'disableHttp2': self.default_any(self._disable_http_2, False)
+            'disableHttp2': self.default_any(self._disable_http_2, False),
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
@@ -1884,7 +1895,8 @@ class Client:
                 'period': UtilClient.default_number(runtime.backoff_period, 1)
             },
             'ignoreSSL': runtime.ignore_ssl,
-            'disableHttp2': self.default_any(self._disable_http_2, False)
+            'disableHttp2': self.default_any(self._disable_http_2, False),
+            'tlsMinVersion': self._tls_min_version
         }
         _last_request = None
         _last_exception = None
