@@ -1,3 +1,6 @@
+### 2025-02-26 Version 0.3.13
+* Support TLS minimum version.
+
 ### 2024-09-23 Version 0.3.12
 * Solve the inconsistency of credentials refresh in all methods.
 
