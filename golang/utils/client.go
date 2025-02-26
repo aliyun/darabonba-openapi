@@ -475,7 +475,6 @@ func GetAuthorization(request *dara.Request, signatureAlgorithm *string, payload
 	signature := hex.EncodeToString(SignatureMethod(dara.StringValue(accessKeySecret), StringToSign, signType))
 	auth := signType + " Credential=" + dara.StringValue(accessKey) + ",SignedHeaders=" +
 		strings.Join(signedHeaders, ";") + ",Signature=" + signature
-	fmt.Printf("%s\n", auth)
 	return dara.String(auth)
 }
 
