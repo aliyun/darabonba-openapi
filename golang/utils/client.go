@@ -764,3 +764,17 @@ func GetEndpointRules(product, regionId, endpointType, network, suffix *string) 
 	}
 	return _result, nil
 }
+
+
+func GetEndpoint(endpoint *string, server *bool, endpointType *string) *string {
+	if dara.StringValue(endpointType) == "internal" {
+		strs := strings.Split(dara.StringValue(endpoint), ".")
+		strs[0] += "-internal"
+		endpoint = dara.String(strings.Join(strs, "."))
+	}
+	if dara.BoolValue(server) && dara.StringValue(endpointType) == "accelerate" {
+		return dara.String("oss-accelerate.aliyuncs.com")
+	}
+
+	return endpoint
+}

@@ -287,3 +287,14 @@ func Test_GetEndpointRules(t *testing.T) {
 	utils.AssertNil(t, err)
 	utils.AssertEqual(t, "ecs-test-intl.aliyuncs.com", dara.StringValue(endpoint))
 }
+
+func Test_GetEndpoint(t *testing.T) {
+	endpoint := GetEndpoint(dara.String("common.aliyuncs.com"), dara.Bool(true), dara.String("internal"))
+	utils.AssertEqual(t, "common-internal.aliyuncs.com", dara.StringValue(endpoint))
+
+	endpoint = GetEndpoint(dara.String("common.aliyuncs.com"), dara.Bool(true), dara.String("accelerate"))
+	utils.AssertEqual(t, "oss-accelerate.aliyuncs.com", dara.StringValue(endpoint))
+
+	endpoint = GetEndpoint(dara.String("common.aliyuncs.com"), dara.Bool(true), dara.String(""))
+	utils.AssertEqual(t, "common.aliyuncs.com", dara.StringValue(endpoint))
+}
