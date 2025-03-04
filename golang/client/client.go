@@ -394,8 +394,8 @@ func (client *Client)Init(config *openapiutil.Config)(_err error) {
     return _err
   }
 
-  if !dara.IsNil(config.AccessKeyId) && !dara.IsNil(config.AccessKeySecret) {
-    if !dara.IsNil(config.SecurityToken) {
+  if (!dara.IsNil(config.AccessKeyId) && dara.StringValue(config.AccessKeyId) != "") && (!dara.IsNil(config.AccessKeySecret) && dara.StringValue(config.AccessKeySecret) != "") {
+    if !dara.IsNil(config.SecurityToken) && dara.StringValue(config.SecurityToken) != "" {
       config.Type = dara.String("sts")
     } else {
       config.Type = dara.String("access_key")
@@ -412,7 +412,7 @@ func (client *Client)Init(config *openapiutil.Config)(_err error) {
       return _err
     }
 
-  } else if !dara.IsNil(config.BearerToken) {
+  } else if !dara.IsNil(config.BearerToken) && dara.StringValue(config.BearerToken) != "" {
     cc := &credential.Config{
       Type: dara.String("bearer"),
       BearerToken: config.BearerToken,
@@ -622,7 +622,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
         accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
         accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
         securityToken := dara.StringValue(credentialModel.SecurityToken)
-        if !dara.IsNil(dara.String(securityToken)) {
+        if !dara.IsNil(dara.String(securityToken)) && securityToken != "" {
           request_.Query["SecurityToken"] = dara.String(securityToken)
         }
 
@@ -821,7 +821,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
         accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
         accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
         securityToken := dara.StringValue(credentialModel.SecurityToken)
-        if !dara.IsNil(dara.String(securityToken)) {
+        if !dara.IsNil(dara.String(securityToken)) && securityToken != "" {
           request_.Headers["x-acs-accesskey-id"] = dara.String(accessKeyId)
           request_.Headers["x-acs-security-token"] = dara.String(securityToken)
         }
@@ -1013,7 +1013,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
         accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
         accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
         securityToken := dara.StringValue(credentialModel.SecurityToken)
-        if !dara.IsNil(dara.String(securityToken)) {
+        if !dara.IsNil(dara.String(securityToken)) && securityToken != "" {
           request_.Headers["x-acs-accesskey-id"] = dara.String(accessKeyId)
           request_.Headers["x-acs-security-token"] = dara.String(securityToken)
         }
@@ -1261,7 +1261,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
         accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
         accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
         securityToken := dara.StringValue(credentialModel.SecurityToken)
-        if !dara.IsNil(dara.String(securityToken)) {
+        if !dara.IsNil(dara.String(securityToken)) && securityToken != "" {
           request_.Headers["x-acs-accesskey-id"] = dara.String(accessKeyId)
           request_.Headers["x-acs-security-token"] = dara.String(securityToken)
         }
@@ -1689,7 +1689,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
         accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
         accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
         securityToken := dara.StringValue(credentialModel.SecurityToken)
-        if !dara.IsNil(dara.String(securityToken)) {
+        if !dara.IsNil(dara.String(securityToken)) && securityToken != "" {
           request_.Headers["x-acs-accesskey-id"] = dara.String(accessKeyId)
           request_.Headers["x-acs-security-token"] = dara.String(securityToken)
         }
