@@ -147,8 +147,8 @@ export default class Client {
       });
     }
 
-    if (!$dara.isNull(config.accessKeyId) && !$dara.isNull(config.accessKeySecret)) {
-      if (!$dara.isNull(config.securityToken)) {
+    if ((!$dara.isNull(config.accessKeyId) && config.accessKeyId != "") && (!$dara.isNull(config.accessKeySecret) && config.accessKeySecret != "")) {
+      if (!$dara.isNull(config.securityToken) && config.securityToken != "") {
         config.type = "sts";
       } else {
         config.type = "access_key";
@@ -161,7 +161,7 @@ export default class Client {
       });
       credentialConfig.securityToken = config.securityToken;
       this._credential = new Credential(credentialConfig);
-    } else if (!$dara.isNull(config.bearerToken)) {
+    } else if (!$dara.isNull(config.bearerToken) && config.bearerToken != "") {
       let cc = new $Credential.Config({
         type: "bearer",
         bearerToken: config.bearerToken,
@@ -333,7 +333,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!$dara.isNull(securityToken)) {
+            if (!$dara.isNull(securityToken) && securityToken != "") {
               request_.query["SecurityToken"] = securityToken;
             }
 
@@ -577,7 +577,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!$dara.isNull(securityToken)) {
+            if (!$dara.isNull(securityToken) && securityToken != "") {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
@@ -819,7 +819,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!$dara.isNull(securityToken)) {
+            if (!$dara.isNull(securityToken) && securityToken != "") {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
@@ -1093,7 +1093,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!$dara.isNull(securityToken)) {
+            if (!$dara.isNull(securityToken) && securityToken != "") {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }
@@ -1506,7 +1506,7 @@ export default class Client {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
             let securityToken = credentialModel.securityToken;
-            if (!$dara.isNull(securityToken)) {
+            if (!$dara.isNull(securityToken) && securityToken != "") {
               request_.headers["x-acs-accesskey-id"] = accessKeyId;
               request_.headers["x-acs-security-token"] = securityToken;
             }

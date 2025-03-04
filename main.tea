@@ -82,8 +82,8 @@ init(config: OpenApiUtil.Config) {
     };
   }
 
-  if(!$isNull(config.accessKeyId) && !$isNull(config.accessKeySecret)){
-    if (!$isNull(config.securityToken)) {
+  if((!$isNull(config.accessKeyId) && config.accessKeyId != "") && (!$isNull(config.accessKeySecret) && config.accessKeySecret != "")){
+    if (!$isNull(config.securityToken) && config.securityToken != "") {
       config.type = 'sts';
     } else {
       config.type = 'access_key';
@@ -95,7 +95,7 @@ init(config: OpenApiUtil.Config) {
     };
     credentialConfig.securityToken = config.securityToken;
     @credential = new Credential(credentialConfig);
-  } else if (!$isNull(config.bearerToken)) {
+  } else if (!$isNull(config.bearerToken) && config.bearerToken != "") {
     var cc = new Credential.Config{
       type = 'bearer',
       bearerToken = config.bearerToken
@@ -227,7 +227,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!$isNull(securityToken)) {
+      if (!$isNull(securityToken) && securityToken != "") {
         __request.query.SecurityToken = securityToken;
       }
       __request.query.SignatureMethod = 'HMAC-SHA1';
@@ -425,7 +425,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!$isNull(securityToken)) {
+      if (!$isNull(securityToken) && securityToken != "") {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
@@ -622,7 +622,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
-      if (!$isNull(securityToken)) {
+      if (!$isNull(securityToken) && securityToken != "") {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
@@ -865,7 +865,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
 
-      if (!$isNull(securityToken)) {
+      if (!$isNull(securityToken) && securityToken != "") {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
@@ -1201,7 +1201,7 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
       var accessKeySecret = credentialModel.accessKeySecret;
       var securityToken = credentialModel.securityToken;
 
-      if (!$isNull(securityToken)) {
+      if (!$isNull(securityToken) && securityToken != "") {
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }

@@ -206,8 +206,8 @@ class OpenApiClient {
       ]);
     }
 
-    if (!is_null($config->accessKeyId) && !is_null($config->accessKeySecret)) {
-      if (!is_null($config->securityToken)) {
+    if ((!is_null($config->accessKeyId) && $config->accessKeyId != '') && (!is_null($config->accessKeySecret) && $config->accessKeySecret != '')) {
+      if (!is_null($config->securityToken) && $config->securityToken != '') {
         $config->type = 'sts';
       } else {
         $config->type = 'access_key';
@@ -220,7 +220,7 @@ class OpenApiClient {
       ]);
       $credentialConfig->securityToken = $config->securityToken;
       $this->_credential = new Credential($credentialConfig);
-    } else if (!is_null($config->bearerToken)) {
+    } else if (!is_null($config->bearerToken) && $config->bearerToken != '') {
       $cc = new Config([
         'type' => 'bearer',
         'bearerToken' => $config->bearerToken,
@@ -395,7 +395,7 @@ class OpenApiClient {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
             $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken)) {
+            if (!is_null($securityToken) && $securityToken != '') {
               @$_request->query['SecurityToken'] = $securityToken;
             }
 
@@ -642,7 +642,7 @@ class OpenApiClient {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
             $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken)) {
+            if (!is_null($securityToken) && $securityToken != '') {
               @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
@@ -889,7 +889,7 @@ class OpenApiClient {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
             $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken)) {
+            if (!is_null($securityToken) && $securityToken != '') {
               @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
@@ -1087,7 +1087,7 @@ class OpenApiClient {
         }
 
         $_request->query = Dara::merge([
-        ], $globalQueries, $request->query);
+        ], $globalQueries, $extendsQueries, $request->query);
         // endpoint is setted in product client
         $_request->headers = Dara::merge([
           'host' => $this->_endpoint,
@@ -1161,7 +1161,7 @@ class OpenApiClient {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
             $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken)) {
+            if (!is_null($securityToken) && $securityToken != '') {
               @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
@@ -1573,7 +1573,7 @@ class OpenApiClient {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
             $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken)) {
+            if (!is_null($securityToken) && $securityToken != '') {
               @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
@@ -1608,10 +1608,10 @@ class OpenApiClient {
             'accessDeniedDetail' => (@$err['AccessDeniedDetail'] ? @$err['AccessDeniedDetail'] : @$err['accessDeniedDetail']),
           ]);
         }
+
         $events = StreamUtil::readAsSSE($_response->body);
 
         foreach($events as $event) {
-          
           yield new SSEResponse([
             'statusCode' => $_response->statusCode,
             'headers' => $_response->headers,
