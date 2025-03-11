@@ -765,6 +765,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					bearerToken := credentialModel.BearerToken
 					request_.Query["BearerToken"] = bearerToken
 					request_.Query["SignatureType"] = tea.String("BEARERTOKEN")
+				} else if tea.BoolValue(util.EqualString(credentialType, tea.String("id_token"))) {
+					idToken := credentialModel.SecurityToken
+					request_.Headers["x-acs-zero-trust-idtoken"] = idToken
 				} else {
 					accessKeyId := credentialModel.AccessKeyId
 					accessKeySecret := credentialModel.AccessKeySecret
@@ -1045,6 +1048,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 					bearerToken := credentialModel.BearerToken
 					request_.Headers["x-acs-bearer-token"] = bearerToken
 					request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
+				} else if tea.BoolValue(util.EqualString(credentialType, tea.String("id_token"))) {
+					idToken := credentialModel.SecurityToken
+					request_.Headers["x-acs-zero-trust-idtoken"] = idToken
 				} else {
 					accessKeyId := credentialModel.AccessKeyId
 					accessKeySecret := credentialModel.AccessKeySecret
@@ -1327,6 +1333,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					bearerToken := credentialModel.BearerToken
 					request_.Headers["x-acs-bearer-token"] = bearerToken
 					request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
+				} else if tea.BoolValue(util.EqualString(credentialType, tea.String("id_token"))) {
+					idToken := credentialModel.SecurityToken
+					request_.Headers["x-acs-zero-trust-idtoken"] = idToken
 				} else {
 					accessKeyId := credentialModel.AccessKeyId
 					accessKeySecret := credentialModel.AccessKeySecret
@@ -1655,6 +1664,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 						request_.Headers["x-acs-signature-type"] = tea.String("BEARERTOKEN")
 					}
 
+				} else if tea.BoolValue(util.EqualString(authType, tea.String("id_token"))) {
+					idToken := credentialModel.SecurityToken
+					request_.Headers["x-acs-zero-trust-idtoken"] = idToken
 				} else {
 					accessKeyId := credentialModel.AccessKeyId
 					accessKeySecret := credentialModel.AccessKeySecret

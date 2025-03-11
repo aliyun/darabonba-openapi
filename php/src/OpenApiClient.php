@@ -275,6 +275,9 @@ class OpenApiClient
                         $bearerToken = $credentialModel->bearerToken;
                         $_request->query["BearerToken"] = $bearerToken;
                         $_request->query["SignatureType"] = "BEARERTOKEN";
+                    } else if (Utils::equalString($credentialType, "id_token")) {
+                        $idToken = $credentialModel->securityToken;
+                        $_request->headers["x-acs-zero-trust-idtoken"] = $idToken;
                     } else {
                         $accessKeyId = $credentialModel->accessKeyId;
                         $accessKeySecret = $credentialModel->accessKeySecret;
@@ -479,6 +482,9 @@ class OpenApiClient
                         $bearerToken = $credentialModel->bearerToken;
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
                         $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
+                    } else if (Utils::equalString($credentialType, "id_token")) {
+                        $idToken = $credentialModel->securityToken;
+                        $_request->headers["x-acs-zero-trust-idtoken"] = $idToken;
                     } else {
                         $accessKeyId = $credentialModel->accessKeyId;
                         $accessKeySecret = $credentialModel->accessKeySecret;
@@ -684,6 +690,9 @@ class OpenApiClient
                         $bearerToken = $credentialModel->bearerToken;
                         $_request->headers["x-acs-bearer-token"] = $bearerToken;
                         $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
+                    } else if (Utils::equalString($credentialType, "id_token")) {
+                        $idToken = $credentialModel->securityToken;
+                        $_request->headers["x-acs-zero-trust-idtoken"] = $idToken;
                     } else {
                         $accessKeyId = $credentialModel->accessKeyId;
                         $accessKeySecret = $credentialModel->accessKeySecret;
@@ -911,6 +920,9 @@ class OpenApiClient
                         } else {
                             $_request->headers["x-acs-signature-type"] = "BEARERTOKEN";
                         }
+                    } else if (Utils::equalString($authType, "id_token")) {
+                        $idToken = $credentialModel->securityToken;
+                        $_request->headers["x-acs-zero-trust-idtoken"] = $idToken;
                     } else {
                         $accessKeyId = $credentialModel->accessKeyId;
                         $accessKeySecret = $credentialModel->accessKeySecret;

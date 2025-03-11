@@ -242,6 +242,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       var bearerToken = credentialModel.bearerToken;
       __request.query.BearerToken = bearerToken;
       __request.query.SignatureType = 'BEARERTOKEN';
+    } else if (Util.equalString(credentialType, 'id_token')) {
+      var idToken = credentialModel.securityToken;
+      __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
@@ -427,6 +430,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+    } else if (Util.equalString(credentialType, 'id_token')) {
+      var idToken = credentialModel.securityToken;
+      __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
@@ -613,6 +619,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+    } else if (Util.equalString(credentialType, 'id_token')) {
+      var idToken = credentialModel.securityToken;
+      __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;
@@ -856,6 +865,9 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       } else {
         __request.headers.x-acs-signature-type = 'BEARERTOKEN';
       }
+    } else if (Util.equalString(authType, 'id_token')) {
+      var idToken = credentialModel.securityToken;
+      __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
       var accessKeyId = credentialModel.accessKeyId;
       var accessKeySecret = credentialModel.accessKeySecret;

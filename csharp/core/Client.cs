@@ -308,6 +308,11 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["BearerToken"] = bearerToken;
                             request_.Query["SignatureType"] = "BEARERTOKEN";
                         }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
+                        }
                         else
                         {
                             string accessKeyId = credentialModel.AccessKeyId;
@@ -610,6 +615,11 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["BearerToken"] = bearerToken;
                             request_.Query["SignatureType"] = "BEARERTOKEN";
                         }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
+                        }
                         else
                         {
                             string accessKeyId = credentialModel.AccessKeyId;
@@ -897,6 +907,11 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["x-acs-bearer-token"] = bearerToken;
                             request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
                         }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
+                        }
                         else
                         {
                             string accessKeyId = credentialModel.AccessKeyId;
@@ -1180,6 +1195,11 @@ namespace AlibabaCloud.OpenApiClient
                             string bearerToken = credentialModel.BearerToken;
                             request_.Headers["x-acs-bearer-token"] = bearerToken;
                             request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
+                        }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
                         }
                         else
                         {
@@ -1466,6 +1486,11 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["x-acs-bearer-token"] = bearerToken;
                             request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
                         }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
+                        }
                         else
                         {
                             string accessKeyId = credentialModel.AccessKeyId;
@@ -1748,6 +1773,11 @@ namespace AlibabaCloud.OpenApiClient
                             string bearerToken = credentialModel.BearerToken;
                             request_.Headers["x-acs-bearer-token"] = bearerToken;
                             request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
+                        }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
                         }
                         else
                         {
@@ -2071,6 +2101,11 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
                             }
+                        }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
                         }
                         else
                         {
@@ -2398,6 +2433,11 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 request_.Headers["x-acs-signature-type"] = "BEARERTOKEN";
                             }
+                        }
+                        else if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "id_token"))
+                        {
+                            string idToken = credentialModel.SecurityToken;
+                            request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
                         }
                         else
                         {
