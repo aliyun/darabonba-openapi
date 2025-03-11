@@ -630,8 +630,9 @@ public class ClientTest {
                 .withHeader("accept", matching("application/json"))
                 .withHeader("x-acs-accesskey-id", equalTo("ak"))
                 .withHeader("x-acs-security-token", equalTo("token"))
+                .withHeader("x-acs-credentials-provider", equalTo("static_sts"))
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
-                        "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;" +
+                        "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
@@ -766,8 +767,9 @@ public class ClientTest {
                 .withHeader("accept", matching("application/json"))
                 .withHeader("x-acs-accesskey-id", equalTo("ak"))
                 .withHeader("x-acs-security-token", equalTo("token"))
+                .withHeader("x-acs-credentials-provider", equalTo("static_sts"))
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
-                        "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;" +
+                        "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
                 .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))

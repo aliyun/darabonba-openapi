@@ -232,6 +232,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = self._credential.get_credential()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -437,6 +439,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = await self._credential.get_credential_async()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -632,6 +636,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = self._credential.get_credential()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -826,6 +832,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = await self._credential.get_credential_async()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -1021,6 +1029,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = self._credential.get_credential()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -1214,6 +1224,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = await self._credential.get_credential_async()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     credential_type = credential_model.type
                     if UtilClient.equal_string(credential_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -1424,6 +1436,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = self._credential.get_credential()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = credential_model.bearer_token
@@ -1640,6 +1654,8 @@ class Client:
                             'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         })
                     credential_model = await self._credential.get_credential_async()
+                    if not UtilClient.empty(credential_model.provider_name):
+                        _request.headers['x-acs-credentials-provider'] = credential_model.provider_name
                     auth_type = credential_model.type
                     if UtilClient.equal_string(auth_type, 'bearer'):
                         bearer_token = credential_model.bearer_token

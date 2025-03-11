@@ -248,6 +248,10 @@ public class Client {
                     }
 
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    if (!com.aliyun.teautil.Common.empty(credentialModel.providerName)) {
+                        request_.headers.put("x-acs-credentials-provider", credentialModel.providerName);
+                    }
+
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
                         String bearerToken = credentialModel.bearerToken;
@@ -480,6 +484,10 @@ public class Client {
                     }
 
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    if (!com.aliyun.teautil.Common.empty(credentialModel.providerName)) {
+                        request_.headers.put("x-acs-credentials-provider", credentialModel.providerName);
+                    }
+
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
                         String bearerToken = credentialModel.bearerToken;
@@ -710,6 +718,10 @@ public class Client {
                     }
 
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    if (!com.aliyun.teautil.Common.empty(credentialModel.providerName)) {
+                        request_.headers.put("x-acs-credentials-provider", credentialModel.providerName);
+                    }
+
                     String credentialType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(credentialType, "bearer")) {
                         String bearerToken = credentialModel.bearerToken;
@@ -967,6 +979,10 @@ public class Client {
                     }
 
                     com.aliyun.credentials.models.CredentialModel credentialModel = _credential.getCredential();
+                    if (!com.aliyun.teautil.Common.empty(credentialModel.providerName)) {
+                        request_.headers.put("x-acs-credentials-provider", credentialModel.providerName);
+                    }
+
                     String authType = credentialModel.type;
                     if (com.aliyun.teautil.Common.equalString(authType, "bearer")) {
                         String bearerToken = credentialModel.bearerToken;

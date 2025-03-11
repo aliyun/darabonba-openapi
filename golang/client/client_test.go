@@ -830,7 +830,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
-		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;"+
+		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;"+
 		"x-acs-signature-nonce;x-acs-version,Signature=")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
@@ -846,6 +846,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertEqual(t, "static_sts", headers["x-acs-credentials-provider"])
 
 	body, _err := util.AssertAsMap(result["body"])
 	tea_util.AssertNil(t, _err)
@@ -997,7 +998,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
-		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;"+
+		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;"+
 		"x-acs-signature-nonce;x-acs-version,Signature=")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
@@ -1013,6 +1014,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertEqual(t, "static_sts", headers["x-acs-credentials-provider"])
 
 	body, _err := util.AssertAsMap(result["body"])
 	tea_util.AssertNil(t, _err)

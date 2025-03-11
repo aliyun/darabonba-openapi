@@ -270,6 +270,9 @@ class OpenApiClient
                         ]);
                     }
                     $credentialModel = $this->_credential->getCredential();
+                    if (!Utils::empty_($credentialModel->providerName)) {
+                        $_request->headers["x-acs-credentials-provider"] = $credentialModel->providerName;
+                    }
                     $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $credentialModel->bearerToken;
@@ -477,6 +480,9 @@ class OpenApiClient
                         ]);
                     }
                     $credentialModel = $this->_credential->getCredential();
+                    if (!Utils::empty_($credentialModel->providerName)) {
+                        $_request->headers["x-acs-credentials-provider"] = $credentialModel->providerName;
+                    }
                     $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $credentialModel->bearerToken;
@@ -685,6 +691,9 @@ class OpenApiClient
                         ]);
                     }
                     $credentialModel = $this->_credential->getCredential();
+                    if (!Utils::empty_($credentialModel->providerName)) {
+                        $_request->headers["x-acs-credentials-provider"] = $credentialModel->providerName;
+                    }
                     $credentialType = $credentialModel->type;
                     if (Utils::equalString($credentialType, "bearer")) {
                         $bearerToken = $credentialModel->bearerToken;
@@ -911,6 +920,9 @@ class OpenApiClient
                         ]);
                     }
                     $credentialModel = $this->_credential->getCredential();
+                    if (!Utils::empty_($credentialModel->providerName)) {
+                        $_request->headers["x-acs-credentials-provider"] = $credentialModel->providerName;
+                    }
                     $authType = $credentialModel->type;
                     if (Utils::equalString($authType, "bearer")) {
                         $bearerToken = $credentialModel->bearerToken;
