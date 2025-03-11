@@ -666,6 +666,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.query["BearerToken"] = bearerToken;
             request_.query["SignatureType"] = "BEARERTOKEN";
+          } else if (Util.equalString(credentialType, "id_token")) {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -892,6 +895,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else if (Util.equalString(credentialType, "id_token")) {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -1116,6 +1122,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else if (Util.equalString(credentialType, "id_token")) {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -1371,6 +1380,9 @@ export default class Client {
               request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
             }
 
+          } else if (Util.equalString(authType, "id_token")) {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;

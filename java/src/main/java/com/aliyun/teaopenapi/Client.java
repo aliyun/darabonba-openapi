@@ -253,6 +253,9 @@ public class Client {
                         String bearerToken = credentialModel.bearerToken;
                         request_.query.put("BearerToken", bearerToken);
                         request_.query.put("SignatureType", "BEARERTOKEN");
+                    } else if (com.aliyun.teautil.Common.equalString(credentialType, "id_token")) {
+                        String idToken = credentialModel.securityToken;
+                        request_.headers.put("x-acs-zero-trust-idtoken", idToken);
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;
@@ -482,6 +485,9 @@ public class Client {
                         String bearerToken = credentialModel.bearerToken;
                         request_.headers.put("x-acs-bearer-token", bearerToken);
                         request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
+                    } else if (com.aliyun.teautil.Common.equalString(credentialType, "id_token")) {
+                        String idToken = credentialModel.securityToken;
+                        request_.headers.put("x-acs-zero-trust-idtoken", idToken);
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;
@@ -709,6 +715,9 @@ public class Client {
                         String bearerToken = credentialModel.bearerToken;
                         request_.headers.put("x-acs-bearer-token", bearerToken);
                         request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
+                    } else if (com.aliyun.teautil.Common.equalString(credentialType, "id_token")) {
+                        String idToken = credentialModel.securityToken;
+                        request_.headers.put("x-acs-zero-trust-idtoken", idToken);
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;
@@ -968,6 +977,9 @@ public class Client {
                             request_.headers.put("x-acs-signature-type", "BEARERTOKEN");
                         }
 
+                    } else if (com.aliyun.teautil.Common.equalString(authType, "id_token")) {
+                        String idToken = credentialModel.securityToken;
+                        request_.headers.put("x-acs-zero-trust-idtoken", idToken);
                     } else {
                         String accessKeyId = credentialModel.accessKeyId;
                         String accessKeySecret = credentialModel.accessKeySecret;
