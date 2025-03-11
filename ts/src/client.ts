@@ -661,6 +661,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!Util.empty(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
             let bearerToken = credentialModel.bearerToken;
@@ -890,6 +894,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!Util.empty(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
             let bearerToken = credentialModel.bearerToken;
@@ -1117,6 +1125,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!Util.empty(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (Util.equalString(credentialType, "bearer")) {
             let bearerToken = credentialModel.bearerToken;
@@ -1370,6 +1382,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!Util.empty(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let authType = credentialModel.type;
           if (Util.equalString(authType, "bearer")) {
             let bearerToken = credentialModel.bearerToken;

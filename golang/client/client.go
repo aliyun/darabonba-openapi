@@ -760,6 +760,10 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					return _result, _err
 				}
 
+				if !tea.BoolValue(util.Empty(credentialModel.ProviderName)) {
+					request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
+				}
+
 				credentialType := credentialModel.Type
 				if tea.BoolValue(util.EqualString(credentialType, tea.String("bearer"))) {
 					bearerToken := credentialModel.BearerToken
@@ -1041,6 +1045,10 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
+				}
+
+				if !tea.BoolValue(util.Empty(credentialModel.ProviderName)) {
+					request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 				}
 
 				credentialType := credentialModel.Type
@@ -1326,6 +1334,10 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
+				}
+
+				if !tea.BoolValue(util.Empty(credentialModel.ProviderName)) {
+					request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 				}
 
 				credentialType := credentialModel.Type
@@ -1652,6 +1664,10 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				credentialModel, _err := client.Credential.GetCredential()
 				if _err != nil {
 					return _result, _err
+				}
+
+				if !tea.BoolValue(util.Empty(credentialModel.ProviderName)) {
+					request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 				}
 
 				authType := credentialModel.Type

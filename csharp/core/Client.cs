@@ -301,6 +301,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -608,6 +612,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -900,6 +908,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -1189,6 +1201,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -1479,6 +1495,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -1767,6 +1787,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(credentialType, "bearer"))
                         {
@@ -2088,6 +2112,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
@@ -2420,6 +2448,10 @@ namespace AlibabaCloud.OpenApiClient
                             });
                         }
                         Aliyun.Credentials.Models.CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!AlibabaCloud.TeaUtil.Common.Empty(credentialModel.ProviderName))
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (AlibabaCloud.TeaUtil.Common.EqualString(authType, "bearer"))
                         {
@@ -2617,7 +2649,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", DefaultAny(_disableHttp2, false)},
+                {"disableHttp2", DefaultAny(_disableHttp2.Value, false)},
                 {"tlsMinVersion", _tlsMinVersion},
             };
 
@@ -2823,7 +2855,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
                 }},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", DefaultAny(_disableHttp2, false)},
+                {"disableHttp2", DefaultAny(_disableHttp2.Value, false)},
                 {"tlsMinVersion", _tlsMinVersion},
             };
 

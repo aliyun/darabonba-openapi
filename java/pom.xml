@@ -54,7 +54,7 @@
     <dependency>
       <groupId>com.aliyun</groupId>
       <artifactId>credentials-java</artifactId>
-      <version>0.3.10</version>
+      <version>1.0.1</version>
       <exclusions>
         <exclusion>
           <groupId>com.aliyun</groupId>

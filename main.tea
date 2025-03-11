@@ -237,6 +237,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!Util.empty(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
       var bearerToken = credentialModel.bearerToken;
@@ -425,6 +428,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!Util.empty(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
       var bearerToken = credentialModel.bearerToken;
@@ -614,6 +620,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!Util.empty(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (Util.equalString(credentialType, 'bearer')) {
       var bearerToken = credentialModel.bearerToken;
@@ -856,6 +865,9 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!Util.empty(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var authType = credentialModel.type;
     if (Util.equalString(authType, 'bearer')) {
       var bearerToken = credentialModel.bearerToken;
