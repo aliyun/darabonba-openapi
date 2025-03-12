@@ -631,4 +631,27 @@ private static function getTimeLeft($rateLimit) {
 
     return implode('&', $params);
   }
+
+  /**
+   * Transform input as array.
+   *
+   * @param mixed $input
+   *
+   * @return array
+  */
+  public static function toArray($input)
+  {
+      if (\is_array($input)) {
+          foreach ($input as $k => &$v) {
+              $v = self::toArray($v);
+          }
+      } elseif ($input instanceof Model) {
+          $input = $input->toMap();
+          foreach ($input as $k => &$v) {
+              $v = self::toArray($v);
+          }
+      }
+
+      return $input;
+  }
 }

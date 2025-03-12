@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -9,13 +10,12 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"fmt"
 
 	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/alibabacloud-go/tea/dara"
+	"github.com/alibabacloud-go/tea/tea"
 	tea_util "github.com/alibabacloud-go/tea/utils"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -63,7 +63,6 @@ func (mock *mockHandler) handleSSE(w http.ResponseWriter, req *http.Request) {
 	// Ensure any buffered data is sent to client before closing
 	flusher.Flush()
 }
-
 
 func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/sse" {
@@ -548,7 +547,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
 	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
-	client.DisableSDKError = tea.Bool(true);
+	client.DisableSDKError = tea.Bool(true)
 	_, _err = client.CallApi(params, request, runtime)
 	err2 := _err.(*ClientError)
 	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err2.GetCode()))
@@ -1605,14 +1604,14 @@ func TestRetryWithError(t *testing.T) {
 	tea_util.AssertNotNil(t, _err)
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
-	client.DisableSDKError = tea.Bool(true);
+	client.DisableSDKError = tea.Bool(true)
 	_, _err = client.CallApi(params, request, runtime)
 	err2 := _err.(*ServerError)
 	tea_util.AssertEqual(t, 500, tea.IntValue(err2.GetStatusCode()))
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err2.GetRequestId()))
 	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", err2.Error())
 
-	client.DisableSDKError = tea.Bool(false);
+	client.DisableSDKError = tea.Bool(false)
 	params = &Params{
 		Action:      tea.String("TestAPI"),
 		Version:     tea.String("2022-06-01"),
@@ -1693,8 +1692,7 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 		BodyType:    tea.String("json"),
 	}
 
-
-    // fmt.Println("response:", result)
+	// fmt.Println("response:", result)
 	// fmt.Println("response error:", _err)
 	// tea_util.AssertNil(t, _err)
 	events := []*dara.SSEEvent{}
@@ -1707,10 +1705,9 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 		events = append(events, resp.Event)
 	}
 
-	_err = <- yieldErr
+	_err = <-yieldErr
 	tea_util.AssertNil(t, _err)
 
-	
 	// for _err = range yieldErr {
 	// 	tea_util.AssertNil(t, _err)
 	// }
