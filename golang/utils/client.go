@@ -36,19 +36,19 @@ import (
 	"github.com/tjfoc/gmsm/sm3"
 )
 
-type Config = models.Config
-type GlobalParameters = models.GlobalParameters
-type Params = models.Params
-type OpenApiRequest = models.OpenApiRequest
+var defaultUserAgent = fmt.Sprintf("AlibabaCloud (%s; %s) Golang/%s Core/%s TeaDSL/2", runtime.GOOS, runtime.GOARCH, strings.Trim(runtime.Version(), "go"), "0.01")
+var seqId int64 = 0
+var processStartTime int64 = time.Now().UnixNano() / 1e6
 
 const (
 	PEM_BEGIN = "-----BEGIN RSA PRIVATE KEY-----\n"
 	PEM_END   = "\n-----END RSA PRIVATE KEY-----"
 )
 
-var defaultUserAgent = fmt.Sprintf("AlibabaCloud (%s; %s) Golang/%s Core/%s TeaDSL/2", runtime.GOOS, runtime.GOARCH, strings.Trim(runtime.Version(), "go"), "0.01")
-var seqId int64 = 0
-var processStartTime int64 = time.Now().UnixNano() / 1e6
+type Config = models.Config
+type GlobalParameters = models.GlobalParameters
+type Params = models.Params
+type OpenApiRequest = models.OpenApiRequest
 
 type Sorter struct {
 	Keys []string
@@ -329,10 +329,10 @@ func handleRepeatedParams(repeatedFieldValue reflect.Value, result map[string]*s
 }
 
 func handleMap(valueField reflect.Value, result map[string]*string, prefix string) {
+	var byt []byte
 	if valueField.IsValid() && valueField.String() != "" {
 		valueFieldType := valueField.Type()
 		if valueFieldType.Kind().String() == "map" {
-			var byt []byte
 			byt, _ = json.Marshal(valueField.Interface())
 			cache := make(map[string]interface{})
 			d := json.NewDecoder(bytes.NewReader(byt))
@@ -765,6 +765,20 @@ func GetEndpointRules(product, regionId, endpointType, network, suffix *string) 
 	return _result, nil
 }
 
+func ToArray(in interface{}) []map[string]interface{} {
+	tmp := make([]map[string]interface{}, 0)
+	if dara.IsNil(in) {
+		return nil
+	}
+	byt, _ := json.Marshal(in)
+	d := json.NewDecoder(bytes.NewReader(byt))
+	d.UseNumber()
+	err := d.Decode(&tmp)
+	if err != nil {
+		return nil
+	}
+	return tmp
+}
 
 func GetEndpoint(endpoint *string, server *bool, endpointType *string) *string {
 	if dara.StringValue(endpointType) == "internal" {
