@@ -7,9 +7,6 @@ namespace AlibabaCloud.OpenApiClient.Exceptions
 {
     public class ServerException : AlibabaCloudException {
 
-        public ServerException() : base()
-        {
-        }
     }
 
 }

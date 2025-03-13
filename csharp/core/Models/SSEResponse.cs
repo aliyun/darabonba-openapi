@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using Darabonba;
+using Darabonba.Models;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
@@ -10,7 +11,7 @@ namespace AlibabaCloud.OpenApiClient.Models
     /// <description>
     /// <para>This is for OpenApi SDK</para>
     /// </description>
-    public class SSEResponse : DaraModel {
+    public class SSEResponse : Model {
         [NameInMap("headers")]
         [Validation(Required=true)]
         public Dictionary<string, string> Headers { get; set; }

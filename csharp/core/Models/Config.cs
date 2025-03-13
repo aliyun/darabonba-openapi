@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Darabonba;
 using CredentialClient = Aliyun.Credentials.Client;
+using Darabonba.RetryPolicy;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
@@ -11,7 +12,7 @@ namespace AlibabaCloud.OpenApiClient.Models
     /// <description>
     /// <para>Model for initing client</para>
     /// </description>
-    public class Config : DaraModel {
+    public class Config : Model {
         /// <summary>
         /// <para>accesskey id</para>
         /// </summary>

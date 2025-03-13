@@ -6,7 +6,7 @@ using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
-    public class Params : DaraModel {
+    public class Params : Model {
         [NameInMap("action")]
         [Validation(Required=true)]
         public string Action { get; set; }
