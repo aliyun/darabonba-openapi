@@ -6,7 +6,7 @@ using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
-    public class OpenApiRequest : DaraModel {
+    public class OpenApiRequest : Model {
         [NameInMap("headers")]
         [Validation(Required=false)]
         public Dictionary<string, string> Headers { get; set; }
