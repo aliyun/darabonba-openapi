@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/ioutil"
 	mathRand "math/rand"
 	"net/http"
 	"net/textproto"
@@ -791,4 +792,38 @@ func GetEndpoint(endpoint *string, server *bool, endpointType *string) *string {
 	}
 
 	return endpoint
+}
+
+func toJSONString(a interface{}) *string {
+	switch v := a.(type) {
+	case *string:
+		return v
+	case string:
+		return dara.String(v)
+	case []byte:
+		return dara.String(string(v))
+	case io.Reader:
+		byt, err := ioutil.ReadAll(v)
+		if err != nil {
+			return nil
+		}
+		return dara.String(string(byt))
+	}
+	byt := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(byt)
+	jsonEncoder.SetEscapeHTML(false)
+	if err := jsonEncoder.Encode(a); err != nil {
+		return nil
+	}
+	return dara.String(string(bytes.TrimSpace(byt.Bytes())))
+}
+
+func StringifyMapValue(a map[string]interface{}) map[string]*string {
+	res := make(map[string]*string)
+	for key, value := range a {
+		if value != nil {
+			res[key] = toJSONString(value)
+		}
+	}
+	return res
 }
