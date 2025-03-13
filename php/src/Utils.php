@@ -654,4 +654,31 @@ private static function getTimeLeft($rateLimit) {
 
       return $input;
   }
+
+  /**
+     * Stringify the value of map.
+     *
+     * @param array $map
+     *
+     * @return array the new stringified map
+     */
+    public static function stringifyMapValue($map)
+    {
+        if (null === $map) {
+            return [];
+        }
+        foreach ($map as &$node) {
+            if (is_numeric($node)) {
+                $node = (string) $node;
+            } elseif (null === $node) {
+                $node = '';
+            } elseif (\is_bool($node)) {
+                $node = true === $node ? 'true' : 'false';
+            } elseif (\is_object($node)) {
+                $node = json_decode(json_encode($node), true);
+            }
+        }
+
+        return $map;
+    }
 }

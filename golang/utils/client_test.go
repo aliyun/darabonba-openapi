@@ -311,3 +311,19 @@ func Test_ToArray(t *testing.T) {
 	res = ToArray(nil)
 	utils.AssertNil(t, res)
 }
+
+func Test_StringifyMapValue(t *testing.T) {
+	in := map[string]interface{}{
+		"num": 10,
+		"json": map[string]string{
+			"test": "ok",
+		},
+		"str":  "ok",
+		"*str": dara.String("ok"),
+	}
+	out := StringifyMapValue(in)
+	utils.AssertEqual(t, "10", dara.StringValue(out["num"]))
+	utils.AssertEqual(t, `{"test":"ok"}`, dara.StringValue(out["json"]))
+	utils.AssertEqual(t, "ok", dara.StringValue(out["str"]))
+	utils.AssertEqual(t, "ok", dara.StringValue(out["*str"]))
+}
