@@ -8,12 +8,12 @@ using Darabonba.Utils;
 using CredentialClient = Aliyun.Credentials.Client;
 using SPIClient = AlibabaCloud.GatewaySpi.Client;
 using AlibabaCloud.OpenApiClient.Models;
-using AlibabaCloud.OpenApiClient.Exceptions;
 using Darabonba.RetryPolicy;
+using AlibabaCloud.OpenApiClient.Exceptions;
+using Darabonba.Models;
 using Aliyun.Credentials.Models;
-using Darabonba.Streams;
-using AlibabaCloud.GatewaySpi.Models;
 using Darabonba.Exceptions;
+using AlibabaCloud.GatewaySpi.Models;
 
 namespace AlibabaCloud.OpenApiClient
 {
@@ -167,21 +167,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -189,19 +189,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = "/";
@@ -250,7 +250,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     if (headers.IsNull())
                     {
-                        // endpoint is setted in product client
+                        // endpoint is set in product client
                         request_.Headers = ConverterUtil.Merge<string>
                         (
                             new Dictionary<string, string>()
@@ -283,8 +283,8 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        Dictionary<string, object> tmp = DaraCore.ToObject(Utils.Query(m));
-                        request_.Body = DaraCore.BytesReadable(FormUtil.ToFormString(tmp));
+                        Dictionary<string, object> tmp = Core.ToObject(Utils.Query(m));
+                        request_.Body = Core.BytesReadable(FormUtil.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (authType != "Anonymous")
@@ -330,8 +330,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
+                    Response response_ = Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
+                    _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
@@ -449,7 +450,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -492,21 +493,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -514,19 +515,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = "/";
@@ -575,7 +576,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     if (headers.IsNull())
                     {
-                        // endpoint is setted in product client
+                        // endpoint is set in product client
                         request_.Headers = ConverterUtil.Merge<string>
                         (
                             new Dictionary<string, string>()
@@ -608,8 +609,8 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        Dictionary<string, object> tmp = DaraCore.ToObject(Utils.Query(m));
-                        request_.Body = DaraCore.BytesReadable(FormUtil.ToFormString(tmp));
+                        Dictionary<string, object> tmp = Core.ToObject(Utils.Query(m));
+                        request_.Body = Core.BytesReadable(FormUtil.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (authType != "Anonymous")
@@ -655,8 +656,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
+                    Response response_ = await Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
@@ -774,7 +776,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -820,21 +822,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -842,19 +844,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
@@ -906,7 +908,7 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!request.Body.IsNull())
                     {
-                        request_.Body = DaraCore.BytesReadable(JSONUtil.SerializeObject(request.Body));
+                        request_.Body = Core.BytesReadable(JSONUtil.SerializeObject(request.Body));
                         request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
                     request_.Query = ConverterUtil.Merge<string>
@@ -954,8 +956,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
+                    Response response_ = Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
+                    _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
                     {
@@ -1081,7 +1084,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1127,21 +1130,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -1149,19 +1152,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
@@ -1213,7 +1216,7 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!request.Body.IsNull())
                     {
-                        request_.Body = DaraCore.BytesReadable(JSONUtil.SerializeObject(request.Body));
+                        request_.Body = Core.BytesReadable(JSONUtil.SerializeObject(request.Body));
                         request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
                     request_.Query = ConverterUtil.Merge<string>
@@ -1261,8 +1264,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
+                    Response response_ = await Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
                     {
@@ -1388,7 +1392,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1434,21 +1438,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -1456,19 +1460,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
@@ -1521,7 +1525,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        request_.Body = DaraCore.BytesReadable(Utils.ToForm(m));
+                        request_.Body = Core.BytesReadable(Utils.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     request_.Query = ConverterUtil.Merge<string>
@@ -1569,8 +1573,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
+                    Response response_ = Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
+                    _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
                     {
@@ -1695,7 +1700,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1741,21 +1746,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -1763,19 +1768,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
@@ -1828,7 +1833,7 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        request_.Body = DaraCore.BytesReadable(Utils.ToForm(m));
+                        request_.Body = Core.BytesReadable(Utils.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     request_.Query = ConverterUtil.Merge<string>
@@ -1876,8 +1881,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
+                    Response response_ = await Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
                     {
@@ -2002,7 +2008,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2045,21 +2051,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -2067,19 +2073,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2152,7 +2158,7 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
                         hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = DaraCore.BytesReadable(tmp);
+                        request_.Body = Core.BytesReadable(tmp);
                         request_.Headers["content-type"] = "application/octet-stream";
                     }
                     else
@@ -2163,13 +2169,13 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 byte[] byteObj = (byte[])(request.Body);
                                 hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(byteObj);
+                                request_.Body = Core.BytesReadable(byteObj);
                             }
                             else if (params_.ReqBodyType == "json")
                             {
                                 string jsonObj = JSONUtil.SerializeObject(request.Body);
                                 hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(jsonObj);
+                                request_.Body = Core.BytesReadable(jsonObj);
                                 request_.Headers["content-type"] = "application/json; charset=utf-8";
                             }
                             else
@@ -2177,7 +2183,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
                                 string formObj = Utils.ToForm(m);
                                 hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(formObj);
+                                request_.Body = Core.BytesReadable(formObj);
                                 request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                             }
                         }
@@ -2221,8 +2227,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
+                    Response response_ = Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
+                    _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
@@ -2352,7 +2359,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2395,21 +2402,21 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -2417,19 +2424,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     request_.Protocol = (string)(_protocol ?? params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2502,7 +2509,7 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
                         hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = DaraCore.BytesReadable(tmp);
+                        request_.Body = Core.BytesReadable(tmp);
                         request_.Headers["content-type"] = "application/octet-stream";
                     }
                     else
@@ -2513,13 +2520,13 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 byte[] byteObj = (byte[])(request.Body);
                                 hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(byteObj);
+                                request_.Body = Core.BytesReadable(byteObj);
                             }
                             else if (params_.ReqBodyType == "json")
                             {
                                 string jsonObj = JSONUtil.SerializeObject(request.Body);
                                 hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(jsonObj);
+                                request_.Body = Core.BytesReadable(jsonObj);
                                 request_.Headers["content-type"] = "application/json; charset=utf-8";
                             }
                             else
@@ -2527,7 +2534,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
                                 string formObj = Utils.ToForm(m);
                                 hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(formObj);
+                                request_.Body = Core.BytesReadable(formObj);
                                 request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                             }
                         }
@@ -2571,8 +2578,9 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
+                    Response response_ = await Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
@@ -2702,7 +2710,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2745,22 +2753,22 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", (bool)(_disableHttp2.Value || false)},
+                {"disableHttp2", (bool?)(_disableHttp2.Value || false)},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -2768,19 +2776,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -2870,8 +2878,9 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
+                    Response response_ = Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
+                    _lastResponse = response_;
 
                     InterceptorContext.InterceptorContextResponse responseContext = new InterceptorContext.InterceptorContextResponse
                     {
@@ -2903,7 +2912,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2946,22 +2955,22 @@ namespace AlibabaCloud.OpenApiClient
                 {"key", (string)(runtime.Key ?? _key)},
                 {"cert", (string)(runtime.Cert ?? _cert)},
                 {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
+                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
+                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
                 {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
                 {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
                 {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
                 {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
                 {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
+                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", (bool)(_disableHttp2.Value || false)},
+                {"disableHttp2", (bool?)(_disableHttp2.Value || false)},
             };
 
             RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
+            Request _lastRequest = null;
+            Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
@@ -2969,19 +2978,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        DaraCore.Sleep(backoffTime);
+                        Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    DaraRequest request_ = new DaraRequest();
+                    Request request_ = new Request();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -3071,8 +3080,9 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
+                    Response response_ = await Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
 
                     InterceptorContext.InterceptorContextResponse responseContext = new InterceptorContext.InterceptorContextResponse
                     {
@@ -3104,453 +3114,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw _lastException;
-        }
-
-        public IAsyncEnumerable<SSEResponse> CallSSEApi(Params params_, OpenApiRequest request, RuntimeOptions runtime)
-        {
-            Dictionary<string, object> runtime_ = new Dictionary<string, object>
-            {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
-                {"retryOptions", _retryOptions},
-                {"ignoreSSL", runtime.IgnoreSSL},
-            };
-
-            RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
-            Exception _lastException = null;
-            long _now = System.DateTime.Now.Millisecond;
-            int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
-            {
-                RetriesAttempted = _retriesAttempted
-            };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
-            {
-                if (_retriesAttempted > 0)
-                {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
-                    if (backoffTime > 0)
-                    {
-                        DaraCore.Sleep(backoffTime);
-                    }
-                }
-                try
-                {
-                    DaraRequest request_ = new DaraRequest();
-                    request_.Protocol = (string)(_protocol ?? params_.Protocol);
-                    request_.Method = params_.Method;
-                    request_.Pathname = params_.Pathname;
-                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
-                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!_globalParameters.IsNull())
-                    {
-                        GlobalParameters globalParams = _globalParameters;
-                        if (!globalParams.Queries.IsNull())
-                        {
-                            globalQueries = globalParams.Queries;
-                        }
-                        if (!globalParams.Headers.IsNull())
-                        {
-                            globalHeaders = globalParams.Headers;
-                        }
-                    }
-                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
-                    Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
-                    if (!runtime.ExtendsParameters.IsNull())
-                    {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
-                        if (!extendsParameters.Headers.IsNull())
-                        {
-                            extendsHeaders = extendsParameters.Headers;
-                        }
-                        if (!extendsParameters.Queries.IsNull())
-                        {
-                            extendsQueries = extendsParameters.Queries;
-                        }
-                    }
-                    request_.Query = ConverterUtil.Merge<string>
-                    (
-                        globalQueries,
-                        extendsQueries,
-                        request.Query
-                    );
-                    // endpoint is setted in product client
-                    request_.Headers = ConverterUtil.Merge<string>
-                    (
-                        new Dictionary<string, string>()
-                        {
-                            {"host", _endpoint},
-                            {"x-acs-version", params_.Version},
-                            {"x-acs-action", params_.Action},
-                            {"user-agent", Utils.GetUserAgent(_userAgent)},
-                            {"x-acs-date", Utils.GetTimestamp()},
-                            {"x-acs-signature-nonce", Utils.GetNonce()},
-                            {"accept", "application/json"},
-                        },
-                        extendsHeaders,
-                        globalHeaders,
-                        request.Headers
-                    );
-                    if (params_.Style == "RPC")
-                    {
-                        Dictionary<string, string> headers = GetRpcHeaders();
-                        if (!headers.IsNull())
-                        {
-                            request_.Headers = ConverterUtil.Merge<string>
-                            (
-                                request_.Headers,
-                                headers
-                            );
-                        }
-                    }
-                    string signatureAlgorithm = (string)(_signatureAlgorithm ?? "ACS3-HMAC-SHA256");
-                    byte[] hashedRequestPayload = Utils.Hash(BytesUtil.From("", "utf-8"), signatureAlgorithm);
-                    if (!request.Stream.IsNull())
-                    {
-                        byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
-                        hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = DaraCore.BytesReadable(tmp);
-                        request_.Headers["content-type"] = "application/octet-stream";
-                    }
-                    else
-                    {
-                        if (!request.Body.IsNull())
-                        {
-                            if (params_.ReqBodyType == "byte")
-                            {
-                                byte[] byteObj = (byte[])(request.Body);
-                                hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(byteObj);
-                            }
-                            else if (params_.ReqBodyType == "json")
-                            {
-                                string jsonObj = JSONUtil.SerializeObject(request.Body);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(jsonObj);
-                                request_.Headers["content-type"] = "application/json; charset=utf-8";
-                            }
-                            else
-                            {
-                                Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                                string formObj = Utils.ToForm(m);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(formObj);
-                                request_.Headers["content-type"] = "application/x-www-form-urlencoded";
-                            }
-                        }
-                    }
-                    request_.Headers["x-acs-content-sha256"] = BytesUtil.ToHex(hashedRequestPayload);
-                    if (params_.AuthType != "Anonymous")
-                    {
-                        CredentialModel credentialModel = this._credential.GetCredential();
-                        string authType = credentialModel.Type;
-                        if (authType == "bearer")
-                        {
-                            string bearerToken = credentialModel.BearerToken;
-                            request_.Headers["x-acs-bearer-token"] = bearerToken;
-                        }
-                        else
-                        {
-                            string accessKeyId = credentialModel.AccessKeyId;
-                            string accessKeySecret = credentialModel.AccessKeySecret;
-                            string securityToken = credentialModel.SecurityToken;
-                            if (!securityToken.IsNull() && securityToken != "")
-                            {
-                                request_.Headers["x-acs-accesskey-id"] = accessKeyId;
-                                request_.Headers["x-acs-security-token"] = securityToken;
-                            }
-                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
-                        }
-                    }
-                    _lastRequest = request_;
-                    DaraResponse response_ = DaraCore.DoAction(request_, runtime_);
-
-                    if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
-                    {
-                        Dictionary<string, object> err = new Dictionary<string, object>(){};
-                        if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
-                        {
-                            string _str = StreamUtil.ReadAsString(response_.Body);
-                            Dictionary<string, object> respMap = XmlUtil.ParseXml(_str, null);
-                            err = (Dictionary<string, object>)(respMap.Get("Error"));
-                        }
-                        else
-                        {
-                            object _res = StreamUtil.ReadAsJSON(response_.Body);
-                            err = (Dictionary<string, object>)(_res);
-                        }
-                        err["statusCode"] = response_.StatusCode;
-                        throw new DaraException(new Dictionary<string, object>
-                        {
-                            {"code", "" + (err.Get("Code") ?? err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + (err.Get("RequestId") ?? err.Get("requestId"))},
-                            {"data", err},
-                            {"description", "" + (err.Get("Description") ?? err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail") ?? err.Get("accessDeniedDetail")},
-                        });
-                    }
-                    IAsyncEnumerable<SSEEvent> events = StreamUtil.ReadAsSSE(response_.Body);
-
-                    foreach (var event in events) {
-                        yield return new SSEResponse
-                        {
-                            StatusCode = response_.StatusCode,
-                            Headers = response_.Headers,
-                            Event = event_,
-                        };
-                    }
-                    return null;
-                }
-                catch (Exception e)
-                {
-                    _retriesAttempted++;
-                    _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
-                    {
-                        RetriesAttempted = _retriesAttempted,
-                        Request = _lastRequest,
-                        Response = _lastResponse,
-                        Exception = _lastException
-                    };
-                }
-            }
-
-            throw _lastException;
-        }
-
-        public async IAsyncEnumerable<SSEResponse> CallSSEApiAsync(Params params_, OpenApiRequest request, RuntimeOptions runtime)
-        {
-            Dictionary<string, object> runtime_ = new Dictionary<string, object>
-            {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int)runtime.ReadTimeout ?? _readTimeout},
-                {"connectTimeout", (int)runtime.ConnectTimeout ?? _connectTimeout},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int)runtime.MaxIdleConns ?? _maxIdleConns},
-                {"retryOptions", _retryOptions},
-                {"ignoreSSL", runtime.IgnoreSSL},
-            };
-
-            RetryPolicyContext _retryPolicyContext = null;
-            DaraRequest _lastRequest = null;
-            DaraResponse _lastResponse = null;
-            Exception _lastException = null;
-            long _now = System.DateTime.Now.Millisecond;
-            int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
-            {
-                RetriesAttempted = _retriesAttempted
-            };
-            while (DaraCore.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
-            {
-                if (_retriesAttempted > 0)
-                {
-                    int backoffTime = DaraCore.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
-                    if (backoffTime > 0)
-                    {
-                        DaraCore.Sleep(backoffTime);
-                    }
-                }
-                try
-                {
-                    DaraRequest request_ = new DaraRequest();
-                    request_.Protocol = (string)(_protocol ?? params_.Protocol);
-                    request_.Method = params_.Method;
-                    request_.Pathname = params_.Pathname;
-                    Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
-                    Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
-                    if (!_globalParameters.IsNull())
-                    {
-                        GlobalParameters globalParams = _globalParameters;
-                        if (!globalParams.Queries.IsNull())
-                        {
-                            globalQueries = globalParams.Queries;
-                        }
-                        if (!globalParams.Headers.IsNull())
-                        {
-                            globalHeaders = globalParams.Headers;
-                        }
-                    }
-                    Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
-                    Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
-                    if (!runtime.ExtendsParameters.IsNull())
-                    {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
-                        if (!extendsParameters.Headers.IsNull())
-                        {
-                            extendsHeaders = extendsParameters.Headers;
-                        }
-                        if (!extendsParameters.Queries.IsNull())
-                        {
-                            extendsQueries = extendsParameters.Queries;
-                        }
-                    }
-                    request_.Query = ConverterUtil.Merge<string>
-                    (
-                        globalQueries,
-                        extendsQueries,
-                        request.Query
-                    );
-                    // endpoint is setted in product client
-                    request_.Headers = ConverterUtil.Merge<string>
-                    (
-                        new Dictionary<string, string>()
-                        {
-                            {"host", _endpoint},
-                            {"x-acs-version", params_.Version},
-                            {"x-acs-action", params_.Action},
-                            {"user-agent", Utils.GetUserAgent(_userAgent)},
-                            {"x-acs-date", Utils.GetTimestamp()},
-                            {"x-acs-signature-nonce", Utils.GetNonce()},
-                            {"accept", "application/json"},
-                        },
-                        extendsHeaders,
-                        globalHeaders,
-                        request.Headers
-                    );
-                    if (params_.Style == "RPC")
-                    {
-                        Dictionary<string, string> headers = GetRpcHeaders();
-                        if (!headers.IsNull())
-                        {
-                            request_.Headers = ConverterUtil.Merge<string>
-                            (
-                                request_.Headers,
-                                headers
-                            );
-                        }
-                    }
-                    string signatureAlgorithm = (string)(_signatureAlgorithm ?? "ACS3-HMAC-SHA256");
-                    byte[] hashedRequestPayload = Utils.Hash(BytesUtil.From("", "utf-8"), signatureAlgorithm);
-                    if (!request.Stream.IsNull())
-                    {
-                        byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
-                        hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = DaraCore.BytesReadable(tmp);
-                        request_.Headers["content-type"] = "application/octet-stream";
-                    }
-                    else
-                    {
-                        if (!request.Body.IsNull())
-                        {
-                            if (params_.ReqBodyType == "byte")
-                            {
-                                byte[] byteObj = (byte[])(request.Body);
-                                hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(byteObj);
-                            }
-                            else if (params_.ReqBodyType == "json")
-                            {
-                                string jsonObj = JSONUtil.SerializeObject(request.Body);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(jsonObj);
-                                request_.Headers["content-type"] = "application/json; charset=utf-8";
-                            }
-                            else
-                            {
-                                Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                                string formObj = Utils.ToForm(m);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = DaraCore.BytesReadable(formObj);
-                                request_.Headers["content-type"] = "application/x-www-form-urlencoded";
-                            }
-                        }
-                    }
-                    request_.Headers["x-acs-content-sha256"] = BytesUtil.ToHex(hashedRequestPayload);
-                    if (params_.AuthType != "Anonymous")
-                    {
-                        CredentialModel credentialModel = await this._credential.GetCredentialAsync();
-                        string authType = credentialModel.Type;
-                        if (authType == "bearer")
-                        {
-                            string bearerToken = credentialModel.BearerToken;
-                            request_.Headers["x-acs-bearer-token"] = bearerToken;
-                        }
-                        else
-                        {
-                            string accessKeyId = credentialModel.AccessKeyId;
-                            string accessKeySecret = credentialModel.AccessKeySecret;
-                            string securityToken = credentialModel.SecurityToken;
-                            if (!securityToken.IsNull() && securityToken != "")
-                            {
-                                request_.Headers["x-acs-accesskey-id"] = accessKeyId;
-                                request_.Headers["x-acs-security-token"] = securityToken;
-                            }
-                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
-                        }
-                    }
-                    _lastRequest = request_;
-                    DaraResponse response_ = await DaraCore.DoActionAsync(request_, runtime_);
-
-                    if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
-                    {
-                        Dictionary<string, object> err = new Dictionary<string, object>(){};
-                        if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
-                        {
-                            string _str = StreamUtil.ReadAsString(response_.Body);
-                            Dictionary<string, object> respMap = XmlUtil.ParseXml(_str, null);
-                            err = (Dictionary<string, object>)(respMap.Get("Error"));
-                        }
-                        else
-                        {
-                            object _res = StreamUtil.ReadAsJSON(response_.Body);
-                            err = (Dictionary<string, object>)(_res);
-                        }
-                        err["statusCode"] = response_.StatusCode;
-                        throw new DaraException(new Dictionary<string, object>
-                        {
-                            {"code", "" + (err.Get("Code") ?? err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + (err.Get("RequestId") ?? err.Get("requestId"))},
-                            {"data", err},
-                            {"description", "" + (err.Get("Description") ?? err.Get("description"))},
-                            {"accessDeniedDetail", err.Get("AccessDeniedDetail") ?? err.Get("accessDeniedDetail")},
-                        });
-                    }
-                    IAsyncEnumerable<SSEEvent> events = StreamUtil.ReadAsSSE(response_.Body);
-
-                    foreach (var event in events) {
-                        yield return new SSEResponse
-                        {
-                            StatusCode = response_.StatusCode,
-                            Headers = response_.Headers,
-                            Event = event_,
-                        };
-                    }
-                    return null;
-                }
-                catch (Exception e)
-                {
-                    _retriesAttempted++;
-                    _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
-                    {
-                        RetriesAttempted = _retriesAttempted,
-                        Request = _lastRequest,
-                        Response = _lastResponse,
-                        Exception = _lastException
-                    };
-                }
-            }
-
-            throw _lastException;
+            throw Core.ThrowException(_retryPolicyContext);
         }
 
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, RuntimeOptions runtime)
