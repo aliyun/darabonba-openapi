@@ -7,11 +7,6 @@ namespace AlibabaCloud.OpenApiClient.Exceptions
 {
     public class ThrottlingException : AlibabaCloudException {
         public long? RetryAfter { get; set; }
-
-        public ThrottlingException() : base()
-        {
-        }
     }
-
 }
 

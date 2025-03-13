@@ -2,20 +2,12 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using Darabonba.Exceptions;
 
 namespace AlibabaCloud.OpenApiClient.Exceptions
 {
-    public class AlibabaCloudException :  {
-        public int? StatusCode { get; set; }
-        public string Code { get; set; }
-        public string Message { get; set; }
-        public string Description { get; set; }
+    public class AlibabaCloudException : DaraResponseException {
         public string RequestId { get; set; }
-
-        public AlibabaCloudException() : base()
-        {
-        }
     }
 
 }
-
