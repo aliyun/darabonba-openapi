@@ -1,27 +1,34 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
-import time
+from __future__ import annotations
+from alibabacloud_credentials.client import Client as CredentialClient 
+from alibabacloud_gateway_spi.client import Client as SPIClient 
+from alibabacloud_tea_openapi import utils_models as open_api_util_models 
+from darabonba.policy.retry import RetryOptions 
+from darabonba.core import DaraCore as DaraCore 
+from alibabacloud_tea_openapi import exceptions as main_exceptions 
+from alibabacloud_credentials import models as credential_models 
+from darabonba.core import DaraCore 
+from darabonba.runtime import RuntimeOptions 
+from darabonba.exceptions import UnretryableException 
+from darabonba.policy.retry import RetryPolicyContext 
+from darabonba.request import DaraRequest 
+from alibabacloud_tea_openapi.utils import Utils 
+from darabonba.utils.form import Form as DaraForm 
+from darabonba.utils.stream import Stream as DaraStream 
+from darabonba.utils.bytes import Bytes as DaraBytes 
+from darabonba.utils.xml import XML as DaraXML 
+from alibabacloud_gateway_spi import models as spi_models 
+from alibabacloud_tea_openapi import models as main_models 
+from darabonba.exceptions import DaraException 
+from typing import Dict, Generator, AsyncGenerator, Any
 
-from Tea.exceptions import TeaException, UnretryableException
-from Tea.request import TeaRequest
-from Tea.core import TeaCore
-from typing import Dict, Any
 
-from alibabacloud_credentials.client import Client as CredentialClient
-from alibabacloud_gateway_spi.client import Client as SPIClient
-from alibabacloud_tea_openapi import models as open_api_models
-from alibabacloud_tea_util.client import Client as UtilClient
-from alibabacloud_credentials import models as credential_models
-from alibabacloud_tea_util import models as util_models
-from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
-from alibabacloud_tea_xml.client import Client as XMLClient
-from alibabacloud_gateway_spi import models as spi_models
-
-
+"""
+ * @remarks
+ * This is for OpenApi SDK
+"""
 class Client:
-    """
-    This is for OpenApi SDK
-    """
     _endpoint: str = None
     _region_id: str = None
     _protocol: str = None
@@ -47,44 +54,42 @@ class Client:
     _signature_algorithm: str = None
     _headers: Dict[str, str] = None
     _spi: SPIClient = None
-    _global_parameters: open_api_models.GlobalParameters = None
+    _global_parameters: open_api_util_models.GlobalParameters = None
     _key: str = None
     _cert: str = None
     _ca: str = None
     _disable_http_2: bool = None
+    _retry_options: RetryOptions = None
 
     def __init__(
-        self, 
-        config: open_api_models.Config,
+        self,
+        config: open_api_util_models.Config,
     ):
-        """
-        Init client with Config
-        @param config: config contains the necessary information to create a client
-        """
-        if UtilClient.is_unset(config):
-            raise TeaException({
-                'code': 'ParameterMissing',
-                'message': "'config' can not be unset"
-            })
-        if not UtilClient.empty(config.access_key_id) and not UtilClient.empty(config.access_key_secret):
-            if not UtilClient.empty(config.security_token):
+        if DaraCore.is_null(config):
+            raise main_exceptions.ClientException(
+                code = 'ParameterMissing',
+                message = '\'config\' can not be unset'
+            )
+        if (not DaraCore.is_null(config.access_key_id) and config.access_key_id != '') and (not DaraCore.is_null(config.access_key_secret) and config.access_key_secret != ''):
+            if not DaraCore.is_null(config.security_token) and config.security_token != '':
                 config.type = 'sts'
             else:
                 config.type = 'access_key'
+
             credential_config = credential_models.Config(
-                access_key_id=config.access_key_id,
-                type=config.type,
-                access_key_secret=config.access_key_secret
+                access_key_id = config.access_key_id,
+                type = config.type,
+                access_key_secret = config.access_key_secret
             )
             credential_config.security_token = config.security_token
             self._credential = CredentialClient(credential_config)
-        elif not UtilClient.empty(config.bearer_token):
+        elif not DaraCore.is_null(config.bearer_token) and config.bearer_token != '':
             cc = credential_models.Config(
-                type='bearer',
-                bearer_token=config.bearer_token
+                type = 'bearer',
+                bearer_token = config.bearer_token
             )
             self._credential = CredentialClient(cc)
-        elif not UtilClient.is_unset(config.credential):
+        elif not DaraCore.is_null(config.credential):
             self._credential = config.credential
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
@@ -109,7 +114,22 @@ class Client:
         self._cert = config.cert
         self._ca = config.ca
         self._disable_http_2 = config.disable_http_2
+        self._retry_options = config.retry_options
 
+    """
+     * @remarks
+     * Encapsulate the request and invoke the network
+     * 
+     * @param action - api name
+     * @param version - product version
+     * @param protocol - http or https
+     * @param method - e.g. GET
+     * @param authType - authorization type e.g. AK
+     * @param bodyType - response body type e.g. String
+     * @param request - object of OpenApiRequest
+     * @param runtime - which controls some details of call api, such as retry times
+     * @returns the response
+    """
     def do_rpcrequest(
         self,
         action: str,
@@ -118,182 +138,179 @@ class Client:
         method: str,
         auth_type: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = '/'
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.query = TeaCore.merge({
+                _request.query = DaraCore.merge({
                     'Action': action,
                     'Format': 'json',
                     'Version': version,
-                    'Timestamp': OpenApiUtilClient.get_timestamp(),
-                    'SignatureNonce': UtilClient.get_nonce()
-                }, global_queries,
-                    extends_queries,
-                    request.query)
+                    'Timestamp': Utils.get_timestamp(),
+                    'SignatureNonce': Utils.get_nonce(),
+                }, global_queries, extends_queries, request.query)
                 headers = self.get_rpc_headers()
-                if UtilClient.is_unset(headers):
+                if DaraCore.is_null(headers):
                     # endpoint is setted in product client
-                    _request.headers = TeaCore.merge({
+                    _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
-                        'user-agent': self.get_user_agent()
-                    }, global_headers,
-                        extends_headers)
+                        'user-agent': Utils.get_user_agent(self._user_agent),
+                    }, global_headers, extends_headers)
                 else:
-                    _request.headers = TeaCore.merge({
+                    _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
-                        'user-agent': self.get_user_agent()
-                    }, global_headers,
-                        extends_headers,
-                        headers)
-                if not UtilClient.is_unset(request.body):
-                    m = UtilClient.assert_as_map(request.body)
-                    tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
-                    _request.body = UtilClient.to_form_string(tmp)
-                    _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                        'user-agent': Utils.get_user_agent(self._user_agent),
+                    }, global_headers, extends_headers, headers)
+
+                if not DaraCore.is_null(request.body):
+                    m = request.body
+                    tmp = Utils.query(m)
+                    _request.body = DaraForm.to_form_string(tmp)
+                    _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.query['BearerToken'] = bearer_token
-                        _request.query['SignatureType'] = 'BEARERTOKEN'
+                        _request.query["BearerToken"] = bearer_token
+                        _request.query["SignatureType"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.query['SecurityToken'] = security_token
-                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
-                        _request.query['SignatureVersion'] = '1.0'
-                        _request.query['AccessKeyId'] = access_key_id
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.query["SecurityToken"] = security_token
+                        _request.query["SignatureMethod"] = 'HMAC-SHA1'
+                        _request.query["SignatureVersion"] = '1.0'
+                        _request.query["AccessKeyId"] = access_key_id
                         t = None
-                        if not UtilClient.is_unset(request.body):
-                            t = UtilClient.assert_as_map(request.body)
-                        signed_param = TeaCore.merge(_request.query,
-                            OpenApiUtilClient.query(t))
-                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                        if not DaraCore.is_null(request.body):
+                            t = request.body
+                        signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
+                        _request.query["Signature"] = Utils.get_rpcsignature(signed_param, _request.method, access_key_secret)
+
                 _last_request = _request
-                _response = TeaCore.do_action(_request, _runtime)
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = UtilClient.read_as_json(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = DaraStream.read_as_json(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = UtilClient.read_as_bytes(_response.body)
+                elif body_type == 'byte':
+                    byt = DaraStream.read_as_bytes(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = UtilClient.read_as_string(_response.body)
+                elif body_type == 'string':
+                    _str = DaraStream.read_as_string(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = UtilClient.read_as_json(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = DaraStream.read_as_json(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = UtilClient.read_as_json(_response.body)
+                elif body_type == 'array':
+                    arr = DaraStream.read_as_json(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -304,12 +321,16 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
+
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     async def do_rpcrequest_async(
         self,
@@ -319,182 +340,179 @@ class Client:
         method: str,
         auth_type: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = '/'
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.query = TeaCore.merge({
+                _request.query = DaraCore.merge({
                     'Action': action,
                     'Format': 'json',
                     'Version': version,
-                    'Timestamp': OpenApiUtilClient.get_timestamp(),
-                    'SignatureNonce': UtilClient.get_nonce()
-                }, global_queries,
-                    extends_queries,
-                    request.query)
+                    'Timestamp': Utils.get_timestamp(),
+                    'SignatureNonce': Utils.get_nonce(),
+                }, global_queries, extends_queries, request.query)
                 headers = self.get_rpc_headers()
-                if UtilClient.is_unset(headers):
+                if DaraCore.is_null(headers):
                     # endpoint is setted in product client
-                    _request.headers = TeaCore.merge({
+                    _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
-                        'user-agent': self.get_user_agent()
-                    }, global_headers,
-                        extends_headers)
+                        'user-agent': Utils.get_user_agent(self._user_agent),
+                    }, global_headers, extends_headers)
                 else:
-                    _request.headers = TeaCore.merge({
+                    _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
-                        'user-agent': self.get_user_agent()
-                    }, global_headers,
-                        extends_headers,
-                        headers)
-                if not UtilClient.is_unset(request.body):
-                    m = UtilClient.assert_as_map(request.body)
-                    tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
-                    _request.body = UtilClient.to_form_string(tmp)
-                    _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                        'user-agent': Utils.get_user_agent(self._user_agent),
+                    }, global_headers, extends_headers, headers)
+
+                if not DaraCore.is_null(request.body):
+                    m = request.body
+                    tmp = Utils.query(m)
+                    _request.body = DaraForm.to_form_string(tmp)
+                    _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.query['BearerToken'] = bearer_token
-                        _request.query['SignatureType'] = 'BEARERTOKEN'
+                        _request.query["BearerToken"] = bearer_token
+                        _request.query["SignatureType"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.query['SecurityToken'] = security_token
-                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
-                        _request.query['SignatureVersion'] = '1.0'
-                        _request.query['AccessKeyId'] = access_key_id
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.query["SecurityToken"] = security_token
+                        _request.query["SignatureMethod"] = 'HMAC-SHA1'
+                        _request.query["SignatureVersion"] = '1.0'
+                        _request.query["AccessKeyId"] = access_key_id
                         t = None
-                        if not UtilClient.is_unset(request.body):
-                            t = UtilClient.assert_as_map(request.body)
-                        signed_param = TeaCore.merge(_request.query,
-                            OpenApiUtilClient.query(t))
-                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                        if not DaraCore.is_null(request.body):
+                            t = request.body
+                        signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
+                        _request.query["Signature"] = Utils.get_rpcsignature(signed_param, _request.method, access_key_secret)
+
                 _last_request = _request
-                _response = await TeaCore.async_do_action(_request, _runtime)
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = await UtilClient.read_as_json_async(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = await DaraStream.read_as_json_async(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = await UtilClient.read_as_bytes_async(_response.body)
+                elif body_type == 'byte':
+                    byt = await DaraStream.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = await UtilClient.read_as_string_async(_response.body)
+                elif body_type == 'string':
+                    _str = await DaraStream.read_as_string_async(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = await UtilClient.read_as_json_async(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = await DaraStream.read_as_json_async(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = await UtilClient.read_as_json_async(_response.body)
+                elif body_type == 'array':
+                    arr = await DaraStream.read_as_json_async(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -505,13 +523,32 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-            except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
 
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    """
+     * @remarks
+     * Encapsulate the request and invoke the network
+     * 
+     * @param action - api name
+     * @param version - product version
+     * @param protocol - http or https
+     * @param method - e.g. GET
+     * @param authType - authorization type e.g. AK
+     * @param pathname - pathname of every api
+     * @param bodyType - response body type e.g. String
+     * @param request - object of OpenApiRequest
+     * @param runtime - which controls some details of call api, such as retry times
+     * @returns the response
+    """
     def do_roarequest(
         self,
         action: str,
@@ -521,170 +558,167 @@ class Client:
         auth_type: str,
         pathname: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param pathname: pathname of every api
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.headers = TeaCore.merge({
-                    'date': UtilClient.get_date_utcstring(),
+                _request.headers = DaraCore.merge({
+                    'date': Utils.get_date_utcstring(),
                     'host': self._endpoint,
                     'accept': 'application/json',
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
-                    'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if not UtilClient.is_unset(request.body):
-                    _request.body = UtilClient.to_jsonstring(request.body)
-                    _request.headers['content-type'] = 'application/json; charset=utf-8'
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries)
-                if not UtilClient.is_unset(request.query):
-                    _request.query = TeaCore.merge(_request.query,
-                        request.query)
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                }, global_headers, extends_headers, request.headers)
+                if not DaraCore.is_null(request.body):
+                    _request.body = DaraCore.to_json_string(request.body)
+                    _request.headers["content-type"] = 'application/json; charset=utf-8'
+                _request.query = DaraCore.merge({}, global_queries, extends_queries)
+                if not DaraCore.is_null(request.query):
+                    _request.query = DaraCore.merge({}, _request.query, request.query)
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        string_to_sign = Utils.get_string_to_sign(_request)
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+
                 _last_request = _request
-                _response = TeaCore.do_action(_request, _runtime)
-                if UtilClient.equal_number(_response.status_code, 204):
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                if _response.status_code == 204:
                     return {
                         'headers': _response.headers
                     }
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = UtilClient.read_as_json(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    request_id = self.default_any(request_id, err.get('requestid'))
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = DaraStream.read_as_json(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    request_id = request_id or err.get("requestid")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = UtilClient.read_as_bytes(_response.body)
+                elif body_type == 'byte':
+                    byt = DaraStream.read_as_bytes(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = UtilClient.read_as_string(_response.body)
+                elif body_type == 'string':
+                    _str = DaraStream.read_as_string(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = UtilClient.read_as_json(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = DaraStream.read_as_json(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = UtilClient.read_as_json(_response.body)
+                elif body_type == 'array':
+                    arr = DaraStream.read_as_json(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -695,12 +729,16 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
+
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     async def do_roarequest_async(
         self,
@@ -711,170 +749,167 @@ class Client:
         auth_type: str,
         pathname: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param pathname: pathname of every api
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.headers = TeaCore.merge({
-                    'date': UtilClient.get_date_utcstring(),
+                _request.headers = DaraCore.merge({
+                    'date': Utils.get_date_utcstring(),
                     'host': self._endpoint,
                     'accept': 'application/json',
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
-                    'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if not UtilClient.is_unset(request.body):
-                    _request.body = UtilClient.to_jsonstring(request.body)
-                    _request.headers['content-type'] = 'application/json; charset=utf-8'
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries)
-                if not UtilClient.is_unset(request.query):
-                    _request.query = TeaCore.merge(_request.query,
-                        request.query)
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                }, global_headers, extends_headers, request.headers)
+                if not DaraCore.is_null(request.body):
+                    _request.body = DaraCore.to_json_string(request.body)
+                    _request.headers["content-type"] = 'application/json; charset=utf-8'
+                _request.query = DaraCore.merge({}, global_queries, extends_queries)
+                if not DaraCore.is_null(request.query):
+                    _request.query = DaraCore.merge({}, _request.query, request.query)
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        string_to_sign = Utils.get_string_to_sign(_request)
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+
                 _last_request = _request
-                _response = await TeaCore.async_do_action(_request, _runtime)
-                if UtilClient.equal_number(_response.status_code, 204):
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                if _response.status_code == 204:
                     return {
                         'headers': _response.headers
                     }
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = await UtilClient.read_as_json_async(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
-                    request_id = self.default_any(request_id, err.get('requestid'))
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = await DaraStream.read_as_json_async(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    request_id = request_id or err.get("requestid")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = await UtilClient.read_as_bytes_async(_response.body)
+                elif body_type == 'byte':
+                    byt = await DaraStream.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = await UtilClient.read_as_string_async(_response.body)
+                elif body_type == 'string':
+                    _str = await DaraStream.read_as_string_async(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = await UtilClient.read_as_json_async(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = await DaraStream.read_as_json_async(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = await UtilClient.read_as_json_async(_response.body)
+                elif body_type == 'array':
+                    arr = await DaraStream.read_as_json_async(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -885,13 +920,32 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-            except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
 
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    """
+     * @remarks
+     * Encapsulate the request and invoke the network with form body
+     * 
+     * @param action - api name
+     * @param version - product version
+     * @param protocol - http or https
+     * @param method - e.g. GET
+     * @param authType - authorization type e.g. AK
+     * @param pathname - pathname of every api
+     * @param bodyType - response body type e.g. String
+     * @param request - object of OpenApiRequest
+     * @param runtime - which controls some details of call api, such as retry times
+     * @returns the response
+    """
     def do_roarequest_with_form(
         self,
         action: str,
@@ -901,169 +955,167 @@ class Client:
         auth_type: str,
         pathname: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network with form body
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param pathname: pathname of every api
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.headers = TeaCore.merge({
-                    'date': UtilClient.get_date_utcstring(),
+                _request.headers = DaraCore.merge({
+                    'date': Utils.get_date_utcstring(),
                     'host': self._endpoint,
                     'accept': 'application/json',
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
-                    'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if not UtilClient.is_unset(request.body):
-                    m = UtilClient.assert_as_map(request.body)
-                    _request.body = OpenApiUtilClient.to_form(m)
-                    _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries)
-                if not UtilClient.is_unset(request.query):
-                    _request.query = TeaCore.merge(_request.query,
-                        request.query)
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                }, global_headers, extends_headers, request.headers)
+                if not DaraCore.is_null(request.body):
+                    m = request.body
+                    _request.body = Utils.to_form(m)
+                    _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+                _request.query = DaraCore.merge({}, global_queries, extends_queries)
+                if not DaraCore.is_null(request.query):
+                    _request.query = DaraCore.merge({}, _request.query, request.query)
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = self._credential.get_credential()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        string_to_sign = Utils.get_string_to_sign(_request)
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+
                 _last_request = _request
-                _response = TeaCore.do_action(_request, _runtime)
-                if UtilClient.equal_number(_response.status_code, 204):
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                if _response.status_code == 204:
                     return {
                         'headers': _response.headers
                     }
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = UtilClient.read_as_json(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = DaraStream.read_as_json(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = UtilClient.read_as_bytes(_response.body)
+                elif body_type == 'byte':
+                    byt = DaraStream.read_as_bytes(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = UtilClient.read_as_string(_response.body)
+                elif body_type == 'string':
+                    _str = DaraStream.read_as_string(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = UtilClient.read_as_json(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = DaraStream.read_as_json(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = UtilClient.read_as_json(_response.body)
+                elif body_type == 'array':
+                    arr = DaraStream.read_as_json(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -1074,12 +1126,16 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
+
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     async def do_roarequest_with_form_async(
         self,
@@ -1090,169 +1146,167 @@ class Client:
         auth_type: str,
         pathname: str,
         body_type: str,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network with form body
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param pathname: pathname of every api
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or protocol
                 _request.method = method
                 _request.pathname = pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.headers = TeaCore.merge({
-                    'date': UtilClient.get_date_utcstring(),
+                _request.headers = DaraCore.merge({
+                    'date': Utils.get_date_utcstring(),
                     'host': self._endpoint,
                     'accept': 'application/json',
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
-                    'user-agent': UtilClient.get_user_agent(self._user_agent)
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if not UtilClient.is_unset(request.body):
-                    m = UtilClient.assert_as_map(request.body)
-                    _request.body = OpenApiUtilClient.to_form(m)
-                    _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries)
-                if not UtilClient.is_unset(request.query):
-                    _request.query = TeaCore.merge(_request.query,
-                        request.query)
-                if not UtilClient.equal_string(auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                }, global_headers, extends_headers, request.headers)
+                if not DaraCore.is_null(request.body):
+                    m = request.body
+                    _request.body = Utils.to_form(m)
+                    _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+                _request.query = DaraCore.merge({}, global_queries, extends_queries)
+                if not DaraCore.is_null(request.query):
+                    _request.query = DaraCore.merge({}, _request.query, request.query)
+                if auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = await self._credential.get_credential_async()
                     credential_type = credential_model.type
-                    if UtilClient.equal_string(credential_type, 'bearer'):
+                    if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        string_to_sign = Utils.get_string_to_sign(_request)
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+
                 _last_request = _request
-                _response = await TeaCore.async_do_action(_request, _runtime)
-                if UtilClient.equal_number(_response.status_code, 204):
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                if _response.status_code == 204:
                     return {
                         'headers': _response.headers
                     }
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
-                    _res = await UtilClient.read_as_json_async(_response.body)
-                    err = UtilClient.assert_as_map(_res)
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(body_type, 'binary'):
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    _res = await DaraStream.read_as_json_async(_response.body)
+                    err = _res
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(body_type, 'byte'):
-                    byt = await UtilClient.read_as_bytes_async(_response.body)
+                elif body_type == 'byte':
+                    byt = await DaraStream.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'string'):
-                    str = await UtilClient.read_as_string_async(_response.body)
+                elif body_type == 'string':
+                    _str = await DaraStream.read_as_string_async(_response.body)
                     return {
-                        'body': str,
+                        'body': _str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'json'):
-                    obj = await UtilClient.read_as_json_async(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif body_type == 'json':
+                    obj = await DaraStream.read_as_json_async(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(body_type, 'array'):
-                    arr = await UtilClient.read_as_json_async(_response.body)
+                elif body_type == 'array':
+                    arr = await DaraStream.read_as_json_async(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
@@ -1263,550 +1317,566 @@ class Client:
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-            except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
 
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    """
+     * @remarks
+     * Encapsulate the request and invoke the network
+     * 
+     * @param action - api name
+     * @param version - product version
+     * @param protocol - http or https
+     * @param method - e.g. GET
+     * @param authType - authorization type e.g. AK
+     * @param bodyType - response body type e.g. String
+     * @param request - object of OpenApiRequest
+     * @param runtime - which controls some details of call api, such as retry times
+     * @returns the response
+    """
     def do_request(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        params.validate()
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or params.protocol
                 _request.method = params.method
                 _request.pathname = params.pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries,
-                    request.query)
+                _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
-                _request.headers = TeaCore.merge({
+                _request.headers = DaraCore.merge({
                     'host': self._endpoint,
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
-                    'user-agent': self.get_user_agent(),
-                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
-                    'accept': 'application/json'
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if UtilClient.equal_string(params.style, 'RPC'):
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'x-acs-date': Utils.get_timestamp(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
+                    'accept': 'application/json',
+                }, global_headers, extends_headers, request.headers)
+                if params.style == 'RPC':
                     headers = self.get_rpc_headers()
-                    if not UtilClient.is_unset(headers):
-                        _request.headers = TeaCore.merge(_request.headers,
-                            headers)
-                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
-                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
-                if not UtilClient.is_unset(request.stream):
-                    tmp = UtilClient.read_as_bytes(request.stream)
-                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    if not DaraCore.is_null(headers):
+                        _request.headers = DaraCore.merge({}, _request.headers, headers)
+                signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
+                hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
+                if not DaraCore.is_null(request.stream):
+                    tmp = DaraStream.read_as_bytes(request.stream)
+                    hashed_request_payload = Utils.hash(tmp, signature_algorithm)
                     _request.body = tmp
-                    _request.headers['content-type'] = 'application/octet-stream'
+                    _request.headers["content-type"] = 'application/octet-stream'
                 else:
-                    if not UtilClient.is_unset(request.body):
-                        if UtilClient.equal_string(params.req_body_type, 'byte'):
-                            byte_obj = UtilClient.assert_as_bytes(request.body)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                    if not DaraCore.is_null(request.body):
+                        if params.req_body_type == 'byte':
+                            byte_obj = bytes(request.body)
+                            hashed_request_payload = Utils.hash(byte_obj, signature_algorithm)
                             _request.body = byte_obj
-                        elif UtilClient.equal_string(params.req_body_type, 'json'):
-                            json_obj = UtilClient.to_jsonstring(request.body)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                        elif params.req_body_type == 'json':
+                            json_obj = DaraCore.to_json_string(request.body)
+                            hashed_request_payload = Utils.hash(json_obj.encode('utf-8'), signature_algorithm)
                             _request.body = json_obj
-                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                            _request.headers["content-type"] = 'application/json; charset=utf-8'
                         else:
-                            m = UtilClient.assert_as_map(request.body)
-                            form_obj = OpenApiUtilClient.to_form(m)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            m = request.body
+                            form_obj = Utils.to_form(m)
+                            hashed_request_payload = Utils.hash(form_obj.encode('utf-8'), signature_algorithm)
                             _request.body = form_obj
-                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.headers['x-acs-content-sha256'] = hashed_request_payload
-                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                            _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+
+
+                _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
+                if params.auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = self._credential.get_credential()
                     auth_type = credential_model.type
-                    if UtilClient.equal_string(auth_type, 'bearer'):
+                    if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        if UtilClient.equal_string(params.style, 'RPC'):
-                            _request.query['SignatureType'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        if params.style == 'RPC':
+                            _request.query["SignatureType"] = 'BEARERTOKEN'
                         else:
-                            _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                            _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
+
                 _last_request = _request
-                _response = TeaCore.do_action(_request, _runtime)
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
-                    if not UtilClient.is_unset(_response.headers.get('content-type')) and UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8'):
-                        _str = UtilClient.read_as_string(_response.body)
-                        resp_map = XMLClient.parse_xml(_str, None)
-                        err = UtilClient.assert_as_map(resp_map.get('Error'))
+                    if not DaraCore.is_null(_response.headers.get("content-type")) and _response.headers.get("content-type") == 'text/xml;charset=utf-8':
+                        _str = DaraStream.read_as_string(_response.body)
+                        resp_map = DaraXML.parse_xml(_str, None)
+                        err = resp_map.get("Error")
                     else:
-                        _res = UtilClient.read_as_json(_response.body)
-                        err = UtilClient.assert_as_map(_res)
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(params.body_type, 'binary'):
+                        _res = DaraStream.read_as_json(_response.body)
+                        err = _res
+
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if params.body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(params.body_type, 'byte'):
-                    byt = UtilClient.read_as_bytes(_response.body)
+                elif params.body_type == 'byte':
+                    byt = DaraStream.read_as_bytes(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'string'):
-                    str = UtilClient.read_as_string(_response.body)
+                elif params.body_type == 'string':
+                    resp_str = DaraStream.read_as_string(_response.body)
                     return {
-                        'body': str,
+                        'body': resp_str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'json'):
-                    obj = UtilClient.read_as_json(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif params.body_type == 'json':
+                    obj = DaraStream.read_as_json(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'array'):
-                    arr = UtilClient.read_as_json(_response.body)
+                elif params.body_type == 'array':
+                    arr = DaraStream.read_as_json(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                 else:
-                    anything = UtilClient.read_as_string(_response.body)
+                    anything = DaraStream.read_as_string(_response.body)
                     return {
                         'body': anything,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
+
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     async def do_request_async(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        params.validate()
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
-            'ignoreSSL': runtime.ignore_ssl
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
-                _request.protocol = UtilClient.default_string(self._protocol, params.protocol)
+                _request = DaraRequest()
+                _request.protocol = self._protocol or params.protocol
                 _request.method = params.method
                 _request.pathname = params.pathname
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
-                _request.query = TeaCore.merge(global_queries,
-                    extends_queries,
-                    request.query)
+                _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
-                _request.headers = TeaCore.merge({
+                _request.headers = DaraCore.merge({
                     'host': self._endpoint,
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
-                    'user-agent': self.get_user_agent(),
-                    'x-acs-date': OpenApiUtilClient.get_timestamp(),
-                    'x-acs-signature-nonce': UtilClient.get_nonce(),
-                    'accept': 'application/json'
-                }, global_headers,
-                    extends_headers,
-                    request.headers)
-                if UtilClient.equal_string(params.style, 'RPC'):
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'x-acs-date': Utils.get_timestamp(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
+                    'accept': 'application/json',
+                }, global_headers, extends_headers, request.headers)
+                if params.style == 'RPC':
                     headers = self.get_rpc_headers()
-                    if not UtilClient.is_unset(headers):
-                        _request.headers = TeaCore.merge(_request.headers,
-                            headers)
-                signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
-                hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
-                if not UtilClient.is_unset(request.stream):
-                    tmp = await UtilClient.read_as_bytes_async(request.stream)
-                    hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(tmp, signature_algorithm))
+                    if not DaraCore.is_null(headers):
+                        _request.headers = DaraCore.merge({}, _request.headers, headers)
+                signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
+                hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
+                if not DaraCore.is_null(request.stream):
+                    tmp = await DaraStream.read_as_bytes_async(request.stream)
+                    hashed_request_payload = Utils.hash(tmp, signature_algorithm)
                     _request.body = tmp
-                    _request.headers['content-type'] = 'application/octet-stream'
+                    _request.headers["content-type"] = 'application/octet-stream'
                 else:
-                    if not UtilClient.is_unset(request.body):
-                        if UtilClient.equal_string(params.req_body_type, 'byte'):
-                            byte_obj = UtilClient.assert_as_bytes(request.body)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(byte_obj, signature_algorithm))
+                    if not DaraCore.is_null(request.body):
+                        if params.req_body_type == 'byte':
+                            byte_obj = bytes(request.body)
+                            hashed_request_payload = Utils.hash(byte_obj, signature_algorithm)
                             _request.body = byte_obj
-                        elif UtilClient.equal_string(params.req_body_type, 'json'):
-                            json_obj = UtilClient.to_jsonstring(request.body)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(json_obj), signature_algorithm))
+                        elif params.req_body_type == 'json':
+                            json_obj = DaraCore.to_json_string(request.body)
+                            hashed_request_payload = Utils.hash(json_obj.encode('utf-8'), signature_algorithm)
                             _request.body = json_obj
-                            _request.headers['content-type'] = 'application/json; charset=utf-8'
+                            _request.headers["content-type"] = 'application/json; charset=utf-8'
                         else:
-                            m = UtilClient.assert_as_map(request.body)
-                            form_obj = OpenApiUtilClient.to_form(m)
-                            hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(form_obj), signature_algorithm))
+                            m = request.body
+                            form_obj = Utils.to_form(m)
+                            hashed_request_payload = Utils.hash(form_obj.encode('utf-8'), signature_algorithm)
                             _request.body = form_obj
-                            _request.headers['content-type'] = 'application/x-www-form-urlencoded'
-                _request.headers['x-acs-content-sha256'] = hashed_request_payload
-                if not UtilClient.equal_string(params.auth_type, 'Anonymous'):
-                    if UtilClient.is_unset(self._credential):
-                        raise TeaException({
-                            'code': f'InvalidCredentials',
-                            'message': f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
-                        })
+                            _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+
+
+                _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
+                if params.auth_type != 'Anonymous':
+                    if DaraCore.is_null(self._credential):
+                        raise main_exceptions.ClientException(
+                            code = f'InvalidCredentials',
+                            message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
+                        )
                     credential_model = await self._credential.get_credential_async()
                     auth_type = credential_model.type
-                    if UtilClient.equal_string(auth_type, 'bearer'):
+                    if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
-                        _request.headers['x-acs-bearer-token'] = bearer_token
-                        if UtilClient.equal_string(params.style, 'RPC'):
-                            _request.query['SignatureType'] = 'BEARERTOKEN'
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                        if params.style == 'RPC':
+                            _request.query["SignatureType"] = 'BEARERTOKEN'
                         else:
-                            _request.headers['x-acs-signature-type'] = 'BEARERTOKEN'
+                            _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
                         security_token = credential_model.security_token
-                        if not UtilClient.empty(security_token):
-                            _request.headers['x-acs-accesskey-id'] = access_key_id
-                            _request.headers['x-acs-security-token'] = security_token
-                        _request.headers['Authorization'] = OpenApiUtilClient.get_authorization(_request, signature_algorithm, hashed_request_payload, access_key_id, access_key_secret)
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
+
                 _last_request = _request
-                _response = await TeaCore.async_do_action(_request, _runtime)
-                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
-                    if not UtilClient.is_unset(_response.headers.get('content-type')) and UtilClient.equal_string(_response.headers.get('content-type'), 'text/xml;charset=utf-8'):
-                        _str = await UtilClient.read_as_string_async(_response.body)
-                        resp_map = XMLClient.parse_xml(_str, None)
-                        err = UtilClient.assert_as_map(resp_map.get('Error'))
+                    if not DaraCore.is_null(_response.headers.get("content-type")) and _response.headers.get("content-type") == 'text/xml;charset=utf-8':
+                        _str = await DaraStream.read_as_string_async(_response.body)
+                        resp_map = DaraXML.parse_xml(_str, None)
+                        err = resp_map.get("Error")
                     else:
-                        _res = await UtilClient.read_as_json_async(_response.body)
-                        err = UtilClient.assert_as_map(_res)
-                    err['statusCode'] = _response.status_code
-                    raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
-                        'data': err,
-                        'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
-                        'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
-                    })
-                if UtilClient.equal_string(params.body_type, 'binary'):
+                        _res = await DaraStream.read_as_json_async(_response.body)
+                        err = _res
+
+                    request_id = err.get("RequestId") or err.get("requestId")
+                    code = err.get("Code") or err.get("code")
+                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                        raise main_exceptions.ThrottlingException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            request_id = f'{request_id}'
+                        )
+                    elif (_response.status_code >= 400) and (_response.status_code < 500):
+                        raise main_exceptions.ClientException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            access_denied_detail = self.get_access_denied_detail(err),
+                            request_id = f'{request_id}'
+                        )
+                    else:
+                        raise main_exceptions.ServerException(
+                            status_code = _response.status_code,
+                            code = f'{code}',
+                            message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            description = f'{err.get("Description") or err.get("description")}',
+                            request_id = f'{request_id}'
+                        )
+
+                if params.body_type == 'binary':
                     resp = {
                         'body': _response.body,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                     return resp
-                elif UtilClient.equal_string(params.body_type, 'byte'):
-                    byt = await UtilClient.read_as_bytes_async(_response.body)
+                elif params.body_type == 'byte':
+                    byt = await DaraStream.read_as_bytes_async(_response.body)
                     return {
                         'body': byt,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'string'):
-                    str = await UtilClient.read_as_string_async(_response.body)
+                elif params.body_type == 'string':
+                    resp_str = await DaraStream.read_as_string_async(_response.body)
                     return {
-                        'body': str,
+                        'body': resp_str,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'json'):
-                    obj = await UtilClient.read_as_json_async(_response.body)
-                    res = UtilClient.assert_as_map(obj)
+                elif params.body_type == 'json':
+                    obj = await DaraStream.read_as_json_async(_response.body)
+                    res = obj
                     return {
                         'body': res,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-                elif UtilClient.equal_string(params.body_type, 'array'):
-                    arr = await UtilClient.read_as_json_async(_response.body)
+                elif params.body_type == 'array':
+                    arr = await DaraStream.read_as_json_async(_response.body)
                     return {
                         'body': arr,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
                 else:
-                    anything = await UtilClient.read_as_string_async(_response.body)
+                    anything = await DaraStream.read_as_string_async(_response.body)
                     return {
                         'body': anything,
                         'headers': _response.headers,
                         'statusCode': _response.status_code
                     }
-            except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
 
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    """
+     * @remarks
+     * Encapsulate the request and invoke the network
+     * 
+     * @param action - api name
+     * @param version - product version
+     * @param protocol - http or https
+     * @param method - e.g. GET
+     * @param authType - authorization type e.g. AK
+     * @param bodyType - response body type e.g. String
+     * @param request - object of OpenApiRequest
+     * @param runtime - which controls some details of call api, such as retry times
+     * @returns the response
+    """
     def execute(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        params.validate()
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
-            'disableHttp2': self.default_any(self._disable_http_2, False)
+            'disableHttp2': bool(self._disable_http_2 or False),
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
+                _request = DaraRequest()
                 # spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                 headers = self.get_rpc_headers()
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
                 request_context = spi_models.InterceptorContextRequest(
-                    headers=TeaCore.merge(global_headers,
-                        extends_headers,
-                        request.headers,
-                        headers),
-                    query=TeaCore.merge(global_queries,
-                        extends_queries,
-                        request.query),
-                    body=request.body,
-                    stream=request.stream,
-                    host_map=request.host_map,
-                    pathname=params.pathname,
-                    product_id=self._product_id,
-                    action=params.action,
-                    version=params.version,
-                    protocol=UtilClient.default_string(self._protocol, params.protocol),
-                    method=UtilClient.default_string(self._method, params.method),
-                    auth_type=params.auth_type,
-                    body_type=params.body_type,
-                    req_body_type=params.req_body_type,
-                    style=params.style,
-                    credential=self._credential,
-                    signature_version=self._signature_version,
-                    signature_algorithm=self._signature_algorithm,
-                    user_agent=self.get_user_agent()
+                    headers = DaraCore.merge({}, global_headers, extends_headers, request.headers, headers),
+                    query = DaraCore.merge({}, global_queries, extends_queries, request.query),
+                    body = request.body,
+                    stream = request.stream,
+                    host_map = request.host_map,
+                    pathname = params.pathname,
+                    product_id = self._product_id,
+                    action = params.action,
+                    version = params.version,
+                    protocol = self._protocol or params.protocol,
+                    method = self._method or params.method,
+                    auth_type = params.auth_type,
+                    body_type = params.body_type,
+                    req_body_type = params.req_body_type,
+                    style = params.style,
+                    credential = self._credential,
+                    signature_version = self._signature_version,
+                    signature_algorithm = self._signature_algorithm,
+                    user_agent = Utils.get_user_agent(self._user_agent)
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
-                    region_id=self._region_id,
-                    endpoint=UtilClient.default_string(request.endpoint_override, self._endpoint),
-                    endpoint_rule=self._endpoint_rule,
-                    endpoint_map=self._endpoint_map,
-                    endpoint_type=self._endpoint_type,
-                    network=self._network,
-                    suffix=self._suffix
+                    region_id = self._region_id,
+                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint_rule = self._endpoint_rule,
+                    endpoint_map = self._endpoint_map,
+                    endpoint_type = self._endpoint_type,
+                    network = self._network,
+                    suffix = self._suffix
                 )
                 interceptor_context = spi_models.InterceptorContext(
-                    request=request_context,
-                    configuration=configuration_context
+                    request = request_context,
+                    configuration = configuration_context
                 )
                 attribute_map = spi_models.AttributeMap()
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1820,11 +1890,12 @@ class Client:
                 _request.body = interceptor_context.request.stream
                 _request.headers = interceptor_context.request.headers
                 _last_request = _request
-                _response = TeaCore.do_action(_request, _runtime)
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
                 response_context = spi_models.InterceptorContextResponse(
-                    status_code=_response.status_code,
-                    headers=_response.headers,
-                    body=_response.body
+                    status_code = _response.status_code,
+                    headers = _response.headers,
+                    body = _response.body
                 )
                 interceptor_context.response = response_context
                 # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1835,125 +1906,102 @@ class Client:
                     'body': interceptor_context.response.deserialized_body
                 }
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     async def execute_async(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        """
-        Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
-        @param runtime: which controls some details of call api, such as retry times
-        @return: the response
-        """
-        params.validate()
-        request.validate()
-        runtime.validate()
         _runtime = {
-            'timeouted': 'retry',
-            'key': UtilClient.default_string(runtime.key, self._key),
-            'cert': UtilClient.default_string(runtime.cert, self._cert),
-            'ca': UtilClient.default_string(runtime.ca, self._ca),
-            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
-            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
-            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
-            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
-            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
-            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
-            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
-            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
-            'retry': {
-                'retryable': runtime.autoretry,
-                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
-            },
-            'backoff': {
-                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
-                'period': UtilClient.default_number(runtime.backoff_period, 1)
-            },
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
-            'disableHttp2': self.default_any(self._disable_http_2, False)
+            'disableHttp2': bool(self._disable_http_2 or False),
         }
         _last_request = None
-        _last_exception = None
-        _now = time.time()
-        _retry_times = 0
-        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
-            if _retry_times > 0:
-                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
-                    TeaCore.sleep(_backoff_time)
-            _retry_times = _retry_times + 1
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
             try:
-                _request = TeaRequest()
+                _request = DaraRequest()
                 # spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                 headers = self.get_rpc_headers()
                 global_queries = {}
                 global_headers = {}
-                if not UtilClient.is_unset(self._global_parameters):
+                if not DaraCore.is_null(self._global_parameters):
                     global_params = self._global_parameters
-                    if not UtilClient.is_unset(global_params.queries):
+                    if not DaraCore.is_null(global_params.queries):
                         global_queries = global_params.queries
-                    if not UtilClient.is_unset(global_params.headers):
+                    if not DaraCore.is_null(global_params.headers):
                         global_headers = global_params.headers
                 extends_headers = {}
                 extends_queries = {}
-                if not UtilClient.is_unset(runtime.extends_parameters):
+                if not DaraCore.is_null(runtime.extends_parameters):
                     extends_parameters = runtime.extends_parameters
-                    if not UtilClient.is_unset(extends_parameters.headers):
+                    if not DaraCore.is_null(extends_parameters.headers):
                         extends_headers = extends_parameters.headers
-                    if not UtilClient.is_unset(extends_parameters.queries):
+                    if not DaraCore.is_null(extends_parameters.queries):
                         extends_queries = extends_parameters.queries
                 request_context = spi_models.InterceptorContextRequest(
-                    headers=TeaCore.merge(global_headers,
-                        extends_headers,
-                        request.headers,
-                        headers),
-                    query=TeaCore.merge(global_queries,
-                        extends_queries,
-                        request.query),
-                    body=request.body,
-                    stream=request.stream,
-                    host_map=request.host_map,
-                    pathname=params.pathname,
-                    product_id=self._product_id,
-                    action=params.action,
-                    version=params.version,
-                    protocol=UtilClient.default_string(self._protocol, params.protocol),
-                    method=UtilClient.default_string(self._method, params.method),
-                    auth_type=params.auth_type,
-                    body_type=params.body_type,
-                    req_body_type=params.req_body_type,
-                    style=params.style,
-                    credential=self._credential,
-                    signature_version=self._signature_version,
-                    signature_algorithm=self._signature_algorithm,
-                    user_agent=self.get_user_agent()
+                    headers = DaraCore.merge({}, global_headers, extends_headers, request.headers, headers),
+                    query = DaraCore.merge({}, global_queries, extends_queries, request.query),
+                    body = request.body,
+                    stream = request.stream,
+                    host_map = request.host_map,
+                    pathname = params.pathname,
+                    product_id = self._product_id,
+                    action = params.action,
+                    version = params.version,
+                    protocol = self._protocol or params.protocol,
+                    method = self._method or params.method,
+                    auth_type = params.auth_type,
+                    body_type = params.body_type,
+                    req_body_type = params.req_body_type,
+                    style = params.style,
+                    credential = self._credential,
+                    signature_version = self._signature_version,
+                    signature_algorithm = self._signature_algorithm,
+                    user_agent = Utils.get_user_agent(self._user_agent)
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
-                    region_id=self._region_id,
-                    endpoint=UtilClient.default_string(request.endpoint_override, self._endpoint),
-                    endpoint_rule=self._endpoint_rule,
-                    endpoint_map=self._endpoint_map,
-                    endpoint_type=self._endpoint_type,
-                    network=self._network,
-                    suffix=self._suffix
+                    region_id = self._region_id,
+                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint_rule = self._endpoint_rule,
+                    endpoint_map = self._endpoint_map,
+                    endpoint_type = self._endpoint_type,
+                    network = self._network,
+                    suffix = self._suffix
                 )
                 interceptor_context = spi_models.InterceptorContext(
-                    request=request_context,
-                    configuration=configuration_context
+                    request = request_context,
+                    configuration = configuration_context
                 )
                 attribute_map = spi_models.AttributeMap()
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1967,11 +2015,12 @@ class Client:
                 _request.body = interceptor_context.request.stream
                 _request.headers = interceptor_context.request.headers
                 _last_request = _request
-                _response = await TeaCore.async_do_action(_request, _runtime)
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
                 response_context = spi_models.InterceptorContextResponse(
-                    status_code=_response.status_code,
-                    headers=_response.headers,
-                    body=_response.body
+                    status_code = _response.status_code,
+                    headers = _response.headers,
+                    body = _response.body
                 )
                 interceptor_context.response = response_context
                 # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1982,213 +2031,453 @@ class Client:
                     'body': interceptor_context.response.deserialized_body
                 }
             except Exception as e:
-                if TeaCore.is_retryable(e):
-                    _last_exception = e
-                    continue
-                raise e
-        raise UnretryableException(_last_request, _last_exception)
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    def call_sseapi(
+        self,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
+    ) -> Generator[main_models.SSEResponse, None, None]:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                _request.protocol = self._protocol or params.protocol
+                _request.method = params.method
+                _request.pathname = params.pathname
+                global_queries = {}
+                global_headers = {}
+                if not DaraCore.is_null(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not DaraCore.is_null(global_params.queries):
+                        global_queries = global_params.queries
+                    if not DaraCore.is_null(global_params.headers):
+                        global_headers = global_params.headers
+                extends_headers = {}
+                extends_queries = {}
+                if not DaraCore.is_null(runtime.extends_parameters):
+                    extends_parameters = runtime.extends_parameters
+                    if not DaraCore.is_null(extends_parameters.headers):
+                        extends_headers = extends_parameters.headers
+                    if not DaraCore.is_null(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
+                _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
+                # endpoint is setted in product client
+                _request.headers = DaraCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'x-acs-date': Utils.get_timestamp(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
+                    'accept': 'application/json',
+                }, extends_headers, global_headers, request.headers)
+                if params.style == 'RPC':
+                    headers = self.get_rpc_headers()
+                    if not DaraCore.is_null(headers):
+                        _request.headers = DaraCore.merge({}, _request.headers, headers)
+                signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
+                hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
+                if not DaraCore.is_null(request.stream):
+                    tmp = DaraStream.read_as_bytes(request.stream)
+                    hashed_request_payload = Utils.hash(tmp, signature_algorithm)
+                    _request.body = tmp
+                    _request.headers["content-type"] = 'application/octet-stream'
+                else:
+                    if not DaraCore.is_null(request.body):
+                        if params.req_body_type == 'byte':
+                            byte_obj = bytes(request.body)
+                            hashed_request_payload = Utils.hash(byte_obj, signature_algorithm)
+                            _request.body = byte_obj
+                        elif params.req_body_type == 'json':
+                            json_obj = DaraCore.to_json_string(request.body)
+                            hashed_request_payload = Utils.hash(json_obj.encode('utf-8'), signature_algorithm)
+                            _request.body = json_obj
+                            _request.headers["content-type"] = 'application/json; charset=utf-8'
+                        else:
+                            m = request.body
+                            form_obj = Utils.to_form(m)
+                            hashed_request_payload = Utils.hash(form_obj.encode('utf-8'), signature_algorithm)
+                            _request.body = form_obj
+                            _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+
+
+                _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
+                if params.auth_type != 'Anonymous':
+                    credential_model = self._credential.get_credential()
+                    auth_type = credential_model.type
+                    if auth_type == 'bearer':
+                        bearer_token = credential_model.bearer_token
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                    else:
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
+
+                _last_request = _request
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    err = {}
+                    if not DaraCore.is_null(_response.headers.get("content-type")) and _response.headers.get("content-type") == 'text/xml;charset=utf-8':
+                        _str = DaraStream.read_as_string(_response.body)
+                        resp_map = DaraXML.parse_xml(_str, None)
+                        err = resp_map.get("Error")
+                    else:
+                        _res = DaraStream.read_as_json(_response.body)
+                        err = _res
+
+                    err["statusCode"] = _response.status_code
+                    raise DaraException({
+                        'code': f'{err.get("Code") or err.get("code")}',
+                        'message': f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {err.get("RequestId") or err.get("requestId")}',
+                        'data': err,
+                        'description': f'{err.get("Description") or err.get("description")}',
+                        'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
+                    })
+                events = DaraStream.read_as_sse(_response.body)
+                for event in events:
+                    yield  main_models.SSEResponse(
+                        status_code = _response.status_code,
+                        headers = _response.headers,
+                        event = event
+                    )
+                return
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    async def call_sseapi_async(
+        self,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
+    ) -> AsyncGenerator[main_models.SSEResponse, None, None]:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                _request.protocol = self._protocol or params.protocol
+                _request.method = params.method
+                _request.pathname = params.pathname
+                global_queries = {}
+                global_headers = {}
+                if not DaraCore.is_null(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not DaraCore.is_null(global_params.queries):
+                        global_queries = global_params.queries
+                    if not DaraCore.is_null(global_params.headers):
+                        global_headers = global_params.headers
+                extends_headers = {}
+                extends_queries = {}
+                if not DaraCore.is_null(runtime.extends_parameters):
+                    extends_parameters = runtime.extends_parameters
+                    if not DaraCore.is_null(extends_parameters.headers):
+                        extends_headers = extends_parameters.headers
+                    if not DaraCore.is_null(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
+                _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
+                # endpoint is setted in product client
+                _request.headers = DaraCore.merge({
+                    'host': self._endpoint,
+                    'x-acs-version': params.version,
+                    'x-acs-action': params.action,
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'x-acs-date': Utils.get_timestamp(),
+                    'x-acs-signature-nonce': Utils.get_nonce(),
+                    'accept': 'application/json',
+                }, extends_headers, global_headers, request.headers)
+                if params.style == 'RPC':
+                    headers = self.get_rpc_headers()
+                    if not DaraCore.is_null(headers):
+                        _request.headers = DaraCore.merge({}, _request.headers, headers)
+                signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
+                hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
+                if not DaraCore.is_null(request.stream):
+                    tmp = await DaraStream.read_as_bytes_async(request.stream)
+                    hashed_request_payload = Utils.hash(tmp, signature_algorithm)
+                    _request.body = tmp
+                    _request.headers["content-type"] = 'application/octet-stream'
+                else:
+                    if not DaraCore.is_null(request.body):
+                        if params.req_body_type == 'byte':
+                            byte_obj = bytes(request.body)
+                            hashed_request_payload = Utils.hash(byte_obj, signature_algorithm)
+                            _request.body = byte_obj
+                        elif params.req_body_type == 'json':
+                            json_obj = DaraCore.to_json_string(request.body)
+                            hashed_request_payload = Utils.hash(json_obj.encode('utf-8'), signature_algorithm)
+                            _request.body = json_obj
+                            _request.headers["content-type"] = 'application/json; charset=utf-8'
+                        else:
+                            m = request.body
+                            form_obj = Utils.to_form(m)
+                            hashed_request_payload = Utils.hash(form_obj.encode('utf-8'), signature_algorithm)
+                            _request.body = form_obj
+                            _request.headers["content-type"] = 'application/x-www-form-urlencoded'
+
+
+                _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
+                if params.auth_type != 'Anonymous':
+                    credential_model = await self._credential.get_credential_async()
+                    auth_type = credential_model.type
+                    if auth_type == 'bearer':
+                        bearer_token = credential_model.bearer_token
+                        _request.headers["x-acs-bearer-token"] = bearer_token
+                    else:
+                        access_key_id = credential_model.access_key_id
+                        access_key_secret = credential_model.access_key_secret
+                        security_token = credential_model.security_token
+                        if not DaraCore.is_null(security_token) and security_token != '':
+                            _request.headers["x-acs-accesskey-id"] = access_key_id
+                            _request.headers["x-acs-security-token"] = security_token
+                        _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
+
+                _last_request = _request
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    err = {}
+                    if not DaraCore.is_null(_response.headers.get("content-type")) and _response.headers.get("content-type") == 'text/xml;charset=utf-8':
+                        _str = await DaraStream.read_as_string_async(_response.body)
+                        resp_map = DaraXML.parse_xml(_str, None)
+                        err = resp_map.get("Error")
+                    else:
+                        _res = await DaraStream.read_as_json_async(_response.body)
+                        err = _res
+
+                    err["statusCode"] = _response.status_code
+                    raise DaraException({
+                        'code': f'{err.get("Code") or err.get("code")}',
+                        'message': f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {err.get("RequestId") or err.get("requestId")}',
+                        'data': err,
+                        'description': f'{err.get("Description") or err.get("description")}',
+                        'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
+                    })
+                events = await DaraStream.read_as_sse_async(_response.body)
+                async for event in events:
+                    yield  main_models.SSEResponse(
+                        status_code = _response.status_code,
+                        headers = _response.headers,
+                        event = event
+                    )
+                return
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
 
     def call_api(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        if UtilClient.is_unset(params):
-            raise TeaException({
-                'code': 'ParameterMissing',
-                'message': "'params' can not be unset"
-            })
-        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+        if DaraCore.is_null(params):
+            raise main_exceptions.ClientException(
+                code = 'ParameterMissing',
+                message = '\'params\' can not be unset'
+            )
+        if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
             return self.do_request(params, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+        elif (params.style == 'ROA') and (params.req_body_type == 'json'):
             return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA'):
+        elif params.style == 'ROA':
             return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
         else:
             return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
 
+
     async def call_api_async(
         self,
-        params: open_api_models.Params,
-        request: open_api_models.OpenApiRequest,
-        runtime: util_models.RuntimeOptions,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
     ) -> dict:
-        if UtilClient.is_unset(params):
-            raise TeaException({
-                'code': 'ParameterMissing',
-                'message': "'params' can not be unset"
-            })
-        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+        if DaraCore.is_null(params):
+            raise main_exceptions.ClientException(
+                code = 'ParameterMissing',
+                message = '\'params\' can not be unset'
+            )
+        if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
             return await self.do_request_async(params, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+        elif (params.style == 'ROA') and (params.req_body_type == 'json'):
             return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA'):
+        elif params.style == 'ROA':
             return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
         else:
             return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
 
-    def get_user_agent(self) -> str:
-        """
-        Get user agent
-        @return: user agent
-        """
-        user_agent = UtilClient.get_user_agent(self._user_agent)
-        return user_agent
 
     def get_access_key_id(self) -> str:
-        """
-        Get accesskey id by using credential
-        @return: accesskey id
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         access_key_id = self._credential.get_access_key_id()
         return access_key_id
 
     async def get_access_key_id_async(self) -> str:
-        """
-        Get accesskey id by using credential
-        @return: accesskey id
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         access_key_id = await self._credential.get_access_key_id_async()
         return access_key_id
 
     def get_access_key_secret(self) -> str:
-        """
-        Get accesskey secret by using credential
-        @return: accesskey secret
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         secret = self._credential.get_access_key_secret()
         return secret
 
     async def get_access_key_secret_async(self) -> str:
-        """
-        Get accesskey secret by using credential
-        @return: accesskey secret
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         secret = await self._credential.get_access_key_secret_async()
         return secret
 
     def get_security_token(self) -> str:
-        """
-        Get security token by using credential
-        @return: security token
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         token = self._credential.get_security_token()
         return token
 
     async def get_security_token_async(self) -> str:
-        """
-        Get security token by using credential
-        @return: security token
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         token = await self._credential.get_security_token_async()
         return token
 
     def get_bearer_token(self) -> str:
-        """
-        Get bearer token by credential
-        @return: bearer token
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         token = self._credential.get_bearer_token()
         return token
 
     async def get_bearer_token_async(self) -> str:
-        """
-        Get bearer token by credential
-        @return: bearer token
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         token = self._credential.get_bearer_token()
         return token
 
     def get_type(self) -> str:
-        """
-        Get credential type by credential
-        @return: credential type e.g. access_key
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         auth_type = self._credential.get_type()
         return auth_type
 
     async def get_type_async(self) -> str:
-        """
-        Get credential type by credential
-        @return: credential type e.g. access_key
-        """
-        if UtilClient.is_unset(self._credential):
+        if DaraCore.is_null(self._credential):
             return ''
         auth_type = self._credential.get_type()
         return auth_type
 
-    @staticmethod
-    def default_any(
-        input_value: Any,
-        default_value: Any,
-    ) -> Any:
-        """
-        If inputValue is not null, return it or return defaultValue
-        @param input_value:  users input value
-        @param default_value: default value
-        @return: the final result
-        """
-        if UtilClient.is_unset(input_value):
-            return default_value
-        return input_value
-
     def check_config(
         self,
-        config: open_api_models.Config,
+        config: open_api_util_models.Config,
     ) -> None:
-        """
-        If the endpointRule and config.endpoint are empty, throw error
-        @param config: config contains the necessary information to create a client
-        """
-        if UtilClient.empty(self._endpoint_rule) and UtilClient.empty(config.endpoint):
-            raise TeaException({
-                'code': 'ParameterMissing',
-                'message': "'config.endpoint' can not be empty"
-            })
+        if DaraCore.is_null(self._endpoint_rule) and DaraCore.is_null(config.endpoint):
+            raise main_exceptions.ClientException(
+                code = 'ParameterMissing',
+                message = '\'config.endpoint\' can not be empty'
+            )
 
     def set_gateway_client(
         self,
         spi: SPIClient,
     ) -> None:
-        """
-        set gateway client
-        @param spi.:
-        """
         self._spi = spi
 
     def set_rpc_headers(
         self,
         headers: Dict[str, str],
     ) -> None:
-        """
-        set RPC header for debug
-        @param headers: headers for debug, this header can be used only once.
-        """
         self._headers = headers
 
     def get_rpc_headers(self) -> Dict[str, str]:
-        """
-        get RPC header for debug
-        """
         headers = self._headers
         self._headers = None
         return headers
+
+    def get_access_denied_detail(
+        self,
+        err: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        access_denied_detail = None
+        if not DaraCore.is_null(err.get("AccessDeniedDetail")):
+            detail_1 = err.get("AccessDeniedDetail")
+            access_denied_detail = detail_1
+        elif not DaraCore.is_null(err.get("accessDeniedDetail")):
+            detail_2 = err.get("accessDeniedDetail")
+            access_denied_detail = detail_2
+        return access_denied_detail
