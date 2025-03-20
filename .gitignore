@@ -20,3 +20,5 @@ ts/package-lock.json
 target/
 *.iml
 *.sh
+
+**/python/**/myenv/
