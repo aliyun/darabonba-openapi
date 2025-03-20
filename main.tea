@@ -12,6 +12,8 @@ type Params = models.Params
 type OpenApiRequest = models.OpenApiRequest
 ")
 
+@pythonModel("from .utils_models import Params, Config, GlobalParameters, OpenApiRequest\n")
+
 type @endpoint = string
 type @regionId = string
 type @protocol = string
@@ -293,9 +295,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -490,9 +492,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -685,9 +687,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -928,9 +930,9 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       statusCode = __response.statusCode
     };
   } else if (params.bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var respStr = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = respStr,
       headers = __response.headers,
       statusCode = __response.statusCode
     };

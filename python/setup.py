@@ -22,26 +22,23 @@ import os
 from setuptools import setup, find_packages
 
 """
-setup module for alibabacloud_tea_openapi.
+setup module for tea_python_tests.
 
-Created on 23/09/2024
+Created on *
 
-@author: Alibaba Cloud SDK
+@author: Alibaba
 """
 
 PACKAGE = "alibabacloud_tea_openapi"
-NAME = "alibabacloud_tea_openapi" or "alibabacloud-package"
-DESCRIPTION = "Alibaba Cloud openapi SDK Library for Python"
-AUTHOR = "Alibaba Cloud SDK"
+NAME = "alibabacloud_tea_openapi"
+DESCRIPTION = ""
+AUTHOR = "Alibaba"
 AUTHOR_EMAIL = "sdk-team@alibabacloud.com"
-URL = "https://github.com/aliyun/darabonba-openapi"
+URL = "https://github.com/"
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
-    "alibabacloud_tea_util>=0.3.13, <1.0.0",
-    "alibabacloud_credentials>=0.3.5, <1.0.0",
-    "alibabacloud_openapi_util>=0.2.1, <1.0.0",
-    "alibabacloud_gateway_spi>=0.0.2, <1.0.0",
-    "alibabacloud_tea_xml>=0.0.2, <1.0.0"
+    "alibabacloud_credentials==0.3.5",
+    "alibabacloud_gateway_spi==0.0.2"
 ]
 
 LONG_DESCRIPTION = ''
@@ -59,7 +56,7 @@ setup(
     author_email=AUTHOR_EMAIL,
     license="Apache License 2.0",
     url=URL,
-    keywords=["alibabacloud","tea","openapi"],
+    keywords=["tea","python","tests"],
     packages=find_packages(exclude=["tests*"]),
     include_package_data=True,
     platforms="any",
@@ -72,9 +69,9 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Software Development"
     )
 )
