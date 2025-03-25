@@ -44,9 +44,9 @@ class SSEResponse(DaraModel):
     def from_map(self, m: dict = None):
         m = m or dict()
         if m.get('headers') is not None:
-            self.headers =  m.get('headers')
+            self.headers = m.get('headers')
         if m.get('statusCode') is not None:
-            self.status_code =  m.get('statusCode')
+            self.status_code = m.get('statusCode')
         if m.get('event') is not None:
             self.event = SSEEvent.from_map(m.get('event'))
 

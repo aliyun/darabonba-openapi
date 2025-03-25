@@ -259,6 +259,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -267,6 +268,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -276,6 +278,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -456,6 +459,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -464,6 +468,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -473,6 +478,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -651,6 +657,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -659,6 +666,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -668,6 +676,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -894,6 +903,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -902,6 +912,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -911,6 +922,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
