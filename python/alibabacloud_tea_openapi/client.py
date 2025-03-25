@@ -260,6 +260,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -268,6 +269,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -277,6 +279,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -462,6 +465,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -470,6 +474,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -479,6 +484,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -668,6 +674,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -676,6 +683,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -685,6 +693,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -859,6 +868,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -867,6 +877,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -876,6 +887,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -1065,6 +1077,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -1073,6 +1086,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -1082,6 +1096,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -1256,6 +1271,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -1264,6 +1280,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -1273,6 +1290,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -1485,6 +1503,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -1493,6 +1512,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -1502,6 +1522,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
@@ -1702,6 +1723,7 @@ class Client:
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
+                            data = err,
                             request_id = f'{request_id}'
                         )
                     elif (_response.status_code >= 400) and (_response.status_code < 500):
@@ -1710,6 +1732,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
                             request_id = f'{request_id}'
                         )
@@ -1719,6 +1742,7 @@ class Client:
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             description = f'{err.get("Description") or err.get("description")}',
+                            data = err,
                             request_id = f'{request_id}'
                         )
 
