@@ -103,17 +103,17 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(responseBody))
 	case "error1":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
 	case "error2":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
 	case "serverError":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(500)
 		w.Write([]byte(responseBody))
 	default:
@@ -1297,8 +1297,11 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
-	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
-	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+	accessDeniedDetail := err.AccessDeniedDetail["test"].(json.Number)
+	accessDeniedDetailNum, _ := accessDeniedDetail.Int64()
+	accessDeniedDetailStr := err.AccessDeniedDetail["test1"]
+	tea_util.AssertEqual(t, int64(1), accessDeniedDetailNum)
+	tea_util.AssertEqual(t, "str", accessDeniedDetailStr)
 }
 
 func TestRequestBodyType(t *testing.T) {
@@ -1560,8 +1563,10 @@ func TestResponseBodyTypeROA(t *testing.T) {
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
-	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
-	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(json.Number)
+	accessDeniedDetailNum, _ := accessDeniedDetail.Int64()
+	tea_util.AssertEqual(t, int64(1), accessDeniedDetailNum)
+	tea_util.AssertEqual(t, "str", err.AccessDeniedDetail["test1"])
 }
 
 func TestRetryWithError(t *testing.T) {
