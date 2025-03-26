@@ -38,6 +38,9 @@
         "PackageProjectUrl": "https://github.com/aliyun/darabonba-openapi",
         "PackageIconUrl": "https://www.alibabacloud.com/favicon.ico"
       }
+    },
+    "exports": {
+      "OpenApiUtil": "Utils"
     }
   },
   "java": {
