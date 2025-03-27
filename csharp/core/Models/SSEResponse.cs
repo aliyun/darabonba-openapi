@@ -3,31 +3,39 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using Darabonba;
+using Darabonba.Models;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
     /// <term><b>Description:</b></term>
     /// <description>
-    /// <para>This is for OpenApi Util</para>
+    /// <para>This is for OpenApi SDK</para>
     /// </description>
-    public class GlobalParameters : Model {
+    public class SSEResponse : Model {
         [NameInMap("headers")]
-        [Validation(Required=false)]
+        [Validation(Required=true)]
         public Dictionary<string, string> Headers { get; set; }
 
-        [NameInMap("queries")]
-        [Validation(Required=false)]
-        public Dictionary<string, string> Queries { get; set; }
+        /// <summary>
+        /// <para>HTTP Status Code</para>
+        /// </summary>
+        [NameInMap("statusCode")]
+        [Validation(Required=true)]
+        public int? StatusCode { get; set; }
 
-        public GlobalParameters Copy()
+        [NameInMap("event")]
+        [Validation(Required=true)]
+        public SSEEvent Event { get; set; }
+
+        public SSEResponse Copy()
         {
-            GlobalParameters copy = FromMap(ToMap());
+            SSEResponse copy = FromMap(ToMap());
             return copy;
         }
 
-        public GlobalParameters CopyWithoutStream()
+        public SSEResponse CopyWithoutStream()
         {
-            GlobalParameters copy = FromMap(ToMap(true));
+            SSEResponse copy = FromMap(ToMap(true));
             return copy;
         }
 
@@ -44,22 +52,22 @@ namespace AlibabaCloud.OpenApiClient.Models
                 map["headers"] = dict;
             }
 
-            if (Queries != null)
+            if (StatusCode != null)
             {
-                var dict = new Dictionary<string, string>();
-                foreach (var item1 in Queries) 
-                {
-                    dict[item1.Key] = item1.Value;
-                }
-                map["queries"] = dict;
+                map["statusCode"] = StatusCode;
+            }
+
+            if (Event != null)
+            {
+                map["event"] = Event != null ? Event.ToMap(noStream) : null;
             }
 
             return map;
         }
 
-        public static GlobalParameters FromMap(Dictionary<string, object> map)
+        public static SSEResponse FromMap(Dictionary<string, object> map)
         {
-            var model = new GlobalParameters();
+            var model = new SSEResponse();
             if (map.ContainsKey("headers"))
             {
                 var dict = map["headers"] as Dictionary<string, string>;
@@ -74,18 +82,15 @@ namespace AlibabaCloud.OpenApiClient.Models
                 }
             }
 
-            if (map.ContainsKey("queries"))
+            if (map.ContainsKey("statusCode"))
             {
-                var dict = map["queries"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
-                {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
-                    {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
-                    }
-                    model.Queries = modelMap1;
-                }
+                model.StatusCode = (int?)map["statusCode"];
+            }
+
+            if (map.ContainsKey("event"))
+            {
+                var temp = (Dictionary<string, object>)map["event"];
+                model.Event = SSEEvent.FromMap(temp);
             }
 
             return model;
