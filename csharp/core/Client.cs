@@ -3,16 +3,12 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Darabonba;
 using Darabonba.Utils;
 using CredentialClient = Aliyun.Credentials.Client;
 using SPIClient = AlibabaCloud.GatewaySpi.Client;
 using AlibabaCloud.OpenApiClient.Models;
-using Darabonba.RetryPolicy;
 using AlibabaCloud.OpenApiClient.Exceptions;
-using Darabonba.Models;
 using Aliyun.Credentials.Models;
-using Darabonba.Exceptions;
 using AlibabaCloud.GatewaySpi.Models;
 
 namespace AlibabaCloud.OpenApiClient
@@ -49,7 +45,8 @@ namespace AlibabaCloud.OpenApiClient
         protected string _cert;
         protected string _ca;
         protected bool? _disableHttp2;
-        protected RetryOptions _retryOptions;
+        protected Darabonba.RetryPolicy.RetryOptions _retryOptions;
+        protected string _tlsMinVersion;
 
         /// <term><b>Description:</b></term>
         /// <description>
@@ -66,7 +63,7 @@ namespace AlibabaCloud.OpenApiClient
                 throw new ClientException
                 {
                     Code = "ParameterMissing",
-                    Message = "\'config\' can not be unset",
+                    Message = "'config' can not be unset",
                 };
             }
             if ((!config.AccessKeyId.IsNull() && config.AccessKeyId != "") && (!config.AccessKeySecret.IsNull() && config.AccessKeySecret != ""))
@@ -125,6 +122,7 @@ namespace AlibabaCloud.OpenApiClient
             this._ca = config.Ca;
             this._disableHttp2 = config.DisableHttp2;
             this._retryOptions = config.RetryOptions;
+            this._tlsMinVersion = config.TlsMinVersion;
         }
 
         /// <term><b>Description:</b></term>
@@ -160,49 +158,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = "/";
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -223,7 +222,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -233,7 +232,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -250,23 +249,8 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     if (headers.IsNull())
                     {
-                        // endpoint is set in product client
-                        request_.Headers = ConverterUtil.Merge<string>
-                        (
-                            new Dictionary<string, string>()
-                            {
-                                {"host", _endpoint},
-                                {"x-acs-version", version},
-                                {"x-acs-action", action},
-                                {"user-agent", Utils.GetUserAgent(_userAgent)},
-                            },
-                            globalHeaders,
-                            extendsHeaders
-                        );
-                    }
-                    else
-                    {
-                        request_.Headers = ConverterUtil.Merge<string>
+                        // endpoint is setted in product client
+                        request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             new Dictionary<string, string>()
                             {
@@ -277,14 +261,31 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers
+                        );
+                    }
+                    else
+                    {
+                        request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
+                        (
+                            new Dictionary<string, string>()
+                            {
+                                {"host", _endpoint},
+                                {"x-acs-version", version},
+                                {"x-acs-action", action},
+                                {"user-agent", Utils.GetUserAgent(_userAgent)},
+                            },
+                            globalHeaders,
+                            extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        Dictionary<string, object> tmp = Core.ToObject(Utils.Query(m));
-                        request_.Body = Core.BytesReadable(FormUtil.ToFormString(tmp));
+                        Dictionary<string, object> tmp = Darabonba.Core.ToObject(Utils.Query(m));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.FormUtils.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (authType != "Anonymous")
@@ -298,6 +299,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -322,7 +327,7 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 t = (Dictionary<string, object>)(request.Body);
                             }
-                            Dictionary<string, string> signedParam = ConverterUtil.Merge<string>
+                            Dictionary<string, string> signedParam = Darabonba.Utils.ConverterUtils.Merge<string>
                             (
                                 request_.Query,
                                 Utils.Query(t)
@@ -330,25 +335,26 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
-                    Response response_ = Core.DoAction(request_, runtime_);
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        object requestId = (err.Get("RequestId") ?? err.Get("requestId"));
-                        object code = (err.Get("Code") ?? err.Get("code"));
+                        object requestId = Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        object code = Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -358,8 +364,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -370,8 +377,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -388,7 +396,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -398,17 +406,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -419,7 +427,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -440,7 +448,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -450,7 +458,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -486,49 +494,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = "/";
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -549,7 +558,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -559,7 +568,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -576,23 +585,8 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> headers = GetRpcHeaders();
                     if (headers.IsNull())
                     {
-                        // endpoint is set in product client
-                        request_.Headers = ConverterUtil.Merge<string>
-                        (
-                            new Dictionary<string, string>()
-                            {
-                                {"host", _endpoint},
-                                {"x-acs-version", version},
-                                {"x-acs-action", action},
-                                {"user-agent", Utils.GetUserAgent(_userAgent)},
-                            },
-                            globalHeaders,
-                            extendsHeaders
-                        );
-                    }
-                    else
-                    {
-                        request_.Headers = ConverterUtil.Merge<string>
+                        // endpoint is setted in product client
+                        request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             new Dictionary<string, string>()
                             {
@@ -603,14 +597,31 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers
+                        );
+                    }
+                    else
+                    {
+                        request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
+                        (
+                            new Dictionary<string, string>()
+                            {
+                                {"host", _endpoint},
+                                {"x-acs-version", version},
+                                {"x-acs-action", action},
+                                {"user-agent", Utils.GetUserAgent(_userAgent)},
+                            },
+                            globalHeaders,
+                            extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        Dictionary<string, object> tmp = Core.ToObject(Utils.Query(m));
-                        request_.Body = Core.BytesReadable(FormUtil.ToFormString(tmp));
+                        Dictionary<string, object> tmp = Darabonba.Core.ToObject(Utils.Query(m));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.FormUtils.ToFormString(tmp));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
                     if (authType != "Anonymous")
@@ -624,6 +635,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -648,7 +663,7 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 t = (Dictionary<string, object>)(request.Body);
                             }
-                            Dictionary<string, string> signedParam = ConverterUtil.Merge<string>
+                            Dictionary<string, string> signedParam = Darabonba.Utils.ConverterUtils.Merge<string>
                             (
                                 request_.Query,
                                 Utils.Query(t)
@@ -656,25 +671,26 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
-                    Response response_ = await Core.DoActionAsync(request_, runtime_);
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        object requestId = (err.Get("RequestId") ?? err.Get("requestId"));
-                        object code = (err.Get("Code") ?? err.Get("code"));
+                        object requestId = Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        object code = Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -684,8 +700,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -696,8 +713,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -714,7 +732,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -724,17 +742,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -745,7 +763,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -766,7 +784,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -776,7 +794,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -815,49 +833,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -878,7 +897,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -888,7 +907,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -908,17 +927,17 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!request.Body.IsNull())
                     {
-                        request_.Body = Core.BytesReadable(JSONUtil.SerializeObject(request.Body));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.JSONUtils.SerializeObject(request.Body));
                         request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries
                     );
                     if (!request.Query.IsNull())
                     {
-                        request_.Query = ConverterUtil.Merge<string>
+                        request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             request_.Query,
                             request.Query
@@ -935,6 +954,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -956,7 +979,7 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    Response response_ = Core.DoAction(request_, runtime_);
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -969,20 +992,21 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        requestId = (string)(requestId ?? err.Get("requestid"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = (string)Darabonba.Core.GetDefaultValue(requestId, err.Get("requestid"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -992,8 +1016,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1004,8 +1029,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1022,7 +1048,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -1032,17 +1058,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -1053,7 +1079,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -1074,7 +1100,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -1084,7 +1110,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1123,49 +1149,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -1186,7 +1213,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1196,7 +1223,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -1216,17 +1243,17 @@ namespace AlibabaCloud.OpenApiClient
                     );
                     if (!request.Body.IsNull())
                     {
-                        request_.Body = Core.BytesReadable(JSONUtil.SerializeObject(request.Body));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.JSONUtils.SerializeObject(request.Body));
                         request_.Headers["content-type"] = "application/json; charset=utf-8";
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries
                     );
                     if (!request.Query.IsNull())
                     {
-                        request_.Query = ConverterUtil.Merge<string>
+                        request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             request_.Query,
                             request.Query
@@ -1243,6 +1270,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1264,7 +1295,7 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    Response response_ = await Core.DoActionAsync(request_, runtime_);
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -1277,20 +1308,21 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        requestId = (string)(requestId ?? err.Get("requestid"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = (string)Darabonba.Core.GetDefaultValue(requestId, err.Get("requestid"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1300,8 +1332,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1312,8 +1345,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1330,7 +1364,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -1340,17 +1374,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -1361,7 +1395,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -1382,7 +1416,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -1392,7 +1426,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1431,49 +1465,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -1494,7 +1529,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1504,7 +1539,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -1525,17 +1560,17 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        request_.Body = Core.BytesReadable(Utils.ToForm(m));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Utils.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries
                     );
                     if (!request.Query.IsNull())
                     {
-                        request_.Query = ConverterUtil.Merge<string>
+                        request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             request_.Query,
                             request.Query
@@ -1552,6 +1587,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1573,7 +1612,7 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    Response response_ = Core.DoAction(request_, runtime_);
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -1586,19 +1625,20 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1608,8 +1648,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1620,8 +1661,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1638,7 +1680,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -1648,17 +1690,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -1669,7 +1711,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -1690,7 +1732,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -1700,7 +1742,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -1739,49 +1781,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, protocol);
                     request_.Method = method;
                     request_.Pathname = pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -1802,7 +1845,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1812,7 +1855,7 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -1833,17 +1876,17 @@ namespace AlibabaCloud.OpenApiClient
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
-                        request_.Body = Core.BytesReadable(Utils.ToForm(m));
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Utils.ToForm(m));
                         request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries
                     );
                     if (!request.Query.IsNull())
                     {
-                        request_.Query = ConverterUtil.Merge<string>
+                        request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             request_.Query,
                             request.Query
@@ -1860,6 +1903,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1881,7 +1928,7 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    Response response_ = await Core.DoActionAsync(request_, runtime_);
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -1894,19 +1941,20 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
                     {
-                        object _res = StreamUtil.ReadAsJSON(response_.Body);
+                        object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1916,8 +1964,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1928,8 +1977,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1946,7 +1996,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -1956,17 +2006,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (bodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -1977,7 +2027,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -1998,7 +2048,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -2008,7 +2058,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2044,49 +2094,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? params_.Protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -2107,7 +2158,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2117,14 +2168,14 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries,
                         request.Query
                     );
                     // endpoint is setted in product client
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -2145,20 +2196,20 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, string> headers = GetRpcHeaders();
                         if (!headers.IsNull())
                         {
-                            request_.Headers = ConverterUtil.Merge<string>
+                            request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                             (
                                 request_.Headers,
                                 headers
                             );
                         }
                     }
-                    string signatureAlgorithm = (string)(_signatureAlgorithm ?? "ACS3-HMAC-SHA256");
-                    byte[] hashedRequestPayload = Utils.Hash(BytesUtil.From("", "utf-8"), signatureAlgorithm);
+                    string signatureAlgorithm = (string)Darabonba.Core.GetDefaultValue(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+                    byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
                     if (!request.Stream.IsNull())
                     {
-                        byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
+                        byte[] tmp = Darabonba.Utils.StreamUtils.ReadAsBytes(request.Stream);
                         hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = Core.BytesReadable(tmp);
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(tmp);
                         request_.Headers["content-type"] = "application/octet-stream";
                     }
                     else
@@ -2169,26 +2220,26 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 byte[] byteObj = (byte[])(request.Body);
                                 hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(byteObj);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(byteObj);
                             }
                             else if (params_.ReqBodyType == "json")
                             {
-                                string jsonObj = JSONUtil.SerializeObject(request.Body);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(jsonObj);
+                                string jsonObj = Darabonba.Utils.JSONUtils.SerializeObject(request.Body);
+                                hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(jsonObj);
                                 request_.Headers["content-type"] = "application/json; charset=utf-8";
                             }
                             else
                             {
                                 Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
                                 string formObj = Utils.ToForm(m);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(formObj);
+                                hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(formObj, "utf8"), signatureAlgorithm);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(formObj);
                                 request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                             }
                         }
                     }
-                    request_.Headers["x-acs-content-sha256"] = BytesUtil.ToHex(hashedRequestPayload);
+                    request_.Headers["x-acs-content-sha256"] = Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload);
                     if (params_.AuthType != "Anonymous")
                     {
                         if (_credential.IsNull())
@@ -2200,6 +2251,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (authType == "bearer")
                         {
@@ -2224,10 +2279,10 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Headers["x-acs-accesskey-id"] = accessKeyId;
                                 request_.Headers["x-acs-security-token"] = securityToken;
                             }
-                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
+                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
-                    Response response_ = Core.DoAction(request_, runtime_);
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -2236,26 +2291,27 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = new Dictionary<string, object>(){};
                         if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
                         {
-                            string _str = StreamUtil.ReadAsString(response_.Body);
-                            Dictionary<string, object> respMap = XmlUtil.ParseXml(_str, null);
+                            string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                            Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(_str, null);
                             err = (Dictionary<string, object>)(respMap.Get("Error"));
                         }
                         else
                         {
-                            object _res = StreamUtil.ReadAsJSON(response_.Body);
+                            object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                             err = (Dictionary<string, object>)(_res);
                         }
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2265,8 +2321,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -2277,8 +2334,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2295,7 +2353,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -2305,17 +2363,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string respStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", respStr},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (params_.BodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -2326,7 +2384,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -2336,7 +2394,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else
                     {
-                        string anything = StreamUtil.ReadAsString(response_.Body);
+                        string anything = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", anything},
@@ -2349,7 +2407,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -2359,7 +2417,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2395,49 +2453,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
-                    request_.Protocol = (string)(_protocol ?? params_.Protocol);
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -2458,7 +2517,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2468,14 +2527,14 @@ namespace AlibabaCloud.OpenApiClient
                             extendsQueries = extendsParameters.Queries;
                         }
                     }
-                    request_.Query = ConverterUtil.Merge<string>
+                    request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         globalQueries,
                         extendsQueries,
                         request.Query
                     );
                     // endpoint is setted in product client
-                    request_.Headers = ConverterUtil.Merge<string>
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                     (
                         new Dictionary<string, string>()
                         {
@@ -2496,20 +2555,20 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, string> headers = GetRpcHeaders();
                         if (!headers.IsNull())
                         {
-                            request_.Headers = ConverterUtil.Merge<string>
+                            request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                             (
                                 request_.Headers,
                                 headers
                             );
                         }
                     }
-                    string signatureAlgorithm = (string)(_signatureAlgorithm ?? "ACS3-HMAC-SHA256");
-                    byte[] hashedRequestPayload = Utils.Hash(BytesUtil.From("", "utf-8"), signatureAlgorithm);
+                    string signatureAlgorithm = (string)Darabonba.Core.GetDefaultValue(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+                    byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
                     if (!request.Stream.IsNull())
                     {
-                        byte[] tmp = StreamUtil.ReadAsBytes(request.Stream);
+                        byte[] tmp = Darabonba.Utils.StreamUtils.ReadAsBytes(request.Stream);
                         hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
-                        request_.Body = Core.BytesReadable(tmp);
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(tmp);
                         request_.Headers["content-type"] = "application/octet-stream";
                     }
                     else
@@ -2520,26 +2579,26 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 byte[] byteObj = (byte[])(request.Body);
                                 hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(byteObj);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(byteObj);
                             }
                             else if (params_.ReqBodyType == "json")
                             {
-                                string jsonObj = JSONUtil.SerializeObject(request.Body);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(jsonObj);
+                                string jsonObj = Darabonba.Utils.JSONUtils.SerializeObject(request.Body);
+                                hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(jsonObj);
                                 request_.Headers["content-type"] = "application/json; charset=utf-8";
                             }
                             else
                             {
                                 Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
                                 string formObj = Utils.ToForm(m);
-                                hashedRequestPayload = Utils.Hash(StringUtil.ToBytes(formObj, "utf8"), signatureAlgorithm);
-                                request_.Body = Core.BytesReadable(formObj);
+                                hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(formObj, "utf8"), signatureAlgorithm);
+                                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(formObj);
                                 request_.Headers["content-type"] = "application/x-www-form-urlencoded";
                             }
                         }
                     }
-                    request_.Headers["x-acs-content-sha256"] = BytesUtil.ToHex(hashedRequestPayload);
+                    request_.Headers["x-acs-content-sha256"] = Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload);
                     if (params_.AuthType != "Anonymous")
                     {
                         if (_credential.IsNull())
@@ -2551,6 +2610,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (authType == "bearer")
                         {
@@ -2575,10 +2638,10 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Headers["x-acs-accesskey-id"] = accessKeyId;
                                 request_.Headers["x-acs-security-token"] = securityToken;
                             }
-                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, BytesUtil.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
+                            request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
-                    Response response_ = await Core.DoActionAsync(request_, runtime_);
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -2587,26 +2650,27 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = new Dictionary<string, object>(){};
                         if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
                         {
-                            string _str = StreamUtil.ReadAsString(response_.Body);
-                            Dictionary<string, object> respMap = XmlUtil.ParseXml(_str, null);
+                            string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                            Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(_str, null);
                             err = (Dictionary<string, object>)(respMap.Get("Error"));
                         }
                         else
                         {
-                            object _res = StreamUtil.ReadAsJSON(response_.Body);
+                            object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                             err = (Dictionary<string, object>)(_res);
                         }
-                        string requestId = (string)(err.Get("RequestId") ?? err.Get("requestId"));
-                        string code = (string)(err.Get("Code") ?? err.Get("code"));
+                        string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
+                        string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
                         if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2616,8 +2680,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -2628,8 +2693,9 @@ namespace AlibabaCloud.OpenApiClient
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
-                                Message = "code: " + response_.StatusCode + ", " + (err.Get("Message") ?? err.Get("message")) + " request id: " + requestId,
-                                Description = "" + (err.Get("Description") ?? err.Get("description")),
+                                Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2646,7 +2712,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "byte")
                     {
-                        byte[] byt = StreamUtil.ReadAsBytes(response_.Body);
+                        byte[] byt = Darabonba.Utils.StreamUtils.ReadAsBytes(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", byt},
@@ -2656,17 +2722,17 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "string")
                     {
-                        string str = StreamUtil.ReadAsString(response_.Body);
+                        string respStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", respStr},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
                     }
                     else if (params_.BodyType == "json")
                     {
-                        object obj = StreamUtil.ReadAsJSON(response_.Body);
+                        object obj = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         Dictionary<string, object> res = (Dictionary<string, object>)(obj);
                         return new Dictionary<string, object>
                         {
@@ -2677,7 +2743,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "array")
                     {
-                        object arr = StreamUtil.ReadAsJSON(response_.Body);
+                        object arr = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", arr},
@@ -2687,7 +2753,7 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else
                     {
-                        string anything = StreamUtil.ReadAsString(response_.Body);
+                        string anything = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
                             {"body", anything},
@@ -2700,7 +2766,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -2710,7 +2776,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2746,49 +2812,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", (bool?)(_disableHttp2.Value || false)},
+                {"tlsMinVersion", _tlsMinVersion},
+                {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
+                    Darabonba.Request request_ = new Darabonba.Request();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -2809,7 +2876,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2821,14 +2888,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     InterceptorContext.InterceptorContextRequest requestContext = new InterceptorContext.InterceptorContextRequest
                     {
-                        Headers = ConverterUtil.Merge<string>
+                        Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             globalHeaders,
                             extendsHeaders,
                             request.Headers,
                             headers
                         ),
-                        Query = ConverterUtil.Merge<string>
+                        Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             globalQueries,
                             extendsQueries,
@@ -2841,8 +2908,8 @@ namespace AlibabaCloud.OpenApiClient
                         ProductId = _productId,
                         Action = params_.Action,
                         Version = params_.Version,
-                        Protocol = (string)(_protocol ?? params_.Protocol),
-                        Method = (string)(_method ?? params_.Method),
+                        Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol),
+                        Method = (string)Darabonba.Core.GetDefaultValue(_method, params_.Method),
                         AuthType = params_.AuthType,
                         BodyType = params_.BodyType,
                         ReqBodyType = params_.ReqBodyType,
@@ -2855,7 +2922,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)(request.EndpointOverride ?? _endpoint),
+                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -2878,7 +2945,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
-                    Response response_ = Core.DoAction(request_, runtime_);
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -2902,7 +2969,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -2912,7 +2979,7 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
         /// <term><b>Description:</b></term>
@@ -2948,49 +3015,50 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
-                {"key", (string)(runtime.Key ?? _key)},
-                {"cert", (string)(runtime.Cert ?? _cert)},
-                {"ca", (string)(runtime.Ca ?? _ca)},
-                {"readTimeout", (int?)(runtime.ReadTimeout ?? _readTimeout)},
-                {"connectTimeout", (int?)(runtime.ConnectTimeout ?? _connectTimeout)},
-                {"httpProxy", (string)(runtime.HttpProxy ?? _httpProxy)},
-                {"httpsProxy", (string)(runtime.HttpsProxy ?? _httpsProxy)},
-                {"noProxy", (string)(runtime.NoProxy ?? _noProxy)},
-                {"socks5Proxy", (string)(runtime.Socks5Proxy ?? _socks5Proxy)},
-                {"socks5NetWork", (string)(runtime.Socks5NetWork ?? _socks5NetWork)},
-                {"maxIdleConns", (int?)(runtime.MaxIdleConns ?? _maxIdleConns)},
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
-                {"disableHttp2", (bool?)(_disableHttp2.Value || false)},
+                {"tlsMinVersion", _tlsMinVersion},
+                {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
             };
 
-            RetryPolicyContext _retryPolicyContext = null;
-            Request _lastRequest = null;
-            Response _lastResponse = null;
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
             Exception _lastException = null;
             long _now = System.DateTime.Now.Millisecond;
             int _retriesAttempted = 0;
-            _retryPolicyContext = new RetryPolicyContext
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
             {
                 RetriesAttempted = _retriesAttempted
             };
-            while (Core.ShouldRetry((RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Core.GetBackoffDelay((RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Core.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
-                    Request request_ = new Request();
+                    Darabonba.Request request_ = new Darabonba.Request();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -3011,7 +3079,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -3023,14 +3091,14 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     InterceptorContext.InterceptorContextRequest requestContext = new InterceptorContext.InterceptorContextRequest
                     {
-                        Headers = ConverterUtil.Merge<string>
+                        Headers = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             globalHeaders,
                             extendsHeaders,
                             request.Headers,
                             headers
                         ),
-                        Query = ConverterUtil.Merge<string>
+                        Query = Darabonba.Utils.ConverterUtils.Merge<string>
                         (
                             globalQueries,
                             extendsQueries,
@@ -3043,8 +3111,8 @@ namespace AlibabaCloud.OpenApiClient
                         ProductId = _productId,
                         Action = params_.Action,
                         Version = params_.Version,
-                        Protocol = (string)(_protocol ?? params_.Protocol),
-                        Method = (string)(_method ?? params_.Method),
+                        Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol),
+                        Method = (string)Darabonba.Core.GetDefaultValue(_method, params_.Method),
                         AuthType = params_.AuthType,
                         BodyType = params_.BodyType,
                         ReqBodyType = params_.ReqBodyType,
@@ -3057,7 +3125,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)(request.EndpointOverride ?? _endpoint),
+                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -3080,7 +3148,7 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
-                    Response response_ = await Core.DoActionAsync(request_, runtime_);
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastRequest = request_;
                     _lastResponse = response_;
 
@@ -3104,7 +3172,7 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     _retriesAttempted++;
                     _lastException = e;
-                    _retryPolicyContext = new RetryPolicyContext
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
                     {
                         RetriesAttempted = _retriesAttempted,
                         Request = _lastRequest,
@@ -3114,62 +3182,76 @@ namespace AlibabaCloud.OpenApiClient
                 }
             }
 
-            throw Core.ThrowException(_retryPolicyContext);
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
-        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             if (params_.IsNull())
             {
                 throw new ClientException
                 {
                     Code = "ParameterMissing",
-                    Message = "\'params\' can not be unset",
+                    Message = "'params' can not be unset",
                 };
             }
-            if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+            if (_signatureVersion.IsNull() || _signatureVersion != "v4")
             {
-                return DoRequest(params_, request, runtime);
-            }
-            else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
-            {
-                return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (params_.Style == "ROA")
-            {
-                return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+                {
+                    return DoRequest(params_, request, runtime);
+                }
+                else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
+                {
+                    return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (params_.Style == "ROA")
+                {
+                    return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return Execute(params_, request, runtime);
             }
         }
 
-        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
         {
             if (params_.IsNull())
             {
                 throw new ClientException
                 {
                     Code = "ParameterMissing",
-                    Message = "\'params\' can not be unset",
+                    Message = "'params' can not be unset",
                 };
             }
-            if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+            if (_signatureVersion.IsNull() || _signatureVersion != "v4")
             {
-                return await DoRequestAsync(params_, request, runtime);
-            }
-            else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
-            {
-                return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (params_.Style == "ROA")
-            {
-                return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+                {
+                    return await DoRequestAsync(params_, request, runtime);
+                }
+                else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
+                {
+                    return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (params_.Style == "ROA")
+                {
+                    return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return await ExecuteAsync(params_, request, runtime);
             }
         }
 
@@ -3368,7 +3450,7 @@ namespace AlibabaCloud.OpenApiClient
                 throw new ClientException
                 {
                     Code = "ParameterMissing",
-                    Message = "\'config.endpoint\' can not be empty",
+                    Message = "'config.endpoint' can not be empty",
                 };
             }
         }
