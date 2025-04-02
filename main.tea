@@ -45,6 +45,7 @@ type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
 type @retryOptions = $RetryOptions
+type @tlsMinVersion = string
 
 
 model SSEResponse {
@@ -130,6 +131,7 @@ init(config: OpenApiUtil.Config) {
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
   @retryOptions = config.retryOptions;
+  @tlsMinVersion = config.tlsMinVersion;
 }
 
 /**
@@ -338,7 +340,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -538,7 +541,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -736,7 +740,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
@@ -984,7 +989,8 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 
@@ -1114,6 +1120,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion,
   disableHttp2 = $boolean($default(@disableHttp2, false))
 }
 
@@ -1264,7 +1271,8 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**

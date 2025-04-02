@@ -60,6 +60,7 @@ class Client:
     _ca: str = None
     _disable_http_2: bool = None
     _retry_options: RetryOptions = None
+    _tls_min_version: str = None
 
     def __init__(
         self,
@@ -115,6 +116,7 @@ class Client:
         self._ca = config.ca
         self._disable_http_2 = config.disable_http_2
         self._retry_options = config.retry_options
+        self._tls_min_version = config.tls_min_version
 
     """
      * @remarks
@@ -155,6 +157,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -360,6 +363,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -581,6 +585,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -775,6 +780,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -984,6 +990,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -1178,6 +1185,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -1380,6 +1388,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -1600,6 +1609,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -1834,6 +1844,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
             'disableHttp2': bool(self._disable_http_2 or False),
         }
         _last_request = None
@@ -1959,6 +1970,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
             'disableHttp2': bool(self._disable_http_2 or False),
         }
         _last_request = None
@@ -2084,6 +2096,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None
@@ -2234,6 +2247,7 @@ class Client:
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
         }
         _last_request = None
         _last_response = None

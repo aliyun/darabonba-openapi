@@ -47,6 +47,10 @@ class GlobalParameters(DaraModel):
  * Model for initing client
 """
 class Config(DaraModel):
+    """
+     Model for initing client
+     `tls_min_version`: optional, TLS minimum version, support TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
+    """
     def __init__(
         self, 
         access_key_id: str = None,
@@ -80,6 +84,7 @@ class Config(DaraModel):
         ca: str = None,
         disable_http_2: bool = None,
         retry_options: RetryOptions = None,
+        tls_min_version: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -143,6 +148,8 @@ class Config(DaraModel):
         self.disable_http_2 = disable_http_2
         # retry options
         self.retry_options = retry_options
+        # TLS Minimum Version
+        self.tls_min_version = tls_min_version
 
     def validate(self):
         if self.global_parameters:
