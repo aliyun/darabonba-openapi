@@ -946,7 +946,6 @@ class TestClient(unittest.TestCase):
         config.endpoint = 'test.aliyuncs.com'
         client = OpenApiClient(config)
         request = self.create_open_api_request()
-        print("asdf", request)
         params = open_api_models.Params(
             action='TestAPI',
             version='2022-06-01',
@@ -974,8 +973,6 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
-            print("sadfs", request['data'])
-            print("sadfs234234", requestBody)
             assert json.loads(request['data'].decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
                 content_type)
