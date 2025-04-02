@@ -716,9 +716,9 @@ namespace AlibabaCloud.OpenApiClient
                                       canonicalheaders + "\n" +
                                       string.Join(";", signedHeaders) + "\n" + payload;
             byte[] raw = Encoding.UTF8.GetBytes(canonicalRequest);
-            string StringToSign = signatureAlgorithm + "\n" + BytesUtil.ToHex(Hash(raw, signatureAlgorithm));
+            string StringToSign = signatureAlgorithm + "\n" + BytesUtils.ToHex(Hash(raw, signatureAlgorithm));
             System.Diagnostics.Debug.WriteLine("GetAuthorization:stringToSign is " + StringToSign);
-            var signature = BytesUtil.ToHex(SignatureMethod(accessKeySecret, StringToSign, signatureAlgorithm));
+            var signature = BytesUtils.ToHex(SignatureMethod(accessKeySecret, StringToSign, signatureAlgorithm));
             string auth = signatureAlgorithm + " Credential=" + accesskey + ",SignedHeaders=" +
                           string.Join(";", signedHeaders) + ",Signature=" + signature;
 
