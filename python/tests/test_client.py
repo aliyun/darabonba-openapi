@@ -269,7 +269,7 @@ class TestClient(unittest.TestCase):
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent',
                                         request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
@@ -362,7 +362,7 @@ class TestClient(unittest.TestCase):
             assert 'test.aliyuncs.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent',
                                         request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
@@ -473,7 +473,7 @@ class TestClient(unittest.TestCase):
             assert 'test.aliyuncs.com' == request.headers.get('host')
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent',
                                         request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
@@ -524,7 +524,7 @@ class TestClient(unittest.TestCase):
             assert 'test.aliyuncs.com' == request['headers'].get('host')
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent',
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent',
                                         request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
@@ -594,7 +594,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-signature-nonce')
 
             assert None is not re.match('acs ak:.+', request.headers.get('authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -744,7 +744,7 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
 
             assert None is not re.match('acs ak:.+', request['headers'].get('authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -917,7 +917,7 @@ class TestClient(unittest.TestCase):
             assert '1.0' == request.headers.get('x-acs-signature-version')
             assert None is not request.headers.get('date')
             assert None is not request.headers.get('x-acs-signature-nonce')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert json.loads(request.body.decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -971,7 +971,7 @@ class TestClient(unittest.TestCase):
             assert '1.0' == request['headers'].get('x-acs-signature-version')
             assert None is not request['headers'].get('date')
             assert None is not request['headers'].get('x-acs-signature-nonce')
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert json.loads(request['data'].decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -1041,7 +1041,7 @@ class TestClient(unittest.TestCase):
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -1139,7 +1139,7 @@ class TestClient(unittest.TestCase):
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request['headers'].get('Authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -1250,7 +1250,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert json.loads(request.body.decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -1303,7 +1303,7 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert json.loads(request['data'].decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -1373,7 +1373,7 @@ class TestClient(unittest.TestCase):
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -1471,7 +1471,7 @@ class TestClient(unittest.TestCase):
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
                 'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request['headers'].get('Authorization'))
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -1582,7 +1582,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert json.loads(request.body.decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -1635,7 +1635,7 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert json.loads(request['data'].decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -1701,7 +1701,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert request.body.decode('utf-8') == requestBody, 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -1815,7 +1815,7 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/x-www-form-urlencoded', 'expected application/x-www-form-urlencoded but received Content-Type: {}'.format(
@@ -2216,7 +2216,7 @@ class TestClient(unittest.TestCase):
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request.headers.get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
             assert json.loads(request.body.decode('utf-8')) == json.loads(requestBody), 'unexpected body: {}'.format(request.body)
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
@@ -2272,7 +2272,7 @@ class TestClient(unittest.TestCase):
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
-            assert None is not re.match('AlibabaCloud.+TeaDSL/1 config.userAgent', request['headers'].get('user-agent'))
+            assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
             assert request['data'].decode('utf-8') == requestBody, 'unexpected body: {}'.format(request['data'])
             assert content_type == 'application/json; charset=utf-8', 'expected application/json but received Content-Type: {}'.format(
