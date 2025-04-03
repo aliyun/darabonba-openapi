@@ -510,7 +510,7 @@ class Utils(object):
     @staticmethod
     def __get_default_agent():
         return f'AlibabaCloud ({platform.system()}; {platform.machine()}) ' \
-               f'Python/{platform.python_version()} Core/{Tea.__version__} TeaDSL/1'
+               f'Python/{platform.python_version()} Core/{Tea.__version__} TeaDSL/2'
                
     @staticmethod
     def get_user_agent(
