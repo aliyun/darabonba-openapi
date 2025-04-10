@@ -3,7 +3,6 @@
 from __future__ import annotations
 from darabonba.model import DaraModel 
 from alibabacloud_credentials.client import Client 
-from alibabacloud_tea_openapi import models as main_models 
 from darabonba.policy.retry import RetryOptions 
 from typing import Dict, Any, BinaryIO
 
@@ -78,7 +77,7 @@ class Config(DaraModel):
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
-        global_parameters: main_models.GlobalParameters = None,
+        global_parameters: GlobalParameters = None,
         key: str = None,
         cert: str = None,
         ca: str = None,
