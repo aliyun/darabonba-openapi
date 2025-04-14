@@ -3,53 +3,15 @@
 from __future__ import annotations
 from darabonba.model import DaraModel 
 from alibabacloud_credentials.client import Client 
+from alibabacloud_tea_openapi import utils_models as main_models 
 from darabonba.policy.retry import RetryOptions 
-from typing import Dict, Any, BinaryIO
 
-
-
-
-class GlobalParameters(DaraModel):
-    def __init__(
-        self, 
-        headers: Dict[str, str] = None,
-        queries: Dict[str, str] = None,
-    ):
-        self.headers = headers
-        self.queries = queries
-
-    def validate(self):
-        pass
-
-    def to_map(self):
-        _map = super().to_map()
-        if _map is not None:
-            return _map
-
-        result = dict()
-        if self.headers is not None:
-            result['headers'] = self.headers
-        if self.queries is not None:
-            result['queries'] = self.queries
-        return result
-
-    def from_map(self, m: dict = None):
-        m = m or dict()
-        if m.get('headers') is not None:
-            self.headers =  m.get('headers')
-        if m.get('queries') is not None:
-            self.queries =  m.get('queries')
-        return self
 
 """
  * @remarks
  * Model for initing client
 """
 class Config(DaraModel):
-    """
-     Model for initing client
-     `tls_min_version`: optional, TLS minimum version, support TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
-    """
     def __init__(
         self, 
         access_key_id: str = None,
@@ -77,7 +39,7 @@ class Config(DaraModel):
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
-        global_parameters: GlobalParameters = None,
+        global_parameters: main_models.GlobalParameters = None,
         key: str = None,
         cert: str = None,
         ca: str = None,
@@ -224,210 +186,79 @@ class Config(DaraModel):
         if self.retry_options is not None:
             result['retryOptions'] = self.retry_options.to_map()
 
+        if self.tls_min_version is not None:
+            result['tlsMinVersion'] = self.tls_min_version
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
         if m.get('accessKeyId') is not None:
-            self.access_key_id =  m.get('accessKeyId')
+            self.access_key_id = m.get('accessKeyId')
         if m.get('accessKeySecret') is not None:
-            self.access_key_secret =  m.get('accessKeySecret')
+            self.access_key_secret = m.get('accessKeySecret')
         if m.get('securityToken') is not None:
-            self.security_token =  m.get('securityToken')
+            self.security_token = m.get('securityToken')
         if m.get('bearerToken') is not None:
-            self.bearer_token =  m.get('bearerToken')
+            self.bearer_token = m.get('bearerToken')
         if m.get('protocol') is not None:
-            self.protocol =  m.get('protocol')
+            self.protocol = m.get('protocol')
         if m.get('method') is not None:
-            self.method =  m.get('method')
+            self.method = m.get('method')
         if m.get('regionId') is not None:
-            self.region_id =  m.get('regionId')
+            self.region_id = m.get('regionId')
         if m.get('readTimeout') is not None:
-            self.read_timeout =  m.get('readTimeout')
+            self.read_timeout = m.get('readTimeout')
         if m.get('connectTimeout') is not None:
-            self.connect_timeout =  m.get('connectTimeout')
+            self.connect_timeout = m.get('connectTimeout')
         if m.get('httpProxy') is not None:
-            self.http_proxy =  m.get('httpProxy')
+            self.http_proxy = m.get('httpProxy')
         if m.get('httpsProxy') is not None:
-            self.https_proxy =  m.get('httpsProxy')
+            self.https_proxy = m.get('httpsProxy')
         if m.get('credential') is not None:
-            self.credential =  m.get('credential')
+            self.credential = m.get('credential')
         if m.get('endpoint') is not None:
-            self.endpoint =  m.get('endpoint')
+            self.endpoint = m.get('endpoint')
         if m.get('noProxy') is not None:
-            self.no_proxy =  m.get('noProxy')
+            self.no_proxy = m.get('noProxy')
         if m.get('maxIdleConns') is not None:
-            self.max_idle_conns =  m.get('maxIdleConns')
+            self.max_idle_conns = m.get('maxIdleConns')
         if m.get('network') is not None:
-            self.network =  m.get('network')
+            self.network = m.get('network')
         if m.get('userAgent') is not None:
-            self.user_agent =  m.get('userAgent')
+            self.user_agent = m.get('userAgent')
         if m.get('suffix') is not None:
-            self.suffix =  m.get('suffix')
+            self.suffix = m.get('suffix')
         if m.get('socks5Proxy') is not None:
-            self.socks_5proxy =  m.get('socks5Proxy')
+            self.socks_5proxy = m.get('socks5Proxy')
         if m.get('socks5NetWork') is not None:
-            self.socks_5net_work =  m.get('socks5NetWork')
+            self.socks_5net_work = m.get('socks5NetWork')
         if m.get('endpointType') is not None:
-            self.endpoint_type =  m.get('endpointType')
+            self.endpoint_type = m.get('endpointType')
         if m.get('openPlatformEndpoint') is not None:
-            self.open_platform_endpoint =  m.get('openPlatformEndpoint')
+            self.open_platform_endpoint = m.get('openPlatformEndpoint')
         if m.get('type') is not None:
-            self.type =  m.get('type')
+            self.type = m.get('type')
         if m.get('signatureVersion') is not None:
-            self.signature_version =  m.get('signatureVersion')
+            self.signature_version = m.get('signatureVersion')
         if m.get('signatureAlgorithm') is not None:
-            self.signature_algorithm =  m.get('signatureAlgorithm')
+            self.signature_algorithm = m.get('signatureAlgorithm')
         if m.get('globalParameters') is not None:
-            self.global_parameters = GlobalParameters.from_map(m.get('globalParameters'))
+            temp_model = main_models.GlobalParameters()
+            self.global_parameters = temp_model.from_map(m.get('globalParameters'))
 
         if m.get('key') is not None:
-            self.key =  m.get('key')
+            self.key = m.get('key')
         if m.get('cert') is not None:
-            self.cert =  m.get('cert')
+            self.cert = m.get('cert')
         if m.get('ca') is not None:
-            self.ca =  m.get('ca')
+            self.ca = m.get('ca')
         if m.get('disableHttp2') is not None:
-            self.disable_http_2 =  m.get('disableHttp2')
+            self.disable_http_2 = m.get('disableHttp2')
         if m.get('retryOptions') is not None:
-            self.retry_options = RetryOptions.from_map(m.get('retryOptions'))
+            temp_model = RetryOptions()
+            self.retry_options = temp_model.from_map(m.get('retryOptions'))
 
-        return self
-
-class Params(DaraModel):
-    def __init__(
-        self, 
-        action: str = None,
-        version: str = None,
-        protocol: str = None,
-        pathname: str = None,
-        method: str = None,
-        auth_type: str = None,
-        body_type: str = None,
-        req_body_type: str = None,
-        style: str = None,
-    ):
-        self.action = action
-        self.version = version
-        self.protocol = protocol
-        self.pathname = pathname
-        self.method = method
-        self.auth_type = auth_type
-        self.body_type = body_type
-        self.req_body_type = req_body_type
-        self.style = style
-
-    def validate(self):
-        self.validate_required(self.action, 'action')
-        self.validate_required(self.version, 'version')
-        self.validate_required(self.protocol, 'protocol')
-        self.validate_required(self.pathname, 'pathname')
-        self.validate_required(self.method, 'method')
-        self.validate_required(self.auth_type, 'auth_type')
-        self.validate_required(self.body_type, 'body_type')
-        self.validate_required(self.req_body_type, 'req_body_type')
-
-    def to_map(self):
-        _map = super().to_map()
-        if _map is not None:
-            return _map
-
-        result = dict()
-        if self.action is not None:
-            result['action'] = self.action
-        if self.version is not None:
-            result['version'] = self.version
-        if self.protocol is not None:
-            result['protocol'] = self.protocol
-        if self.pathname is not None:
-            result['pathname'] = self.pathname
-        if self.method is not None:
-            result['method'] = self.method
-        if self.auth_type is not None:
-            result['authType'] = self.auth_type
-        if self.body_type is not None:
-            result['bodyType'] = self.body_type
-        if self.req_body_type is not None:
-            result['reqBodyType'] = self.req_body_type
-        if self.style is not None:
-            result['style'] = self.style
-        return result
-
-    def from_map(self, m: dict = None):
-        m = m or dict()
-        if m.get('action') is not None:
-            self.action =  m.get('action')
-        if m.get('version') is not None:
-            self.version =  m.get('version')
-        if m.get('protocol') is not None:
-            self.protocol =  m.get('protocol')
-        if m.get('pathname') is not None:
-            self.pathname =  m.get('pathname')
-        if m.get('method') is not None:
-            self.method =  m.get('method')
-        if m.get('authType') is not None:
-            self.auth_type =  m.get('authType')
-        if m.get('bodyType') is not None:
-            self.body_type =  m.get('bodyType')
-        if m.get('reqBodyType') is not None:
-            self.req_body_type =  m.get('reqBodyType')
-        if m.get('style') is not None:
-            self.style =  m.get('style')
-        return self
-
-class OpenApiRequest(DaraModel):
-    def __init__(
-        self, 
-        headers: Dict[str, str] = None,
-        query: Dict[str, str] = None,
-        body: Any = None,
-        stream: BinaryIO = None,
-        host_map: Dict[str, str] = None,
-        endpoint_override: str = None,
-    ):
-        self.headers = headers
-        self.query = query
-        self.body = body
-        self.stream = stream
-        self.host_map = host_map
-        self.endpoint_override = endpoint_override
-
-    def validate(self):
-        pass
-
-    def to_map(self):
-        _map = super().to_map()
-        if _map is not None:
-            return _map
-
-        result = dict()
-        if self.headers is not None:
-            result['headers'] = self.headers
-        if self.query is not None:
-            result['query'] = self.query
-        if self.body is not None:
-            result['body'] = self.body
-        if self.stream is not None:
-            result['stream'] = self.stream
-        if self.host_map is not None:
-            result['hostMap'] = self.host_map
-        if self.endpoint_override is not None:
-            result['endpointOverride'] = self.endpoint_override
-        return result
-
-    def from_map(self, m: dict = None):
-        m = m or dict()
-        if m.get('headers') is not None:
-            self.headers =  m.get('headers')
-        if m.get('query') is not None:
-            self.query =  m.get('query')
-        if m.get('body') is not None:
-            self.body =  m.get('body')
-        if m.get('stream') is not None:
-            self.stream =  m.get('stream')
-        if m.get('hostMap') is not None:
-            self.host_map =  m.get('hostMap')
-        if m.get('endpointOverride') is not None:
-            self.endpoint_override =  m.get('endpointOverride')
+        if m.get('tlsMinVersion') is not None:
+            self.tls_min_version = m.get('tlsMinVersion')
         return self
 
