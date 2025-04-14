@@ -8,7 +8,6 @@ from typing import Dict
 
 
 
-from .utils_models import Params, Config, GlobalParameters, OpenApiRequest
 class SSEResponse(DaraModel):
     def __init__(
         self, 
@@ -48,7 +47,8 @@ class SSEResponse(DaraModel):
         if m.get('statusCode') is not None:
             self.status_code = m.get('statusCode')
         if m.get('event') is not None:
-            self.event = SSEEvent.from_map(m.get('event'))
+            temp_model = SSEEvent()
+            self.event = temp_model.from_map(m.get('event'))
 
         return self
 

@@ -12,7 +12,10 @@ type Params = models.Params
 type OpenApiRequest = models.OpenApiRequest
 ")
 
-@pythonModel("from .utils_models import Params, Config, GlobalParameters, OpenApiRequest\n")
+@pythonModel({
+  header = "from ..utils_models import Params, Config, GlobalParameters, OpenApiRequest\n",
+  exports = ["Params", "Config", "GlobalParameters", "OpenApiRequest"]
+})
 
 type @endpoint = string
 type @regionId = string
