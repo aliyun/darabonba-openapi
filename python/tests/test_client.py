@@ -1033,13 +1033,14 @@ class TestClient(unittest.TestCase):
             assert 'application/json' == request.headers.get('accept')
             assert 'ak' == request.headers.get('x-acs-accesskey-id')
             assert 'token' == request.headers.get('x-acs-security-token')
+            assert 'static_sts' == request.headers.get('x-acs-credentials-provider')
             assert None is not request.headers.get('x-acs-date')
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
             assert None is not re.match(
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
-                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
+                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
@@ -1131,13 +1132,14 @@ class TestClient(unittest.TestCase):
             assert 'application/json' == request['headers'].get('accept')
             assert 'ak' == request['headers'].get('x-acs-accesskey-id')
             assert 'token' == request['headers'].get('x-acs-security-token')
+            assert 'static_sts' == request['headers'].get('x-acs-credentials-provider')
             assert None is not request['headers'].get('x-acs-date')
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
             assert None is not re.match(
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
-                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
+                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request['headers'].get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')
@@ -1365,13 +1367,14 @@ class TestClient(unittest.TestCase):
             assert 'application/json' == request.headers.get('accept')
             assert 'ak' == request.headers.get('x-acs-accesskey-id')
             assert 'token' == request.headers.get('x-acs-security-token')
+            assert 'static_sts' == request.headers.get('x-acs-credentials-provider')
             assert None is not request.headers.get('x-acs-date')
             assert None is not request.headers.get('x-acs-signature-nonce')
             assert None is not request.headers.get('x-acs-content-sha256')
 
             assert None is not re.match(
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
-                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
+                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request.headers.get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request.headers.get('user-agent'))
             content_type = request.headers.get('content-type')
@@ -1463,13 +1466,14 @@ class TestClient(unittest.TestCase):
             assert 'application/json' == request['headers'].get('accept')
             assert 'ak' == request['headers'].get('x-acs-accesskey-id')
             assert 'token' == request['headers'].get('x-acs-security-token')
+            assert 'static_sts' == request['headers'].get('x-acs-credentials-provider')
             assert None is not request['headers'].get('x-acs-date')
             assert None is not request['headers'].get('x-acs-signature-nonce')
             assert None is not request['headers'].get('x-acs-content-sha256')
 
             assert None is not re.match(
                 'ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=accept;content-type;extends-key;for-test;global-key;' +
-                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;' +
+                'host;user-agent;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;' +
                 'x-acs-signature-nonce;x-acs-version,Signature=.+', request['headers'].get('Authorization'))
             assert None is not re.match('AlibabaCloud.+TeaDSL/2 config.userAgent', request['headers'].get('user-agent'))
             content_type = request['headers'].get('content-type')

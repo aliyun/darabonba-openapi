@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 class AlibabaCloudException(ResponseException):
     def __init__(
-        self, 
+        self, *,
         retry_after: int = None,
         data: Dict[str, Any] = None,
         access_denied_detail: Dict[str, Any] = None,

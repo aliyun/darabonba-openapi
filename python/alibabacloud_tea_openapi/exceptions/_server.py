@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 class ServerException(main_exceptions.AlibabaCloudException):
     def __init__(
-        self, 
+        self, *,
         status_code: int = None,
         code: str = None,
         message: str = None,

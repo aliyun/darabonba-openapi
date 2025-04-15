@@ -10,7 +10,7 @@ from typing import Dict
 
 class SSEResponse(DaraModel):
     def __init__(
-        self, 
+        self, *,
         headers: Dict[str, str] = None,
         status_code: int = None,
         event: SSEEvent = None,
