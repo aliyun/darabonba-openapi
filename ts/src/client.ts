@@ -632,6 +632,7 @@ export default class Client {
             'user-agent': this.getUserAgent(),
             ...globalHeaders,
             ...extendsHeaders,
+            ...request.headers,
           };
         } else {
           request_.headers = {
@@ -641,6 +642,7 @@ export default class Client {
             'user-agent': this.getUserAgent(),
             ...globalHeaders,
             ...extendsHeaders,
+            ...request.headers,
             ...headers,
           };
         }
@@ -1667,14 +1669,19 @@ export default class Client {
       });
     }
 
-    if (Util.isUnset(this._signatureAlgorithm) || !Util.equalString(this._signatureAlgorithm, "v2")) {
-      return await this.doRequest(params, request, runtime);
-    } else if (Util.equalString(params.style, "ROA") && Util.equalString(params.reqBodyType, "json")) {
-      return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-    } else if (Util.equalString(params.style, "ROA")) {
-      return await this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    if (Util.isUnset(this._signatureVersion) || !Util.equalString(this._signatureVersion, "v4")) {
+      if (Util.isUnset(this._signatureAlgorithm) || !Util.equalString(this._signatureAlgorithm, "v2")) {
+        return await this.doRequest(params, request, runtime);
+      } else if (Util.equalString(params.style, "ROA") && Util.equalString(params.reqBodyType, "json")) {
+        return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+      } else if (Util.equalString(params.style, "ROA")) {
+        return await this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+      } else {
+        return await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+      }
+
     } else {
-      return await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+      return await this.execute(params, request, runtime);
     }
 
   }

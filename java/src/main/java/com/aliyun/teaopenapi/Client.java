@@ -216,7 +216,8 @@ public class Client {
                             new TeaPair("user-agent", this.getUserAgent())
                         ),
                         globalHeaders,
-                        extendsHeaders
+                        extendsHeaders,
+                        request.headers
                     );
                 } else {
                     request_.headers = TeaConverter.merge(String.class,
@@ -228,6 +229,7 @@ public class Client {
                         ),
                         globalHeaders,
                         extendsHeaders,
+                        request.headers,
                         headers
                     );
                 }
@@ -1278,14 +1280,19 @@ public class Client {
             ));
         }
 
-        if (com.aliyun.teautil.Common.isUnset(_signatureAlgorithm) || !com.aliyun.teautil.Common.equalString(_signatureAlgorithm, "v2")) {
-            return this.doRequest(params, request, runtime);
-        } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA") && com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
-            return this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-        } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA")) {
-            return this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+        if (com.aliyun.teautil.Common.isUnset(_signatureVersion) || !com.aliyun.teautil.Common.equalString(_signatureVersion, "v4")) {
+            if (com.aliyun.teautil.Common.isUnset(_signatureAlgorithm) || !com.aliyun.teautil.Common.equalString(_signatureAlgorithm, "v2")) {
+                return this.doRequest(params, request, runtime);
+            } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA") && com.aliyun.teautil.Common.equalString(params.reqBodyType, "json")) {
+                return this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+            } else if (com.aliyun.teautil.Common.equalString(params.style, "ROA")) {
+                return this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+            } else {
+                return this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+            }
+
         } else {
-            return this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+            return this.execute(params, request, runtime);
         }
 
     }

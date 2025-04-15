@@ -210,7 +210,8 @@ class Client:
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
                     }, global_headers,
-                        extends_headers)
+                        extends_headers,
+                        request.headers)
                 else:
                     _request.headers = TeaCore.merge({
                         'host': self._endpoint,
@@ -219,6 +220,7 @@ class Client:
                         'user-agent': self.get_user_agent()
                     }, global_headers,
                         extends_headers,
+                        request.headers,
                         headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
@@ -417,7 +419,8 @@ class Client:
                         'x-acs-action': action,
                         'user-agent': self.get_user_agent()
                     }, global_headers,
-                        extends_headers)
+                        extends_headers,
+                        request.headers)
                 else:
                     _request.headers = TeaCore.merge({
                         'host': self._endpoint,
@@ -426,6 +429,7 @@ class Client:
                         'user-agent': self.get_user_agent()
                     }, global_headers,
                         extends_headers,
+                        request.headers,
                         headers)
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
@@ -2051,14 +2055,17 @@ class Client:
                 'code': 'ParameterMissing',
                 'message': "'params' can not be unset"
             })
-        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
-            return self.do_request(params, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
-            return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA'):
-            return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        if UtilClient.is_unset(self._signature_version) or not UtilClient.equal_string(self._signature_version, 'v4'):
+            if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+                return self.do_request(params, request, runtime)
+            elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+                return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            elif UtilClient.equal_string(params.style, 'ROA'):
+                return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            else:
+                return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
         else:
-            return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+            return self.execute(params, request, runtime)
 
     async def call_api_async(
         self,
@@ -2071,14 +2078,17 @@ class Client:
                 'code': 'ParameterMissing',
                 'message': "'params' can not be unset"
             })
-        if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
-            return await self.do_request_async(params, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
-            return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif UtilClient.equal_string(params.style, 'ROA'):
-            return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        if UtilClient.is_unset(self._signature_version) or not UtilClient.equal_string(self._signature_version, 'v4'):
+            if UtilClient.is_unset(self._signature_algorithm) or not UtilClient.equal_string(self._signature_algorithm, 'v2'):
+                return await self.do_request_async(params, request, runtime)
+            elif UtilClient.equal_string(params.style, 'ROA') and UtilClient.equal_string(params.req_body_type, 'json'):
+                return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            elif UtilClient.equal_string(params.style, 'ROA'):
+                return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            else:
+                return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
         else:
-            return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+            return await self.execute_async(params, request, runtime)
 
     def get_user_agent(self) -> str:
         """

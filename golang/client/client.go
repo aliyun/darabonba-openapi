@@ -723,7 +723,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"x-acs-action":  action,
 					"user-agent":    client.GetUserAgent(),
 				}, globalHeaders,
-					extendsHeaders)
+					extendsHeaders,
+					request.Headers)
 			} else {
 				request_.Headers = tea.Merge(map[string]*string{
 					"host":          client.Endpoint,
@@ -732,6 +733,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					"user-agent":    client.GetUserAgent(),
 				}, globalHeaders,
 					extendsHeaders,
+					request.Headers,
 					headers)
 			}
 
@@ -2029,33 +2031,44 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 		return _result, _err
 	}
 
-	if tea.BoolValue(util.IsUnset(client.SignatureAlgorithm)) || !tea.BoolValue(util.EqualString(client.SignatureAlgorithm, tea.String("v2"))) {
-		_result = make(map[string]interface{})
-		_body, _err := client.DoRequest(params, request, runtime)
-		if _err != nil {
+	if tea.BoolValue(util.IsUnset(client.SignatureVersion)) || !tea.BoolValue(util.EqualString(client.SignatureVersion, tea.String("v4"))) {
+		if tea.BoolValue(util.IsUnset(client.SignatureAlgorithm)) || !tea.BoolValue(util.EqualString(client.SignatureAlgorithm, tea.String("v2"))) {
+			_result = make(map[string]interface{})
+			_body, _err := client.DoRequest(params, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) && tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
+			_result = make(map[string]interface{})
+			_body, _err := client.DoROARequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) {
+			_result = make(map[string]interface{})
+			_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else {
+			_result = make(map[string]interface{})
+			_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
 			return _result, _err
 		}
-		_result = _body
-		return _result, _err
-	} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) && tea.BoolValue(util.EqualString(params.ReqBodyType, tea.String("json"))) {
-		_result = make(map[string]interface{})
-		_body, _err := client.DoROARequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
-		if _err != nil {
-			return _result, _err
-		}
-		_result = _body
-		return _result, _err
-	} else if tea.BoolValue(util.EqualString(params.Style, tea.String("ROA"))) {
-		_result = make(map[string]interface{})
-		_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
-		if _err != nil {
-			return _result, _err
-		}
-		_result = _body
-		return _result, _err
+
 	} else {
 		_result = make(map[string]interface{})
-		_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+		_body, _err := client.Execute(params, request, runtime)
 		if _err != nil {
 			return _result, _err
 		}
