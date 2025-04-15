@@ -208,7 +208,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-action = action,
       user-agent = getUserAgent(),
       ...globalHeaders,
-      ...extendsHeaders
+      ...extendsHeaders,
+      ...request.headers
     };
   } else {
     __request.headers = {
@@ -218,6 +219,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       user-agent = getUserAgent(),
       ...globalHeaders,
       ...extendsHeaders,
+      ...request.headers,
       ...headers
     };
   }
@@ -749,14 +751,18 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
       message = '\'params\' can not be unset'
     };
   }
-  if (Util.isUnset(@signatureAlgorithm) || !Util.equalString(@signatureAlgorithm, 'v2')) {
-    return doRequest(params, request, runtime);
-  } else if (Util.equalString(params.style, 'ROA') && Util.equalString(params.reqBodyType, 'json')) {
-    return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-  } else if (Util.equalString(params.style, 'ROA')) {
-    return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+  if (Util.isUnset(@signatureVersion) || !Util.equalString(@signatureVersion, 'v4')) {
+    if (Util.isUnset(@signatureAlgorithm) || !Util.equalString(@signatureAlgorithm, 'v2')) {
+      return doRequest(params, request, runtime);
+    } else if (Util.equalString(params.style, 'ROA') && Util.equalString(params.reqBodyType, 'json')) {
+      return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else if (Util.equalString(params.style, 'ROA')) {
+      return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else {
+      return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    }
   } else {
-    return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    return execute(params, request, runtime);
   }
 }
 /**

@@ -247,14 +247,14 @@ class OpenApiClient
                         "x-acs-version" => $version,
                         "x-acs-action" => $action,
                         "user-agent" => $this->getUserAgent()
-                    ], $globalHeaders, $extendsHeaders);
+                    ], $globalHeaders, $extendsHeaders, $request->headers);
                 } else {
                     $_request->headers = Tea::merge([
                         "host" => $this->_endpoint,
                         "x-acs-version" => $version,
                         "x-acs-action" => $action,
                         "user-agent" => $this->getUserAgent()
-                    ], $globalHeaders, $extendsHeaders, $headers);
+                    ], $globalHeaders, $extendsHeaders, $request->headers, $headers);
                 }
                 if (!Utils::isUnset($request->body)) {
                     $m = Utils::assertAsMap($request->body);
@@ -949,8 +949,15 @@ class OpenApiClient
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-                    $_res = Utils::readAsJSON($_response->body);
-                    $err = Utils::assertAsMap($_res);
+                    $err = [];
+                    if (!Utils::isUnset(@$_response->headers["content-type"]) && Utils::equalString(@$_response->headers["content-type"], "text/xml;charset=utf-8")) {
+                        $_str = Utils::readAsString($_response->body);
+                        $respMap = XML::parseXml($_str, null);
+                        $err = Utils::assertAsMap(@$respMap["Error"]);
+                    } else {
+                        $_res = Utils::readAsJSON($_response->body);
+                        $err = Utils::assertAsMap($_res);
+                    }
                     @$err["statusCode"] = $_response->statusCode;
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
@@ -1185,14 +1192,18 @@ class OpenApiClient
                 "message" => "'params' can not be unset"
             ]);
         }
-        if (Utils::isUnset($this->_signatureAlgorithm) || !Utils::equalString($this->_signatureAlgorithm, "v2")) {
-            return $this->doRequest($params, $request, $runtime);
-        } else if (Utils::equalString($params->style, "ROA") && Utils::equalString($params->reqBodyType, "json")) {
-            return $this->doROARequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
-        } else if (Utils::equalString($params->style, "ROA")) {
-            return $this->doROARequestWithForm($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+        if (Utils::isUnset($this->_signatureVersion) || !Utils::equalString($this->_signatureVersion, "v4")) {
+            if (Utils::isUnset($this->_signatureAlgorithm) || !Utils::equalString($this->_signatureAlgorithm, "v2")) {
+                return $this->doRequest($params, $request, $runtime);
+            } else if (Utils::equalString($params->style, "ROA") && Utils::equalString($params->reqBodyType, "json")) {
+                return $this->doROARequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+            } else if (Utils::equalString($params->style, "ROA")) {
+                return $this->doROARequestWithForm($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+            } else {
+                return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
+            }
         } else {
-            return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
+            return $this->execute($params, $request, $runtime);
         }
     }
 

@@ -264,7 +264,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", GetUserAgent()},
                             },
                             globalHeaders,
-                            extendsHeaders
+                            extendsHeaders,
+                            request.Headers
                         );
                     }
                     else
@@ -280,6 +281,7 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
@@ -575,7 +577,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", GetUserAgent()},
                             },
                             globalHeaders,
-                            extendsHeaders
+                            extendsHeaders,
+                            request.Headers
                         );
                     }
                     else
@@ -591,6 +594,7 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
@@ -3009,21 +3013,28 @@ namespace AlibabaCloud.OpenApiClient
                     {"message", "'params' can not be unset"},
                 });
             }
-            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureVersion) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureVersion, "v4"))
             {
-                return DoRequest(params_, request, runtime);
-            }
-            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
-            {
-                return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
-            {
-                return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+                {
+                    return DoRequest(params_, request, runtime);
+                }
+                else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                {
+                    return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
+                {
+                    return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return Execute(params_, request, runtime);
             }
         }
 
@@ -3037,21 +3048,28 @@ namespace AlibabaCloud.OpenApiClient
                     {"message", "'params' can not be unset"},
                 });
             }
-            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+            if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureVersion) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureVersion, "v4"))
             {
-                return await DoRequestAsync(params_, request, runtime);
-            }
-            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
-            {
-                return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
-            {
-                return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (AlibabaCloud.TeaUtil.Common.IsUnset(_signatureAlgorithm) || !AlibabaCloud.TeaUtil.Common.EqualString(_signatureAlgorithm, "v2"))
+                {
+                    return await DoRequestAsync(params_, request, runtime);
+                }
+                else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA") && AlibabaCloud.TeaUtil.Common.EqualString(params_.ReqBodyType, "json"))
+                {
+                    return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (AlibabaCloud.TeaUtil.Common.EqualString(params_.Style, "ROA"))
+                {
+                    return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return await ExecuteAsync(params_, request, runtime);
             }
         }
 
