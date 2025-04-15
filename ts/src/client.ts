@@ -132,6 +132,7 @@ export default class Client {
   _ca: string;
   _disableHttp2: boolean;
   _retryOptions: $dara.RetryOptions;
+  _tlsMinVersion: string;
 
   /**
    * @remarks
@@ -195,6 +196,7 @@ export default class Client {
     this._ca = config.ca;
     this._disableHttp2 = config.disableHttp2;
     this._retryOptions = config.retryOptions;
+    this._tlsMinVersion = config.tlsMinVersion;
   }
 
   /**
@@ -226,6 +228,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
     }
 
     let _retriesAttempted = 0;
@@ -295,6 +298,7 @@ export default class Client {
             'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
             ...globalHeaders,
             ...extendsHeaders,
+            ...request.headers,
           };
         } else {
           request_.headers = {
@@ -304,6 +308,7 @@ export default class Client {
             'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
             ...globalHeaders,
             ...extendsHeaders,
+            ...request.headers,
             ...headers,
           };
         }
@@ -324,6 +329,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!$dara.isNull(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
@@ -370,6 +379,7 @@ export default class Client {
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              data: err,
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
@@ -378,6 +388,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
               requestId: `${requestId}`,
             });
@@ -387,6 +398,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               requestId: `${requestId}`,
             });
           }
@@ -408,9 +420,9 @@ export default class Client {
             statusCode: response_.statusCode,
           };
         } else if (bodyType == "string") {
-          let str = await $dara.Stream.readAsString(response_.body);
+          let _str = await $dara.Stream.readAsString(response_.body);
           return {
-            body: str,
+            body: _str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
@@ -480,6 +492,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
     }
 
     let _retriesAttempted = 0;
@@ -568,6 +581,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!$dara.isNull(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
@@ -611,6 +628,7 @@ export default class Client {
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              data: err,
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
@@ -619,6 +637,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
               requestId: `${requestId}`,
             });
@@ -628,6 +647,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               requestId: `${requestId}`,
             });
           }
@@ -649,9 +669,9 @@ export default class Client {
             statusCode: response_.statusCode,
           };
         } else if (bodyType == "string") {
-          let str = await $dara.Stream.readAsString(response_.body);
+          let _str = await $dara.Stream.readAsString(response_.body);
           return {
-            body: str,
+            body: _str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
@@ -721,6 +741,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
     }
 
     let _retriesAttempted = 0;
@@ -810,6 +831,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!$dara.isNull(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let credentialType = credentialModel.type;
           if (credentialType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
@@ -852,6 +877,7 @@ export default class Client {
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              data: err,
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
@@ -860,6 +886,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
               requestId: `${requestId}`,
             });
@@ -869,6 +896,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               requestId: `${requestId}`,
             });
           }
@@ -890,9 +918,9 @@ export default class Client {
             statusCode: response_.statusCode,
           };
         } else if (bodyType == "string") {
-          let str = await $dara.Stream.readAsString(response_.body);
+          let _str = await $dara.Stream.readAsString(response_.body);
           return {
-            body: str,
+            body: _str,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
@@ -961,6 +989,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
     }
 
     let _retriesAttempted = 0;
@@ -1079,6 +1108,10 @@ export default class Client {
           }
 
           let credentialModel = await this._credential.getCredential();
+          if (!$dara.isNull(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let authType = credentialModel.type;
           if (authType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
@@ -1127,6 +1160,7 @@ export default class Client {
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              data: err,
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
@@ -1135,6 +1169,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
               requestId: `${requestId}`,
             });
@@ -1144,6 +1179,7 @@ export default class Client {
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               description: `${err["Description"] || err["description"]}`,
+              data: err,
               requestId: `${requestId}`,
             });
           }
@@ -1165,9 +1201,9 @@ export default class Client {
             statusCode: response_.statusCode,
           };
         } else if (params.bodyType == "string") {
-          let str = await $dara.Stream.readAsString(response_.body);
+          let respStr = await $dara.Stream.readAsString(response_.body);
           return {
-            body: str,
+            body: respStr,
             headers: response_.headers,
             statusCode: response_.statusCode,
           };
@@ -1238,6 +1274,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
       disableHttp2: this._disableHttp2 || false,
     }
 
@@ -1387,6 +1424,7 @@ export default class Client {
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
     }
 
     let _retriesAttempted = 0;
@@ -1498,6 +1536,10 @@ export default class Client {
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload.toString("hex");
         if (params.authType != "Anonymous") {
           let credentialModel = await this._credential.getCredential();
+          if (!$dara.isNull(credentialModel.providerName)) {
+            request_.headers["x-acs-credentials-provider"] = credentialModel.providerName;
+          }
+
           let authType = credentialModel.type;
           if (authType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
@@ -1573,14 +1615,19 @@ export default class Client {
       });
     }
 
-    if ($dara.isNull(this._signatureAlgorithm) || this._signatureAlgorithm != "v2") {
-      return await this.doRequest(params, request, runtime);
-    } else if ((params.style == "ROA") && (params.reqBodyType == "json")) {
-      return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-    } else if (params.style == "ROA") {
-      return await this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    if ($dara.isNull(this._signatureVersion) || this._signatureVersion != "v4") {
+      if ($dara.isNull(this._signatureAlgorithm) || this._signatureAlgorithm != "v2") {
+        return await this.doRequest(params, request, runtime);
+      } else if ((params.style == "ROA") && (params.reqBodyType == "json")) {
+        return await this.doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+      } else if (params.style == "ROA") {
+        return await this.doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+      } else {
+        return await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+      }
+
     } else {
-      return await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+      return await this.execute(params, request, runtime);
     }
 
   }

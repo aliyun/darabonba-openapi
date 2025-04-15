@@ -195,7 +195,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-action = action,
       user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
-      ...extendsHeaders
+      ...extendsHeaders,
+      ...request.headers
     };
   } else {
     __request.headers = {
@@ -205,6 +206,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
       ...extendsHeaders,
+      ...request.headers,
       ...headers
     };
   }
@@ -225,6 +227,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -427,6 +432,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -628,6 +636,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -754,15 +765,20 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
       message = '\'params\' can not be unset'
     };
   }
-  if ($isNull(@signatureAlgorithm) || @signatureAlgorithm != 'v2') {
-    return doRequest(params, request, runtime);
-  } else if ((params.style == 'ROA') && (params.reqBodyType == 'json')) {
-    return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-  } else if (params.style == 'ROA') {
-    return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+  if ($isNull(@signatureVersion) || @signatureVersion != 'v4') {
+    if ($isNull(@signatureAlgorithm) || @signatureAlgorithm != 'v2') {
+      return doRequest(params, request, runtime);
+    } else if ((params.style == 'ROA') && (params.reqBodyType == 'json')) {
+      return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else if (params.style == 'ROA') {
+      return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else {
+      return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    }
   } else {
-    return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    return execute(params, request, runtime);
   }
+  
 }
 /**
  * Encapsulate the request and invoke the network
@@ -870,6 +886,9 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var authType = credentialModel.type;
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -1216,6 +1235,9 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
 
   if (params.authType != 'Anonymous') {
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var authType = credentialModel.type;
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;

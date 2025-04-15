@@ -207,14 +207,14 @@ class Client:
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
-                    }, global_headers, extends_headers)
+                    }, global_headers, extends_headers, request.headers)
                 else:
                     _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
-                    }, global_headers, extends_headers, headers)
+                    }, global_headers, extends_headers, request.headers, headers)
 
                 if not DaraCore.is_null(request.body):
                     m = request.body
@@ -228,6 +228,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = self._credential.get_credential()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -413,14 +415,14 @@ class Client:
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
-                    }, global_headers, extends_headers)
+                    }, global_headers, extends_headers, request.headers)
                 else:
                     _request.headers = DaraCore.merge({
                         'host': self._endpoint,
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
-                    }, global_headers, extends_headers, headers)
+                    }, global_headers, extends_headers, request.headers, headers)
 
                 if not DaraCore.is_null(request.body):
                     m = request.body
@@ -434,6 +436,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = await self._credential.get_credential_async()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -644,6 +648,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = self._credential.get_credential()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -839,6 +845,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = await self._credential.get_credential_async()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -1050,6 +1058,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = self._credential.get_credential()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -1245,6 +1255,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = await self._credential.get_credential_async()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     credential_type = credential_model.type
                     if credential_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -1472,6 +1484,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = self._credential.get_credential()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     auth_type = credential_model.type
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -1693,6 +1707,8 @@ class Client:
                             message = f'Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.'
                         )
                     credential_model = await self._credential.get_credential_async()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     auth_type = credential_model.type
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -2175,6 +2191,8 @@ class Client:
                 _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
                 if params.auth_type != 'Anonymous':
                     credential_model = self._credential.get_credential()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     auth_type = credential_model.type
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -2326,6 +2344,8 @@ class Client:
                 _request.headers["x-acs-content-sha256"] = hashed_request_payload.hex()
                 if params.auth_type != 'Anonymous':
                     credential_model = await self._credential.get_credential_async()
+                    if not DaraCore.is_null(credential_model.provider_name):
+                        _request.headers["x-acs-credentials-provider"] = credential_model.provider_name
                     auth_type = credential_model.type
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
@@ -2389,14 +2409,18 @@ class Client:
                 code = 'ParameterMissing',
                 message = '\'params\' can not be unset'
             )
-        if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
-            return self.do_request(params, request, runtime)
-        elif (params.style == 'ROA') and (params.req_body_type == 'json'):
-            return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif params.style == 'ROA':
-            return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        if DaraCore.is_null(self._signature_version) or self._signature_version != 'v4':
+            if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
+                return self.do_request(params, request, runtime)
+            elif (params.style == 'ROA') and (params.req_body_type == 'json'):
+                return self.do_roarequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            elif params.style == 'ROA':
+                return self.do_roarequest_with_form(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            else:
+                return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+
         else:
-            return self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+            return self.execute(params, request, runtime)
 
 
     async def call_api_async(
@@ -2410,14 +2434,18 @@ class Client:
                 code = 'ParameterMissing',
                 message = '\'params\' can not be unset'
             )
-        if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
-            return await self.do_request_async(params, request, runtime)
-        elif (params.style == 'ROA') and (params.req_body_type == 'json'):
-            return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
-        elif params.style == 'ROA':
-            return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+        if DaraCore.is_null(self._signature_version) or self._signature_version != 'v4':
+            if DaraCore.is_null(self._signature_algorithm) or self._signature_algorithm != 'v2':
+                return await self.do_request_async(params, request, runtime)
+            elif (params.style == 'ROA') and (params.req_body_type == 'json'):
+                return await self.do_roarequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            elif params.style == 'ROA':
+                return await self.do_roarequest_with_form_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.pathname, params.body_type, request, runtime)
+            else:
+                return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+
         else:
-            return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
+            return await self.execute_async(params, request, runtime)
 
 
     def get_access_key_id(self) -> str:

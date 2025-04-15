@@ -4,6 +4,7 @@ package client
 import (
 	"encoding/hex"
 	"fmt"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -612,7 +613,8 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"x-acs-action":  action,
 				"user-agent":    openapiutil.GetUserAgent(client.UserAgent),
 			}, globalHeaders,
-				extendsHeaders)
+				extendsHeaders,
+				request.Headers)
 		} else {
 			request_.Headers = dara.Merge(map[string]*string{
 				"host":          client.Endpoint,
@@ -621,6 +623,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				"user-agent":    openapiutil.GetUserAgent(client.UserAgent),
 			}, globalHeaders,
 				extendsHeaders,
+				request.Headers,
 				headers)
 		}
 
@@ -654,6 +657,10 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				}
 				_resultErr = _err
 				continue
+			}
+
+			if !dara.IsNil(credentialModel.ProviderName) {
+				request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 			}
 
 			credentialType := dara.StringValue(credentialModel.Type)
@@ -856,6 +863,10 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				continue
 			}
 
+			if !dara.IsNil(credentialModel.ProviderName) {
+				request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
+			}
+
 			credentialType := dara.StringValue(credentialModel.Type)
 			if credentialType == "bearer" {
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
@@ -1047,6 +1058,10 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				}
 				_resultErr = _err
 				continue
+			}
+
+			if !dara.IsNil(credentialModel.ProviderName) {
+				request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 			}
 
 			credentialType := dara.StringValue(credentialModel.Type)
@@ -1291,6 +1306,10 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 				}
 				_resultErr = _err
 				continue
+			}
+
+			if !dara.IsNil(credentialModel.ProviderName) {
+				request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
 			}
 
 			authType := dara.StringValue(credentialModel.Type)
@@ -1729,6 +1748,10 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 				continue
 			}
 
+			if !dara.IsNil(credentialModel.ProviderName) {
+				request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName
+			}
+
 			authType := dara.StringValue(credentialModel.Type)
 			if authType == "bearer" {
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
@@ -1789,29 +1812,39 @@ func (client *Client) CallApi(params *openapiutil.Params, request *openapiutil.O
 		return _result, _err
 	}
 
-	if dara.IsNil(client.SignatureAlgorithm) || dara.StringValue(client.SignatureAlgorithm) != "v2" {
-		_body, _err := client.DoRequest(params, request, runtime)
-		if _err != nil {
+	if dara.IsNil(client.SignatureVersion) || dara.StringValue(client.SignatureVersion) != "v4" {
+		if dara.IsNil(client.SignatureAlgorithm) || dara.StringValue(client.SignatureAlgorithm) != "v2" {
+			_body, _err := client.DoRequest(params, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else if (dara.StringValue(params.Style) == "ROA") && (dara.StringValue(params.ReqBodyType) == "json") {
+			_body, _err := client.DoROARequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else if dara.StringValue(params.Style) == "ROA" {
+			_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
+			return _result, _err
+		} else {
+			_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+			if _err != nil {
+				return _result, _err
+			}
+			_result = _body
 			return _result, _err
 		}
-		_result = _body
-		return _result, _err
-	} else if (dara.StringValue(params.Style) == "ROA") && (dara.StringValue(params.ReqBodyType) == "json") {
-		_body, _err := client.DoROARequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
-		if _err != nil {
-			return _result, _err
-		}
-		_result = _body
-		return _result, _err
-	} else if dara.StringValue(params.Style) == "ROA" {
-		_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
-		if _err != nil {
-			return _result, _err
-		}
-		_result = _body
-		return _result, _err
+
 	} else {
-		_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+		_body, _err := client.Execute(params, request, runtime)
 		if _err != nil {
 			return _result, _err
 		}
