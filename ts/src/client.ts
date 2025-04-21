@@ -1,104 +1,17 @@
 // This file is auto-generated, don't edit it
-/**
- * @remarks
- * This is for OpenApi SDK
- */
+import * as $dara from '@darabonba/typescript';
 import OpenApiUtil, * as $OpenApiUtil from './utils';
 import Credential, * as $Credential from '@alicloud/credentials';
 import SPI, * as $SPI from '@alicloud/gateway-spi';
-import * as $dara from '@darabonba/typescript';
+
 
 export * as $OpenApiUtil from './utils';
 export { default as OpenApiUtil } from './utils';
 
-export class SSEResponse extends $dara.Model {
-  headers: { [key: string]: string };
-  /**
-   * @remarks
-   * HTTP Status Code
-   */
-  statusCode: number;
-  event: $dara.SSEEvent;
-  static names(): { [key: string]: string } {
-    return {
-      headers: 'headers',
-      statusCode: 'statusCode',
-      event: 'event',
-    };
-  }
-
-  static types(): { [key: string]: any } {
-    return {
-      headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
-      statusCode: 'number',
-      event: $dara.SSEEvent,
-    };
-  }
-
-  validate() {
-    if(this.headers) {
-      $dara.Model.validateMap(this.headers);
-    }
-    $dara.Model.validateRequired("headers", this.headers);
-    $dara.Model.validateRequired("statusCode", this.statusCode);
-    $dara.Model.validateRequired("event", this.event);
-    super.validate();
-  }
-
-  constructor(map?: { [key: string]: any }) {
-    super(map);
-  }
-}
-
-export class AlibabaCloudError extends $dara.ResponseError {
-  statusCode?: number;
-  code: string;
-  message: string;
-  description?: string;
-  requestId?: string;
-
-  constructor(map?: { [key: string]: any }) {
-    super(map);
-    this.name = "AlibabaCloudError";
-    Object.setPrototypeOf(this, AlibabaCloudError.prototype);
-    this.statusCode = map.statusCode;
-    this.code = map.code;
-    this.description = map.description;
-    this.requestId = map.requestId;
-  }
-}
-
-export class ClientError extends AlibabaCloudError {
-  accessDeniedDetail?: { [key: string]: any };
-
-  constructor(map?: { [key: string]: any }) {
-    super(map);
-    this.name = "ClientError";
-    Object.setPrototypeOf(this, ClientError.prototype);
-    this.accessDeniedDetail = map.accessDeniedDetail;
-  }
-}
-
-export class ServerError extends AlibabaCloudError {
-
-  constructor(map?: { [key: string]: any }) {
-    super(map);
-    this.name = "ServerError";
-    Object.setPrototypeOf(this, ServerError.prototype);
-  }
-}
-
-export class ThrottlingError extends AlibabaCloudError {
-  retryAfter?: number;
-
-  constructor(map?: { [key: string]: any }) {
-    super(map);
-    this.name = "ThrottlingError";
-    Object.setPrototypeOf(this, ThrottlingError.prototype);
-    this.retryAfter = map.retryAfter;
-  }
-}
-
+import * as $_error from './exceptions/error';
+export * from './exceptions/error';
+import * as $_model from './models/model';
+export * from './models/model';
 
 export default class Client {
   _endpoint: string;
@@ -142,7 +55,7 @@ export default class Client {
    */
   constructor(config: $OpenApiUtil.Config) {
     if ($dara.isNull(config)) {
-      throw new ClientError({
+      throw new $_error.ClientError({
         code: "ParameterMissing",
         message: "'config' can not be unset",
       });
@@ -322,7 +235,7 @@ export default class Client {
 
         if (authType != "Anonymous") {
           if ($dara.isNull(this._credential)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -373,7 +286,7 @@ export default class Client {
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
           if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
-            throw new ThrottlingError({
+            throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -383,7 +296,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -393,7 +306,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else {
-            throw new ServerError({
+            throw new $_error.ServerError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -557,7 +470,7 @@ export default class Client {
           ...request.headers,
         };
         if (!$dara.isNull(request.body)) {
-          request_.body = new $dara.BytesReadable(JSON.stringify(request.body));
+          request_.body = new $dara.BytesReadable(typeof request.body === "string" ? request.body : JSON.stringify(request.body));
           request_.headers["content-type"] = "application/json; charset=utf-8";
         }
 
@@ -574,7 +487,7 @@ export default class Client {
 
         if (authType != "Anonymous") {
           if ($dara.isNull(this._credential)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -622,7 +535,7 @@ export default class Client {
           requestId = requestId || err["requestid"];
           let code = err["Code"] || err["code"];
           if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
-            throw new ThrottlingError({
+            throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -632,7 +545,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -642,7 +555,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else {
-            throw new ServerError({
+            throw new $_error.ServerError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -824,7 +737,7 @@ export default class Client {
 
         if (authType != "Anonymous") {
           if ($dara.isNull(this._credential)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -871,7 +784,7 @@ export default class Client {
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
           if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
-            throw new ThrottlingError({
+            throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -881,7 +794,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -891,7 +804,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else {
-            throw new ServerError({
+            throw new $_error.ServerError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -1082,7 +995,7 @@ export default class Client {
               hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
               request_.body = new $dara.BytesReadable(byteObj);
             } else if (params.reqBodyType == "json") {
-              let jsonObj = JSON.stringify(request.body);
+              let jsonObj = typeof request.body === "string" ? request.body : JSON.stringify(request.body);
               hashedRequestPayload = OpenApiUtil.hash(Buffer.from(jsonObj, "utf8"), signatureAlgorithm);
               request_.body = new $dara.BytesReadable(jsonObj);
               request_.headers["content-type"] = "application/json; charset=utf-8";
@@ -1101,7 +1014,7 @@ export default class Client {
         request_.headers["x-acs-content-sha256"] = hashedRequestPayload.toString("hex");
         if (params.authType != "Anonymous") {
           if ($dara.isNull(this._credential)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               code: `InvalidCredentials`,
               message: `Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.`,
             });
@@ -1154,7 +1067,7 @@ export default class Client {
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
           if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
-            throw new ThrottlingError({
+            throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -1164,7 +1077,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else if ((response_.statusCode >= 400) && (response_.statusCode < 500)) {
-            throw new ClientError({
+            throw new $_error.ClientError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -1174,7 +1087,7 @@ export default class Client {
               requestId: `${requestId}`,
             });
           } else {
-            throw new ServerError({
+            throw new $_error.ServerError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
@@ -1409,7 +1322,7 @@ export default class Client {
     throw $dara.newUnretryableError(_context);
   }
 
-  async *callSSEApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): AsyncGenerator<SSEResponse, any, unknown> {
+  async *callSSEApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): AsyncGenerator<$_model.SSEResponse, any, unknown> {
     let _runtime: { [key: string]: any } = {
       key: runtime.key || this._key,
       cert: runtime.cert || this._cert,
@@ -1517,7 +1430,7 @@ export default class Client {
               hashedRequestPayload = OpenApiUtil.hash(byteObj, signatureAlgorithm);
               request_.body = new $dara.BytesReadable(byteObj);
             } else if (params.reqBodyType == "json") {
-              let jsonObj = JSON.stringify(request.body);
+              let jsonObj = typeof request.body === "string" ? request.body : JSON.stringify(request.body);
               hashedRequestPayload = OpenApiUtil.hash(Buffer.from(jsonObj, "utf8"), signatureAlgorithm);
               request_.body = new $dara.BytesReadable(jsonObj);
               request_.headers["content-type"] = "application/json; charset=utf-8";
@@ -1586,7 +1499,7 @@ export default class Client {
         let events = await $dara.Stream.readAsSSE(response_.body);
 
         for await (let event of events) {
-          yield new SSEResponse({
+          yield new $_model.SSEResponse({
             statusCode: response_.statusCode,
             headers: response_.headers,
             event: event,
@@ -1609,7 +1522,7 @@ export default class Client {
 
   async callApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     if ($dara.isNull(params)) {
-      throw new ClientError({
+      throw new $_error.ClientError({
         code: "ParameterMissing",
         message: "'params' can not be unset",
       });
@@ -1710,7 +1623,7 @@ export default class Client {
    */
   checkConfig(config: $OpenApiUtil.Config): void {
     if ($dara.isNull(this._endpointRule) && $dara.isNull(config.endpoint)) {
-      throw new ClientError({
+      throw new $_error.ClientError({
         code: "ParameterMissing",
         message: "'config.endpoint' can not be empty",
       });
