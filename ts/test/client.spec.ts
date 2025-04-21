@@ -656,7 +656,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["x-acs-accesskey-id"], "ak");
     assert.strictEqual(headers["x-acs-security-token"], "token");
     assert.ok(String(headers["authorization"]).startsWith("ACS3-HMAC-SHA256 Credential=ak," +
-      "SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;" +
+      "SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
       "x-acs-signature-nonce;x-acs-version,Signature="));
 
     let body = result["body"];
@@ -782,7 +782,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["x-acs-accesskey-id"], "ak");
     assert.strictEqual(headers["x-acs-security-token"], "token");
     assert.ok(String(headers["authorization"]).startsWith("ACS3-HMAC-SHA256 Credential=ak," +
-      "SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;" +
+      "SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
       "x-acs-signature-nonce;x-acs-version,Signature="));
 
     let body = result["body"];
