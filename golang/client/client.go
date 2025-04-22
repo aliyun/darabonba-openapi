@@ -3,8 +3,6 @@ package client
 
 import (
 	"encoding/hex"
-	"fmt"
-
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -12,375 +10,10 @@ import (
 	credential "github.com/aliyun/credentials-go/credentials"
 )
 
-// Description:
-//
-// This is for OpenApi SDK
 type Config = models.Config
 type GlobalParameters = models.GlobalParameters
 type Params = models.Params
 type OpenApiRequest = models.OpenApiRequest
-type iSSEResponse interface {
-	dara.Model
-	String() string
-	GoString() string
-	SetHeaders(v map[string]*string) *SSEResponse
-	GetHeaders() map[string]*string
-	SetStatusCode(v int) *SSEResponse
-	GetStatusCode() *int
-	SetEvent(v *dara.SSEEvent) *SSEResponse
-	GetEvent() *dara.SSEEvent
-}
-
-type SSEResponse struct {
-	Headers map[string]*string `json:"headers,omitempty" xml:"headers,omitempty" require:"true"`
-	// HTTP Status Code
-	StatusCode *int           `json:"statusCode,omitempty" xml:"statusCode,omitempty" require:"true"`
-	Event      *dara.SSEEvent `json:"event,omitempty" xml:"event,omitempty" require:"true"`
-}
-
-func (s SSEResponse) String() string {
-	return dara.Prettify(s)
-}
-
-func (s SSEResponse) GoString() string {
-	return s.String()
-}
-
-func (s *SSEResponse) GetHeaders() map[string]*string {
-	return s.Headers
-}
-
-func (s *SSEResponse) GetStatusCode() *int {
-	return s.StatusCode
-}
-
-func (s *SSEResponse) GetEvent() *dara.SSEEvent {
-	return s.Event
-}
-
-func (s *SSEResponse) SetHeaders(v map[string]*string) *SSEResponse {
-	s.Headers = v
-	return s
-}
-
-func (s *SSEResponse) SetStatusCode(v int) *SSEResponse {
-	s.StatusCode = &v
-	return s
-}
-
-func (s *SSEResponse) SetEvent(v *dara.SSEEvent) *SSEResponse {
-	s.Event = v
-	return s
-}
-
-func (s *SSEResponse) Validate() error {
-	return dara.Validate(s)
-}
-
-type iAlibabaCloudError interface {
-	Error() string
-	GetRetryAfter() *int64
-	GetData() map[string]interface{}
-	GetAccessDeniedDetail() map[string]interface{}
-	GetName() *string
-	GetStack() *string
-	GetStatusCode() *int
-	GetCode() *string
-	GetMessage() *string
-	GetDescription() *string
-	GetRequestId() *string
-}
-
-type AlibabaCloudError struct {
-	RetryAfter         *int64                 ``
-	Data               map[string]interface{} ``
-	AccessDeniedDetail map[string]interface{} ``
-	Name               *string                ``
-	Stack              *string                ``
-	StatusCode         *int                   ``
-	Code               *string                ``
-	Message            *string                ``
-	Description        *string                ``
-	RequestId          *string                ``
-}
-
-func (err AlibabaCloudError) Error() string {
-	if err.Message == nil {
-		str := fmt.Sprintf("AlibabaCloudError:\n   Name: %s\n   Code: %s\n",
-			dara.StringValue(err.Name), dara.StringValue(err.Code))
-		err.Message = dara.String(str)
-	}
-	return dara.StringValue(err.Message)
-}
-
-func (s *AlibabaCloudError) GetRetryAfter() *int64 {
-	return s.RetryAfter
-}
-
-func (s *AlibabaCloudError) GetData() map[string]interface{} {
-	return s.Data
-}
-
-func (s *AlibabaCloudError) GetAccessDeniedDetail() map[string]interface{} {
-	return s.AccessDeniedDetail
-}
-
-func (s *AlibabaCloudError) GetName() *string {
-	return s.Name
-}
-
-func (s *AlibabaCloudError) GetStack() *string {
-	return s.Stack
-}
-
-func (s *AlibabaCloudError) GetStatusCode() *int {
-	return s.StatusCode
-}
-
-func (s *AlibabaCloudError) GetCode() *string {
-	return s.Code
-}
-
-func (s *AlibabaCloudError) GetMessage() *string {
-	return s.Message
-}
-
-func (s *AlibabaCloudError) GetDescription() *string {
-	return s.Description
-}
-
-func (s *AlibabaCloudError) GetRequestId() *string {
-	return s.RequestId
-}
-
-type iClientError interface {
-	Error() string
-	GetStatusCode() *int
-	GetCode() *string
-	GetMessage() *string
-	GetDescription() *string
-	GetRequestId() *string
-	GetRetryAfter() *int64
-	GetData() map[string]interface{}
-	GetName() *string
-	GetStack() *string
-	GetAccessDeniedDetail() map[string]interface{}
-}
-
-type ClientError struct {
-	StatusCode         *int                   ``
-	Code               *string                ``
-	Message            *string                ``
-	Description        *string                ``
-	RequestId          *string                ``
-	RetryAfter         *int64                 ``
-	Data               map[string]interface{} ``
-	Name               *string                ``
-	Stack              *string                ``
-	AccessDeniedDetail map[string]interface{} ``
-}
-
-func (err ClientError) Error() string {
-	if err.Message == nil {
-		str := fmt.Sprintf("ClientError:\n   Name: %s\n   Code: %s\n",
-			dara.StringValue(err.Name), dara.StringValue(err.Code))
-		err.Message = dara.String(str)
-	}
-	return dara.StringValue(err.Message)
-}
-
-func (s *ClientError) GetStatusCode() *int {
-	return s.StatusCode
-}
-
-func (s *ClientError) GetCode() *string {
-	return s.Code
-}
-
-func (s *ClientError) GetMessage() *string {
-	return s.Message
-}
-
-func (s *ClientError) GetDescription() *string {
-	return s.Description
-}
-
-func (s *ClientError) GetRequestId() *string {
-	return s.RequestId
-}
-
-func (s *ClientError) GetRetryAfter() *int64 {
-	return s.RetryAfter
-}
-
-func (s *ClientError) GetData() map[string]interface{} {
-	return s.Data
-}
-
-func (s *ClientError) GetName() *string {
-	return s.Name
-}
-
-func (s *ClientError) GetStack() *string {
-	return s.Stack
-}
-
-func (s *ClientError) GetAccessDeniedDetail() map[string]interface{} {
-	return s.AccessDeniedDetail
-}
-
-type iServerError interface {
-	Error() string
-	GetStatusCode() *int
-	GetCode() *string
-	GetMessage() *string
-	GetDescription() *string
-	GetRequestId() *string
-	GetRetryAfter() *int64
-	GetData() map[string]interface{}
-	GetAccessDeniedDetail() map[string]interface{}
-	GetName() *string
-	GetStack() *string
-}
-
-type ServerError struct {
-	StatusCode         *int                   ``
-	Code               *string                ``
-	Message            *string                ``
-	Description        *string                ``
-	RequestId          *string                ``
-	RetryAfter         *int64                 ``
-	Data               map[string]interface{} ``
-	AccessDeniedDetail map[string]interface{} ``
-	Name               *string                ``
-	Stack              *string                ``
-}
-
-func (err ServerError) Error() string {
-	if err.Message == nil {
-		str := fmt.Sprintf("ServerError:\n   Name: %s\n   Code: %s\n",
-			dara.StringValue(err.Name), dara.StringValue(err.Code))
-		err.Message = dara.String(str)
-	}
-	return dara.StringValue(err.Message)
-}
-
-func (s *ServerError) GetStatusCode() *int {
-	return s.StatusCode
-}
-
-func (s *ServerError) GetCode() *string {
-	return s.Code
-}
-
-func (s *ServerError) GetMessage() *string {
-	return s.Message
-}
-
-func (s *ServerError) GetDescription() *string {
-	return s.Description
-}
-
-func (s *ServerError) GetRequestId() *string {
-	return s.RequestId
-}
-
-func (s *ServerError) GetRetryAfter() *int64 {
-	return s.RetryAfter
-}
-
-func (s *ServerError) GetData() map[string]interface{} {
-	return s.Data
-}
-
-func (s *ServerError) GetAccessDeniedDetail() map[string]interface{} {
-	return s.AccessDeniedDetail
-}
-
-func (s *ServerError) GetName() *string {
-	return s.Name
-}
-
-func (s *ServerError) GetStack() *string {
-	return s.Stack
-}
-
-type iThrottlingError interface {
-	Error() string
-	GetStatusCode() *int
-	GetCode() *string
-	GetMessage() *string
-	GetDescription() *string
-	GetRequestId() *string
-	GetData() map[string]interface{}
-	GetAccessDeniedDetail() map[string]interface{}
-	GetName() *string
-	GetStack() *string
-	GetRetryAfter() *int64
-}
-
-type ThrottlingError struct {
-	StatusCode         *int                   ``
-	Code               *string                ``
-	Message            *string                ``
-	Description        *string                ``
-	RequestId          *string                ``
-	Data               map[string]interface{} ``
-	AccessDeniedDetail map[string]interface{} ``
-	Name               *string                ``
-	Stack              *string                ``
-	RetryAfter         *int64                 ``
-}
-
-func (err ThrottlingError) Error() string {
-	if err.Message == nil {
-		str := fmt.Sprintf("ThrottlingError:\n   Name: %s\n   Code: %s\n",
-			dara.StringValue(err.Name), dara.StringValue(err.Code))
-		err.Message = dara.String(str)
-	}
-	return dara.StringValue(err.Message)
-}
-
-func (s *ThrottlingError) GetStatusCode() *int {
-	return s.StatusCode
-}
-
-func (s *ThrottlingError) GetCode() *string {
-	return s.Code
-}
-
-func (s *ThrottlingError) GetMessage() *string {
-	return s.Message
-}
-
-func (s *ThrottlingError) GetDescription() *string {
-	return s.Description
-}
-
-func (s *ThrottlingError) GetRequestId() *string {
-	return s.RequestId
-}
-
-func (s *ThrottlingError) GetData() map[string]interface{} {
-	return s.Data
-}
-
-func (s *ThrottlingError) GetAccessDeniedDetail() map[string]interface{} {
-	return s.AccessDeniedDetail
-}
-
-func (s *ThrottlingError) GetName() *string {
-	return s.Name
-}
-
-func (s *ThrottlingError) GetStack() *string {
-	return s.Stack
-}
-
-func (s *ThrottlingError) GetRetryAfter() *int64 {
-	return s.RetryAfter
-}
-
 type Client struct {
 	DisableSDKError      *bool
 	Endpoint             *string
@@ -415,6 +48,7 @@ type Client struct {
 	DisableHttp2         *bool
 	RetryOptions         *dara.RetryOptions
 	HttpClient           dara.HttpClient
+	TlsMinVersion        *string
 }
 
 // Description:
@@ -494,6 +128,7 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 	client.DisableHttp2 = config.DisableHttp2
 	client.RetryOptions = config.RetryOptions
 	client.HttpClient = config.HttpClient
+	client.TlsMinVersion = config.TlsMinVersion
 	return nil
 }
 
@@ -534,6 +169,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
@@ -764,6 +400,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
@@ -960,6 +597,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
@@ -1155,6 +793,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
@@ -1406,8 +1045,9 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
-		"disableHttp2":   dara.ForceBoolean(dara.Default(dara.BoolValue(client.DisableHttp2), false)),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
+		"disableHttp2":   dara.ForceBoolean(dara.Default(dara.BoolValue(client.DisableHttp2), false)),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
@@ -1607,6 +1247,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext
