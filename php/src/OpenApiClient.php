@@ -949,15 +949,8 @@ class OpenApiClient
                 $_lastRequest = $_request;
                 $_response = Tea::send($_request, $_runtime);
                 if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-                    $err = [];
-                    if (!Utils::isUnset(@$_response->headers["content-type"]) && Utils::equalString(@$_response->headers["content-type"], "text/xml;charset=utf-8")) {
-                        $_str = Utils::readAsString($_response->body);
-                        $respMap = XML::parseXml($_str, null);
-                        $err = Utils::assertAsMap(@$respMap["Error"]);
-                    } else {
-                        $_res = Utils::readAsJSON($_response->body);
-                        $err = Utils::assertAsMap($_res);
-                    }
+                    $_res = Utils::readAsJSON($_response->body);
+                    $err = Utils::assertAsMap($_res);
                     @$err["statusCode"] = $_response->statusCode;
                     throw new TeaError([
                         "code" => "" . (string) (self::defaultAny(@$err["Code"], @$err["code"])) . "",
