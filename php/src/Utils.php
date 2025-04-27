@@ -361,7 +361,7 @@ private static function getTimeLeft($rateLimit) {
    * @param string $style
    * @return string
    */
-  static public function arrayToStringWithSpecifiedStyle($array_, $prefix, $style)
+  static public function arrayToStringWithSpecifiedStyle($object, $prefix, $style)
   {
     if (null === $object) {
       return '';
