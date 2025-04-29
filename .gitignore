@@ -2,7 +2,6 @@ libraries
 .libraries.json
 ts/node_modules
 ts/dist
-go.sum
 .DS_Store
 
 .classpath
