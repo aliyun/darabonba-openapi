@@ -70,11 +70,11 @@ class Utils {
    * @param endpointType - value must be internal or accelerate
    * @returns the final endpoint
    * @param string $endpoint
-   * @param boolean $serverUse
+   * @param boolean $useAccelerate
    * @param string $endpointType
    * @return string
    */
-  static public function getEndpoint($endpoint, $serverUse, $endpointType)
+  static public function getEndpoint($endpoint, $useAccelerate, $endpointType)
   {
     if ('internal' == $endpointType) {
       $tmp      = explode('.', $endpoint);
