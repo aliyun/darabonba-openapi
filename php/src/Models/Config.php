@@ -133,6 +133,10 @@ class Config extends Model {
    */
   public $disableHttp2;
   /**
+   * @var string
+   */
+  public $tlsMinVersion;
+  /**
    * @var RetryOptions
    */
   public $retryOptions;
@@ -167,6 +171,7 @@ class Config extends Model {
       'cert' => 'cert',
       'ca' => 'ca',
       'disableHttp2' => 'disableHttp2',
+      'tlsMinVersion' => 'tlsMinVersion',
       'retryOptions' => 'retryOptions',
   ];
 
@@ -304,6 +309,10 @@ class Config extends Model {
       $res['disableHttp2'] = $this->disableHttp2;
     }
 
+    if (null !== $this->tlsMinVersion) {
+      $res['tlsMinVersion'] = $this->tlsMinVersion;
+    }
+
     if (null !== $this->retryOptions) {
       $res['retryOptions'] = null !== $this->retryOptions ? $this->retryOptions->toArray($noStream) : $this->retryOptions;
     }
@@ -437,6 +446,10 @@ class Config extends Model {
 
     if (isset($map['disableHttp2'])) {
       $model->disableHttp2 = $map['disableHttp2'];
+    }
+
+    if (isset($map['tlsMinVersion'])) {
+      $model->tlsMinVersion = $map['tlsMinVersion'];
     }
 
     if (isset($map['retryOptions'])) {

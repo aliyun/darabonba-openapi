@@ -269,6 +269,7 @@ export class Config extends $tea.Model {
    * false
    */
   disableHttp2?: boolean;
+  tlsMinVersion?: string; 
   /**
    * @remarks
    * retry options
@@ -306,6 +307,7 @@ export class Config extends $tea.Model {
       cert: 'cert',
       ca: 'ca',
       disableHttp2: 'disableHttp2',
+      tlsMinVersion: 'tlsMinVersion',
       retryOptions: 'retryOptions',
     };
   }
@@ -342,6 +344,7 @@ export class Config extends $tea.Model {
       cert: 'string',
       ca: 'string',
       disableHttp2: 'boolean',
+      tlsMinVersion: 'string',
       retryOptions: $dara.RetryOptions,
     };
   }
