@@ -1,7 +1,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "AlibabacloudOpenApi"
-  spec.version      = "1.0.7"
+  spec.version      = "1.0.8"
   spec.license      = "Apache 2.0"
   spec.summary      = "Alibaba Cloud openapi SDK Library for Swift(5.6)"
   spec.homepage     = "https://github.com/alibabacloud-sdk-swift/darabonba-openapi" 
