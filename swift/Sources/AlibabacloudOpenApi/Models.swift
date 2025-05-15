@@ -34,12 +34,13 @@ public class GlobalParameters : Tea.TeaModel {
         return map
     }
 
-    public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("headers") {
-            self.headers = dict["headers"] as! [String: String]
+    public override func fromMap(_ dict: [String: Any?]?) -> Void {
+        guard let dict else { return }
+        if let value = dict["headers"] as? [String: String] {
+            self.headers = value
         }
-        if dict.keys.contains("queries") {
-            self.queries = dict["queries"] as! [String: String]
+        if let value = dict["queries"] as? [String: String] {
+            self.queries = value
         }
     }
 }
@@ -104,6 +105,8 @@ public class Config : Tea.TeaModel {
     public var ca: String?
 
     public var disableHttp2: Bool?
+
+    public var tlsMinVersion: String?
 
     public override init() {
         super.init()
@@ -210,101 +213,108 @@ public class Config : Tea.TeaModel {
         if self.disableHttp2 != nil {
             map["disableHttp2"] = self.disableHttp2!
         }
+        if self.tlsMinVersion != nil {
+            map["tlsMinVersion"] = self.tlsMinVersion!
+        }
         return map
     }
 
-    public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("accessKeyId") {
-            self.accessKeyId = dict["accessKeyId"] as! String
+    public override func fromMap(_ dict: [String: Any?]?) -> Void {
+        guard let dict else { return }
+        if let value = dict["accessKeyId"] as? String {
+            self.accessKeyId = value
         }
-        if dict.keys.contains("accessKeySecret") {
-            self.accessKeySecret = dict["accessKeySecret"] as! String
+        if let value = dict["accessKeySecret"] as? String {
+            self.accessKeySecret = value
         }
-        if dict.keys.contains("securityToken") {
-            self.securityToken = dict["securityToken"] as! String
+        if let value = dict["securityToken"] as? String {
+            self.securityToken = value
         }
-        if dict.keys.contains("bearerToken") {
-            self.bearerToken = dict["bearerToken"] as! String
+        if let value = dict["bearerToken"] as? String {
+            self.bearerToken = value
         }
-        if dict.keys.contains("protocol") {
-            self.protocol_ = dict["protocol"] as! String
+        if let value = dict["protocol"] as? String {
+            self.protocol_ = value
         }
-        if dict.keys.contains("method") {
-            self.method = dict["method"] as! String
+        if let value = dict["method"] as? String {
+            self.method = value
         }
-        if dict.keys.contains("regionId") {
-            self.regionId = dict["regionId"] as! String
+        if let value = dict["regionId"] as? String {
+            self.regionId = value
         }
-        if dict.keys.contains("readTimeout") {
-            self.readTimeout = dict["readTimeout"] as! Int
+        if let value = dict["readTimeout"] as? Int {
+            self.readTimeout = value
         }
-        if dict.keys.contains("connectTimeout") {
-            self.connectTimeout = dict["connectTimeout"] as! Int
+        if let value = dict["connectTimeout"] as? Int {
+            self.connectTimeout = value
         }
-        if dict.keys.contains("httpProxy") {
-            self.httpProxy = dict["httpProxy"] as! String
+        if let value = dict["httpProxy"] as? String {
+            self.httpProxy = value
         }
-        if dict.keys.contains("httpsProxy") {
-            self.httpsProxy = dict["httpsProxy"] as! String
+        if let value = dict["httpsProxy"] as? String {
+            self.httpsProxy = value
         }
-        if dict.keys.contains("credential") {
-            self.credential = dict["credential"] as! AlibabaCloudCredentials.Client
+        if let value = dict["credential"] as? AlibabaCloudCredentials.Client {
+            self.credential = value
         }
-        if dict.keys.contains("endpoint") {
-            self.endpoint = dict["endpoint"] as! String
+        if let value = dict["endpoint"] as? String {
+            self.endpoint = value
         }
-        if dict.keys.contains("noProxy") {
-            self.noProxy = dict["noProxy"] as! String
+        if let value = dict["noProxy"] as? String {
+            self.noProxy = value
         }
-        if dict.keys.contains("maxIdleConns") {
-            self.maxIdleConns = dict["maxIdleConns"] as! Int
+        if let value = dict["maxIdleConns"] as? Int {
+            self.maxIdleConns = value
         }
-        if dict.keys.contains("network") {
-            self.network = dict["network"] as! String
+        if let value = dict["network"] as? String {
+            self.network = value
         }
-        if dict.keys.contains("userAgent") {
-            self.userAgent = dict["userAgent"] as! String
+        if let value = dict["userAgent"] as? String {
+            self.userAgent = value
         }
-        if dict.keys.contains("suffix") {
-            self.suffix = dict["suffix"] as! String
+        if let value = dict["suffix"] as? String {
+            self.suffix = value
         }
-        if dict.keys.contains("socks5Proxy") {
-            self.socks5Proxy = dict["socks5Proxy"] as! String
+        if let value = dict["socks5Proxy"] as? String {
+            self.socks5Proxy = value
         }
-        if dict.keys.contains("socks5NetWork") {
-            self.socks5NetWork = dict["socks5NetWork"] as! String
+        if let value = dict["socks5NetWork"] as? String {
+            self.socks5NetWork = value
         }
-        if dict.keys.contains("endpointType") {
-            self.endpointType = dict["endpointType"] as! String
+        if let value = dict["endpointType"] as? String {
+            self.endpointType = value
         }
-        if dict.keys.contains("openPlatformEndpoint") {
-            self.openPlatformEndpoint = dict["openPlatformEndpoint"] as! String
+        if let value = dict["openPlatformEndpoint"] as? String {
+            self.openPlatformEndpoint = value
         }
-        if dict.keys.contains("type") {
-            self.type = dict["type"] as! String
+        if let value = dict["type"] as? String {
+            self.type = value
         }
-        if dict.keys.contains("signatureVersion") {
-            self.signatureVersion = dict["signatureVersion"] as! String
+        if let value = dict["signatureVersion"] as? String {
+            self.signatureVersion = value
         }
-        if dict.keys.contains("signatureAlgorithm") {
-            self.signatureAlgorithm = dict["signatureAlgorithm"] as! String
+        if let value = dict["signatureAlgorithm"] as? String {
+            self.signatureAlgorithm = value
         }
-        if dict.keys.contains("globalParameters") {
+        if let value = dict["globalParameters"] as? [String: Any?] {
             var model = GlobalParameters()
-            model.fromMap(dict["globalParameters"] as! [String: Any])
+            model.fromMap(value)
             self.globalParameters = model
         }
-        if dict.keys.contains("key") {
-            self.key = dict["key"] as! String
+        if let value = dict["key"] as? String {
+            self.key = value
         }
-        if dict.keys.contains("cert") {
-            self.cert = dict["cert"] as! String
+        if let value = dict["cert"] as? String {
+            self.cert = value
         }
-        if dict.keys.contains("ca") {
-            self.ca = dict["ca"] as! String
+        if let value = dict["ca"] as? String {
+            self.ca = value
         }
-        if dict.keys.contains("disableHttp2") {
-            self.disableHttp2 = dict["disableHttp2"] as! Bool
+        if let value = dict["disableHttp2"] as? Bool {
+            self.disableHttp2 = value
+        }
+        if let value = dict["tlsMinVersion"] as? String {
+            self.tlsMinVersion = value
         }
     }
 }
@@ -357,24 +367,25 @@ public class OpenApiRequest : Tea.TeaModel {
         return map
     }
 
-    public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("headers") {
-            self.headers = dict["headers"] as! [String: String]
+    public override func fromMap(_ dict: [String: Any?]?) -> Void {
+        guard let dict else { return }
+        if let value = dict["headers"] as? [String: String] {
+            self.headers = value
         }
-        if dict.keys.contains("query") {
-            self.query = dict["query"] as! [String: String]
+        if let value = dict["query"] as? [String: String] {
+            self.query = value
         }
-        if dict.keys.contains("body") {
-            self.body = dict["body"] as! Any
+        if let value = dict["body"] as? Any {
+            self.body = value
         }
-        if dict.keys.contains("stream") {
-            self.stream = dict["stream"] as! InputStream
+        if let value = dict["stream"] as? InputStream {
+            self.stream = value
         }
-        if dict.keys.contains("hostMap") {
-            self.hostMap = dict["hostMap"] as! [String: String]
+        if let value = dict["hostMap"] as? [String: String] {
+            self.hostMap = value
         }
-        if dict.keys.contains("endpointOverride") {
-            self.endpointOverride = dict["endpointOverride"] as! String
+        if let value = dict["endpointOverride"] as? String {
+            self.endpointOverride = value
         }
     }
 }
@@ -450,33 +461,34 @@ public class Params : Tea.TeaModel {
         return map
     }
 
-    public override func fromMap(_ dict: [String: Any]) -> Void {
-        if dict.keys.contains("action") {
-            self.action = dict["action"] as! String
+    public override func fromMap(_ dict: [String: Any?]?) -> Void {
+        guard let dict else { return }
+        if let value = dict["action"] as? String {
+            self.action = value
         }
-        if dict.keys.contains("version") {
-            self.version = dict["version"] as! String
+        if let value = dict["version"] as? String {
+            self.version = value
         }
-        if dict.keys.contains("protocol") {
-            self.protocol_ = dict["protocol"] as! String
+        if let value = dict["protocol"] as? String {
+            self.protocol_ = value
         }
-        if dict.keys.contains("pathname") {
-            self.pathname = dict["pathname"] as! String
+        if let value = dict["pathname"] as? String {
+            self.pathname = value
         }
-        if dict.keys.contains("method") {
-            self.method = dict["method"] as! String
+        if let value = dict["method"] as? String {
+            self.method = value
         }
-        if dict.keys.contains("authType") {
-            self.authType = dict["authType"] as! String
+        if let value = dict["authType"] as? String {
+            self.authType = value
         }
-        if dict.keys.contains("bodyType") {
-            self.bodyType = dict["bodyType"] as! String
+        if let value = dict["bodyType"] as? String {
+            self.bodyType = value
         }
-        if dict.keys.contains("reqBodyType") {
-            self.reqBodyType = dict["reqBodyType"] as! String
+        if let value = dict["reqBodyType"] as? String {
+            self.reqBodyType = value
         }
-        if dict.keys.contains("style") {
-            self.style = dict["style"] as! String
+        if let value = dict["style"] as? String {
+            self.style = value
         }
     }
 }
