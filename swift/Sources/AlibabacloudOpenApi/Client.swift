@@ -67,6 +67,8 @@ open class Client {
 
     public var _disableHttp2: Bool?
 
+    public var _tlsMinVersion: String?
+
     public init(_ config: Config) throws {
         if (TeaUtils.Client.isUnset(config)) {
             throw Tea.ReuqestError([
@@ -122,6 +124,7 @@ open class Client {
         self._cert = config.cert
         self._ca = config.ca
         self._disableHttp2 = config.disableHttp2
+        self._tlsMinVersion = config.tlsMinVersion
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -142,14 +145,15 @@ open class Client {
             "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
             "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
             "retry": [
-                "retryable": runtime.autoretry!,
+                "retryable": Client.defaultAny(runtime.autoretry, false),
                 "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
             ],
             "backoff": [
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -204,7 +208,7 @@ open class Client {
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
-                    ], globalHeaders, extendsHeaders)
+                    ], globalHeaders, extendsHeaders, request.headers ?? [:])
                 }
                 else {
                     _request.headers = Tea.TeaConverter.merge([
@@ -212,7 +216,7 @@ open class Client {
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
-                    ], globalHeaders, extendsHeaders, headers)
+                    ], globalHeaders, extendsHeaders, request.headers ?? [:], headers)
                 }
                 if (!TeaUtils.Client.isUnset(request.body)) {
                     var m: [String: Any] = try TeaUtils.Client.assertAsMap(request.body)
@@ -350,7 +354,8 @@ open class Client {
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -540,7 +545,8 @@ open class Client {
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -730,7 +736,8 @@ open class Client {
                 "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
-            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false)
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -957,7 +964,8 @@ open class Client {
                 "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
             ],
             "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
-            "disableHttp2": Client.defaultAny(self._disableHttp2, false)
+            "disableHttp2": Client.defaultAny(self._disableHttp2, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
         var _lastRequest: Tea.TeaRequest? = nil
         var _lastException: Tea.TeaError? = nil
@@ -1073,17 +1081,22 @@ open class Client {
                 "message": "'params' can not be unset"
             ])
         }
-        if (TeaUtils.Client.isUnset(self._signatureAlgorithm) || !TeaUtils.Client.equalString(self._signatureAlgorithm, "v2")) {
-            return try await doRequest(params as! Params, request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
-        }
-        else if (TeaUtils.Client.equalString(params.style, "ROA") && TeaUtils.Client.equalString(params.reqBodyType, "json")) {
-            return try await doROARequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
-        }
-        else if (TeaUtils.Client.equalString(params.style, "ROA")) {
-            return try await doROARequestWithForm(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+        if (TeaUtils.Client.isUnset(self._signatureVersion) || !TeaUtils.Client.equalString(self._signatureVersion, "v4")) {
+            if (TeaUtils.Client.isUnset(self._signatureAlgorithm) || !TeaUtils.Client.equalString(self._signatureAlgorithm, "v2")) {
+                return try await doRequest(params as! Params, request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+            }
+            else if (TeaUtils.Client.equalString(params.style, "ROA") && TeaUtils.Client.equalString(params.reqBodyType, "json")) {
+                return try await doROARequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+            }
+            else if (TeaUtils.Client.equalString(params.style, "ROA")) {
+                return try await doROARequestWithForm(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.pathname ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+            }
+            else {
+                return try await doRPCRequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+            }
         }
         else {
-            return try await doRPCRequest(params.action ?? "", params.version ?? "", params.protocol_ ?? "", params.method ?? "", params.authType ?? "", params.bodyType ?? "", request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
+            return try await execute(params as! Params, request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
     }
 
