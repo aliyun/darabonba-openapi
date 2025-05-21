@@ -1064,10 +1064,9 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
     network = @network,
     suffix = @suffix
   };
-  var interceptorContext =  new SPI.InterceptorContext{
-    request = requestContext,
-    configuration = configurationContext
-  };
+  var interceptorContext =  new SPI.InterceptorContext{};
+  interceptorContext.request = requestContext;
+  interceptorContext.configuration = configurationContext;
   var attributeMap = new SPI.AttributeMap{};
 
   // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

@@ -1218,10 +1218,9 @@ public class Client {
                     new TeaPair("network", _network),
                     new TeaPair("suffix", _suffix)
                 ));
-                com.aliyun.gateway.spi.models.InterceptorContext interceptorContext = com.aliyun.gateway.spi.models.InterceptorContext.build(TeaConverter.buildMap(
-                    new TeaPair("request", requestContext),
-                    new TeaPair("configuration", configurationContext)
-                ));
+                com.aliyun.gateway.spi.models.InterceptorContext interceptorContext = new com.aliyun.gateway.spi.models.InterceptorContext();
+                interceptorContext.request = requestContext;
+                interceptorContext.configuration = configurationContext;
                 com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 _spi.modifyConfiguration(interceptorContext, attributeMap);
