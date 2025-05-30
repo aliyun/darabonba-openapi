@@ -5,7 +5,7 @@ import asyncio
 import re
 import json
 import httpretty
-from Tea.exceptions import TeaException
+from darabonba.exceptions import TeaException
 from httpretty.core import HTTPrettyRequest
 from aioresponses import aioresponses
 
@@ -14,9 +14,9 @@ from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_tea_openapi.client import Client as OpenApiClient
-from alibabacloud_tea_util import models as util_models
-from alibabacloud_tea_util.client import Client as UtilClient
-from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
+from darabonba.runtime import ExtendsParameters 
+from darabonba.runtime import RuntimeOptions
+from alibabacloud_tea_openapi.utils import Utils as UtilClient
 
 
 class TestClient(unittest.TestCase):
@@ -184,8 +184,8 @@ class TestClient(unittest.TestCase):
     def create_anonymous_config(self) -> open_api_models.Config:
         return open_api_models.Config()
 
-    def create_runtime_options(self) -> util_models.RuntimeOptions:
-        extends_parameters = util_models.ExtendsParameters(
+    def create_runtime_options(self) -> RuntimeOptions:
+        extends_parameters = ExtendsParameters(
             headers={
                 'extends-key': 'extends-value'
             },
@@ -193,7 +193,7 @@ class TestClient(unittest.TestCase):
                 'extends-key': 'extends-value'
             }
         )
-        runtime = util_models.RuntimeOptions(
+        runtime = RuntimeOptions(
             read_timeout=4000,
             connect_timeout=4000,
             max_idle_conns=100,
@@ -220,8 +220,8 @@ class TestClient(unittest.TestCase):
         }
         req = open_api_models.OpenApiRequest(
             headers=headers,
-            query=OpenApiUtilClient.query(query),
-            body=OpenApiUtilClient.parse_to_map(body)
+            query=UtilClient.query(query),
+            body=UtilClient.parse_to_map(body)
         )
         return req
 
@@ -1974,7 +1974,7 @@ class TestClient(unittest.TestCase):
         body['key2'] = 1
         body['key3'] = True
         request = open_api_models.OpenApiRequest(
-            body=OpenApiUtilClient.parse_to_map(body)
+            body=UtilClient.parse_to_map(body)
         )
 
         def request_callback_1(request: HTTPrettyRequest, uri: str, headers: dict):
@@ -2012,14 +2012,14 @@ class TestClient(unittest.TestCase):
         # byte
         params.pathname = '/test3'
         params.req_body_type = 'byte'
-        byte_body = UtilClient.to_bytes('test byte')
+        byte_body = b'test byte'
         request = open_api_models.OpenApiRequest(
             body=byte_body
         )
 
         def request_callback_3(request: HTTPrettyRequest, uri: str, headers: dict):
             content_type = request.headers.get('content-type')
-            assert request.body == UtilClient.to_bytes('test byte'), 'unexpected body: {}'.format(request.body)
+            assert request.body == b'test byte', 'unexpected body: {}'.format(request.body)
             assert content_type is None, 'expected text/plain but received Content-Type: {}'.format(
                 content_type)
             return [200, headers, '{"AppId":"test", "ClassId":"test", "UserId":123}']
@@ -2074,7 +2074,7 @@ class TestClient(unittest.TestCase):
         body['key2'] = 1
         body['key3'] = True
         request = open_api_models.OpenApiRequest(
-            body=OpenApiUtilClient.parse_to_map(body)
+            body=UtilClient.parse_to_map(body)
         )
 
         def request_callback_1(url, **request):
@@ -2126,7 +2126,7 @@ class TestClient(unittest.TestCase):
         # byte
         params.pathname = '/test3'
         params.req_body_type = 'byte'
-        byte_body = UtilClient.to_bytes('test byte')
+        byte_body = b'test byte'
         request = open_api_models.OpenApiRequest(
             body=byte_body
         )
@@ -2134,7 +2134,7 @@ class TestClient(unittest.TestCase):
         def request_callback_3(url, **request):
             assert 'http://test.aliyuncs.com/test3?extends-key=extends-value&global-query=global-value' == str(url)
             content_type = request['headers'].get('content-type')
-            assert request['data'] == UtilClient.to_bytes('test byte'), 'unexpected body: {}'.format(request['data'])
+            assert request['data'] == b'test byte', 'unexpected body: {}'.format(request['data'])
             assert content_type is None, 'expected text/plain but received Content-Type: {}'.format(
                 content_type)
 

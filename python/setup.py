@@ -38,8 +38,9 @@ URL = "https://github.com/"
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
     "darabonba-core>=1.0.0, <2.0.0",
-    "alibabacloud_credentials>=0.3.6",
-    "alibabacloud_gateway_spi>=0.0.2, <1.0.0"
+    "alibabacloud_credentials>=1.0.2, <2.0.0",
+    "alibabacloud_gateway_spi>=0.0.2, <1.0.0",
+    "cryptography>=3.0.0, <45.0.0",
 ]
 
 LONG_DESCRIPTION = ''

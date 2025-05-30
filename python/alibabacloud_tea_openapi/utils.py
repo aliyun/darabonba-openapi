@@ -20,8 +20,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from urllib.parse import quote_plus, quote
-from alibabacloud_tea_util.client import Client as Util
 from darabonba.utils.stream import STREAM_CLASS
+from darabonba.utils.form import Form
+from darabonba.core import DaraCore
 from datetime import datetime
 from typing import Any, Dict, List
 from .sm3 import hash_sm3, Sm3
@@ -229,6 +230,15 @@ class Utils(object):
                 out[key] = str(value)
 
     @staticmethod
+    def anyify_map_value(
+        m: Dict[str, str],
+    ) -> Dict[str, Any]:
+        """
+        Anyify the value of map
+        @return: the new anyfied map
+        """
+        return m
+    @staticmethod
     def to_form(filter):
         """
         Parse filter into a form string
@@ -241,9 +251,7 @@ class Utils(object):
         result = {}
         if filter:
             Utils._object_handler('', filter, result)
-        return Util.to_form_string(
-            Util.anyify_map_value(result)
-        )
+        return Form.to_form_string(result)
 
     @staticmethod
     def get_timestamp():
@@ -333,7 +341,7 @@ class Utils(object):
         elif style == 'pipeDelimited':
             return '|'.join(map(str, array))
         elif style == 'json':
-            return Util.to_jsonstring(Utils._parse_to_dict(array))
+            return DaraCore.to_json_string(Utils._parse_to_dict(array))
         else:
             return ''
 
