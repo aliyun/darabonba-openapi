@@ -158,7 +158,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -222,7 +222,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -494,7 +494,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -558,7 +558,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -833,7 +833,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -897,7 +897,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1149,7 +1149,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -1213,7 +1213,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1465,7 +1465,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -1529,7 +1529,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -1781,7 +1781,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -1845,7 +1845,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2094,7 +2094,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -2158,7 +2158,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2453,7 +2453,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -2517,7 +2517,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -2812,7 +2812,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -2876,7 +2876,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -3015,7 +3015,7 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
-        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
             {
@@ -3079,7 +3079,7 @@ namespace AlibabaCloud.OpenApiClient
                     Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
                     if (!runtime.ExtendsParameters.IsNull())
                     {
-                        Darabonba.Runtime.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                        Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
                         if (!extendsParameters.Headers.IsNull())
                         {
                             extendsHeaders = extendsParameters.Headers;
@@ -3185,7 +3185,7 @@ namespace AlibabaCloud.OpenApiClient
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
-        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             if (params_.IsNull())
             {
@@ -3220,7 +3220,7 @@ namespace AlibabaCloud.OpenApiClient
             }
         }
 
-        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, Darabonba.Runtime.RuntimeOptions runtime)
+        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             if (params_.IsNull())
             {
