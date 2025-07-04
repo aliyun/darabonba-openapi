@@ -523,6 +523,7 @@ type Client struct {
 	Ca                   *string
 	DisableHttp2         *bool
 	TlsMinVersion        *string
+	AttributeMap         *spi.AttributeMap
 }
 
 // Description:
@@ -1970,11 +1971,14 @@ func (client *Client) Execute(params *Params, request *OpenApiRequest, runtime *
 				Network:      client.Network,
 				Suffix:       client.Suffix,
 			}
-			interceptorContext := &spi.InterceptorContext{
-				Request:       requestContext,
-				Configuration: configurationContext,
-			}
+			interceptorContext := &spi.InterceptorContext{}
+			interceptorContext.Request = requestContext
+			interceptorContext.Configuration = configurationContext
 			attributeMap := &spi.AttributeMap{}
+			if !tea.BoolValue(util.IsUnset(client.AttributeMap)) {
+				attributeMap = client.AttributeMap
+			}
+
 			// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 			_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
 			if _err != nil {

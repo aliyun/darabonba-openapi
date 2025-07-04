@@ -43,6 +43,7 @@ public class Client {
     public String _ca;
     public Boolean _disableHttp2;
     public String _tlsMinVersion;
+    public com.aliyun.gateway.spi.models.AttributeMap _attributeMap;
     /**
      * <b>description</b> :
      * <p>Init client with Config</p>
@@ -1222,6 +1223,10 @@ public class Client {
                 interceptorContext.request = requestContext;
                 interceptorContext.configuration = configurationContext;
                 com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
+                if (!com.aliyun.teautil.Common.isUnset(_attributeMap)) {
+                    attributeMap = _attributeMap;
+                }
+
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 _spi.modifyConfiguration(interceptorContext, attributeMap);
                 // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

@@ -462,6 +462,7 @@ export default class Client {
   _ca: string;
   _disableHttp2: boolean;
   _tlsMinVersion: string;
+  _attributeMap: $SPI.AttributeMap;
 
   /**
    * @remarks
@@ -1619,11 +1620,14 @@ export default class Client {
           network: this._network,
           suffix: this._suffix,
         });
-        let interceptorContext = new $SPI.InterceptorContext({
-          request: requestContext,
-          configuration: configurationContext,
-        });
+        let interceptorContext = new $SPI.InterceptorContext({ });
+        interceptorContext.request = requestContext;
+        interceptorContext.configuration = configurationContext;
         let attributeMap = new $SPI.AttributeMap({ });
+        if (!Util.isUnset(this._attributeMap)) {
+          attributeMap = this._attributeMap;
+        }
+
         // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         await this._spi.modifyConfiguration(interceptorContext, attributeMap);
         // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

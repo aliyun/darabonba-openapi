@@ -39,6 +39,7 @@ type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
 type @tlsMinVersion = string
+type @attributeMap = SPI.AttributeMap
 
 model GlobalParameters {
   headers?: map[string]string,
@@ -1068,7 +1069,9 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   interceptorContext.request = requestContext;
   interceptorContext.configuration = configurationContext;
   var attributeMap = new SPI.AttributeMap{};
-
+  if (!Util.isUnset(@attributeMap)) {
+    attributeMap = @attributeMap;
+  }
   // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
   @spi.modifyConfiguration(interceptorContext, attributeMap);
 

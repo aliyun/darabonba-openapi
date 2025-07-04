@@ -46,6 +46,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _ca;
         protected bool? _disableHttp2;
         protected string _tlsMinVersion;
+        protected AlibabaCloud.GatewaySpi.Models.AttributeMap _attributeMap;
 
         /// <term><b>Description:</b></term>
         /// <description>
@@ -2748,12 +2749,14 @@ namespace AlibabaCloud.OpenApiClient
                         Network = _network,
                         Suffix = _suffix,
                     };
-                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext
-                    {
-                        Request = requestContext,
-                        Configuration = configurationContext,
-                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext();
+                    interceptorContext.Request = requestContext;
+                    interceptorContext.Configuration = configurationContext;
                     AlibabaCloud.GatewaySpi.Models.AttributeMap attributeMap = new AlibabaCloud.GatewaySpi.Models.AttributeMap();
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_attributeMap))
+                    {
+                        attributeMap = _attributeMap;
+                    }
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     this._spi.ModifyConfiguration(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2954,12 +2957,14 @@ namespace AlibabaCloud.OpenApiClient
                         Network = _network,
                         Suffix = _suffix,
                     };
-                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext
-                    {
-                        Request = requestContext,
-                        Configuration = configurationContext,
-                    };
+                    AlibabaCloud.GatewaySpi.Models.InterceptorContext interceptorContext = new AlibabaCloud.GatewaySpi.Models.InterceptorContext();
+                    interceptorContext.Request = requestContext;
+                    interceptorContext.Configuration = configurationContext;
                     AlibabaCloud.GatewaySpi.Models.AttributeMap attributeMap = new AlibabaCloud.GatewaySpi.Models.AttributeMap();
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_attributeMap))
+                    {
+                        attributeMap = _attributeMap;
+                    }
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     await this._spi.ModifyConfigurationAsync(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
