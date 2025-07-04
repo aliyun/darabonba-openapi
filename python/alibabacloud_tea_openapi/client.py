@@ -10,12 +10,12 @@ from typing import Dict, Any
 from alibabacloud_credentials.client import Client as CredentialClient
 from alibabacloud_gateway_spi.client import Client as SPIClient
 from alibabacloud_tea_openapi import models as open_api_models
+from alibabacloud_gateway_spi import models as spi_models
 from alibabacloud_tea_util.client import Client as UtilClient
 from alibabacloud_credentials import models as credential_models
 from alibabacloud_tea_util import models as util_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
 from alibabacloud_tea_xml.client import Client as XMLClient
-from alibabacloud_gateway_spi import models as spi_models
 
 
 class Client:
@@ -53,6 +53,7 @@ class Client:
     _ca: str = None
     _disable_http_2: bool = None
     _tls_min_version: str = None
+    _attribute_map: spi_models.AttributeMap = None
 
     def __init__(
         self, 
@@ -1859,11 +1860,12 @@ class Client:
                     network=self._network,
                     suffix=self._suffix
                 )
-                interceptor_context = spi_models.InterceptorContext(
-                    request=request_context,
-                    configuration=configuration_context
-                )
+                interceptor_context = spi_models.InterceptorContext()
+                interceptor_context.request = request_context
+                interceptor_context.configuration = configuration_context
                 attribute_map = spi_models.AttributeMap()
+                if not UtilClient.is_unset(self._attribute_map):
+                    attribute_map = self._attribute_map
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 self._spi.modify_configuration(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2007,11 +2009,12 @@ class Client:
                     network=self._network,
                     suffix=self._suffix
                 )
-                interceptor_context = spi_models.InterceptorContext(
-                    request=request_context,
-                    configuration=configuration_context
-                )
+                interceptor_context = spi_models.InterceptorContext()
+                interceptor_context.request = request_context
+                interceptor_context.configuration = configuration_context
                 attribute_map = spi_models.AttributeMap()
+                if not UtilClient.is_unset(self._attribute_map):
+                    attribute_map = self._attribute_map
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 await self._spi.modify_configuration_async(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

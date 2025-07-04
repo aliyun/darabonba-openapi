@@ -90,6 +90,8 @@ class OpenApiClient
 
     protected $_tlsMinVersion;
 
+    protected $_attributeMap;
+
     /**
      * Init client with Config
      * @param config config contains the necessary information to create a client
@@ -1126,11 +1128,13 @@ class OpenApiClient
                     "network" => $this->_network,
                     "suffix" => $this->_suffix
                 ]);
-                $interceptorContext = new InterceptorContext([
-                    "request" => $requestContext,
-                    "configuration" => $configurationContext
-                ]);
+                $interceptorContext = new InterceptorContext([]);
+                $interceptorContext->request = $requestContext;
+                $interceptorContext->configuration = $configurationContext;
                 $attributeMap = new AttributeMap([]);
+                if (!Utils::isUnset($this->_attributeMap)) {
+                    $attributeMap = $this->_attributeMap;
+                }
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 $this->_spi->modifyConfiguration($interceptorContext, $attributeMap);
                 // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
