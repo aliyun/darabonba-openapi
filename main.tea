@@ -738,6 +738,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
 }
 
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   if ($isNull(params)) {
     throw new Client {
       code = 'ParameterMissing',
@@ -767,6 +768,7 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
  * @return the response
  */
 api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
   __request.pathname = params.pathname;
@@ -999,6 +1001,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
  * @return the response
  */
 api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
   var headers = getRpcHeaders();
   var globalQueries : map[string]string = {};
@@ -1120,6 +1123,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
 
 @sse(true)
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
+  params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
   __request.pathname = params.pathname;

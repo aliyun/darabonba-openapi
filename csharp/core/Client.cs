@@ -13,6 +13,7 @@ using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using System.Threading;
 using Aliyun.Credentials.Models;
+using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient
 {
@@ -2116,6 +2117,7 @@ namespace AlibabaCloud.OpenApiClient
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2472,6 +2474,7 @@ namespace AlibabaCloud.OpenApiClient
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2829,6 +2832,7 @@ namespace AlibabaCloud.OpenApiClient
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -3035,6 +3039,7 @@ namespace AlibabaCloud.OpenApiClient
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -3167,6 +3172,7 @@ namespace AlibabaCloud.OpenApiClient
 
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
+            params_.Validate();
             if (params_.IsNull())
             {
                 throw new ClientException
@@ -3195,6 +3201,7 @@ namespace AlibabaCloud.OpenApiClient
 
         public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
+            params_.Validate();
             if (params_.IsNull())
             {
                 throw new ClientException
