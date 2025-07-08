@@ -43,7 +43,7 @@ type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
 type @retryOptions = $RetryOptions
-
+type @attributeMap = SPI.AttributeMap
 
 model SSEResponse {
   headers: map[string]string,
@@ -1055,6 +1055,9 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
     configuration = configurationContext
   };
   var attributeMap = new SPI.AttributeMap{};
+  if (!$isNull(@attributeMap)) {
+    attributeMap = @attributeMap;
+  }
 
   // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
   @spi.modifyConfiguration(interceptorContext, attributeMap);
