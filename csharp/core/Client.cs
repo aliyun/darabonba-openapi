@@ -11,7 +11,6 @@ using SPIClient = AlibabaCloud.GatewaySpi.Client;
 using AlibabaCloud.OpenApiClient.Models;
 using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
-using System.Threading;
 using Aliyun.Credentials.Models;
 
 namespace AlibabaCloud.OpenApiClient
@@ -49,6 +48,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _ca;
         protected bool? _disableHttp2;
         protected Darabonba.RetryPolicy.RetryOptions _retryOptions;
+        protected string _tlsMinVersion;
         protected AttributeMap _attributeMap;
 
         /// <term><b>Description:</b></term>
@@ -125,6 +125,7 @@ namespace AlibabaCloud.OpenApiClient
             this._ca = config.Ca;
             this._disableHttp2 = config.DisableHttp2;
             this._retryOptions = config.RetryOptions;
+            this._tlsMinVersion = config.TlsMinVersion;
         }
 
         /// <term><b>Description:</b></term>
@@ -177,6 +178,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -196,7 +198,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Thread.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -261,7 +263,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
                             },
                             globalHeaders,
-                            extendsHeaders
+                            extendsHeaders,
+                            request.Headers
                         );
                     }
                     else
@@ -277,6 +280,7 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
@@ -298,6 +302,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -335,8 +343,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
@@ -354,6 +362,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -365,6 +374,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -377,6 +387,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -403,10 +414,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -508,6 +519,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -527,7 +539,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        await Task.Delay(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -592,7 +604,8 @@ namespace AlibabaCloud.OpenApiClient
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
                             },
                             globalHeaders,
-                            extendsHeaders
+                            extendsHeaders,
+                            request.Headers
                         );
                     }
                     else
@@ -608,6 +621,7 @@ namespace AlibabaCloud.OpenApiClient
                             },
                             globalHeaders,
                             extendsHeaders,
+                            request.Headers,
                             headers
                         );
                     }
@@ -629,6 +643,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -666,8 +684,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Query["Signature"] = Utils.GetRPCSignature(signedParam, request_.Method, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
@@ -685,6 +703,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -696,6 +715,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -708,6 +728,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -734,10 +755,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -842,6 +863,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -861,7 +883,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Thread.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -945,6 +967,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -971,8 +997,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
@@ -998,6 +1024,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1009,6 +1036,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1021,6 +1049,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1047,10 +1076,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -1155,6 +1184,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -1174,7 +1204,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        await Task.Delay(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -1258,6 +1288,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1284,8 +1318,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
@@ -1311,6 +1345,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1322,6 +1357,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1334,6 +1370,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1360,10 +1397,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -1468,6 +1505,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -1487,7 +1525,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Thread.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -1572,6 +1610,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1598,8 +1640,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
@@ -1624,6 +1666,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1635,6 +1678,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1647,6 +1691,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1673,10 +1718,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -1781,6 +1826,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -1800,7 +1846,7 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        await Task.Delay(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
@@ -1885,6 +1931,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string credentialType = credentialModel.Type;
                         if (credentialType == "bearer")
                         {
@@ -1911,8 +1961,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["authorization"] = "acs " + accessKeyId + ":" + Utils.GetROASignature(stringToSign, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if (response_.StatusCode == 204)
@@ -1937,6 +1987,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1948,6 +1999,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -1960,6 +2012,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -1986,10 +2039,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (bodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", _str},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -2091,6 +2144,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -2110,12 +2164,13 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Thread.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2230,6 +2285,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = this._credential.GetCredential();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (authType == "bearer")
                         {
@@ -2262,8 +2321,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
@@ -2291,6 +2350,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2302,6 +2362,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -2314,6 +2375,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2340,10 +2402,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string respStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", respStr},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -2447,6 +2509,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
             };
 
             Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
@@ -2466,12 +2529,13 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        await Task.Delay(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
                     request_.Method = params_.Method;
                     request_.Pathname = params_.Pathname;
@@ -2586,6 +2650,10 @@ namespace AlibabaCloud.OpenApiClient
                             };
                         }
                         CredentialModel credentialModel = await this._credential.GetCredentialAsync();
+                        if (!credentialModel.ProviderName.IsNull())
+                        {
+                            request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                        }
                         string authType = credentialModel.Type;
                         if (authType == "bearer")
                         {
@@ -2618,8 +2686,8 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
-                    _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
@@ -2647,6 +2715,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2658,6 +2727,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
                                 RequestId = "" + requestId,
                             };
@@ -2670,6 +2740,7 @@ namespace AlibabaCloud.OpenApiClient
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
+                                Data = err,
                                 RequestId = "" + requestId,
                             };
                         }
@@ -2696,10 +2767,10 @@ namespace AlibabaCloud.OpenApiClient
                     }
                     else if (params_.BodyType == "string")
                     {
-                        string str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                        string respStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
                         return new Dictionary<string, object>
                         {
-                            {"body", str},
+                            {"body", respStr},
                             {"headers", response_.Headers},
                             {"statusCode", response_.StatusCode},
                         };
@@ -2803,6 +2874,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
                 {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
             };
 
@@ -2823,12 +2895,13 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        Thread.Sleep(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -2922,8 +2995,8 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
-                    _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     InterceptorContext.InterceptorContextResponse responseContext = new InterceptorContext.InterceptorContextResponse
@@ -3009,6 +3082,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
                 {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
             };
 
@@ -3029,12 +3103,13 @@ namespace AlibabaCloud.OpenApiClient
                     int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
-                        await Task.Delay(backoffTime);
+                        Darabonba.Core.Sleep(backoffTime);
                     }
                 }
                 try
                 {
                     Darabonba.Request request_ = new Darabonba.Request();
+                    params_.Validate();
                     // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
                     Dictionary<string, string> headers = GetRpcHeaders();
                     Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
@@ -3128,8 +3203,8 @@ namespace AlibabaCloud.OpenApiClient
                     request_.Query = interceptorContext.Request.Query;
                     request_.Body = interceptorContext.Request.Stream;
                     request_.Headers = interceptorContext.Request.Headers;
-                    _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastRequest = request_;
                     _lastResponse = response_;
 
                     InterceptorContext.InterceptorContextResponse responseContext = new InterceptorContext.InterceptorContextResponse
@@ -3167,6 +3242,7 @@ namespace AlibabaCloud.OpenApiClient
 
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
+            params_.Validate();
             if (params_.IsNull())
             {
                 throw new ClientException
@@ -3175,26 +3251,34 @@ namespace AlibabaCloud.OpenApiClient
                     Message = "'params' can not be unset",
                 };
             }
-            if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+            if (_signatureVersion.IsNull() || _signatureVersion != "v4")
             {
-                return DoRequest(params_, request, runtime);
-            }
-            else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
-            {
-                return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (params_.Style == "ROA")
-            {
-                return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+                {
+                    return DoRequest(params_, request, runtime);
+                }
+                else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
+                {
+                    return DoROARequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (params_.Style == "ROA")
+                {
+                    return DoROARequestWithForm(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return DoRPCRequest(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return Execute(params_, request, runtime);
             }
         }
 
         public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
+            params_.Validate();
             if (params_.IsNull())
             {
                 throw new ClientException
@@ -3203,21 +3287,28 @@ namespace AlibabaCloud.OpenApiClient
                     Message = "'params' can not be unset",
                 };
             }
-            if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+            if (_signatureVersion.IsNull() || _signatureVersion != "v4")
             {
-                return await DoRequestAsync(params_, request, runtime);
-            }
-            else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
-            {
-                return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
-            }
-            else if (params_.Style == "ROA")
-            {
-                return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                if (_signatureAlgorithm.IsNull() || _signatureAlgorithm != "v2")
+                {
+                    return await DoRequestAsync(params_, request, runtime);
+                }
+                else if ((params_.Style == "ROA") && (params_.ReqBodyType == "json"))
+                {
+                    return await DoROARequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else if (params_.Style == "ROA")
+                {
+                    return await DoROARequestWithFormAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.Pathname, params_.BodyType, request, runtime);
+                }
+                else
+                {
+                    return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                }
             }
             else
             {
-                return await DoRPCRequestAsync(params_.Action, params_.Version, params_.Protocol, params_.Method, params_.AuthType, params_.BodyType, request, runtime);
+                return await ExecuteAsync(params_, request, runtime);
             }
         }
 

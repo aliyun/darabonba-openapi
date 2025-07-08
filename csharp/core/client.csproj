@@ -40,8 +40,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Aliyun.Credentials" Version="1.5.0"/>
+    <PackageReference Include="Aliyun.Credentials" Version="1.5.2"/>
     <PackageReference Include="AlibabaCloud.GatewaySpi" Version="0.0.3"/>
-    <PackageReference Include="Darabonba" Version="1.0.0"/> 
+    <PackageReference Include="Darabonba" Version="1.0.0"/>
   </ItemGroup>
 </Project>

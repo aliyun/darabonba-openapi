@@ -653,7 +653,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
-    }  else if (credentialType == 'id_token') {
+    } else if (credentialType == 'id_token') {
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
@@ -772,6 +772,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
 
 @context('callApiWithCtx')
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   if ($isNull(params)) {
     throw new Client {
       code = 'ParameterMissing',
@@ -807,6 +808,7 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
  */
  @context('doRequestWithCtx')
 api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
   __request.pathname = params.pathname;
@@ -912,7 +914,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       } else {
         __request.headers.x-acs-signature-type = 'BEARERTOKEN';
       }
-    }  else if (authType == 'id_token') {
+    } else if (authType == 'id_token') {
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
@@ -1047,6 +1049,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
  */
  @context('executeWithCtx')
 api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
+  params.validate();
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
   var headers = getRpcHeaders();
   var globalQueries : map[string]string = {};
@@ -1170,6 +1173,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
 @sse(true)
 @context('callSSEApiWithCtx')
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
+  params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
   __request.pathname = params.pathname;
@@ -1264,7 +1268,7 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
-    }  else if (authType == 'id_token') {
+    } else if (authType == 'id_token') {
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
