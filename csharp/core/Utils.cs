@@ -220,10 +220,10 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// time left
         /// </returns>
-        public static Dictionary<string, string> FlatMap(Dictionary<string, object> params_, string prefix)
-        {
-            throw new NotImplementedException();
-        }
+        // public static Dictionary<string, string> FlatMap(Dictionary<string, object> params_, string prefix)
+        // {
+        //     throw new NotImplementedException();
+        // }
 
         /// <term><b>Description:</b></term>
         /// <description>
