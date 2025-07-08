@@ -1,3 +1,5 @@
+// This file is auto-generated, don't edit it. Thanks.
+
 using System;
 using System.IO;
 using System.Collections;
@@ -7,9 +9,9 @@ using Darabonba.Utils;
 using CredentialClient = Aliyun.Credentials.Client;
 using SPIClient = AlibabaCloud.GatewaySpi.Client;
 using AlibabaCloud.OpenApiClient.Models;
+using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using Aliyun.Credentials.Models;
-using AlibabaCloud.GatewaySpi.Models;
 
 namespace AlibabaCloud.OpenApiClient
 {
@@ -47,6 +49,7 @@ namespace AlibabaCloud.OpenApiClient
         protected bool? _disableHttp2;
         protected Darabonba.RetryPolicy.RetryOptions _retryOptions;
         protected string _tlsMinVersion;
+        protected AttributeMap _attributeMap;
 
         /// <term><b>Description:</b></term>
         /// <description>
@@ -2935,6 +2938,10 @@ namespace AlibabaCloud.OpenApiClient
                         Configuration = configurationContext,
                     };
                     AttributeMap attributeMap = new AttributeMap();
+                    if (!_attributeMap.IsNull())
+                    {
+                        attributeMap = _attributeMap;
+                    }
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     this._spi.ModifyConfiguration(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -3138,6 +3145,10 @@ namespace AlibabaCloud.OpenApiClient
                         Configuration = configurationContext,
                     };
                     AttributeMap attributeMap = new AttributeMap();
+                    if (!_attributeMap.IsNull())
+                    {
+                        attributeMap = _attributeMap;
+                    }
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     await this._spi.ModifyConfigurationAsync(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
