@@ -70,11 +70,11 @@ class Utils {
    * @param endpointType - value must be internal or accelerate
    * @returns the final endpoint
    * @param string $endpoint
-   * @param boolean $serverUse
+   * @param boolean $useAccelerate
    * @param string $endpointType
    * @return string
    */
-  static public function getEndpoint($endpoint, $serverUse, $endpointType)
+  static public function getEndpoint($endpoint, $useAccelerate, $endpointType)
   {
     if ('internal' == $endpointType) {
       $tmp      = explode('.', $endpoint);
@@ -361,7 +361,7 @@ private static function getTimeLeft($rateLimit) {
    * @param string $style
    * @return string
    */
-  static public function arrayToStringWithSpecifiedStyle($array_, $prefix, $style)
+  static public function arrayToStringWithSpecifiedStyle($object, $prefix, $style)
   {
     if (null === $object) {
       return '';
@@ -631,4 +631,54 @@ private static function getTimeLeft($rateLimit) {
 
     return implode('&', $params);
   }
+
+  /**
+   * Transform input as array.
+   *
+   * @param mixed $input
+   *
+   * @return array
+  */
+  public static function toArray($input)
+  {
+      if (\is_array($input)) {
+          foreach ($input as $k => &$v) {
+              $v = self::toArray($v);
+          }
+      } elseif ($input instanceof Model) {
+          $input = $input->toMap();
+          foreach ($input as $k => &$v) {
+              $v = self::toArray($v);
+          }
+      }
+
+      return $input;
+  }
+
+  /**
+     * Stringify the value of map.
+     *
+     * @param array $map
+     *
+     * @return array the new stringified map
+     */
+    public static function stringifyMapValue($map)
+    {
+        if (null === $map) {
+            return [];
+        }
+        foreach ($map as &$node) {
+            if (is_numeric($node)) {
+                $node = (string) $node;
+            } elseif (null === $node) {
+                $node = '';
+            } elseif (\is_bool($node)) {
+                $node = true === $node ? 'true' : 'false';
+            } elseif (\is_object($node)) {
+                $node = json_decode(json_encode($node), true);
+            }
+        }
+
+        return $map;
+    }
 }

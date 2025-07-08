@@ -9,7 +9,7 @@
 ### Composer
 
 ```bash
-composer require alibabacloud/darabonba-openapi
+composer require alibabacloud/openapi-core
 ```
 
 ## 问题

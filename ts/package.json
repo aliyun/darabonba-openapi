@@ -1,6 +1,6 @@
 {
   "name": "@alicloud/openapi-core",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/client.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "@alicloud/credentials": "latest",
     "@alicloud/gateway-pop": "0.0.6",
     "@alicloud/gateway-spi": "^0.0.8",
     "@darabonba/typescript": "^1.0.2"

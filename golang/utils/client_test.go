@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"encoding/hex"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
-	"encoding/hex"
 
 	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/utils"
@@ -297,4 +297,33 @@ func Test_GetEndpoint(t *testing.T) {
 
 	endpoint = GetEndpoint(dara.String("common.aliyuncs.com"), dara.Bool(true), dara.String(""))
 	utils.AssertEqual(t, "common.aliyuncs.com", dara.StringValue(endpoint))
+}
+
+func Test_ToArray(t *testing.T) {
+	in := []*Str{
+		&Str{
+			Key: "value",
+		},
+	}
+	res := ToArray(in)
+	utils.AssertEqual(t, res[0]["key"], "value")
+
+	res = ToArray(nil)
+	utils.AssertNil(t, res)
+}
+
+func Test_StringifyMapValue(t *testing.T) {
+	in := map[string]interface{}{
+		"num": 10,
+		"json": map[string]string{
+			"test": "ok",
+		},
+		"str":  "ok",
+		"*str": dara.String("ok"),
+	}
+	out := StringifyMapValue(in)
+	utils.AssertEqual(t, "10", dara.StringValue(out["num"]))
+	utils.AssertEqual(t, `{"test":"ok"}`, dara.StringValue(out["json"]))
+	utils.AssertEqual(t, "ok", dara.StringValue(out["str"]))
+	utils.AssertEqual(t, "ok", dara.StringValue(out["*str"]))
 }

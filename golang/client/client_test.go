@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -9,13 +10,12 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"fmt"
 
 	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/alibabacloud-go/tea/dara"
+	"github.com/alibabacloud-go/tea/tea"
 	tea_util "github.com/alibabacloud-go/tea/utils"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -64,7 +64,6 @@ func (mock *mockHandler) handleSSE(w http.ResponseWriter, req *http.Request) {
 	flusher.Flush()
 }
 
-
 func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/sse" {
 		mock.handleSSE(w, req)
@@ -104,17 +103,17 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(responseBody))
 	case "error1":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"AccessDeniedDetail\":{}, \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
 	case "error2":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(400)
 		w.Write([]byte(responseBody))
 	case "serverError":
 		responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
-			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}"
+			", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}"
 		w.WriteHeader(500)
 		w.Write([]byte(responseBody))
 	default:
@@ -548,7 +547,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err.Code))
 	tea_util.AssertEqual(t, "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.", tea.StringValue(err.Message))
-	client.DisableSDKError = tea.Bool(true);
+	client.DisableSDKError = tea.Bool(true)
 	_, _err = client.CallApi(params, request, runtime)
 	err2 := _err.(*ClientError)
 	tea_util.AssertEqual(t, "InvalidCredentials", tea.StringValue(err2.GetCode()))
@@ -873,7 +872,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
-		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;"+
+		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;"+
 		"x-acs-signature-nonce;x-acs-version,Signature=")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
@@ -889,6 +888,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertEqual(t, "static_sts", headers["x-acs-credentials-provider"])
 
 	body, _err := util.AssertAsMap(result["body"])
 	tea_util.AssertNil(t, _err)
@@ -1040,7 +1040,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, true, has)
 	str, _ = util.AssertAsString(headers["authorization"])
 	has = strings.Contains(tea.StringValue(str), "ACS3-HMAC-SHA256 Credential=ak,"+
-		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-security-token;"+
+		"SignedHeaders=content-type;host;x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;"+
 		"x-acs-signature-nonce;x-acs-version,Signature=")
 	tea_util.AssertEqual(t, true, has)
 	tea_util.AssertEqual(t, "sdk", headers["for-test"])
@@ -1056,6 +1056,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
 	tea_util.AssertEqual(t, "application/x-www-form-urlencoded", headers["content-type"])
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", headers["x-acs-request-id"])
+	tea_util.AssertEqual(t, "static_sts", headers["x-acs-credentials-provider"])
 
 	body, _err := util.AssertAsMap(result["body"])
 	tea_util.AssertNil(t, _err)
@@ -1298,8 +1299,11 @@ func TestResponseBodyType(t *testing.T) {
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
-	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
-	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+	accessDeniedDetail := err.AccessDeniedDetail["test"].(json.Number)
+	accessDeniedDetailNum, _ := accessDeniedDetail.Int64()
+	accessDeniedDetailStr := err.AccessDeniedDetail["test1"]
+	tea_util.AssertEqual(t, int64(1), accessDeniedDetailNum)
+	tea_util.AssertEqual(t, "str", accessDeniedDetailStr)
 }
 
 func TestRequestBodyType(t *testing.T) {
@@ -1561,8 +1565,10 @@ func TestResponseBodyTypeROA(t *testing.T) {
 	tea_util.AssertEqual(t, "code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
 
 	tea_util.AssertEqual(t, 400, tea.IntValue(err.StatusCode))
-	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(int)
-	tea_util.AssertEqual(t, 0, accessDeniedDetail)
+	accessDeniedDetail, _ := err.AccessDeniedDetail["test"].(json.Number)
+	accessDeniedDetailNum, _ := accessDeniedDetail.Int64()
+	tea_util.AssertEqual(t, int64(1), accessDeniedDetailNum)
+	tea_util.AssertEqual(t, "str", err.AccessDeniedDetail["test1"])
 }
 
 func TestRetryWithError(t *testing.T) {
@@ -1605,14 +1611,14 @@ func TestRetryWithError(t *testing.T) {
 	tea_util.AssertNotNil(t, _err)
 	err := _err.(*tea.SDKError)
 	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err.Message))
-	client.DisableSDKError = tea.Bool(true);
+	client.DisableSDKError = tea.Bool(true)
 	_, _err = client.CallApi(params, request, runtime)
 	err2 := _err.(*ServerError)
 	tea_util.AssertEqual(t, 500, tea.IntValue(err2.GetStatusCode()))
 	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", tea.StringValue(err2.GetRequestId()))
 	tea_util.AssertEqual(t, "code: 500, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", err2.Error())
 
-	client.DisableSDKError = tea.Bool(false);
+	client.DisableSDKError = tea.Bool(false)
 	params = &Params{
 		Action:      tea.String("TestAPI"),
 		Version:     tea.String("2022-06-01"),
@@ -1693,8 +1699,7 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 		BodyType:    tea.String("json"),
 	}
 
-
-    // fmt.Println("response:", result)
+	// fmt.Println("response:", result)
 	// fmt.Println("response error:", _err)
 	// tea_util.AssertNil(t, _err)
 	events := []*dara.SSEEvent{}
@@ -1707,10 +1712,9 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 		events = append(events, resp.Event)
 	}
 
-	_err = <- yieldErr
+	_err = <-yieldErr
 	tea_util.AssertNil(t, _err)
 
-	
 	// for _err = range yieldErr {
 	// 	tea_util.AssertNil(t, _err)
 	// }

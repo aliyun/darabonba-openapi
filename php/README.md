@@ -9,7 +9,7 @@ English | [简体中文](README-CN.md)
 ### Composer
 
 ```bash
-composer require alibabacloud/darabonba-openapi
+composer require alibabacloud/openapi-core
 ```
 
 ## Issues

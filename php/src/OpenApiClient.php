@@ -190,6 +190,11 @@ class OpenApiClient {
    */
   protected $_retryOptions;
 
+  /**
+   * @var string
+   */
+  protected $_tlsMinVersion;
+
 
   /**
    * @remarks
@@ -254,6 +259,7 @@ class OpenApiClient {
     $this->_ca = $config->ca;
     $this->_disableHttp2 = $config->disableHttp2;
     $this->_retryOptions = $config->retryOptions;
+    $this->_tlsMinVersion = $config->tlsMinVersion;
   }
 
   /**
@@ -295,6 +301,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
     ];
 
     $_retriesAttempted = 0;
@@ -360,14 +367,14 @@ class OpenApiClient {
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
-          ], $globalHeaders, $extendsHeaders);
+          ], $globalHeaders, $extendsHeaders, $request->headers);
         } else {
           $_request->headers = Dara::merge([
             'host' => $this->_endpoint,
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
-          ], $globalHeaders, $extendsHeaders, $headers);
+          ], $globalHeaders, $extendsHeaders, $request->headers, $headers);
         }
 
         if (!is_null($request->body)) {
@@ -386,6 +393,10 @@ class OpenApiClient {
           }
 
           $credentialModel = $this->_credential->getCredential();
+          if (!is_null($credentialModel->providerName)) {
+            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+          }
+
           $credentialType = $credentialModel->type;
           if ($credentialType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
@@ -430,6 +441,7 @@ class OpenApiClient {
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'data' => $err,
               'requestId' => '' . (string)$requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
@@ -438,6 +450,7 @@ class OpenApiClient {
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . (string)$requestId . '',
             ]);
@@ -447,6 +460,7 @@ class OpenApiClient {
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'requestId' => '' . (string)$requestId . '',
             ]);
           }
@@ -468,9 +482,9 @@ class OpenApiClient {
             'statusCode' => $_response->statusCode,
           ];
         } else if ($bodyType == 'string') {
-          $str = StreamUtil::readAsString($_response->body);
+          $_str = StreamUtil::readAsString($_response->body);
           return [
-            'body' => $str,
+            'body' => $_str,
             'headers' => $_response->headers,
             'statusCode' => $_response->statusCode,
           ];
@@ -551,6 +565,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
     ];
 
     $_retriesAttempted = 0;
@@ -633,6 +648,10 @@ class OpenApiClient {
           }
 
           $credentialModel = $this->_credential->getCredential();
+          if (!is_null($credentialModel->providerName)) {
+            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+          }
+
           $credentialType = $credentialModel->type;
           if ($credentialType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
@@ -676,6 +695,7 @@ class OpenApiClient {
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
@@ -684,6 +704,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
             ]);
@@ -693,6 +714,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
@@ -714,9 +736,9 @@ class OpenApiClient {
             'statusCode' => $_response->statusCode,
           ];
         } else if ($bodyType == 'string') {
-          $str = StreamUtil::readAsString($_response->body);
+          $_str = StreamUtil::readAsString($_response->body);
           return [
-            'body' => $str,
+            'body' => $_str,
             'headers' => $_response->headers,
             'statusCode' => $_response->statusCode,
           ];
@@ -797,6 +819,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
     ];
 
     $_retriesAttempted = 0;
@@ -880,6 +903,10 @@ class OpenApiClient {
           }
 
           $credentialModel = $this->_credential->getCredential();
+          if (!is_null($credentialModel->providerName)) {
+            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+          }
+
           $credentialType = $credentialModel->type;
           if ($credentialType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
@@ -922,6 +949,7 @@ class OpenApiClient {
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
@@ -930,6 +958,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
             ]);
@@ -939,6 +968,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
@@ -960,9 +990,9 @@ class OpenApiClient {
             'statusCode' => $_response->statusCode,
           ];
         } else if ($bodyType == 'string') {
-          $str = StreamUtil::readAsString($_response->body);
+          $_str = StreamUtil::readAsString($_response->body);
           return [
-            'body' => $str,
+            'body' => $_str,
             'headers' => $_response->headers,
             'statusCode' => $_response->statusCode,
           ];
@@ -1036,6 +1066,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
     ];
 
     $_retriesAttempted = 0;
@@ -1147,6 +1178,10 @@ class OpenApiClient {
           }
 
           $credentialModel = $this->_credential->getCredential();
+          if (!is_null($credentialModel->providerName)) {
+            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+          }
+
           $authType = $credentialModel->type;
           if ($authType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
@@ -1195,6 +1230,7 @@ class OpenApiClient {
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
@@ -1203,6 +1239,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
             ]);
@@ -1212,6 +1249,7 @@ class OpenApiClient {
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
@@ -1233,9 +1271,9 @@ class OpenApiClient {
             'statusCode' => $_response->statusCode,
           ];
         } else if ($params->bodyType == 'string') {
-          $str = StreamUtil::readAsString($_response->body);
+          $respStr = StreamUtil::readAsString($_response->body);
           return [
-            'body' => $str,
+            'body' => $respStr,
             'headers' => $_response->headers,
             'statusCode' => $_response->statusCode,
           ];
@@ -1311,6 +1349,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
       'disableHttp2' => boolval(($this->_disableHttp2 ? $this->_disableHttp2 : false)),
     ];
 
@@ -1461,6 +1500,7 @@ class OpenApiClient {
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
+      'tlsMinVersion' => $this->_tlsMinVersion,
     ];
 
     $_retriesAttempted = 0;
@@ -1565,6 +1605,10 @@ class OpenApiClient {
         @$_request->headers['x-acs-content-sha256'] = bin2hex(BytesUtil::toString($hashedRequestPayload));
         if ($params->authType != 'Anonymous') {
           $credentialModel = $this->_credential->getCredential();
+          if (!is_null($credentialModel->providerName)) {
+            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+          }
+
           $authType = $credentialModel->type;
           if ($authType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
@@ -1648,14 +1692,19 @@ class OpenApiClient {
       ]);
     }
 
-    if (is_null($this->_signatureAlgorithm) || $this->_signatureAlgorithm != 'v2') {
-      return $this->doRequest($params, $request, $runtime);
-    } else if (($params->style == 'ROA') && ($params->reqBodyType == 'json')) {
-      return $this->doROARequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
-    } else if ($params->style == 'ROA') {
-      return $this->doROARequestWithForm($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+    if (is_null($this->_signatureVersion) || $this->_signatureVersion != 'v4') {
+      if (is_null($this->_signatureAlgorithm) || $this->_signatureAlgorithm != 'v2') {
+        return $this->doRequest($params, $request, $runtime);
+      } else if (($params->style == 'ROA') && ($params->reqBodyType == 'json')) {
+        return $this->doROARequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+      } else if ($params->style == 'ROA') {
+        return $this->doROARequestWithForm($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->pathname, $params->bodyType, $request, $runtime);
+      } else {
+        return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
+      }
+
     } else {
-      return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
+      return $this->execute($params, $request, $runtime);
     }
 
   }

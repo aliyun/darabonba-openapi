@@ -12,6 +12,11 @@ type Params = models.Params
 type OpenApiRequest = models.OpenApiRequest
 ")
 
+@pythonModel({
+  header = "from ..utils_models import Params, Config, GlobalParameters, OpenApiRequest\n",
+  exports = ["Params", "Config", "GlobalParameters", "OpenApiRequest"]
+})
+
 type @endpoint = string
 type @regionId = string
 type @protocol = string
@@ -44,6 +49,8 @@ type @ca = string
 type @disableHttp2 = boolean
 type @retryOptions = $RetryOptions
 type @attributeMap = SPI.AttributeMap
+type @tlsMinVersion = string
+
 
 model SSEResponse {
   headers: map[string]string,
@@ -128,6 +135,7 @@ init(config: OpenApiUtil.Config) {
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
   @retryOptions = config.retryOptions;
+  @tlsMinVersion = config.tlsMinVersion;
 }
 
 /**
@@ -188,7 +196,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       x-acs-action = action,
       user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
-      ...extendsHeaders
+      ...extendsHeaders,
+      ...request.headers
     };
   } else {
     __request.headers = {
@@ -198,6 +207,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       user-agent = OpenApiUtil.getUserAgent(@userAgent),
       ...globalHeaders,
       ...extendsHeaders,
+      ...request.headers,
       ...headers
     };
   }
@@ -218,6 +228,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -260,6 +273,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -268,6 +282,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -277,6 +292,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -296,9 +312,9 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -336,7 +352,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -419,6 +436,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -460,6 +480,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -468,6 +489,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -477,6 +499,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -496,9 +519,9 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -536,7 +559,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
@@ -619,6 +643,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var credentialType = credentialModel.type;
     if (credentialType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -658,6 +685,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -666,6 +694,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -675,6 +704,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -694,9 +724,9 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       statusCode = __response.statusCode
     };
   } else if (bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var _str = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = _str,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -734,7 +764,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
@@ -745,15 +776,20 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
       message = '\'params\' can not be unset'
     };
   }
-  if ($isNull(@signatureAlgorithm) || @signatureAlgorithm != 'v2') {
-    return doRequest(params, request, runtime);
-  } else if ((params.style == 'ROA') && (params.reqBodyType == 'json')) {
-    return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
-  } else if (params.style == 'ROA') {
-    return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+  if ($isNull(@signatureVersion) || @signatureVersion != 'v4') {
+    if ($isNull(@signatureAlgorithm) || @signatureAlgorithm != 'v2') {
+      return doRequest(params, request, runtime);
+    } else if ((params.style == 'ROA') && (params.reqBodyType == 'json')) {
+      return doROARequest(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else if (params.style == 'ROA') {
+      return doROARequestWithForm(params.action, params.version, params.protocol, params.method, params.authType, params.pathname, params.bodyType, request, runtime);
+    } else {
+      return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    }
   } else {
-    return doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, request, runtime);
+    return execute(params, request, runtime);
   }
+  
 }
 /**
  * Encapsulate the request and invoke the network
@@ -862,6 +898,9 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       }
     }
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var authType = credentialModel.type;
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -906,6 +945,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        data = err,
         requestId = `${requestId}`,
       };
     } else if ((__response.statusCode >= 400) && (__response.statusCode < 500)) {
@@ -914,6 +954,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
         requestId = `${requestId}`,
       };
@@ -923,6 +964,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         description = `${$default(err.Description, err.description)}`,
+        data = err,
         requestId = `${requestId}`,
       };
     }
@@ -942,9 +984,9 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       statusCode = __response.statusCode
     };
   } else if (params.bodyType == 'string') {
-    var str = $Stream.readAsString(__response.body);
+    var respStr = $Stream.readAsString(__response.body);
     return {
-      body = str,
+      body = respStr,
       headers = __response.headers,
       statusCode = __response.statusCode
     };
@@ -984,7 +1026,8 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 
@@ -1118,6 +1161,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion,
   disableHttp2 = $boolean($default(@disableHttp2, false))
 }
 
@@ -1211,6 +1255,9 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
 
   if (params.authType != 'Anonymous') {
     var credentialModel = @credential.getCredential();
+    if (!$isNull(credentialModel.providerName)) {
+      __request.headers.x-acs-credentials-provider = credentialModel.providerName;
+    }
     var authType = credentialModel.type;
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
@@ -1272,7 +1319,8 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
-  ignoreSSL = runtime.ignoreSSL
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
 }
 
 /**
