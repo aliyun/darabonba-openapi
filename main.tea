@@ -149,6 +149,7 @@ init(config: OpenApiUtil.Config) {
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doRPCRequestWithCtx')
 api doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -365,6 +366,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doROARequestWithCtx')
 api doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -569,6 +571,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doROAFormRequestWithCtx')
 api doROARequestWithForm(action: string, version: string, protocol: string, method: string,  authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -758,6 +761,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   tlsMinVersion = @tlsMinVersion
 }
 
+@context('callApiWithCtx')
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   if ($isNull(params)) {
     throw new Client {
@@ -792,6 +796,7 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+ @context('doRequestWithCtx')
 api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
@@ -1028,6 +1033,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+ @context('executeWithCtx')
 api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
   var headers = getRpcHeaders();
@@ -1147,6 +1153,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
 }
 
 @sse(true)
+@context('callSSEApiWithCtx')
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
   __request.protocol = $string($default(@protocol, params.protocol));
   __request.method = params.method;
