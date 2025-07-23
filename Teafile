@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApiV2",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -22,7 +22,7 @@
     "csharp": "AlibabaCloud.OpenApiClient:0.1.12",
     "java": "com.aliyun:tea-openapi:0.3.6",
     "php": "alibabacloud/openapi-core:^1.0.0",
-    "python": "alibabacloud_tea_openapi:0.4.0rc4",
+    "python": "alibabacloud_tea_openapi:0.4.0",
     "python2": "alibabacloud_tea_openapi_py2:0.1.8",
     "cpp": "alibabacloud_open_api_v2:1.0.0",
     "swift": "alibabacloud-sdk-swift/darabonba-openapi:1.0.7"
@@ -73,7 +73,8 @@
       "desc": "Alibaba Cloud openapi SDK Library for Python",
       "github": "https://github.com/aliyun/darabonba-openapi",
       "author": "Alibaba Cloud SDK",
-      "email": "sdk-team@alibabacloud.com"
+      "email": "sdk-team@alibabacloud.com",
+      "require": ["cryptography>=3.0.0, <45.0.0", "alibabacloud_tea_util>=0.3.13, <1.0.0"]
     },
     "exports": {
       "OpenApiUtil": "Utils"
