@@ -2238,7 +2238,7 @@ class Client:
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
                 _last_request = _request
-                _response = DaraCore.do_action(_request, _runtime)
+                _response = DaraCore.do_sse_action(_request, _runtime)
                 _last_response = _response
                 if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
@@ -2394,7 +2394,7 @@ class Client:
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
                 _last_request = _request
-                _response = await DaraCore.async_do_action(_request, _runtime)
+                _response = await DaraCore.async_do_sse_action(_request, _runtime)
                 _last_response = _response
                 if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
@@ -2414,7 +2414,7 @@ class Client:
                         'description': f'{err.get("Description") or err.get("description")}',
                         'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
                     })
-                events = await DaraStream.read_as_sse_async(_response.body)
+                events = DaraStream.read_as_sse_async(_response.body)
                 async for event in events:
                     yield  main_models.SSEResponse(
                         status_code = _response.status_code,
