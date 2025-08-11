@@ -3,6 +3,7 @@ package client
 
 import (
 	"encoding/hex"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -49,6 +50,7 @@ type Client struct {
 	RetryOptions         *dara.RetryOptions
 	HttpClient           dara.HttpClient
 	TlsMinVersion        *string
+	AttributeMap         *spi.AttributeMap
 }
 
 // Description:
@@ -304,6 +306,9 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Query["BearerToken"] = dara.String(bearerToken)
 				request_.Query["SignatureType"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -509,6 +514,9 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
 				request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -707,6 +715,9 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
 				request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -961,6 +972,9 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 					request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
 				}
 
+			} else if authType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -1148,6 +1162,10 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 			Configuration: configurationContext,
 		}
 		attributeMap := &spi.AttributeMap{}
+		if !dara.IsNil(client.AttributeMap) {
+			attributeMap = client.AttributeMap
+		}
+
 		// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
 		if _err != nil {
@@ -1397,6 +1415,9 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 			if authType == "bearer" {
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
+			} else if authType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)

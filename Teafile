@@ -68,6 +68,7 @@
   "python": {
     "package": "alibabacloud_tea_openapi",
     "clientName": "client",
+    "strictModel": true,
     "packageInfo": {
       "name": "alibabacloud_tea_openapi",
       "desc": "Alibaba Cloud openapi SDK Library for Python",

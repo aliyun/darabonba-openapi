@@ -8,6 +8,7 @@ use AlibabaCloud\Credentials\Credential;
 use Darabonba\GatewaySpi\Client;
 use Darabonba\OpenApi\Models\GlobalParameters;
 use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
+use Darabonba\GatewaySpi\Models\AttributeMap;
 use Darabonba\OpenApi\Exceptions\ClientException;
 use AlibabaCloud\Credentials\Credential\Config;
 use Darabonba\OpenApi\Models\OpenApiRequest;
@@ -27,7 +28,6 @@ use AlibabaCloud\Dara\Util\StringUtil;
 use AlibabaCloud\Dara\Util\XML;
 use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
-use Darabonba\GatewaySpi\Models\AttributeMap;
 use Darabonba\GatewaySpi\Models\InterceptorContext\response;
 use Darabonba\OpenApi\Models\SSEResponse;
 /**
@@ -194,6 +194,11 @@ class OpenApiClient {
    * @var string
    */
   protected $_tlsMinVersion;
+
+  /**
+   * @var AttributeMap
+   */
+  protected $_attributeMap;
 
 
   /**
@@ -402,6 +407,9 @@ class OpenApiClient {
             $bearerToken = $credentialModel->bearerToken;
             @$_request->query['BearerToken'] = $bearerToken;
             @$_request->query['SignatureType'] = 'BEARERTOKEN';
+          } else if ($credentialType == 'id_token') {
+            $idToken = $credentialModel->securityToken;
+            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
           } else {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
@@ -425,8 +433,8 @@ class OpenApiClient {
 
         }
 
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
@@ -657,6 +665,9 @@ class OpenApiClient {
             $bearerToken = $credentialModel->bearerToken;
             @$_request->headers['x-acs-bearer-token'] = $bearerToken;
             @$_request->headers['x-acs-signature-type'] = 'BEARERTOKEN';
+          } else if ($credentialType == 'id_token') {
+            $idToken = $credentialModel->securityToken;
+            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
           } else {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
@@ -672,8 +683,8 @@ class OpenApiClient {
 
         }
 
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         if ($_response->statusCode == 204) {
@@ -912,6 +923,9 @@ class OpenApiClient {
             $bearerToken = $credentialModel->bearerToken;
             @$_request->headers['x-acs-bearer-token'] = $bearerToken;
             @$_request->headers['x-acs-signature-type'] = 'BEARERTOKEN';
+          } else if ($credentialType == 'id_token') {
+            $idToken = $credentialModel->securityToken;
+            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
           } else {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
@@ -927,8 +941,8 @@ class OpenApiClient {
 
         }
 
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         if ($_response->statusCode == 204) {
@@ -1192,6 +1206,9 @@ class OpenApiClient {
               @$_request->headers['x-acs-signature-type'] = 'BEARERTOKEN';
             }
 
+          } else if ($authType == 'id_token') {
+            $idToken = $credentialModel->securityToken;
+            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
           } else {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
@@ -1206,8 +1223,8 @@ class OpenApiClient {
 
         }
 
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
@@ -1437,6 +1454,10 @@ class OpenApiClient {
           'configuration' => $configurationContext,
         ]);
         $attributeMap = new AttributeMap([ ]);
+        if (!is_null($this->_attributeMap)) {
+          $attributeMap = $this->_attributeMap;
+        }
+
         // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         $this->_spi->modifyConfiguration($interceptorContext, $attributeMap);
         // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1447,8 +1468,8 @@ class OpenApiClient {
         $_request->query = $interceptorContext->request->query;
         $_request->body = $interceptorContext->request->stream;
         $_request->headers = $interceptorContext->request->headers;
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         $responseContext = new response([
@@ -1613,6 +1634,9 @@ class OpenApiClient {
           if ($authType == 'bearer') {
             $bearerToken = $credentialModel->bearerToken;
             @$_request->headers['x-acs-bearer-token'] = $bearerToken;
+          } else if ($authType == 'id_token') {
+            $idToken = $credentialModel->securityToken;
+            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
           } else {
             $accessKeyId = $credentialModel->accessKeyId;
             $accessKeySecret = $credentialModel->accessKeySecret;
@@ -1628,8 +1652,8 @@ class OpenApiClient {
         }
 
         $_runtime['stream'] = true;
-        $_response = Dara::send($_request, $_runtime);
         $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
