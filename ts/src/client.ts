@@ -46,6 +46,7 @@ export default class Client {
   _disableHttp2: boolean;
   _retryOptions: $dara.RetryOptions;
   _tlsMinVersion: string;
+  _attributeMap: $SPI.AttributeMap;
 
   /**
    * @remarks
@@ -251,6 +252,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.query["BearerToken"] = bearerToken;
             request_.query["SignatureType"] = "BEARERTOKEN";
+          } else if (credentialType == "id_token") {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -276,8 +280,8 @@ export default class Client {
 
         }
 
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
@@ -503,6 +507,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else if (credentialType == "id_token") {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -518,8 +525,8 @@ export default class Client {
 
         }
 
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         if (response_.statusCode == 204) {
@@ -753,6 +760,9 @@ export default class Client {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
             request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
+          } else if (credentialType == "id_token") {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -768,8 +778,8 @@ export default class Client {
 
         }
 
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         if (response_.statusCode == 204) {
@@ -1035,6 +1045,9 @@ export default class Client {
               request_.headers["x-acs-signature-type"] = "BEARERTOKEN";
             }
 
+          } else if (authType == "id_token") {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -1049,8 +1062,8 @@ export default class Client {
 
         }
 
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
@@ -1281,6 +1294,10 @@ export default class Client {
           configuration: configurationContext,
         });
         let attributeMap = new $SPI.AttributeMap({ });
+        if (!$dara.isNull(this._attributeMap)) {
+          attributeMap = this._attributeMap;
+        }
+
         // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         await this._spi.modifyConfiguration(interceptorContext, attributeMap);
         // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -1291,8 +1308,8 @@ export default class Client {
         request_.query = interceptorContext.request.query;
         request_.body = interceptorContext.request.stream;
         request_.headers = interceptorContext.request.headers;
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         let responseContext = new $SPI.InterceptorContextResponse({
@@ -1457,6 +1474,9 @@ export default class Client {
           if (authType == "bearer") {
             let bearerToken = credentialModel.bearerToken;
             request_.headers["x-acs-bearer-token"] = bearerToken;
+          } else if (authType == "id_token") {
+            let idToken = credentialModel.securityToken;
+            request_.headers["x-acs-zero-trust-idtoken"] = idToken;
           } else {
             let accessKeyId = credentialModel.accessKeyId;
             let accessKeySecret = credentialModel.accessKeySecret;
@@ -1471,8 +1491,8 @@ export default class Client {
 
         }
 
-        let response_ = await $dara.doAction(request_, _runtime);
         _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 
         if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {

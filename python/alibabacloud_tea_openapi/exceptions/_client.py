@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from alibabacloud_tea_openapi import exceptions as main_exceptions 
+
 from typing import Dict, Any
 
+from alibabacloud_tea_openapi import exceptions as main_exceptions
 
 class ClientException(main_exceptions.AlibabaCloudException):
     def __init__(

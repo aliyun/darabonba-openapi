@@ -4,6 +4,7 @@ package client
 import (
 	"context"
 	"encoding/hex"
+
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	"github.com/alibabacloud-go/tea/dara"
@@ -45,6 +46,7 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
@@ -180,6 +182,9 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Query["BearerToken"] = dara.String(bearerToken)
 				request_.Query["SignatureType"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -275,6 +280,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
@@ -384,6 +390,9 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
 				request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -471,6 +480,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
@@ -581,6 +591,9 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
 				request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
+			} else if credentialType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -666,6 +679,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
@@ -834,6 +848,9 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 					request_.Headers["x-acs-signature-type"] = dara.String("BEARERTOKEN")
 				}
 
+			} else if authType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
@@ -918,6 +935,7 @@ func (client *Client) ExecuteWithCtx(ctx context.Context, params *openapiutil.Pa
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 		"disableHttp2":   dara.ForceBoolean(dara.Default(dara.BoolValue(client.DisableHttp2), false)),
 	})
@@ -1020,6 +1038,10 @@ func (client *Client) ExecuteWithCtx(ctx context.Context, params *openapiutil.Pa
 			Configuration: configurationContext,
 		}
 		attributeMap := &spi.AttributeMap{}
+		if !dara.IsNil(client.AttributeMap) {
+			attributeMap = client.AttributeMap
+		}
+
 		// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
 		if _err != nil {
@@ -1118,6 +1140,7 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
@@ -1268,6 +1291,9 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 			if authType == "bearer" {
 				bearerToken := dara.StringValue(credentialModel.BearerToken)
 				request_.Headers["x-acs-bearer-token"] = dara.String(bearerToken)
+			} else if authType == "id_token" {
+				idToken := dara.StringValue(credentialModel.SecurityToken)
+				request_.Headers["x-acs-zero-trust-idtoken"] = dara.String(idToken)
 			} else {
 				accessKeyId := dara.StringValue(credentialModel.AccessKeyId)
 				accessKeySecret := dara.StringValue(credentialModel.AccessKeySecret)
