@@ -1723,7 +1723,7 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 	for index, event := range events {
 		data := fmt.Sprintf(`{"count": %d}`, index)
 		tea_util.AssertEqual(t, data, tea.StringValue(event.Data))
-		tea_util.AssertEqual(t, "sse-test", tea.StringValue(event.ID))
+		tea_util.AssertEqual(t, "sse-test", tea.StringValue(event.Id))
 		tea_util.AssertEqual(t, "flow", tea.StringValue(event.Event))
 	}
 }
