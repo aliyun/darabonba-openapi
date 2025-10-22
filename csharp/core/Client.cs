@@ -11,9 +11,7 @@ using SPIClient = AlibabaCloud.GatewaySpi.Client;
 using AlibabaCloud.OpenApiClient.Models;
 using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
-using System.Threading;
 using Aliyun.Credentials.Models;
-using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient
 {
