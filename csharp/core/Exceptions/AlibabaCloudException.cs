@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using Darabonba.Utils;
 
 namespace AlibabaCloud.OpenApiClient.Exceptions
 {
@@ -10,5 +11,8 @@ namespace AlibabaCloud.OpenApiClient.Exceptions
         public string RequestId { get; set; }
 
     }
+
+}
+
 
 }

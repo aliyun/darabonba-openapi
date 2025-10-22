@@ -2364,9 +2364,9 @@ class TestClient(unittest.TestCase):
         # 验证每个事件的内容
         for index, event in enumerate(result_events):
             data = f'{{"count": {index}}}'
-            self.assertEqual(data, event.get('data'))
-            self.assertEqual("sse-test", event.get('id'))
-            self.assertEqual("flow", event.get('event'))
+            self.assertEqual(data, event.data)
+            self.assertEqual("sse-test", event.id)
+            self.assertEqual("flow", event.event)
     
     @httpretty.activate(allow_net_connect=False)
     async def test_sse_api_call_async(self):
@@ -2431,6 +2431,6 @@ class TestClient(unittest.TestCase):
         # 验证每个事件的内容
         for index, event in enumerate(result_events):
             data = f'{{"count": {index}}}'
-            self.assertEqual(data, event.get('data'))
-            self.assertEqual("sse-test", event.get('id'))
-            self.assertEqual("flow", event.get('event'))
+            self.assertEqual(data, event.data)
+            self.assertEqual("sse-test", event.id)
+            self.assertEqual("flow", event.event)

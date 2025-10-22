@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from alibabacloud_credentials.client import Client as CredentialClient 
-from alibabacloud_gateway_spi.client import Client as SPIClient 
-from alibabacloud_tea_openapi import utils_models as open_api_util_models 
-from darabonba.policy.retry import RetryOptions 
-from darabonba.core import DaraCore as DaraCore 
-from alibabacloud_tea_openapi import exceptions as main_exceptions 
-from alibabacloud_credentials import models as credential_models 
-from darabonba.core import DaraCore 
-from darabonba.runtime import RuntimeOptions 
-from darabonba.exceptions import UnretryableException 
-from darabonba.policy.retry import RetryPolicyContext 
-from darabonba.request import DaraRequest 
-from alibabacloud_tea_openapi.utils import Utils 
-from darabonba.utils.form import Form as DaraForm 
-from darabonba.utils.stream import Stream as DaraStream 
-from darabonba.utils.bytes import Bytes as DaraBytes 
-from darabonba.utils.xml import XML as DaraXML 
-from alibabacloud_gateway_spi import models as spi_models 
-from alibabacloud_tea_openapi import models as main_models 
-from darabonba.exceptions import DaraException 
+
 from typing import Dict, Generator, AsyncGenerator, Any
 
+from alibabacloud_credentials import models as credential_models
+from alibabacloud_credentials.client import Client as CredentialClient
+from alibabacloud_gateway_spi import models as spi_models
+from alibabacloud_gateway_spi.client import Client as SPIClient
+from alibabacloud_tea_openapi import exceptions as main_exceptions
+from alibabacloud_tea_openapi import models as main_models
+from alibabacloud_tea_openapi import utils_models as open_api_util_models
+from alibabacloud_tea_openapi.utils import Utils
+from darabonba.core import DaraCore as DaraCore
+from darabonba.core import DaraCore
+from darabonba.exceptions import DaraException, UnretryableException
+from darabonba.policy.retry import RetryOptions, RetryPolicyContext
+from darabonba.request import DaraRequest
+from darabonba.runtime import RuntimeOptions
+from darabonba.utils.bytes import Bytes as DaraBytes
+from darabonba.utils.form import Form as DaraForm
+from darabonba.utils.stream import Stream as DaraStream
+from darabonba.utils.xml import XML as DaraXML
 
 """
  * @remarks
@@ -61,6 +60,7 @@ class Client:
     _disable_http_2: bool = None
     _retry_options: RetryOptions = None
     _tls_min_version: str = None
+    _attribute_map: spi_models.AttributeMap = None
 
     def __init__(
         self,
@@ -235,6 +235,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.query["BearerToken"] = bearer_token
                         _request.query["SignatureType"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -443,6 +446,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.query["BearerToken"] = bearer_token
                         _request.query["SignatureType"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -655,6 +661,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
                         _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -852,6 +861,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
                         _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1065,6 +1077,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
                         _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1262,6 +1277,9 @@ class Client:
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
                         _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
+                    elif credential_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1495,6 +1513,9 @@ class Client:
                         else:
                             _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
 
+                    elif auth_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1718,6 +1739,9 @@ class Client:
                         else:
                             _request.headers["x-acs-signature-type"] = 'BEARERTOKEN'
 
+                    elif auth_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -1930,6 +1954,8 @@ class Client:
                     configuration = configuration_context
                 )
                 attribute_map = spi_models.AttributeMap()
+                if not DaraCore.is_null(self._attribute_map):
+                    attribute_map = self._attribute_map
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 self._spi.modify_configuration(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2056,6 +2082,8 @@ class Client:
                     configuration = configuration_context
                 )
                 attribute_map = spi_models.AttributeMap()
+                if not DaraCore.is_null(self._attribute_map):
+                    attribute_map = self._attribute_map
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 await self._spi.modify_configuration_async(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2197,6 +2225,9 @@ class Client:
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
+                    elif auth_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -2207,7 +2238,7 @@ class Client:
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
                 _last_request = _request
-                _response = DaraCore.do_action(_request, _runtime)
+                _response = DaraCore.do_sse_action(_request, _runtime)
                 _last_response = _response
                 if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
@@ -2350,6 +2381,9 @@ class Client:
                     if auth_type == 'bearer':
                         bearer_token = credential_model.bearer_token
                         _request.headers["x-acs-bearer-token"] = bearer_token
+                    elif auth_type == 'id_token':
+                        id_token = credential_model.security_token
+                        _request.headers["x-acs-zero-trust-idtoken"] = id_token
                     else:
                         access_key_id = credential_model.access_key_id
                         access_key_secret = credential_model.access_key_secret
@@ -2360,7 +2394,7 @@ class Client:
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
                 _last_request = _request
-                _response = await DaraCore.async_do_action(_request, _runtime)
+                _response = await DaraCore.async_do_sse_action(_request, _runtime)
                 _last_response = _response
                 if (_response.status_code >= 400) and (_response.status_code < 600):
                     err = {}
@@ -2380,7 +2414,7 @@ class Client:
                         'description': f'{err.get("Description") or err.get("description")}',
                         'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
                     })
-                events = await DaraStream.read_as_sse_async(_response.body)
+                events = DaraStream.read_as_sse_async(_response.body)
                 async for event in events:
                     yield  main_models.SSEResponse(
                         status_code = _response.status_code,

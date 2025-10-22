@@ -50,7 +50,7 @@ type @disableHttp2 = boolean
 type @retryOptions = $RetryOptions
 type @attributeMap = SPI.AttributeMap
 type @tlsMinVersion = string
-
+type @attributeMap = SPI.AttributeMap
 
 model SSEResponse {
   headers: map[string]string,
@@ -150,6 +150,7 @@ init(config: OpenApiUtil.Config) {
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doRPCRequestWithCtx')
 api doRPCRequest(action: string, version: string, protocol: string, method: string, authType: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -369,6 +370,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doROARequestWithCtx')
 api doROARequest(action: string, version: string, protocol: string, method: string, authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -576,6 +578,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+@context('doROAFormRequestWithCtx')
 api doROARequestWithForm(action: string, version: string, protocol: string, method: string,  authType: string, pathname: string, bodyType: string, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   __request.protocol = $string($default(@protocol, protocol));
   __request.method = method;
@@ -651,7 +654,11 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
       __request.headers.x-acs-signature-type = 'BEARERTOKEN';
+<<<<<<< HEAD
     }  else if (credentialType == 'id_token') {
+=======
+    } else if (credentialType == 'id_token') {
+>>>>>>> origin/master
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
@@ -768,6 +775,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   tlsMinVersion = @tlsMinVersion
 }
 
+@context('callApiWithCtx')
 async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   params.validate();
   if ($isNull(params)) {
@@ -803,6 +811,7 @@ async function callApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiR
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+ @context('doRequestWithCtx')
 api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
@@ -910,7 +919,11 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       } else {
         __request.headers.x-acs-signature-type = 'BEARERTOKEN';
       }
+<<<<<<< HEAD
     }  else if (authType == 'id_token') {
+=======
+    } else if (authType == 'id_token') {
+>>>>>>> origin/master
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
@@ -1043,6 +1056,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
+ @context('executeWithCtx')
 api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): object {
   params.validate();
   // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
@@ -1166,6 +1180,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
 }
 
 @sse(true)
+@context('callSSEApiWithCtx')
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
   params.validate();
   __request.protocol = $string($default(@protocol, params.protocol));
@@ -1262,7 +1277,11 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
     if (authType == 'bearer') {
       var bearerToken = credentialModel.bearerToken;
       __request.headers.x-acs-bearer-token = bearerToken;
+<<<<<<< HEAD
     }  else if (authType == 'id_token') {
+=======
+    } else if (authType == 'id_token') {
+>>>>>>> origin/master
       var idToken = credentialModel.securityToken;
       __request.headers.x-acs-zero-trust-idtoken = idToken;
     } else {
