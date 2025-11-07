@@ -44,6 +44,7 @@ public class Client {
     public Boolean _disableHttp2;
     public String _tlsMinVersion;
     public com.aliyun.gateway.spi.models.AttributeMap _attributeMap;
+    public Boolean _enableUsageDataCollection;
     /**
      * <b>description</b> :
      * <p>Init client with Config</p>
@@ -106,6 +107,7 @@ public class Client {
         this._ca = config.ca;
         this._disableHttp2 = config.disableHttp2;
         this._tlsMinVersion = config.tlsMinVersion;
+        this._enableUsageDataCollection = config.enableUsageDataCollection;
     }
 
     /**
@@ -233,6 +235,15 @@ public class Client {
                         request.headers,
                         headers
                     );
+                }
+
+                if (!com.aliyun.teautil.Common.isUnset(_enableUsageDataCollection) && _enableUsageDataCollection) {
+                    String hostname = com.aliyun.teautil.Common.getHostName();
+                    if (com.aliyun.teautil.Common.isUnset(hostname)) {
+                        hostname = "unknown";
+                    }
+
+                    request_.headers.put("x-sdk-hostname", hostname);
                 }
 
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
@@ -462,6 +473,15 @@ public class Client {
                     extendsHeaders,
                     request.headers
                 );
+                if (!com.aliyun.teautil.Common.isUnset(_enableUsageDataCollection) && _enableUsageDataCollection) {
+                    String hostname = com.aliyun.teautil.Common.getHostName();
+                    if (com.aliyun.teautil.Common.isUnset(hostname)) {
+                        hostname = "unknown";
+                    }
+
+                    request_.headers.put("x-sdk-hostname", hostname);
+                }
+
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
                     request_.body = Tea.toReadable(com.aliyun.teautil.Common.toJSONString(request.body));
                     request_.headers.put("content-type", "application/json; charset=utf-8");
@@ -695,6 +715,15 @@ public class Client {
                     extendsHeaders,
                     request.headers
                 );
+                if (!com.aliyun.teautil.Common.isUnset(_enableUsageDataCollection) && _enableUsageDataCollection) {
+                    String hostname = com.aliyun.teautil.Common.getHostName();
+                    if (com.aliyun.teautil.Common.isUnset(hostname)) {
+                        hostname = "unknown";
+                    }
+
+                    request_.headers.put("x-sdk-hostname", hostname);
+                }
+
                 if (!com.aliyun.teautil.Common.isUnset(request.body)) {
                     java.util.Map<String, Object> m = com.aliyun.teautil.Common.assertAsMap(request.body);
                     request_.body = Tea.toReadable(com.aliyun.openapiutil.Client.toForm(m));
@@ -940,6 +969,15 @@ public class Client {
                         );
                     }
 
+                }
+
+                if (!com.aliyun.teautil.Common.isUnset(_enableUsageDataCollection) && _enableUsageDataCollection) {
+                    String hostname = com.aliyun.teautil.Common.getHostName();
+                    if (com.aliyun.teautil.Common.isUnset(hostname)) {
+                        hostname = "unknown";
+                    }
+
+                    request_.headers.put("x-sdk-hostname", hostname);
                 }
 
                 String signatureAlgorithm = com.aliyun.teautil.Common.defaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
