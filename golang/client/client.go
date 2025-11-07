@@ -214,6 +214,8 @@ type Config struct {
 	//
 	// TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
 	TlsMinVersion *string `json:"tlsMinVersion,omitempty" xml:"tlsMinVersion,omitempty"`
+	// Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.
+	EnableUsageDataCollection *bool `json:"enableUsageDataCollection,omitempty" xml:"enableUsageDataCollection,omitempty"`
 }
 
 func (s Config) String() string {
@@ -379,6 +381,11 @@ func (s *Config) SetTlsMinVersion(v string) *Config {
 	return s
 }
 
+func (s *Config) SetEnableUsageDataCollection(v bool) *Config {
+	s.EnableUsageDataCollection = &v
+	return s
+}
+
 type OpenApiRequest struct {
 	Headers          map[string]*string `json:"headers,omitempty" xml:"headers,omitempty"`
 	Query            map[string]*string `json:"query,omitempty" xml:"query,omitempty"`
@@ -492,38 +499,39 @@ func (s *Params) SetStyle(v string) *Params {
 }
 
 type Client struct {
-	Endpoint             *string
-	RegionId             *string
-	Protocol             *string
-	Method               *string
-	UserAgent            *string
-	EndpointRule         *string
-	EndpointMap          map[string]*string
-	Suffix               *string
-	ReadTimeout          *int
-	ConnectTimeout       *int
-	HttpProxy            *string
-	HttpsProxy           *string
-	Socks5Proxy          *string
-	Socks5NetWork        *string
-	NoProxy              *string
-	Network              *string
-	ProductId            *string
-	MaxIdleConns         *int
-	EndpointType         *string
-	OpenPlatformEndpoint *string
-	Credential           credential.Credential
-	SignatureVersion     *string
-	SignatureAlgorithm   *string
-	Headers              map[string]*string
-	Spi                  spi.ClientInterface
-	GlobalParameters     *GlobalParameters
-	Key                  *string
-	Cert                 *string
-	Ca                   *string
-	DisableHttp2         *bool
-	TlsMinVersion        *string
-	AttributeMap         *spi.AttributeMap
+	Endpoint                  *string
+	RegionId                  *string
+	Protocol                  *string
+	Method                    *string
+	UserAgent                 *string
+	EndpointRule              *string
+	EndpointMap               map[string]*string
+	Suffix                    *string
+	ReadTimeout               *int
+	ConnectTimeout            *int
+	HttpProxy                 *string
+	HttpsProxy                *string
+	Socks5Proxy               *string
+	Socks5NetWork             *string
+	NoProxy                   *string
+	Network                   *string
+	ProductId                 *string
+	MaxIdleConns              *int
+	EndpointType              *string
+	OpenPlatformEndpoint      *string
+	Credential                credential.Credential
+	SignatureVersion          *string
+	SignatureAlgorithm        *string
+	Headers                   map[string]*string
+	Spi                       spi.ClientInterface
+	GlobalParameters          *GlobalParameters
+	Key                       *string
+	Cert                      *string
+	Ca                        *string
+	DisableHttp2              *bool
+	TlsMinVersion             *string
+	AttributeMap              *spi.AttributeMap
+	EnableUsageDataCollection *bool
 }
 
 // Description:
@@ -602,6 +610,7 @@ func (client *Client) Init(config *Config) (_err error) {
 	client.Ca = config.Ca
 	client.DisableHttp2 = config.DisableHttp2
 	client.TlsMinVersion = config.TlsMinVersion
+	client.EnableUsageDataCollection = config.EnableUsageDataCollection
 	return nil
 }
 
@@ -736,6 +745,15 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					extendsHeaders,
 					request.Headers,
 					headers)
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.EnableUsageDataCollection)) && tea.BoolValue(client.EnableUsageDataCollection) {
+				hostname := util.GetHostName()
+				if tea.BoolValue(util.IsUnset(hostname)) {
+					hostname = tea.String("unknown")
+				}
+
+				request_.Headers["x-sdk-hostname"] = hostname
 			}
 
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
@@ -1024,6 +1042,15 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			}, globalHeaders,
 				extendsHeaders,
 				request.Headers)
+			if !tea.BoolValue(util.IsUnset(client.EnableUsageDataCollection)) && tea.BoolValue(client.EnableUsageDataCollection) {
+				hostname := util.GetHostName()
+				if tea.BoolValue(util.IsUnset(hostname)) {
+					hostname = tea.String("unknown")
+				}
+
+				request_.Headers["x-sdk-hostname"] = hostname
+			}
+
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				request_.Body = tea.ToReader(util.ToJSONString(request.Body))
 				request_.Headers["content-type"] = tea.String("application/json; charset=utf-8")
@@ -1308,6 +1335,15 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			}, globalHeaders,
 				extendsHeaders,
 				request.Headers)
+			if !tea.BoolValue(util.IsUnset(client.EnableUsageDataCollection)) && tea.BoolValue(client.EnableUsageDataCollection) {
+				hostname := util.GetHostName()
+				if tea.BoolValue(util.IsUnset(hostname)) {
+					hostname = tea.String("unknown")
+				}
+
+				request_.Headers["x-sdk-hostname"] = hostname
+			}
+
 			if !tea.BoolValue(util.IsUnset(request.Body)) {
 				m, _err := util.AssertAsMap(request.Body)
 				if _err != nil {
@@ -1610,6 +1646,15 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 						headers)
 				}
 
+			}
+
+			if !tea.BoolValue(util.IsUnset(client.EnableUsageDataCollection)) && tea.BoolValue(client.EnableUsageDataCollection) {
+				hostname := util.GetHostName()
+				if tea.BoolValue(util.IsUnset(hostname)) {
+					hostname = tea.String("unknown")
+				}
+
+				request_.Headers["x-sdk-hostname"] = hostname
 			}
 
 			signatureAlgorithm := util.DefaultString(client.SignatureAlgorithm, tea.String("ACS3-HMAC-SHA256"))

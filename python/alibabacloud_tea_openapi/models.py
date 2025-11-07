@@ -76,6 +76,7 @@ class Config(TeaModel):
         ca: str = None,
         disable_http_2: bool = None,
         tls_min_version: str = None,
+        enable_usage_data_collection: bool = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -139,6 +140,8 @@ class Config(TeaModel):
         self.disable_http_2 = disable_http_2
         # TLS Minimum Version
         self.tls_min_version = tls_min_version
+        # Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.
+        self.enable_usage_data_collection = enable_usage_data_collection
 
     def validate(self):
         if self.global_parameters:
@@ -212,6 +215,8 @@ class Config(TeaModel):
             result['disableHttp2'] = self.disable_http_2
         if self.tls_min_version is not None:
             result['tlsMinVersion'] = self.tls_min_version
+        if self.enable_usage_data_collection is not None:
+            result['enableUsageDataCollection'] = self.enable_usage_data_collection
         return result
 
     def from_map(self, m: dict = None):
@@ -279,6 +284,8 @@ class Config(TeaModel):
             self.disable_http_2 = m.get('disableHttp2')
         if m.get('tlsMinVersion') is not None:
             self.tls_min_version = m.get('tlsMinVersion')
+        if m.get('enableUsageDataCollection') is not None:
+            self.enable_usage_data_collection = m.get('enableUsageDataCollection')
         return self
 
 

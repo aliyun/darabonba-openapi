@@ -58,7 +58,8 @@ public class ClientTest {
                 new TeaPair("cert", "config.cert"),
                 new TeaPair("ca", "config.ca"),
                 new TeaPair("disableHttp2", false),
-                new TeaPair("tlsMinVersion", "config.tlsMinVersion")
+                new TeaPair("tlsMinVersion", "config.tlsMinVersion"),
+                new TeaPair("enableUsageDataCollection", true)
         ));
         com.aliyun.credentials.models.Config creConfig = com.aliyun.credentials.models.Config.build(TeaConverter.buildMap(
                 new TeaPair("accessKeyId", "accessKeyId"),
@@ -150,6 +151,7 @@ public class ClientTest {
         Assert.assertEquals("config.cert", client._cert);
         Assert.assertEquals("config.ca", client._ca);
         Assert.assertEquals(false, client._disableHttp2);
+        Assert.assertTrue(client._enableUsageDataCollection);
         Assert.assertEquals("config.tlsMinVersion", client._tlsMinVersion);
 
         client.addRequestInterceptor(new RequestInterceptor() {
@@ -308,7 +310,7 @@ public class ClientTest {
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -393,7 +395,7 @@ public class ClientTest {
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -451,7 +453,7 @@ public class ClientTest {
                 .withHeader("authorization", matching("acs ak:.+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -575,7 +577,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-version", equalTo("1.0"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -634,7 +636,7 @@ public class ClientTest {
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
                         "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -712,7 +714,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-nonce", matching(".+"))
                 .withHeader("x-acs-content-sha256", matching(".+"))
                 .withHeader("accept", matching("application/json"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -771,7 +773,7 @@ public class ClientTest {
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
                         "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -849,7 +851,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-nonce", matching(".+"))
                 .withHeader("x-acs-content-sha256", matching(".+"))
                 .withHeader("accept", matching("application/json"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.21 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));

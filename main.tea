@@ -40,6 +40,7 @@ type @ca = string
 type @disableHttp2 = boolean
 type @tlsMinVersion = string
 type @attributeMap = SPI.AttributeMap
+type @enableUsageDataCollection = boolean
 
 model GlobalParameters {
   headers?: map[string]string,
@@ -80,6 +81,7 @@ model Config {
   ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
   tlsMinVersion?: string(description='TLS Minimum Version', example='TLSv1, TLSv1.1, TLSv1.2, TLSv1.3',default=''),
+  enableUsageDataCollection?: boolean(description='Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.', default=false),
 }
 
 /**
@@ -140,6 +142,7 @@ init(config: Config) {
   @ca = config.ca;
   @disableHttp2 = config.disableHttp2;
   @tlsMinVersion = config.tlsMinVersion;
+  @enableUsageDataCollection = config.enableUsageDataCollection;
 }
 
 model OpenApiRequest {
@@ -223,6 +226,14 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       ...request.headers,
       ...headers
     };
+  }
+
+  if (!Util.isUnset(@enableUsageDataCollection) && @enableUsageDataCollection) {
+    var hostname = Util.getHostName();
+    if (Util.isUnset(hostname)) {
+      hostname = 'unknown';
+    }
+    __request.headers.x-sdk-hostname = hostname;
   }
 
   if (!Util.isUnset(request.body)) {
@@ -406,6 +417,14 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     ...extendsHeaders,
     ...request.headers
   };
+
+  if (!Util.isUnset(@enableUsageDataCollection) && @enableUsageDataCollection) {
+    var hostname = Util.getHostName();
+    if (Util.isUnset(hostname)) {
+      hostname = 'unknown';
+    }
+    __request.headers.x-sdk-hostname = hostname;
+  }
 
   if (!Util.isUnset(request.body)) {
     __request.body = Util.toJSONString(request.body);
@@ -596,6 +615,14 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     ...extendsHeaders,
     ...request.headers
   };
+
+  if (!Util.isUnset(@enableUsageDataCollection) && @enableUsageDataCollection) {
+    var hostname = Util.getHostName();
+    if (Util.isUnset(hostname)) {
+      hostname = 'unknown';
+    }
+    __request.headers.x-sdk-hostname = hostname;
+  }
 
   if (!Util.isUnset(request.body)) {
     var m = Util.assertAsMap(request.body);
@@ -831,6 +858,14 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
         ...headers
       };
     }
+  }
+
+  if (!Util.isUnset(@enableUsageDataCollection) && @enableUsageDataCollection) {
+    var hostname = Util.getHostName();
+    if (Util.isUnset(hostname)) {
+      hostname = 'unknown';
+    }
+    __request.headers.x-sdk-hostname = hostname;
   }
 
   var signatureAlgorithm = Util.defaultString(@signatureAlgorithm, 'ACS3-HMAC-SHA256');

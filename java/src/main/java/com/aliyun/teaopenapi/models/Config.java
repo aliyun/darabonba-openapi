@@ -275,6 +275,12 @@ public class Config extends TeaModel {
     @NameInMap("tlsMinVersion")
     public String tlsMinVersion;
 
+    /**
+     * <p>Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.</p>
+     */
+    @NameInMap("enableUsageDataCollection")
+    public Boolean enableUsageDataCollection;
+
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
         return TeaModel.build(map, self);
@@ -527,6 +533,14 @@ public class Config extends TeaModel {
     }
     public String getTlsMinVersion() {
         return this.tlsMinVersion;
+    }
+
+    public Config setEnableUsageDataCollection(Boolean enableUsageDataCollection) {
+        this.enableUsageDataCollection = enableUsageDataCollection;
+        return this;
+    }
+    public Boolean getEnableUsageDataCollection() {
+        return this.enableUsageDataCollection;
     }
 
 }

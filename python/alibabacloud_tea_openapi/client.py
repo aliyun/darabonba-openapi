@@ -54,6 +54,7 @@ class Client:
     _disable_http_2: bool = None
     _tls_min_version: str = None
     _attribute_map: spi_models.AttributeMap = None
+    _enable_usage_data_collection: bool = None
 
     def __init__(
         self, 
@@ -112,6 +113,7 @@ class Client:
         self._ca = config.ca
         self._disable_http_2 = config.disable_http_2
         self._tls_min_version = config.tls_min_version
+        self._enable_usage_data_collection = config.enable_usage_data_collection
 
     def do_rpcrequest(
         self,
@@ -223,6 +225,11 @@ class Client:
                         extends_headers,
                         request.headers,
                         headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -432,6 +439,11 @@ class Client:
                         extends_headers,
                         request.headers,
                         headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     tmp = UtilClient.anyify_map_value(OpenApiUtilClient.query(m))
@@ -626,6 +638,11 @@ class Client:
                 }, global_headers,
                     extends_headers,
                     request.headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
@@ -822,6 +839,11 @@ class Client:
                 }, global_headers,
                     extends_headers,
                     request.headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     _request.body = UtilClient.to_jsonstring(request.body)
                     _request.headers['content-type'] = 'application/json; charset=utf-8'
@@ -1018,6 +1040,11 @@ class Client:
                 }, global_headers,
                     extends_headers,
                     request.headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
@@ -1213,6 +1240,11 @@ class Client:
                 }, global_headers,
                     extends_headers,
                     request.headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 if not UtilClient.is_unset(request.body):
                     m = UtilClient.assert_as_map(request.body)
                     _request.body = OpenApiUtilClient.to_form(m)
@@ -1409,6 +1441,11 @@ class Client:
                     if not UtilClient.is_unset(headers):
                         _request.headers = TeaCore.merge(_request.headers,
                             headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.stream):
@@ -1627,6 +1664,11 @@ class Client:
                     if not UtilClient.is_unset(headers):
                         _request.headers = TeaCore.merge(_request.headers,
                             headers)
+                if not UtilClient.is_unset(self._enable_usage_data_collection) and self._enable_usage_data_collection:
+                    hostname = UtilClient.get_host_name()
+                    if UtilClient.is_unset(hostname):
+                        hostname = 'unknown'
+                    _request.headers['x-sdk-hostname'] = hostname
                 signature_algorithm = UtilClient.default_string(self._signature_algorithm, 'ACS3-HMAC-SHA256')
                 hashed_request_payload = OpenApiUtilClient.hex_encode(OpenApiUtilClient.hash(UtilClient.to_bytes(''), signature_algorithm))
                 if not UtilClient.is_unset(request.stream):

@@ -24,7 +24,7 @@ from setuptools import setup, find_packages
 """
 setup module for alibabacloud_tea_openapi.
 
-Created on 19/06/2025
+Created on 19/11/2025
 
 @author: Alibaba Cloud SDK
 """
@@ -37,11 +37,11 @@ AUTHOR_EMAIL = "sdk-team@alibabacloud.com"
 URL = "https://github.com/aliyun/darabonba-openapi"
 VERSION = __import__(PACKAGE).__version__
 REQUIRES = [
-    "alibabacloud_tea_util>=0.3.13, <1.0.0",
+    "alibabacloud_tea_util>=0.3.14, <1.0.0",
     "alibabacloud_credentials>=1.0.2, <2.0.0",
     "alibabacloud_openapi_util>=0.2.2, <1.0.0",
     "alibabacloud_gateway_spi>=0.0.2, <1.0.0",
-    "alibabacloud_tea_xml>=0.0.2, <1.0.0"
+    "alibabacloud_tea_xml>=0.0.3, <1.0.0"
 ]
 
 LONG_DESCRIPTION = ''
