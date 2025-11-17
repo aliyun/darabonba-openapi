@@ -12,5 +12,7 @@ require (
 )
 
 replace github.com/google/go-cmp v0.6.0 => github.com/google/go-cmp v0.5.0
-replace github.com/alibabacloud-go/tea => ../tea
-replace github.com/alibabacloud-go/tea-utils/v2 => ../tea-utils
+
+replace github.com/alibabacloud-go/tea => ../../tea
+
+replace github.com/alibabacloud-go/tea-utils/v2 => ../../tea-utils

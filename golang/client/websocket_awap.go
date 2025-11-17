@@ -13,10 +13,12 @@ import (
 // @param params - request parameters
 // @param request - request object
 // @param runtime - runtime options (reuses all configs from HTTP requests)
-//                   Can be *dara.RuntimeOptions (type alias) or *dara.ExtendedRuntimeOptions
+//
+//	Can be *dara.RuntimeOptions (type alias) or *dara.ExtendedRuntimeOptions
+//
 // @param handler - AWAP WebSocket message handler
 // @return WebSocket client and error
-func (client *Client) DoAwapWebSocketRequest(params *Params, request *OpenApiRequest, runtime interface{}, handler dara.AwapWebSocketHandler) (*dara.DefaultWebSocketClient, error) {
+func (client *Client) DoAwapWebSocketRequest(params *Params, request *OpenApiRequest, runtime *dara.ExtendedRuntimeOptions, handler dara.AwapWebSocketHandler) (*dara.DefaultWebSocketClient, error) {
 	// Add AWAP protocol identifier to headers
 	if request.Headers == nil {
 		request.Headers = make(map[string]*string)
