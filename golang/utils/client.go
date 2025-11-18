@@ -474,8 +474,11 @@ func GetAuthorization(request *dara.Request, signatureAlgorithm *string, payload
 	signType := dara.StringValue(signatureAlgorithm)
 	StringToSign := signType + "\n" + hex.EncodeToString(Hash([]byte(canonicalRequest), signatureAlgorithm))
 	signature := hex.EncodeToString(SignatureMethod(dara.StringValue(accessKeySecret), StringToSign, signType))
+	// fmt.Println("GetAuthorization canonicalRequest:", canonicalRequest)
+	// fmt.Println("GetAuthorization StringToSign:", StringToSign)
 	auth := signType + " Credential=" + dara.StringValue(accessKey) + ",SignedHeaders=" +
 		strings.Join(signedHeaders, ";") + ",Signature=" + signature
+	// fmt.Println("GetAuthorization auth:", auth)
 	return dara.String(auth)
 }
 

@@ -805,6 +805,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
+		// "handler":        client.Handler,
 	})
 
 	var retryPolicyContext *dara.RetryPolicyContext

@@ -3,45 +3,68 @@ package client
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/alibabacloud-go/tea/dara"
 )
 
-// DoAwapWebSocketRequest establishes a WebSocket connection with AWAP protocol support
-// Reuses runtime options for timeout, proxy, and auth configuration
-//
-// @param params - request parameters
-// @param request - request object
-// @param runtime - runtime options (reuses all configs from HTTP requests)
-//
-//	Can be *dara.RuntimeOptions (type alias) or *dara.ExtendedRuntimeOptions
-//
-// @param handler - AWAP WebSocket message handler
-// @return WebSocket client and error
-func (client *Client) DoAwapWebSocketRequest(params *Params, request *OpenApiRequest, runtime *dara.ExtendedRuntimeOptions, handler dara.AwapWebSocketHandler) (*dara.DefaultWebSocketClient, error) {
-	// Add AWAP protocol identifier to headers
-	if request.Headers == nil {
-		request.Headers = make(map[string]*string)
-	}
-	request.Headers["X-Protocol"] = dara.String("AWAP")
-
-	// Reuse the base DoWebSocketRequest with AWAP handler
-	return client.DoWebSocketRequest(params, request, runtime, handler)
-}
-
 // SendAwapMessage sends an AWAP protocol message
+// AWAP protocol uses frame format: text headers + JSON payload
+// Format: "type:request\nseq:1\ntimestamp:1234567890\nid:msg-001\nack:required\n\n{JSON payload}"
 //
 // @param wsClient - WebSocket client
 // @param message - AWAP message to send
 // @return error
-func (client *Client) SendAwapMessage(wsClient *dara.DefaultWebSocketClient, message *dara.AwapMessage) error {
-	jsonData, err := message.ToJSON()
-	if err != nil {
-		return err
+func (client *Client) SendAwapMessage(wsClient dara.WebSocketClient, message *dara.AwapMessage) error {
+	// Build AWAP frame header (text format)
+	var headerBuilder strings.Builder
+
+	// Add type
+	headerBuilder.WriteString(fmt.Sprintf("type:%s\n", string(message.Type)))
+
+	// Add seq
+	headerBuilder.WriteString(fmt.Sprintf("seq:%d\n", message.Seq))
+
+	// Add timestamp
+	timestamp := time.Now().UnixMilli()
+	headerBuilder.WriteString(fmt.Sprintf("timestamp:%d\n", timestamp))
+
+	// Add id
+	if message.ID != "" {
+		headerBuilder.WriteString(fmt.Sprintf("id:%s\n", message.ID))
 	}
 
+	// Add ack if it's a request or AckRequiredTextEvent
+	if message.Type == dara.AwapMessageTypeRequest || message.Type == dara.AwapMessageTypeAckRequiredTextEvent {
+		headerBuilder.WriteString("ack:required\n")
+	}
+
+	// Add empty line to separate headers and payload
+	headerBuilder.WriteString("\n")
+
+	// Serialize payload to JSON
+	var payloadJSON []byte
+	var err error
+	if message.Payload != nil {
+		payloadJSON, err = json.Marshal(message.Payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal AWAP payload: %w", err)
+		}
+	} else {
+		payloadJSON = []byte("{}")
+	}
+
+	// Combine header and payload
+	frameData := headerBuilder.String() + string(payloadJSON)
+
+	// Debug: log the AWAP frame being sent
+	fmt.Printf("[AWAP] Sending frame:\n%s\n", frameData)
+
 	ctx := context.Background()
-	return wsClient.SendText(ctx, string(jsonData))
+	return wsClient.SendText(ctx, frameData)
 }
 
 // SendAwapRequest sends an AWAP request message
@@ -51,7 +74,7 @@ func (client *Client) SendAwapMessage(wsClient *dara.DefaultWebSocketClient, mes
 // @param seq - sequence number
 // @param payload - message payload
 // @return error
-func (client *Client) SendAwapRequest(wsClient *dara.DefaultWebSocketClient, id string, seq int64, payload interface{}) error {
+func (client *Client) SendAwapRequest(wsClient dara.WebSocketClient, id string, seq int64, payload interface{}) error {
 	message := dara.BuildAwapRequest(id, seq, payload)
 	return client.SendAwapMessage(wsClient, message)
 }
@@ -63,7 +86,7 @@ func (client *Client) SendAwapRequest(wsClient *dara.DefaultWebSocketClient, id 
 // @param seq - sequence number
 // @param payload - event payload
 // @return error
-func (client *Client) SendAwapEvent(wsClient *dara.DefaultWebSocketClient, id string, seq int64, payload interface{}) error {
+func (client *Client) SendAwapEvent(wsClient dara.WebSocketClient, id string, seq int64, payload interface{}) error {
 	message := dara.BuildAwapEvent(id, seq, payload)
 	return client.SendAwapMessage(wsClient, message)
 }
