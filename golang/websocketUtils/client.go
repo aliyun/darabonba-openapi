@@ -1,8 +1,9 @@
 package websocketUtils
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/alibabacloud-go/tea/dara"
@@ -20,16 +21,10 @@ func NewWebSocketClient(wsClient dara.WebSocketClient, response *dara.Response) 
 	}
 }
 
-func (c *WebSocketClient) GetWebSocketClient() dara.WebSocketClient {
-	return c.wsClient
-}
-
-// GetResponse returns the WebSocket connection response
 func (c *WebSocketClient) GetResponse() *dara.Response {
 	return c.response
 }
 
-// Close closes the WebSocket connection
 func (c *WebSocketClient) Close() error {
 	if c.wsClient != nil {
 		return c.wsClient.Close()
@@ -37,13 +32,39 @@ func (c *WebSocketClient) Close() error {
 	return nil
 }
 
-// Deprecated: Use WebSocketConnection instead
+func (c *WebSocketClient) Reconnect() (*dara.Response, error) {
+	if c.wsClient != nil {
+		return c.wsClient.Reconnect()
+	}
+	return nil, fmt.Errorf("wsClient is nil")
+}
+
+func (c *WebSocketClient) Disconnect() error {
+	if c.wsClient != nil {
+		return c.wsClient.Disconnect()
+	}
+	return nil
+}
+
+func (c *WebSocketClient) IsConnected() bool {
+	if c.wsClient != nil {
+		return c.wsClient.IsConnected()
+	}
+	return false
+}
+
+func (c *WebSocketClient) GetSessionInfo() *dara.WebSocketSessionInfo {
+	if c.wsClient != nil {
+		return c.wsClient.GetSessionInfo()
+	}
+	return nil
+}
+
 type WebsocketClient struct {
 	wsClient dara.WebSocketClient
 	response *dara.Response
 }
 
-// Deprecated: Use NewWebSocketConnection instead
 func NewWebsocketClient(wsClient dara.WebSocketClient, response *dara.Response) *WebsocketClient {
 	return &WebsocketClient{
 		wsClient: wsClient,
@@ -55,22 +76,9 @@ func NewWebsocketClient(wsClient dara.WebSocketClient, response *dara.Response) 
 // AWAP Protocol Methods
 // ============================================================================
 
-// SendAwapMessage sends an AWAP protocol message
-// AWAP protocol uses frame format: text headers + JSON payload
-// Format: "type:request\nseq:1\ntimestamp:1234567890\nid:msg-001\nack:required\n\n{JSON payload}"
-func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
-	frameData, err := dara.BuildAwapMessageText(message)
-	if err != nil {
-		return fmt.Errorf("failed to build AWAP message: %w", err)
-	}
-
-	ctx := context.Background()
-	return c.wsClient.SendText(ctx, frameData)
-}
-
-func BuildAwapMessage(msgType dara.AwapMessageType, id string, seq int64, payload interface{}) *dara.AwapMessage {
+func BuildAwapMessage(msgType string, id string, seq int64, payload interface{}) *dara.AwapMessage {
 	return &dara.AwapMessage{
-		Type:    msgType,
+		Type:    dara.AwapMessageType(msgType),
 		ID:      id,
 		Seq:     seq,
 		Payload: payload,
@@ -78,13 +86,63 @@ func BuildAwapMessage(msgType dara.AwapMessageType, id string, seq int64, payloa
 	}
 }
 
-func BuildAwapRequest(id string, seq int64, payload interface{}) *dara.AwapMessage {
-	return BuildAwapMessage(dara.AwapMessageTypeUpstreamTextEvent, id, seq, payload)
+func BuildAwapMessageText(message *dara.AwapMessage) (string, error) {
+	if message == nil {
+		return "", fmt.Errorf("message cannot be nil")
+	}
+	now := time.Now()
+	var headerBuilder strings.Builder
+
+	headerBuilder.WriteString(fmt.Sprintf("type:%s\n", string(message.Type)))
+	headerBuilder.WriteString(fmt.Sprintf("seq:%d\n", message.Seq))
+	headerBuilder.WriteString(fmt.Sprintf("timestamp:%d\n", now.Unix()*1000+int64(now.Nanosecond())/1e6))
+
+	if message.ID != "" {
+		headerBuilder.WriteString(fmt.Sprintf("id:%s\n", message.ID))
+	}
+
+	// Auto-add ack:required for AckRequiredTextEvent
+	if message.Type == "AckRequiredTextEvent" {
+		headerBuilder.WriteString("ack:required\n")
+	}
+
+	// Add empty line to separate headers and payload
+	headerBuilder.WriteString("\n")
+
+	// Serialize payload to JSON
+	var payloadJSON []byte
+	var err error
+	if message.Payload != nil {
+		payloadJSON, err = json.Marshal(message.Payload)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal AWAP payload: %w", err)
+		}
+	} else {
+		payloadJSON = []byte("{}")
+	}
+
+	return headerBuilder.String() + string(payloadJSON), nil
 }
 
-func (c *WebSocketClient) SendAwapRequest(id string, seq int64, payload interface{}) error {
-	message := BuildAwapRequest(id, seq, payload)
-	return c.SendAwapMessage(message)
+// SendAwapMessage sends an AWAP protocol message
+// AWAP protocol uses frame format: text headers + JSON payload
+// Format: "type:request\nseq:1\ntimestamp:1234567890\nid:msg-001\nack:required\n\n{JSON payload}"
+func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
+	frameData, err := BuildAwapMessageText(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendText(frameData)
+}
+
+// SendAwapRequestWithAck sends an AWAP request that requires acknowledgment and waits for response
+func (c *WebSocketClient) SendAwapRequestWithAck(id string, seq int64, payload interface{}, timeout time.Duration) (*dara.AwapMessage, error) {
+	message := BuildAwapMessage("AckRequiredTextEvent", id, seq, payload)
+	messageText, err := BuildAwapMessageText(message)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.(*dara.DefaultWebSocketClient).SendAwapRequestWithResponse(id, messageText, timeout)
 }
 
 // ============================================================================
@@ -103,26 +161,9 @@ func (c *WebSocketClient) SendGeneralTextMessage(text string) error {
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
-	return c.wsClient.SendText(ctx, string(jsonData))
+	return c.wsClient.SendText(string(jsonData))
 }
 
 func (c *WebSocketClient) SendGeneralBinaryMessage(data []byte) error {
-	ctx := context.Background()
-	return c.wsClient.SendBinary(ctx, data)
-}
-
-// ============================================================================
-// AWAP Request-Response Pattern Methods (AckRequired)
-// ============================================================================
-
-// SendAwapRequestWithAck sends an AWAP request that requires acknowledgment and waits for response
-func (c *WebSocketClient) SendAwapRequestWithAck(id string, seq int64, payload interface{}, timeout time.Duration) (*dara.AwapMessage, error) {
-	return c.SendAwapRequestWithAckAndContext(context.Background(), id, seq, payload, timeout)
-}
-
-func (c *WebSocketClient) SendAwapRequestWithAckAndContext(ctx context.Context, id string, seq int64, payload interface{}, timeout time.Duration) (*dara.AwapMessage, error) {
-	message := BuildAwapMessage(dara.AwapMessageTypeAckRequiredTextEvent, id, seq, payload)
-	return c.wsClient.(*dara.DefaultWebSocketClient).SendAwapRequestWithResponse(ctx, message, timeout)
+	return c.wsClient.SendBinary(data)
 }
