@@ -4,10 +4,12 @@ package client
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
+	"github.com/alibabacloud-go/darabonba-openapi/v2/websocketUtils"
 	"github.com/alibabacloud-go/tea/dara"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -808,16 +810,21 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
-	protocol := dara.ToString(dara.Default(dara.StringValue(client.Protocol), dara.StringValue(params.Protocol)))
+	protocol := dara.StringValue(params.Protocol)
 	isWebSocket := false
 	if protocol == "ws" || protocol == "wss" {
 		isWebSocket = true
-	} else if protocol == "http" || protocol == "https" {
-		if runtime != nil && dara.GetWebSocketHandler(runtime) != nil {
-			isWebSocket = true
-		}
 	}
 	if isWebSocket {
+		websocketSubProtocol := dara.StringValue(params.WebsocketSubProtocol)
+		if websocketSubProtocol == "" {
+			return nil, errors.New("websocketSubProtocol is required: please set it in params.WebsocketSubProtocol")
+		}
+		if websocketSubProtocol != "awap" && websocketSubProtocol != "general" {
+			return nil, fmt.Errorf("websocketSubProtocol must be 'awap' or 'general', got: %s", websocketSubProtocol)
+		}
+		request.Headers["sec-websocket-protocol"] = dara.String(websocketSubProtocol)
+
 		var handler dara.WebSocketHandler
 		if runtimeHandler := dara.GetWebSocketHandler(runtime); runtimeHandler != nil {
 			if wsHandler, ok := runtimeHandler.(dara.WebSocketHandler); ok {
@@ -853,7 +860,6 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 			"webSocketMaxReconnectTimes": dara.IntValue(dara.GetWebSocketMaxReconnectTimes(runtime)),
 			"webSocketWriteTimeout":      dara.IntValue(dara.GetWebSocketWriteTimeout(runtime)),
 			"webSocketHandshakeTimeout":  dara.IntValue(dara.GetWebSocketHandshakeTimeout(runtime)),
-			"webSocketEnableCompression": dara.BoolValue(dara.GetWebSocketEnableCompression(runtime)),
 			"webSocketHandler":           handler,
 		})
 	}
@@ -1054,8 +1060,8 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 				continue
 			}
 
-			_result["wsClient"] = wsClient
-			_result["response"] = response
+			wsClientObj := websocketUtils.NewWebSocketClient(wsClient, response)
+			_result["websocketClient"] = wsClientObj
 		} else {
 			response_, _err := dara.DoRequest(request_, _runtime)
 			if _err != nil {
