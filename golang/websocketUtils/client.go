@@ -66,9 +66,9 @@ func (c *WebSocketClient) GetSessionInfo() *dara.WebSocketSessionInfo {
 // AWAP Protocol Methods
 // ============================================================================
 
-func BuildAwapMessage(msgType string, id string, seq int64, payload interface{}) *dara.AwapMessage {
+func BuildAwapMessage(msgType dara.AwapMessageType, id string, seq int64, payload interface{}) *dara.AwapMessage {
 	return &dara.AwapMessage{
-		Type:    dara.AwapMessageType(msgType),
+		Type:    msgType,
 		ID:      id,
 		Seq:     seq,
 		Payload: payload,
@@ -125,7 +125,7 @@ func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
 	return c.wsClient.SendText(messageText)
 }
 
-func (c *WebSocketClient) SendRawAwapMessage(msgType string, seq int64, payload interface{}) error {
+func (c *WebSocketClient) SendRawAwapMessage(msgType dara.AwapMessageType, seq int64, payload interface{}) error {
 	id := generateMessageId()
 	message := BuildAwapMessage(msgType, id, seq, payload)
 	messageText, err := BuildAwapMessageText(message)
@@ -135,7 +135,7 @@ func (c *WebSocketClient) SendRawAwapMessage(msgType string, seq int64, payload 
 	return c.wsClient.SendText(messageText)
 }
 
-func (c *WebSocketClient) SendRawAwapMessageWithId(msgType string, id string, seq int64, payload interface{}) error {
+func (c *WebSocketClient) SendRawAwapMessageWithId(msgType dara.AwapMessageType, id string, seq int64, payload interface{}) error {
 	message := BuildAwapMessage(msgType, id, seq, payload)
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
