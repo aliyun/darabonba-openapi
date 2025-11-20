@@ -9,7 +9,7 @@ import (
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
-	"github.com/alibabacloud-go/darabonba-openapi/v2/websocketUtils"
+	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketutils"
 	"github.com/alibabacloud-go/tea/dara"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -1060,7 +1060,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 				continue
 			}
 
-			wsClientObj := websocketUtils.NewWebSocketClient(wsClient, response)
+			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response)
 			_result["websocketClient"] = wsClientObj
 		} else {
 			response_, _err := dara.DoRequest(request_, _runtime)

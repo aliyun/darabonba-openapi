@@ -1,13 +1,14 @@
-package websocketUtils
+package websocketutils
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/alibabacloud-go/tea/dara"
-	"github.com/google/uuid"
 )
 
 type WebSocketClient struct {
@@ -125,7 +126,7 @@ func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
 }
 
 func (c *WebSocketClient) SendRawAwapMessage(msgType string, seq int64, payload interface{}) error {
-	id := uuid.New().String()
+	id := generateMessageId()
 	message := BuildAwapMessage(msgType, id, seq, payload)
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
@@ -174,4 +175,46 @@ func (c *WebSocketClient) SendGeneralTextMessage(text string) error {
 
 func (c *WebSocketClient) SendGeneralBinaryMessage(data []byte) error {
 	return c.wsClient.SendBinary(data)
+}
+
+// generateMessageId generates a 32-character message ID
+// Logic matches Java implementation:
+// 1. Generate random hex string (equivalent to UUID without hyphens)
+// 2. If hex string length >= 32, return first 32 characters
+// 3. Otherwise, combine timestamp and hex string
+// 4. If combined length >= 32, return first 32 characters
+// 5. If still less than 32, pad with zeros to 32 characters
+func generateMessageId() string {
+	// Generate 16 random bytes and convert to hex (32 characters, equivalent to UUID without hyphens)
+	randomBytes := make([]byte, 16)
+	if _, err := rand.Read(randomBytes); err != nil {
+		// Fallback: use timestamp-based ID if random generation fails
+		now := time.Now()
+		timestamp := fmt.Sprintf("%d", now.Unix()*1000+int64(now.Nanosecond())/1e6)
+		// Pad timestamp to 32 characters
+		padded := fmt.Sprintf("%-32s", timestamp)
+		return strings.ReplaceAll(padded, " ", "0")
+	}
+	hexStr := hex.EncodeToString(randomBytes)
+
+	// If hex string length >= 32, return first 32 characters
+	if len(hexStr) >= 32 {
+		return hexStr[:32]
+	}
+
+	// Otherwise, combine timestamp and hex string
+	// Use UnixMilli equivalent for Go 1.14 compatibility
+	now := time.Now()
+	timestamp := fmt.Sprintf("%d", now.Unix()*1000+int64(now.Nanosecond())/1e6)
+	combined := timestamp + hexStr
+
+	// If combined length >= 32, return first 32 characters
+	if len(combined) >= 32 {
+		return combined[:32]
+	}
+
+	// If still less than 32, pad with zeros to 32 characters
+	// Format: %-32s pads on the right, then replace spaces with zeros
+	padded := fmt.Sprintf("%-32s", combined)
+	return strings.ReplaceAll(padded, " ", "0")
 }
