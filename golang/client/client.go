@@ -1047,7 +1047,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		}
 
 		if isWebSocket {
-			wsClient, response, _err := dara.NewWebSocketClientAndConnect(request_, _runtime)
+			wsClient, response, _err := dara.NewWebSocketClientAndConnect(request_, _runtime, params.WebsocketSubProtocol)
 			if _err != nil {
 				retriesAttempted++
 				retryPolicyContext = &dara.RetryPolicyContext{
