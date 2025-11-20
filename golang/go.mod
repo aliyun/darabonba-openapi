@@ -8,6 +8,7 @@ require (
 	github.com/alibabacloud-go/tea v1.3.13
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/credentials-go v1.4.5
+	github.com/google/uuid v1.6.0
 	github.com/tjfoc/gmsm v1.4.1
 )
 

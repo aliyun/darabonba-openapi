@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alibabacloud-go/tea/dara"
+	"github.com/google/uuid"
 )
 
 type WebSocketClient struct {
@@ -58,18 +59,6 @@ func (c *WebSocketClient) GetSessionInfo() *dara.WebSocketSessionInfo {
 		return c.wsClient.GetSessionInfo()
 	}
 	return nil
-}
-
-type WebsocketClient struct {
-	wsClient dara.WebSocketClient
-	response *dara.Response
-}
-
-func NewWebsocketClient(wsClient dara.WebSocketClient, response *dara.Response) *WebsocketClient {
-	return &WebsocketClient{
-		wsClient: wsClient,
-		response: response,
-	}
 }
 
 // ============================================================================
@@ -128,11 +117,30 @@ func BuildAwapMessageText(message *dara.AwapMessage) (string, error) {
 // AWAP protocol uses frame format: text headers + JSON payload
 // Format: "type:request\nseq:1\ntimestamp:1234567890\nid:msg-001\nack:required\n\n{JSON payload}"
 func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
-	frameData, err := BuildAwapMessageText(message)
+	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
 		return fmt.Errorf("failed to build AWAP message: %w", err)
 	}
-	return c.wsClient.SendText(frameData)
+	return c.wsClient.SendText(messageText)
+}
+
+func (c *WebSocketClient) SendRawAwapMessage(msgType string, seq int64, payload interface{}) error {
+	id := uuid.New().String()
+	message := BuildAwapMessage(msgType, id, seq, payload)
+	messageText, err := BuildAwapMessageText(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendText(messageText)
+}
+
+func (c *WebSocketClient) SendRawAwapMessageWithId(msgType string, id string, seq int64, payload interface{}) error {
+	message := BuildAwapMessage(msgType, id, seq, payload)
+	messageText, err := BuildAwapMessageText(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendText(messageText)
 }
 
 // SendAwapRequestWithAck sends an AWAP request that requires acknowledgment and waits for response
