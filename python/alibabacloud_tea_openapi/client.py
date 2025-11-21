@@ -2569,6 +2569,14 @@ class Client:
         self._headers = None
         return headers
 
+    def default_any(
+        input_value: Any,
+        default_value: Any,
+    ) -> Any:
+        if DaraCore.is_null(input_value):
+            return default_value
+        return input_value
+
     def get_access_denied_detail(
         self,
         err: Dict[str, Any],
