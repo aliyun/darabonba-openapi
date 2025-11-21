@@ -66,11 +66,10 @@ func (c *WebSocketClient) GetSessionInfo() *dara.WebSocketSessionInfo {
 // AWAP Protocol Methods
 // ============================================================================
 
-func BuildAwapMessage(msgType dara.AwapMessageType, id string, seq int64, payload interface{}) *dara.AwapMessage {
+func NewAwapMessage(msgType dara.AwapMessageType, id string, payload interface{}) *dara.AwapMessage {
 	return &dara.AwapMessage{
 		Type:    msgType,
 		ID:      id,
-		Seq:     seq,
 		Payload: payload,
 		Headers: make(map[string]string),
 	}
@@ -84,7 +83,6 @@ func BuildAwapMessageText(message *dara.AwapMessage) (string, error) {
 	var headerBuilder strings.Builder
 
 	headerBuilder.WriteString(fmt.Sprintf("type:%s\n", string(message.Type)))
-	headerBuilder.WriteString(fmt.Sprintf("seq:%d\n", message.Seq))
 	headerBuilder.WriteString(fmt.Sprintf("timestamp:%d\n", now.Unix()*1000+int64(now.Nanosecond())/1e6))
 
 	if message.ID != "" {
@@ -114,10 +112,64 @@ func BuildAwapMessageText(message *dara.AwapMessage) (string, error) {
 	return headerBuilder.String() + string(payloadJSON), nil
 }
 
+// BuildAwapMessageBinary constructs a binary AWAP message
+// Format: [header bytes (text converted to binary)] + [\n\n separator] + [binary body]
+// The header part (including the separator) is converted from string to binary,
+// then concatenated with the binary body to form the complete AWAP binary message.
+func BuildAwapMessageBinary(message *dara.AwapMessage) ([]byte, error) {
+	if message == nil {
+		return nil, fmt.Errorf("message cannot be nil")
+	}
+	now := time.Now()
+	var headerBuilder strings.Builder
+
+	// Build header part (same format as text message)
+	headerBuilder.WriteString(fmt.Sprintf("type:%s\n", string(message.Type)))
+	headerBuilder.WriteString(fmt.Sprintf("timestamp:%d\n", now.Unix()*1000+int64(now.Nanosecond())/1e6))
+
+	if message.ID != "" {
+		headerBuilder.WriteString(fmt.Sprintf("id:%s\n", message.ID))
+	}
+
+	// Add custom headers if present
+	if message.Headers != nil {
+		for key, value := range message.Headers {
+			headerBuilder.WriteString(fmt.Sprintf("%s:%s\n", key, value))
+		}
+	}
+
+	// Add empty line to separate headers and payload
+	headerBuilder.WriteString("\n")
+
+	// Convert header string (including separator) to binary
+	headerBytes := []byte(headerBuilder.String())
+
+	var bodyBytes []byte
+	if message.Payload != nil {
+		// Check if Payload is already []byte
+		if payloadBytes, ok := message.Payload.([]byte); ok {
+			bodyBytes = payloadBytes
+		} else {
+			// If Payload is not []byte, try to convert it
+			// For binary messages, Payload should be []byte
+			return nil, fmt.Errorf("payload for binary AWAP message must be []byte, got %T", message.Payload)
+		}
+	} else {
+		bodyBytes = []byte{} // Empty body
+	}
+
+	// Concatenate header bytes (including separator) + binary body
+	result := make([]byte, 0, len(headerBytes)+len(bodyBytes))
+	result = append(result, headerBytes...)
+	result = append(result, bodyBytes...)
+
+	return result, nil
+}
+
 // SendAwapMessage sends an AWAP protocol message
 // AWAP protocol uses frame format: text headers + JSON payload
 // Format: "type:request\nseq:1\ntimestamp:1234567890\nid:msg-001\nack:required\n\n{JSON payload}"
-func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
+func (c *WebSocketClient) SendAwapTextMessage(message *dara.AwapMessage) error {
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
 		return fmt.Errorf("failed to build AWAP message: %w", err)
@@ -125,9 +177,9 @@ func (c *WebSocketClient) SendAwapMessage(message *dara.AwapMessage) error {
 	return c.wsClient.SendText(messageText)
 }
 
-func (c *WebSocketClient) SendRawAwapMessage(msgType dara.AwapMessageType, seq int64, payload interface{}) error {
+func (c *WebSocketClient) SendRawAwapTextMessage(msgType dara.AwapMessageType, payload interface{}) error {
 	id := generateMessageId()
-	message := BuildAwapMessage(msgType, id, seq, payload)
+	message := NewAwapMessage(msgType, id, payload)
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
 		return fmt.Errorf("failed to build AWAP message: %w", err)
@@ -135,8 +187,8 @@ func (c *WebSocketClient) SendRawAwapMessage(msgType dara.AwapMessageType, seq i
 	return c.wsClient.SendText(messageText)
 }
 
-func (c *WebSocketClient) SendRawAwapMessageWithId(msgType dara.AwapMessageType, id string, seq int64, payload interface{}) error {
-	message := BuildAwapMessage(msgType, id, seq, payload)
+func (c *WebSocketClient) SendRawAwapTextMessageWithId(msgType dara.AwapMessageType, id string, payload interface{}) error {
+	message := NewAwapMessage(msgType, id, payload)
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
 		return fmt.Errorf("failed to build AWAP message: %w", err)
@@ -145,8 +197,17 @@ func (c *WebSocketClient) SendRawAwapMessageWithId(msgType dara.AwapMessageType,
 }
 
 // SendAwapRequestWithAck sends an AWAP request that requires acknowledgment and waits for response
-func (c *WebSocketClient) SendAwapRequestWithAck(id string, seq int64, payload interface{}, timeout time.Duration) (*dara.AwapMessage, error) {
-	message := BuildAwapMessage("AckRequiredTextEvent", id, seq, payload)
+func (c *WebSocketClient) SendAwapRequestWithAck(message *dara.AwapMessage, timeout time.Duration) (*dara.AwapMessage, error) {
+	messageText, err := BuildAwapMessageText(message)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.(*dara.DefaultWebSocketClient).SendAwapRequestWithResponse(message.ID, messageText, timeout)
+}
+
+// SendRawAwapRequestWithAck sends an AWAP request that requires acknowledgment and waits for response
+func (c *WebSocketClient) SendRawAwapRequestWithAck(id string, payload interface{}, timeout time.Duration) (*dara.AwapMessage, error) {
+	message := NewAwapMessage("AckRequiredTextEvent", id, payload)
 	messageText, err := BuildAwapMessageText(message)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build AWAP message: %w", err)
@@ -154,18 +215,45 @@ func (c *WebSocketClient) SendAwapRequestWithAck(id string, seq int64, payload i
 	return c.wsClient.(*dara.DefaultWebSocketClient).SendAwapRequestWithResponse(id, messageText, timeout)
 }
 
+func (c *WebSocketClient) SendAwapBinaryMessage(message *dara.AwapMessage) error {
+	messageBinary, err := BuildAwapMessageBinary(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendBinary(messageBinary)
+}
+
+func (c *WebSocketClient) SendRawAwapBinaryMessage(msgType dara.AwapMessageType, payload interface{}) error {
+	id := generateMessageId()
+	message := NewAwapMessage(msgType, id, payload)
+	messageBinary, err := BuildAwapMessageBinary(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendBinary(messageBinary)
+}
+
+func (c *WebSocketClient) SendRawAwapBinaryMessageWithId(msgType dara.AwapMessageType, id string, payload interface{}) error {
+	message := NewAwapMessage(msgType, id, payload)
+	messageBinary, err := BuildAwapMessageBinary(message)
+	if err != nil {
+		return fmt.Errorf("failed to build AWAP message: %w", err)
+	}
+	return c.wsClient.SendBinary(messageBinary)
+}
+
 // ============================================================================
 // General Protocol Methods
 // ============================================================================
 
-func BuildGeneralTextMessage(body string) *dara.GeneralMessage {
+func NewGeneralMessage(body string) *dara.GeneralMessage {
 	return &dara.GeneralMessage{
 		Body: body,
 	}
 }
 
 func (c *WebSocketClient) SendGeneralTextMessage(text string) error {
-	message := BuildGeneralTextMessage(text)
+	message := NewGeneralMessage(text)
 	jsonData, err := message.ToJSON()
 	if err != nil {
 		return err

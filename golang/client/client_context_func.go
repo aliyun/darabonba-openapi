@@ -699,6 +699,9 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		if websocketSubProtocol != "awap" && websocketSubProtocol != "general" {
 			return nil, fmt.Errorf("websocketSubProtocol must be 'awap' or 'general', got: %s", websocketSubProtocol)
 		}
+		if request.Headers == nil {
+			request.Headers = make(map[string]*string)
+		}
 		request.Headers["sec-websocket-protocol"] = dara.String(websocketSubProtocol)
 
 		var handler dara.WebSocketHandler
