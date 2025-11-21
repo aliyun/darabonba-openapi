@@ -924,7 +924,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		}
 
 		if isWebSocket {
-			wsClient, response_, _err := dara.NewWebSocketClientAndConnect(request_, _runtime)
+			wsClient, response_, _err := dara.NewWebSocketClientAndConnectWithContext(ctx, request_, _runtime)
 			if _err != nil {
 				retriesAttempted++
 				retryPolicyContext = &dara.RetryPolicyContext{
