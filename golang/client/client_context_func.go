@@ -730,7 +730,6 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 			"tlsMinVersion":              dara.StringValue(client.TlsMinVersion),
 			"webSocketPingInterval":      dara.IntValue(dara.GetWebSocketPingInterval(runtime)),
 			"webSocketPongTimeout":       dara.IntValue(dara.GetWebSocketPongTimeout(runtime)),
-			"webSocketMaxMessageSize":    dara.IntValue(dara.GetWebSocketMaxMessageSize(runtime)),
 			"webSocketEnableReconnect":   dara.BoolValue(dara.GetWebSocketEnableReconnect(runtime)),
 			"webSocketReconnectInterval": dara.IntValue(dara.GetWebSocketReconnectInterval(runtime)),
 			"webSocketMaxReconnectTimes": dara.IntValue(dara.GetWebSocketMaxReconnectTimes(runtime)),
