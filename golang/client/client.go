@@ -861,6 +861,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 			"webSocketWriteTimeout":      dara.IntValue(dara.GetWebSocketWriteTimeout(runtime)),
 			"webSocketHandshakeTimeout":  dara.IntValue(dara.GetWebSocketHandshakeTimeout(runtime)),
 			"webSocketHandler":           handler,
+			"websocketSubProtocol":       params.WebsocketSubProtocol,
 		})
 	}
 
@@ -1047,20 +1048,20 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		}
 
 		if isWebSocket {
-			wsClient, response, _err := dara.NewWebSocketClientAndConnect(request_, _runtime, params.WebsocketSubProtocol)
+			wsClient, response_, _err := dara.NewWebSocketClientAndConnect(request_, _runtime)
 			if _err != nil {
 				retriesAttempted++
 				retryPolicyContext = &dara.RetryPolicyContext{
 					RetriesAttempted: retriesAttempted,
 					HttpRequest:      request_,
-					HttpResponse:     response,
+					HttpResponse:     response_,
 					Exception:        _err,
 				}
 				_resultErr = _err
 				continue
 			}
 
-			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response)
+			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response_)
 			_result["websocketClient"] = wsClientObj
 		} else {
 			response_, _err := dara.DoRequest(request_, _runtime)
