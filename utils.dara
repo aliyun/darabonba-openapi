@@ -59,7 +59,8 @@ model Params = {
   authType: string,
   bodyType: string,
   reqBodyType: string,
-  style?: string
+  style?: string,
+  websocketSubProtocol?: string,
 }
 
 
