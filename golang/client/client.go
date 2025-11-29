@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
@@ -810,7 +811,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
-	protocol := dara.StringValue(params.Protocol)
+	protocol := strings.ToLower(dara.StringValue(params.Protocol))
 	isWebSocket := false
 	if protocol == "ws" || protocol == "wss" {
 		isWebSocket = true

@@ -266,7 +266,6 @@ func (c *WebSocketClient) SendGeneralBinaryMessage(data []byte) error {
 }
 
 // generateMessageId generates a 32-character message ID
-// Logic matches Java implementation:
 // 1. Generate random hex string (equivalent to UUID without hyphens)
 // 2. If hex string length >= 32, return first 32 characters
 // 3. Otherwise, combine timestamp and hex string
@@ -285,18 +284,15 @@ func generateMessageId() string {
 	}
 	hexStr := hex.EncodeToString(randomBytes)
 
-	// If hex string length >= 32, return first 32 characters
 	if len(hexStr) >= 32 {
 		return hexStr[:32]
 	}
 
 	// Otherwise, combine timestamp and hex string
-	// Use UnixMilli equivalent for Go 1.14 compatibility
 	now := time.Now()
 	timestamp := fmt.Sprintf("%d", now.Unix()*1000+int64(now.Nanosecond())/1e6)
 	combined := timestamp + hexStr
 
-	// If combined length >= 32, return first 32 characters
 	if len(combined) >= 32 {
 		return combined[:32]
 	}
