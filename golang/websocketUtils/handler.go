@@ -7,6 +7,11 @@ import (
 	"github.com/alibabacloud-go/tea/dara"
 )
 
+const (
+	SubProtocolAWAP    = "awap"
+	SubProtocolGeneral = "general"
+)
+
 type StreamHandler struct {
 	UserHandler dara.WebSocketHandler
 	SubProtocol string
@@ -32,9 +37,9 @@ func (h *StreamHandler) HandleRawMessage(session *dara.WebSocketSessionInfo, mes
 	subProtocol := strings.ToLower(h.SubProtocol)
 
 	switch subProtocol {
-	case "awap":
+	case SubProtocolAWAP:
 		return h.processAwapMessage(session, message)
-	case "general":
+	case SubProtocolGeneral:
 		return h.processGeneralMessage(session, message)
 	default:
 		return h.UserHandler.HandleRawMessage(session, message)

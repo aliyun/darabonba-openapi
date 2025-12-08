@@ -697,7 +697,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		if websocketSubProtocol == "" {
 			return nil, errors.New("websocketSubProtocol is required: please set it in params.WebsocketSubProtocol")
 		}
-		if websocketSubProtocol != "awap" && websocketSubProtocol != "general" {
+		if websocketSubProtocol != websocketutils.SubProtocolAWAP && websocketSubProtocol != websocketutils.SubProtocolGeneral {
 			return nil, fmt.Errorf("websocketSubProtocol must be 'awap' or 'general', got: %s", websocketSubProtocol)
 		}
 		if request.Headers == nil {

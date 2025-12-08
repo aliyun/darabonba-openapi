@@ -101,8 +101,8 @@ func (c *WebSocketClient) SendAwapRequestWithAck(message *AwapMessage, timeout t
 	return c.SendRequest(message.ID, messageText, timeout)
 }
 
-func (c *WebSocketClient) SendRequest(msgID string, messageText string, timeout time.Duration) (interface{}, error) {
-	if msgID == "" {
+func (c *WebSocketClient) SendRequest(ackID string, messageText string, timeout time.Duration) (interface{}, error) {
+	if ackID == "" {
 		return nil, errors.New("message ID cannot be empty for request-response pattern")
 	}
 
@@ -113,13 +113,12 @@ func (c *WebSocketClient) SendRequest(msgID string, messageText string, timeout 
 	responseChan := make(chan interface{}, 1)
 
 	c.pendingRequestsMu.Lock()
-	c.pendingRequests[msgID] = responseChan
+	c.pendingRequests[ackID] = responseChan
 	c.pendingRequestsMu.Unlock()
 
-	// Ensure cleanup
 	defer func() {
 		c.pendingRequestsMu.Lock()
-		delete(c.pendingRequests, msgID)
+		delete(c.pendingRequests, ackID)
 		c.pendingRequestsMu.Unlock()
 		// close(responseChan) // Don't close here, as we might read from it? No, if we timeout, we might close.
 		// Usually good to let GC handle it or close if we are the sender.
@@ -139,13 +138,13 @@ func (c *WebSocketClient) SendRequest(msgID string, messageText string, timeout 
 	case response := <-responseChan:
 		return response, nil
 	case <-time.After(timeout):
-		return nil, fmt.Errorf("request timeout after %v waiting for response to message ID: %s", timeout, msgID)
+		return nil, fmt.Errorf("request timeout after %v waiting for response to message ID: %s", timeout, ackID)
 	}
 }
 
-func (c *WebSocketClient) completeRequest(messageID string, response interface{}) bool {
+func (c *WebSocketClient) completeRequest(ackID string, response interface{}) bool {
 	c.pendingRequestsMu.RLock()
-	responseChan, exists := c.pendingRequests[messageID]
+	responseChan, exists := c.pendingRequests[ackID]
 	c.pendingRequestsMu.RUnlock()
 
 	if !exists || responseChan == nil {
