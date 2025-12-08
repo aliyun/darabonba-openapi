@@ -688,6 +688,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 
 	protocol := dara.StringValue(params.Protocol)
 	isWebSocket := false
+	var wsHandler dara.WebSocketHandler
 	if protocol == "ws" || protocol == "wss" {
 		isWebSocket = true
 	}
@@ -704,14 +705,13 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		}
 		request.Headers["sec-websocket-protocol"] = dara.String(websocketSubProtocol)
 
-		var handler dara.WebSocketHandler
 		if runtimeHandler := dara.GetWebSocketHandler(runtime); runtimeHandler != nil {
-			if wsHandler, ok := runtimeHandler.(dara.WebSocketHandler); ok {
-				handler = wsHandler
+			if userWsHandler, ok := runtimeHandler.(dara.WebSocketHandler); ok {
+				wsHandler = userWsHandler
 			}
 		}
 
-		if handler == nil {
+		if wsHandler == nil {
 			_err = errors.New("WebSocketHandler is required: please set it in runtime.WebSocketHandler")
 			return nil, _err
 		}
@@ -738,7 +738,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 			"webSocketMaxReconnectTimes": dara.IntValue(dara.GetWebSocketMaxReconnectTimes(runtime)),
 			"webSocketWriteTimeout":      dara.IntValue(dara.GetWebSocketWriteTimeout(runtime)),
 			"webSocketHandshakeTimeout":  dara.IntValue(dara.GetWebSocketHandshakeTimeout(runtime)),
-			"webSocketHandler":           handler,
+			"webSocketHandler":           wsHandler,
 			"websocketSubProtocol":       params.WebsocketSubProtocol,
 		})
 	}
@@ -926,7 +926,14 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 		}
 
 		if isWebSocket {
+			streamHandler := &websocketutils.StreamHandler{
+				UserHandler: wsHandler,
+				SubProtocol: dara.StringValue(dara.GetWebsocketSubProtocol(_runtime)),
+			}
+			originHandler := _runtime.WebSocketHandler
+			_runtime.WebSocketHandler = streamHandler
 			wsClient, response_, _err := dara.NewWebSocketClientAndConnectWithContext(ctx, request_, _runtime)
+			_runtime.WebSocketHandler = originHandler
 			if _err != nil {
 				retriesAttempted++
 				retryPolicyContext = &dara.RetryPolicyContext{
@@ -940,6 +947,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 			}
 
 			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response_)
+			streamHandler.Client = wsClientObj
 			_result["websocketClient"] = wsClientObj
 
 		} else {
