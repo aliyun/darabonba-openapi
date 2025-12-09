@@ -3,10 +3,14 @@ package client
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
+	"strings"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
+	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketutils"
 	"github.com/alibabacloud-go/tea/dara"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -807,6 +811,61 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
 	})
 
+	protocol := strings.ToLower(dara.StringValue(params.Protocol))
+	var wsHandler dara.WebSocketHandler
+	isWebSocket := false
+	if protocol == "ws" || protocol == "wss" {
+		isWebSocket = true
+	}
+	if isWebSocket {
+		websocketSubProtocol := dara.StringValue(params.WebsocketSubProtocol)
+		if websocketSubProtocol == "" {
+			return nil, errors.New("websocketSubProtocol is required: please set it in params.WebsocketSubProtocol")
+		}
+		if websocketSubProtocol != websocketutils.SubProtocolAWAP && websocketSubProtocol != websocketutils.SubProtocolGeneral {
+			return nil, fmt.Errorf("websocketSubProtocol must be 'awap' or 'general', got: %s", websocketSubProtocol)
+		}
+		if request.Headers == nil {
+			request.Headers = make(map[string]*string)
+		}
+		request.Headers["sec-websocket-protocol"] = dara.String(websocketSubProtocol)
+
+		if runtimeHandler := dara.GetWebSocketHandler(runtime); runtimeHandler != nil {
+			wsHandler = runtimeHandler
+		}
+
+		if wsHandler == nil {
+			_err = errors.New("WebSocketHandler is required: please set it in runtime.WebSocketHandler")
+			return nil, _err
+		}
+		_runtime = dara.NewRuntimeObject(map[string]interface{}{
+			"key":                        dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
+			"cert":                       dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
+			"ca":                         dara.ToString(dara.Default(dara.StringValue(runtime.Ca), dara.StringValue(client.Ca))),
+			"readTimeout":                dara.ForceInt(dara.Default(dara.IntValue(runtime.ReadTimeout), dara.IntValue(client.ReadTimeout))),
+			"connectTimeout":             dara.ForceInt(dara.Default(dara.IntValue(runtime.ConnectTimeout), dara.IntValue(client.ConnectTimeout))),
+			"httpProxy":                  dara.ToString(dara.Default(dara.StringValue(runtime.HttpProxy), dara.StringValue(client.HttpProxy))),
+			"httpsProxy":                 dara.ToString(dara.Default(dara.StringValue(runtime.HttpsProxy), dara.StringValue(client.HttpsProxy))),
+			"noProxy":                    dara.ToString(dara.Default(dara.StringValue(runtime.NoProxy), dara.StringValue(client.NoProxy))),
+			"socks5Proxy":                dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
+			"socks5NetWork":              dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
+			"maxIdleConns":               dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+			"retryOptions":               client.RetryOptions,
+			"ignoreSSL":                  dara.BoolValue(runtime.IgnoreSSL),
+			"httpClient":                 client.HttpClient,
+			"tlsMinVersion":              dara.StringValue(client.TlsMinVersion),
+			"webSocketPingInterval":      dara.IntValue(dara.GetWebSocketPingInterval(runtime)),
+			"webSocketPongTimeout":       dara.IntValue(dara.GetWebSocketPongTimeout(runtime)),
+			"webSocketEnableReconnect":   dara.BoolValue(dara.GetWebSocketEnableReconnect(runtime)),
+			"webSocketReconnectInterval": dara.IntValue(dara.GetWebSocketReconnectInterval(runtime)),
+			"webSocketMaxReconnectTimes": dara.IntValue(dara.GetWebSocketMaxReconnectTimes(runtime)),
+			"webSocketWriteTimeout":      dara.IntValue(dara.GetWebSocketWriteTimeout(runtime)),
+			"webSocketHandshakeTimeout":  dara.IntValue(dara.GetWebSocketHandshakeTimeout(runtime)),
+			"webSocketHandler":           wsHandler,
+			"websocketSubProtocol":       params.WebsocketSubProtocol,
+		})
+	}
+
 	var retryPolicyContext *dara.RetryPolicyContext
 	var request_ *dara.Request
 	var response_ *dara.Response
@@ -989,32 +1048,59 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
-		if _err != nil {
-			retriesAttempted++
-			retryPolicyContext = &dara.RetryPolicyContext{
-				RetriesAttempted: retriesAttempted,
-				HttpRequest:      request_,
-				HttpResponse:     response_,
-				Exception:        _err,
+		if isWebSocket {
+			streamHandler := &websocketutils.StreamHandler{
+				UserHandler: wsHandler,
+				SubProtocol: dara.StringValue(dara.GetWebsocketSubProtocol(_runtime)),
 			}
-			_resultErr = _err
-			continue
-		}
+			originHandler := _runtime.WebSocketHandler
+			_runtime.WebSocketHandler = streamHandler
 
-		_result, _err = doRequest_opResponse(response_, client, params)
-		if _err != nil {
-			retriesAttempted++
-			retryPolicyContext = &dara.RetryPolicyContext{
-				RetriesAttempted: retriesAttempted,
-				HttpRequest:      request_,
-				HttpResponse:     response_,
-				Exception:        _err,
+			wsClient, response_, _err := dara.NewWebSocketClientAndConnect(request_, _runtime)
+			_runtime.WebSocketHandler = originHandler
+			if _err != nil {
+				retriesAttempted++
+				retryPolicyContext = &dara.RetryPolicyContext{
+					RetriesAttempted: retriesAttempted,
+					HttpRequest:      request_,
+					HttpResponse:     response_,
+					Exception:        _err,
+				}
+				_resultErr = _err
+				continue
 			}
-			_resultErr = _err
-			continue
-		}
 
+			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response_)
+			streamHandler.Client = wsClientObj
+			_result["websocketClient"] = wsClientObj
+		} else {
+			response_, _err := dara.DoRequest(request_, _runtime)
+			if _err != nil {
+				retriesAttempted++
+				retryPolicyContext = &dara.RetryPolicyContext{
+					RetriesAttempted: retriesAttempted,
+					HttpRequest:      request_,
+					HttpResponse:     response_,
+					Exception:        _err,
+				}
+				_resultErr = _err
+				continue
+			}
+
+			_result, _err = doRequest_opResponse(response_, client, params)
+			if _err != nil {
+				retriesAttempted++
+				retryPolicyContext = &dara.RetryPolicyContext{
+					RetriesAttempted: retriesAttempted,
+					HttpRequest:      request_,
+					HttpResponse:     response_,
+					Exception:        _err,
+				}
+				_resultErr = _err
+				continue
+			}
+
+		}
 		return _result, _err
 	}
 	if dara.BoolValue(client.DisableSDKError) != true {
