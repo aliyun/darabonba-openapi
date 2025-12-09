@@ -120,9 +120,7 @@ func (c *WebSocketClient) SendRequest(ackID string, messageText string, timeout 
 		c.pendingRequestsMu.Lock()
 		delete(c.pendingRequests, ackID)
 		c.pendingRequestsMu.Unlock()
-		// close(responseChan) // Don't close here, as we might read from it? No, if we timeout, we might close.
-		// Usually good to let GC handle it or close if we are the sender.
-		// If completed, sender closes it. If timeout, we abandon it.
+		// If completed, sender closes it. If timeout, abandon it.
 	}()
 
 	err := c.wsClient.SendText(messageText)

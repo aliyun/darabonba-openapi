@@ -831,9 +831,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		request.Headers["sec-websocket-protocol"] = dara.String(websocketSubProtocol)
 
 		if runtimeHandler := dara.GetWebSocketHandler(runtime); runtimeHandler != nil {
-			if userWsHandler, ok := runtimeHandler.(dara.WebSocketHandler); ok {
-				wsHandler = userWsHandler
-			}
+			wsHandler = runtimeHandler
 		}
 
 		if wsHandler == nil {
