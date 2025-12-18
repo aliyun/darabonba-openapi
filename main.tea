@@ -795,13 +795,6 @@ async function callApi(params: Params, request: OpenApiRequest, runtime: Util.Ru
 }
 /**
  * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */
@@ -1026,13 +1019,6 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
 
 /**
  * Encapsulate the request and invoke the network
- * @param action api name
- * @param version product version
- * @param protocol http or https
- * @param method e.g. GET
- * @param authType authorization type e.g. AK
- * @param bodyType response body type e.g. String
- * @param request object of OpenApiRequest
  * @param runtime which controls some details of call api, such as retry times
  * @return the response
  */

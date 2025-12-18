@@ -310,7 +310,7 @@ public class ClientTest {
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -395,7 +395,7 @@ public class ClientTest {
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -405,6 +405,59 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
         Assert.assertEquals(200, result.get("statusCode"));
+    }
+
+    @Test
+    public void testCallApiWithRuntimeDomain() throws Exception {
+        String responseBody = "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}";
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "original-endpoint.example.com";
+        Client client = new Client(config);
+        
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        runtime.domain = "localhost:" + wireMock.port();
+        
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+        Params params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTP"),
+                new TeaPair("pathname", "/"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "RPC"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        ));
+        
+        // Verify that the request is actually sent to the address specified in the domain (localhost:port)
+        stubFor(post(anyUrl())
+                .withQueryParam("Action", equalTo("TestAPI"))
+                .withQueryParam("Version", equalTo("2022-06-01"))
+                .withQueryParam("AccessKeyId", equalTo("ak"))
+                .withQueryParam("SecurityToken", equalTo("token"))
+                .withQueryParam("SignatureVersion", equalTo("1.0"))
+                .withQueryParam("SignatureMethod", equalTo("HMAC-SHA1"))
+                .withQueryParam("Format", equalTo("json"))
+                .withQueryParam("Timestamp", matching(".+"))
+                .withQueryParam("SignatureNonce", matching(".+"))
+                .withQueryParam("Signature", matching(".+"))
+                .withHeader("host", equalTo("original-endpoint.example.com"))
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "TEST-REQUEST-ID-WITH-DOMAIN")));
+        
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        
+        Assert.assertEquals(200, result.get("statusCode"));
+        Assert.assertEquals("TEST-REQUEST-ID-WITH-DOMAIN", ((Map) result.get("headers")).get("x-acs-request-id"));
+        Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
+        
+        verify(postRequestedFor(urlMatching("/\\?.*"))
+                .withHeader("host", equalTo("original-endpoint.example.com")));
     }
 
     @Test
@@ -453,7 +506,7 @@ public class ClientTest {
                 .withHeader("authorization", matching("acs ak:.+"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -577,7 +630,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-version", equalTo("1.0"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -587,6 +640,54 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
         Assert.assertEquals(200, result.get("statusCode"));
+    }
+
+    @Test
+    public void testCallApiWithRuntimeDomainForROA() throws Exception {
+        String requestBody = "{\"key1\":\"value\",\"key2\":1,\"key3\":true}";
+        String responseBody = "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}";
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = "v2";
+        config.endpoint = "original-roa-endpoint.example.com";
+        Client client = new Client(config);
+        
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        runtime.domain = "localhost:" + wireMock.port();
+        
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+        Params params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTP"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        ));
+        
+        // Verify request is actually sent to the address specified by the domain.
+        stubFor(post(urlMatching("/test\\?.+")).withRequestBody(equalToJson(requestBody))
+                .withQueryParam("key1", equalTo("value"))
+                .withQueryParam("key2", equalTo("1"))
+                .withQueryParam("key3", equalTo("true"))
+                .withHeader("host", equalTo("original-roa-endpoint.example.com"))
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("accept", equalTo("application/json"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "TEST-ROA-REQUEST-ID-WITH-DOMAIN")));
+        
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        
+        Assert.assertEquals(200, result.get("statusCode"));
+        Assert.assertEquals("TEST-ROA-REQUEST-ID-WITH-DOMAIN", ((Map) result.get("headers")).get("x-acs-request-id"));
+        Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
+        
+        verify(postRequestedFor(urlMatching("/test\\?.*"))
+                .withHeader("host", equalTo("original-roa-endpoint.example.com")));
     }
 
     @Test
@@ -636,7 +737,7 @@ public class ClientTest {
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
                         "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -714,7 +815,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-nonce", matching(".+"))
                 .withHeader("x-acs-content-sha256", matching(".+"))
                 .withHeader("accept", matching("application/json"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -724,6 +825,57 @@ public class ClientTest {
         Assert.assertEquals("test", ((Map) result.get("body")).get("ClassId"));
         Assert.assertEquals(123L, ((Map) result.get("body")).get("UserId"));
         Assert.assertEquals(200, result.get("statusCode"));
+    }
+
+    @Test
+    public void testCallApiWithRuntimeDomainForV3Sign() throws Exception {
+        String requestBody = "{\"key1\":\"value\",\"key2\":1,\"key3\":true}";
+        String responseBody = "{\"AppId\":\"test\", \"ClassId\":\"test\", \"UserId\":123}";
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "original-v3-endpoint.example.com";
+        Client client = new Client(config);
+        
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        // Set the domain to point to the WireMock server.
+        runtime.domain = "localhost:" + wireMock.port();
+        
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+        Params params = Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTP"),
+                new TeaPair("pathname", "/"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "RPC"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        ));
+        
+        stubFor(post(anyUrl()).withRequestBody(equalToJson(requestBody))
+                .withQueryParam("key1", equalTo("value"))
+                .withQueryParam("key2", equalTo("1"))
+                .withQueryParam("key3", equalTo("true"))
+                .withHeader("host", equalTo("original-v3-endpoint.example.com"))
+                .withHeader("x-acs-version", equalTo("2022-06-01"))
+                .withHeader("x-acs-action", equalTo("TestAPI"))
+                .withHeader("x-acs-date", matching(".+"))
+                .withHeader("x-acs-signature-nonce", matching(".+"))
+                .withHeader("x-acs-content-sha256", matching(".+"))
+                .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=.+,Signature=.+"))
+                .willReturn(aResponse().withStatus(200).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "TEST-V3-REQUEST-ID-WITH-DOMAIN")));
+        
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        
+        Assert.assertEquals(200, result.get("statusCode"));
+        Assert.assertEquals("TEST-V3-REQUEST-ID-WITH-DOMAIN", ((Map) result.get("headers")).get("x-acs-request-id"));
+        Assert.assertEquals("test", ((Map) result.get("body")).get("AppId"));
+        
+        // verify the host header shows the original endpoint.
+        verify(postRequestedFor(urlMatching("/\\?.*"))
+                .withHeader("host", equalTo("original-v3-endpoint.example.com")));
     }
 
     @Test
@@ -773,7 +925,7 @@ public class ClientTest {
                 .withHeader("Authorization", matching("ACS3-HMAC-SHA256 Credential=ak,SignedHeaders=content-type;host;" +
                         "x-acs-accesskey-id;x-acs-action;x-acs-content-sha256;x-acs-credentials-provider;x-acs-date;x-acs-security-token;" +
                         "x-acs-signature-nonce;x-acs-version,Signature=.+"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/x-www-form-urlencoded"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
@@ -851,7 +1003,7 @@ public class ClientTest {
                 .withHeader("x-acs-signature-nonce", matching(".+"))
                 .withHeader("x-acs-content-sha256", matching(".+"))
                 .withHeader("accept", matching("application/json"))
-                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.25 TeaDSL/1 config.userAgent"))
+                .withHeader("user-agent", matching("AlibabaCloud.+tea-util/0.2.26 TeaDSL/1 config.userAgent"))
                 .withHeader("content-type", equalTo("application/json; charset=UTF-8"))
                 .willReturn(aResponse().withStatus(200).withBody(responseBody)
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
