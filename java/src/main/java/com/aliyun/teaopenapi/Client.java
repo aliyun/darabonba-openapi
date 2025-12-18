@@ -148,7 +148,8 @@ public class Client {
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
             new TeaPair("ignoreSSL", runtime.ignoreSSL),
-            new TeaPair("tlsMinVersion", _tlsMinVersion)
+            new TeaPair("tlsMinVersion", _tlsMinVersion),
+            new TeaPair("domain", runtime.domain)
         );
 
         TeaRequest _lastRequest = null;
@@ -409,7 +410,8 @@ public class Client {
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
             new TeaPair("ignoreSSL", runtime.ignoreSSL),
-            new TeaPair("tlsMinVersion", _tlsMinVersion)
+            new TeaPair("tlsMinVersion", _tlsMinVersion),
+            new TeaPair("domain", runtime.domain)
         );
 
         TeaRequest _lastRequest = null;
@@ -651,7 +653,8 @@ public class Client {
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
             new TeaPair("ignoreSSL", runtime.ignoreSSL),
-            new TeaPair("tlsMinVersion", _tlsMinVersion)
+            new TeaPair("tlsMinVersion", _tlsMinVersion),
+            new TeaPair("domain", runtime.domain)
         );
 
         TeaRequest _lastRequest = null;
@@ -857,12 +860,6 @@ public class Client {
      * <b>description</b> :
      * <p>Encapsulate the request and invoke the network</p>
      * 
-     * @param action api name
-     * @param version product version
-     * @param protocol http or https
-     * @param method e.g. GET
-     * @param authType authorization type e.g. AK
-     * @param bodyType response body type e.g. String
      * @param request object of OpenApiRequest
      * @param runtime which controls some details of call api, such as retry times
      * @return the response
@@ -892,7 +889,8 @@ public class Client {
                 new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
             )),
             new TeaPair("ignoreSSL", runtime.ignoreSSL),
-            new TeaPair("tlsMinVersion", _tlsMinVersion)
+            new TeaPair("tlsMinVersion", _tlsMinVersion),
+            new TeaPair("domain", runtime.domain)
         );
 
         TeaRequest _lastRequest = null;
@@ -1135,12 +1133,6 @@ public class Client {
      * <b>description</b> :
      * <p>Encapsulate the request and invoke the network</p>
      * 
-     * @param action api name
-     * @param version product version
-     * @param protocol http or https
-     * @param method e.g. GET
-     * @param authType authorization type e.g. AK
-     * @param bodyType response body type e.g. String
      * @param request object of OpenApiRequest
      * @param runtime which controls some details of call api, such as retry times
      * @return the response
@@ -1171,7 +1163,8 @@ public class Client {
             )),
             new TeaPair("ignoreSSL", runtime.ignoreSSL),
             new TeaPair("disableHttp2", Client.defaultAny(_disableHttp2, false)),
-            new TeaPair("tlsMinVersion", _tlsMinVersion)
+            new TeaPair("tlsMinVersion", _tlsMinVersion),
+            new TeaPair("domain", runtime.domain)
         );
 
         TeaRequest _lastRequest = null;
