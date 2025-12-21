@@ -3237,6 +3237,199 @@ namespace AlibabaCloud.OpenApiClient
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
+        public IEnumerable<SSEResponse> CallSSEApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
+        {
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
+                {"retryOptions", _retryOptions},
+                {"ignoreSSL", runtime.IgnoreSSL},
+                {"tlsMinVersion", _tlsMinVersion},
+            };
+
+            Darabonba.Request request_ = new Darabonba.Request();
+            request_.Protocol = (string)Darabonba.Core.GetDefaultValue(_protocol, params_.Protocol);
+            request_.Method = params_.Method;
+            request_.Pathname = params_.Pathname;
+            Dictionary<string, string> globalQueries = new Dictionary<string, string>(){};
+            Dictionary<string, string> globalHeaders = new Dictionary<string, string>(){};
+            if (!_globalParameters.IsNull())
+            {
+                GlobalParameters globalParams = _globalParameters;
+                if (!globalParams.Queries.IsNull())
+                {
+                    globalQueries = globalParams.Queries;
+                }
+                if (!globalParams.Headers.IsNull())
+                {
+                    globalHeaders = globalParams.Headers;
+                }
+            }
+            Dictionary<string, string> extendsHeaders = new Dictionary<string, string>(){};
+            Dictionary<string, string> extendsQueries = new Dictionary<string, string>(){};
+            if (!runtime.ExtendsParameters.IsNull())
+            {
+                Darabonba.Models.ExtendsParameters extendsParameters = runtime.ExtendsParameters;
+                if (!extendsParameters.Headers.IsNull())
+                {
+                    extendsHeaders = extendsParameters.Headers;
+                }
+                if (!extendsParameters.Queries.IsNull())
+                {
+                    extendsQueries = extendsParameters.Queries;
+                }
+            }
+            request_.Query = Darabonba.Utils.ConverterUtils.Merge<string>
+            (
+                globalQueries,
+                extendsQueries,
+                request.Query
+            );
+            // endpoint is setted in product client
+            request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
+            (
+                new Dictionary<string, string>()
+                {
+                    {"host", _endpoint},
+                    {"x-acs-version", params_.Version},
+                    {"x-acs-action", params_.Action},
+                    {"user-agent", Utils.GetUserAgent(_userAgent)},
+                    {"x-acs-date", Utils.GetTimestamp()},
+                    {"x-acs-signature-nonce", Utils.GetNonce()},
+                    {"accept", "application/json"},
+                },
+                extendsHeaders,
+                globalHeaders,
+                request.Headers
+            );
+            if (params_.Style == "RPC")
+            {
+                Dictionary<string, string> headers = GetRpcHeaders();
+                if (!headers.IsNull())
+                {
+                    request_.Headers = Darabonba.Utils.ConverterUtils.Merge<string>
+                    (
+                        request_.Headers,
+                        headers
+                    );
+                }
+            }
+            string signatureAlgorithm = (string)Darabonba.Core.GetDefaultValue(_signatureAlgorithm, "ACS3-HMAC-SHA256");
+            byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
+            if (!request.Stream.IsNull())
+            {
+                byte[] tmp = Darabonba.Utils.StreamUtils.ReadAsBytes(request.Stream);
+                hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
+                request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(tmp);
+                request_.Headers["content-type"] = "application/octet-stream";
+            }
+            else
+            {
+                if (!request.Body.IsNull())
+                {
+                    if (params_.ReqBodyType == "byte")
+                    {
+                        byte[] byteObj = (byte[])(request.Body);
+                        hashedRequestPayload = Utils.Hash(byteObj, signatureAlgorithm);
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(byteObj);
+                    }
+                    else if (params_.ReqBodyType == "json")
+                    {
+                        string jsonObj = Darabonba.Utils.JSONUtils.SerializeObject(request.Body);
+                        hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(jsonObj, "utf8"), signatureAlgorithm);
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(jsonObj);
+                        request_.Headers["content-type"] = "application/json; charset=utf-8";
+                    }
+                    else
+                    {
+                        Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
+                        string formObj = Utils.ToForm(m);
+                        hashedRequestPayload = Utils.Hash(Darabonba.Utils.StringUtils.ToBytes(formObj, "utf8"), signatureAlgorithm);
+                        request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(formObj);
+                        request_.Headers["content-type"] = "application/x-www-form-urlencoded";
+                    }
+                }
+            }
+            request_.Headers["x-acs-content-sha256"] = Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload);
+            if (params_.AuthType != "Anonymous")
+            {
+                CredentialModel credentialModel = this._credential.GetCredential();
+                if (!credentialModel.ProviderName.IsNull())
+                {
+                    request_.Headers["x-acs-credentials-provider"] = credentialModel.ProviderName;
+                }
+                string authType = credentialModel.Type;
+                if (authType == "bearer")
+                {
+                    string bearerToken = credentialModel.BearerToken;
+                    request_.Headers["x-acs-bearer-token"] = bearerToken;
+                }
+                else if (authType == "id_token")
+                {
+                    string idToken = credentialModel.SecurityToken;
+                    request_.Headers["x-acs-zero-trust-idtoken"] = idToken;
+                }
+                else
+                {
+                    string accessKeyId = credentialModel.AccessKeyId;
+                    string accessKeySecret = credentialModel.AccessKeySecret;
+                    string securityToken = credentialModel.SecurityToken;
+                    if (!securityToken.IsNull() && securityToken != "")
+                    {
+                        request_.Headers["x-acs-accesskey-id"] = accessKeyId;
+                        request_.Headers["x-acs-security-token"] = securityToken;
+                    }
+                    request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
+                }
+            }
+            Darabonba.Response response_ = Darabonba.Core.DoSSEAction(request_, runtime_);
+
+            if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
+            {
+                Dictionary<string, object> err = new Dictionary<string, object>(){};
+                if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
+                {
+                    string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                    Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(_str, null);
+                    err = (Dictionary<string, object>)(respMap.Get("Error"));
+                }
+                else
+                {
+                    object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
+                    err = (Dictionary<string, object>)(_res);
+                }
+                err["statusCode"] = response_.StatusCode;
+                throw new Darabonba.Exceptions.DaraException(new Dictionary<string, object>
+                {
+                    {"code", "" + Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"))},
+                    {"message", "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"))},
+                    {"data", err},
+                    {"description", "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description"))},
+                    {"accessDeniedDetail", Darabonba.Core.GetDefaultValue(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
+                });
+            }
+            IEnumerable<Darabonba.Models.SSEEvent> events = Darabonba.Utils.StreamUtils.ReadAsSSE(response_.Body);
+
+            foreach (var event_ in events) {
+                yield return new SSEResponse
+                {
+                    StatusCode = response_.StatusCode,
+                    Headers = response_.Headers,
+                    Event = event_,
+                };
+            }
+        }
+        
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             if (params_.IsNull())
