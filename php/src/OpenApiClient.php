@@ -1519,7 +1519,7 @@ class OpenApiClient {
       'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
-      'retryOptions' => $this->_retryOptions,
+      'retryOptions' => ($runtime->retryOptions ? $runtime->retryOptions : $this->_retryOptions),
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
     ];
@@ -1687,6 +1687,7 @@ class OpenApiClient {
           ]);
         }
         // Generator completes without explicit return (PHP 5.6 compatible)
+        return; // Exit successfully
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,

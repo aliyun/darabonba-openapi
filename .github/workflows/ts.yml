@@ -3,8 +3,14 @@ name: Node.js CI
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'ts/**'
+      - '.github/workflows/ts.yml'
   pull_request:
     branches: [ master ]
+    paths:
+      - 'ts/**'
+      - '.github/workflows/ts.yml'
 defaults:
   run:
     shell: bash

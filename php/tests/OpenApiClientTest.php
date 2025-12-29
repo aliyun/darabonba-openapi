@@ -12,8 +12,9 @@ use AlibabaCloud\Dara\Models\RuntimeOptions;
 use AlibabaCloud\Dara\Models\ExtendsParameters;
 use Darabonba\OpenApi\Models\OpenApiRequest;
 use AlibabaCloud\Credentials\Credential;
+use AlibabaCloud\Dara\RetryPolicy\RetryCondition;
 use PHPUnit\Framework\TestCase;
-
+use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
 /**
  * @internal
  * @coversNothing
@@ -161,10 +162,16 @@ class OpenApiClientTest extends TestCase
             "connectTimeout" => 4000,
             "maxIdleConns" => 100,
             "autoretry" => true,
-            "maxAttempts" => 1,
             "backoffPolicy" => "no",
             "backoffPeriod" => 1,
             "ignoreSSL" => true,
+            "retryOptions" => new RetryOptions([
+                "retryable" => false,
+                "retryCondition" => [new RetryCondition([
+                    "retryOnNonIdempotent" => true,
+                    "retryOnThrottling" => true
+                ])]
+            ]),
             "extendsParameters" => new ExtendsParameters([
                 "headers" => [
                     "extends-key" => "extends-value"
