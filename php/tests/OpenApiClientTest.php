@@ -421,12 +421,12 @@ class OpenApiClientTest extends TestCase
             "bodyType" => "json"
         ]);
         $response = $client->callApi($params, $request, $runtime);
-        $this->assertIsArray($response);
+        $this->assertTrue(is_array($response));
         
         $params->bodyType = "array";
         $request->headers['bodytype'] = 'array';
         $response = $client->callApi($params, $request, $runtime);
-        $this->assertIsArray($response);
+        $this->assertTrue(is_array($response));
         // Mock server returns ["AppId", "ClassId", "UserId"] for array type
         $this->assertNotEmpty($response);
         
@@ -436,7 +436,7 @@ class OpenApiClientTest extends TestCase
         // For string type, check if response body exists
         $this->assertNotEmpty($response);
         if (is_array($response) && isset($response['body'])) {
-            $this->assertIsString($response['body']);
+            $this->assertTrue(is_string($response['body']));
         }
         
         $params->bodyType = "byte";
