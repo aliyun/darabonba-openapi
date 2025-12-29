@@ -25,7 +25,7 @@ while ($client = @stream_socket_accept($server)) {
     $requestLine = array_shift($headerLines);
     preg_match('/\btimeout:\s*true\b/i', $headers, $timeoutMatch);
     preg_match('/\b(bodytype):[ ]*([\w\d]+)\b/i', $headers, $bodyTypeMatch);
-    $bodyType = $bodyTypeMatch[2] ?? null;
+    $bodyType = isset($bodyTypeMatch[2]) ? $bodyTypeMatch[2] : null;
     preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1.1/', $requestLine, $matches);
     $method = $matches[1];
     $path = $matches[2];

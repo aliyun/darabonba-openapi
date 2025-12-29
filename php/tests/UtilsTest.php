@@ -75,17 +75,17 @@ class UtilsTest extends TestCase
         $bytes = BytesUtil::from($data);
         $result = Utils::hash($bytes, 'ACS3-HMAC-SHA256');
         
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->assertEquals(32, strlen($result)); // SHA256 produces 32 bytes
 
         // Test SM3
         $result = Utils::hash($bytes, 'ACS3-HMAC-SM3');
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->assertEquals(32, strlen($result)); // SM3 produces 32 bytes
 
         // Test default case
         $result = Utils::hash($bytes, 'UNKNOWN');
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEmpty($result);
     }
 
@@ -97,8 +97,8 @@ class UtilsTest extends TestCase
         $nonce1 = Utils::getNonce();
         $nonce2 = Utils::getNonce();
 
-        $this->assertInternalType('string', $nonce1);
-        $this->assertInternalType('string', $nonce2);
+        $this->checkInternalType('string', $nonce1);
+        $this->checkInternalType('string', $nonce2);
         $this->assertEquals(32, strlen($nonce1));
         $this->assertEquals(32, strlen($nonce2));
         $this->assertNotEquals($nonce1, $nonce2); // Should be unique
@@ -111,7 +111,7 @@ class UtilsTest extends TestCase
     {
         $timestamp = Utils::getTimestamp();
         
-        $this->assertInternalType('string', $timestamp);
+        $this->checkInternalType('string', $timestamp);
         // Format: 2023-12-26T10:30:00Z
         $this->checkRegExp('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $timestamp);
     }
@@ -123,7 +123,7 @@ class UtilsTest extends TestCase
     {
         $dateString = Utils::getDateUTCString();
         
-        $this->assertInternalType('string', $dateString);
+        $this->checkInternalType('string', $dateString);
         // Format: Mon, 26 Dec 2023 10:30:00 GMT
         $this->checkRegExp('/^\w{3}, \d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2} \w+$/', $dateString);
     }
@@ -138,7 +138,7 @@ class UtilsTest extends TestCase
         
         $signature = Utils::getROASignature($stringToSign, $secret);
         
-        $this->assertInternalType('string', $signature);
+        $this->checkInternalType('string', $signature);
         $this->assertNotEmpty($signature);
     }
 
@@ -157,7 +157,7 @@ class UtilsTest extends TestCase
         
         $signature = Utils::getRPCSignature($signedParams, $method, $secret);
         
-        $this->assertInternalType('string', $signature);
+        $this->checkInternalType('string', $signature);
         $this->assertNotEmpty($signature);
     }
 
@@ -174,7 +174,7 @@ class UtilsTest extends TestCase
         
         $result = Utils::toForm($filter);
         
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->checkStringContains('key1=value1', $result);
         $this->checkStringContains('key2=value2', $result);
 
@@ -197,14 +197,14 @@ class UtilsTest extends TestCase
         
         $result = Utils::query($filter);
         
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertArrayHasKey('key1', $result);
         $this->assertArrayHasKey('key2', $result);
         $this->assertArrayNotHasKey('_private', $result);
 
         // Test with null
         $result = Utils::query(null);
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEmpty($result);
     }
 
@@ -249,13 +249,13 @@ class UtilsTest extends TestCase
         
         $result = Utils::parseToMap($input);
         
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEquals('value1', $result['key1']);
-        $this->assertInternalType('array', $result['key2']);
+        $this->checkInternalType('array', $result['key2']);
 
         // Test with null
         $result = Utils::parseToMap(null);
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         // parseToMap(null) returns array() from parse function
         $this->assertTrue(is_array($result));
     }
@@ -268,7 +268,7 @@ class UtilsTest extends TestCase
         // Test with custom user agent
         $userAgent = Utils::getUserAgent('MyApp/1.0');
         
-        $this->assertInternalType('string', $userAgent);
+        $this->checkInternalType('string', $userAgent);
         $this->checkStringContains('AlibabaCloud', $userAgent);
         $this->checkStringContains('PHP/', $userAgent);
         $this->checkStringContains('MyApp/1.0', $userAgent);
@@ -291,7 +291,7 @@ class UtilsTest extends TestCase
         
         $result = Utils::toArray($input);
         
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEquals($input, $result);
 
         // Test with non-array
@@ -313,7 +313,7 @@ class UtilsTest extends TestCase
         
         $result = Utils::stringifyMapValue($map);
         
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEquals('123', $result['int']);
         $this->assertEquals('true', $result['bool']);
         $this->assertEquals('', $result['null']);
@@ -321,7 +321,7 @@ class UtilsTest extends TestCase
 
         // Test with null
         $result = Utils::stringifyMapValue(null);
-        $this->assertInternalType('array', $result);
+        $this->checkInternalType('array', $result);
         $this->assertEmpty($result);
     }
 
@@ -393,12 +393,12 @@ class UtilsTest extends TestCase
 
         // Test HMAC-SHA256
         $result = Utils::sign($secret, $str, 'ACS3-HMAC-SHA256');
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->assertEquals(32, strlen($result));
 
         // Test HMAC-SM3
         $result = Utils::sign($secret, $str, 'ACS3-HMAC-SM3');
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
     }
 
     /**
@@ -419,7 +419,7 @@ class UtilsTest extends TestCase
 
         $result = Utils::getStringToSign($request);
         
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->checkStringContains('GET', $result);
         $this->checkStringContains('/test', $result);
         $this->checkStringContains('x-acs-custom', $result);
@@ -448,7 +448,7 @@ class UtilsTest extends TestCase
             'test-sk'
         );
         
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->checkStringContains('ACS3-HMAC-SHA256', $result);
         $this->checkStringContains('Credential=test-ak', $result);
         $this->checkStringContains('SignedHeaders=', $result);
@@ -468,7 +468,7 @@ class UtilsTest extends TestCase
 
         // Test another value
         $result = $sm3->sign('test');
-        $this->assertInternalType('string', $result);
+        $this->checkInternalType('string', $result);
         $this->assertEquals(64, strlen($result)); // Hex string of 32 bytes
     }
 
@@ -489,7 +489,7 @@ class UtilsTest extends TestCase
      * Helper method for PHP 5.5 compatibility
      * assertInternalType was deprecated in PHPUnit 8
      */
-    protected function assertInternalType($type, $value, $message = '')
+    private function checkInternalType($type, $value, $message = '')
     {
         if (method_exists($this, 'assertIsString') && $type === 'string') {
             $this->assertIsString($value, $message);
@@ -498,17 +498,21 @@ class UtilsTest extends TestCase
         } elseif (method_exists($this, 'assertIsInt') && $type === 'int') {
             $this->assertIsInt($value, $message);
         } else {
-            // Fallback for older PHPUnit - use assertTrue instead
-            $typeMap = array(
-                'string' => 'is_string',
-                'array' => 'is_array',
-                'int' => 'is_int',
-                'integer' => 'is_int',
-                'bool' => 'is_bool',
-                'boolean' => 'is_bool'
-            );
-            if (isset($typeMap[$type])) {
-                $this->assertTrue(call_user_func($typeMap[$type], $value), $message);
+            // Fallback for older PHPUnit - use parent method or assertTrue
+            if (method_exists('PHPUnit_Framework_Assert', 'assertInternalType')) {
+                parent::assertInternalType($type, $value, $message);
+            } else {
+                $typeMap = array(
+                    'string' => 'is_string',
+                    'array' => 'is_array',
+                    'int' => 'is_int',
+                    'integer' => 'is_int',
+                    'bool' => 'is_bool',
+                    'boolean' => 'is_bool'
+                );
+                if (isset($typeMap[$type])) {
+                    $this->assertTrue(call_user_func($typeMap[$type], $value), $message);
+                }
             }
         }
     }
