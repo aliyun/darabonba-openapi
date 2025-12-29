@@ -3,8 +3,7 @@
 // This file is auto-generated, don't edit it. Thanks.
  
 namespace Darabonba\OpenApi\Exceptions;
-use AlibabaCloud\Dara\Exception\DaraException;
-class ServerException extends DaraException {
+class ServerException extends AlibabaCloudException {
 
   public function __construct($map)
   {
@@ -12,4 +11,3 @@ class ServerException extends DaraException {
   }
 
 }
-
