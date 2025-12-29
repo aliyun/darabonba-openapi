@@ -1686,7 +1686,7 @@ class OpenApiClient {
             'event' => $event,
           ]);
         }
-        return null;
+        // Generator completes without explicit return (PHP 5.6 compatible)
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,

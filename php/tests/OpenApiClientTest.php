@@ -42,8 +42,8 @@ class OpenApiClientTest extends TestCase
         $output = shell_exec($command);
         self::$serverPid = (int)trim($output);
         self::$serverStarted = true;
-        // 等待服务器启动
-        sleep(1);
+        // 等待服务器启动并验证
+        sleep(2); // 增加等待时间确保服务器完全启动
         // 注册关闭钩子
         register_shutdown_function(array(__CLASS__, 'stopMockServer'));
     }
@@ -447,6 +447,11 @@ class OpenApiClientTest extends TestCase
 
     public function testCallSSEApiWithSignV3()
     {
+        self::ensureMockServer();
+        
+        // 额外等待确保 Mock 服务器完全启动 (for CI environments)
+        usleep(500000); // 0.5秒
+        
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
