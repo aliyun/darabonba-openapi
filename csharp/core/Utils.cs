@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -814,7 +815,17 @@ namespace AlibabaCloud.OpenApiClient
             string OSVersion = Environment.OSVersion.ToString();
             string ClientVersion = GetRuntimeRegexValue(RuntimeEnvironment.GetRuntimeDirectory());
             string CoreVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            return string.Format("AlibabaCloud ({0}) {1} Core/{2} TeaDSL/1", OSVersion, ClientVersion, CoreVersion);
+            string fileVersion = GetFileVersion();
+            return string.Format("AlibabaCloud ({0}) {1} Core/{2} TeaDSL/2", OSVersion, ClientVersion, fileVersion);
+        }
+        
+        private static string GetFileVersion()
+        {
+            var versionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+            return string.Format("{0}.{1}.{2}", 
+                versionInfo.FileMajorPart, 
+                versionInfo.FileMinorPart, 
+                versionInfo.FileBuildPart);
         }
 
         internal static string FlatArray(IList array, string sty)
