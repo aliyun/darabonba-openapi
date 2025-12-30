@@ -3,14 +3,9 @@ name: PHP CI
 on:
   push:
     branches: [ master, main ]
-    paths:
-      - 'php/**'
-      - '.github/workflows/php.yml'
+
   pull_request:
     branches: [ master, main ]
-    paths:
-      - 'php/**'
-      - '.github/workflows/php.yml'
 
 defaults:
   run:

@@ -3,14 +3,9 @@ name: Go CI
 on:
   push:
     branches: [ master ]
-    paths:
-      - 'golang/**'
-      - '.github/workflows/go.yml'
   pull_request:
     branches: [ master ]
-    paths:
-      - 'golang/**'
-      - '.github/workflows/go.yml'
+
 defaults:
   run:
     shell: bash

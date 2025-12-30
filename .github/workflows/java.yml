@@ -6,14 +6,10 @@ name: Java CI
 on:
   push:
     branches: [ master ]
-    paths:
-      - 'java/**'
-      - '.github/workflows/java.yml'
+
   pull_request:
     branches: [ master ]
-    paths:
-      - 'java/**'
-      - '.github/workflows/java.yml'
+
 defaults:
   run:
     shell: bash

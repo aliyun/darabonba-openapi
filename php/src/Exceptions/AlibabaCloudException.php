@@ -24,7 +24,7 @@ class AlibabaCloudException extends DaraException {
   /**
   * @var string
   */
-  public $requestId;
+  protected $requestId;
 
   public function __construct($map)
   {
