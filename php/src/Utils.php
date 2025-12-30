@@ -7,6 +7,7 @@ use AlibabaCloud\Dara\Model;
 use RuntimeException;
 use AlibabaCloud\Dara\Request;
 use AlibabaCloud\Dara\Util\BytesUtil;
+use Psr\Http\Message\StreamInterface;
 /**
  * @remarks
  * This is for OpenApi Util
@@ -18,9 +19,6 @@ class Utils {
    * @remarks
    * Convert all params of body other than type of readable into content
    * 
-   * @param body - source Model
-   * @param content - target Model
-   * @returns void
    * @param Model $body
    * @param Model $content
    * @return void
@@ -66,13 +64,10 @@ class Utils {
    * If serverUse is true and endpointType is accelerate, use accelerate endpoint
    * Default return endpoint
    * 
-   * @param serverUse - whether use accelerate endpoint
-   * @param endpointType - value must be internal or accelerate
-   * @returns the final endpoint
-   * @param string $endpoint
-   * @param boolean $useAccelerate
-   * @param string $endpointType
-   * @return string
+   * @param string $endpoint The endpoint URL
+   * @param boolean $useAccelerate Whether use accelerate endpoint
+   * @param string $endpointType Value must be internal or accelerate
+   * @return string The final endpoint
    */
   static public function getEndpoint($endpoint, $useAccelerate, $endpointType)
   {
@@ -92,19 +87,18 @@ class Utils {
    * @remarks
    * Get throttling param
    * 
-   * @param the - response headers
-   * @returns time left
-   * @param string[] $headers
-   * @return int
+   * @param string[] $headers The response headers
+   * @return int Time left
    */
-  public static function getThrottlingTimeLeft(array $headers): int {
-    $rateLimitForUserApi = $headers["x-ratelimit-user-api"] ?? null;
-    $rateLimitForUser = $headers["x-ratelimit-user"] ?? null;
+  public static function getThrottlingTimeLeft(array $headers) {
+    $rateLimitForUserApi = isset($headers["x-ratelimit-user-api"]) ? $headers["x-ratelimit-user-api"] : null;
+    $rateLimitForUser = isset($headers["x-ratelimit-user"]) ? $headers["x-ratelimit-user"] : null;
 
     $timeLeftForUserApi = self::getTimeLeft($rateLimitForUserApi);
     $timeLeftForUser = self::getTimeLeft($rateLimitForUser);
     
-    return max($timeLeftForUserApi, $timeLeftForUser);
+    $maxValue = max($timeLeftForUserApi, $timeLeftForUser);
+    return $maxValue !== null ? $maxValue : 0;
   }
 
 
@@ -133,12 +127,9 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Hash the raw data with signatureAlgorithm
    * 
-   * @param raw - hashing data
-   * @param signatureAlgorithm - the autograph method
-   * @returns hashed bytes
-   * @param int[] $raw
-   * @param string $signatureAlgorithm
-   * @return int[]
+   * @param int[] $raw Hashing data
+   * @param string $signatureAlgorithm The autograph method
+   * @return string|array Hashed bytes
    */
   static public function hash($raw, $signatureAlgorithm)
   {
@@ -172,10 +163,8 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get the string to be signed according to request
    * 
-   * @param request - which contains signed messages
-   * @returns the signed string
-   * @param Request $request
-   * @return string
+   * @param Request $request Which contains signed messages
+   * @return string The signed string
    */
   static public function getStringToSign($request)
   {
@@ -234,12 +223,9 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get signature according to stringToSign, secret
    * 
-   * @param stringToSign - the signed string
-   * @param secret - accesskey secret
-   * @returns the signature
-   * @param string $stringToSign
-   * @param string $secret
-   * @return string
+   * @param string $stringToSign The signed string
+   * @param string $secret Accesskey secret
+   * @return string The signature
    */
   static public function getROASignature($stringToSign, $secret)
   {
@@ -250,10 +236,8 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse filter into a form string
    * 
-   * @param filter - object
-   * @returns the string
-   * @param mixed[] $filter
-   * @return string
+   * @param mixed[] $filter Object
+   * @return string The string
    */
   static public function toForm($filter)
   {
@@ -302,10 +286,8 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse filter into a object which's type is map[string]string
    * 
-   * @param filter - query param
-   * @returns the object
-   * @param mixed[] $filter
-   * @return string[]
+   * @param mixed[] $filter Query param
+   * @return string[] The object
    */
   static public function query($filter)
   {
@@ -330,14 +312,10 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get signature according to signedParams, method and secret
    * 
-   * @param signedParams - params which need to be signed
-   * @param method - http method e.g. GET
-   * @param secret - AccessKeySecret
-   * @returns the signature
-   * @param string[] $signedParams
-   * @param string $method
-   * @param string $secret
-   * @return string
+   * @param string[] $signedParams Params which need to be signed
+   * @param string $method HTTP method e.g. GET
+   * @param string $secret AccessKeySecret
+   * @return string The signature
    */
   static public function getRPCSignature($signedParams, $method, $secret)
   {
@@ -353,13 +331,10 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse array into a string with specified style
    * 
-   * @param array - the array
-   * @param prefix - the prefix string
-   * @returns the string
-   * @param mixed $array_
-   * @param string $prefix
-   * @param string $style
-   * @return string
+   * @param mixed $object The array
+   * @param string $prefix The prefix string
+   * @param string $style The style
+   * @return string The string
    */
   static public function arrayToStringWithSpecifiedStyle($object, $prefix, $style)
   {
@@ -406,18 +381,12 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get the authorization
    * 
-   * @param request - request params
-   * @param signatureAlgorithm - the autograph method
-   * @param payload - the hashed request
-   * @param acesskey - the acesskey string
-   * @param accessKeySecret - the accessKeySecret string
-   * @returns authorization string
-   * @param Request $request
-   * @param string $signatureAlgorithm
-   * @param string $payload
-   * @param string $acesskey
-   * @param string $accessKeySecret
-   * @return string
+   * @param Request $request Request params
+   * @param string $signatureAlgorithm The autograph method
+   * @param string $payload The hashed request
+   * @param string $accesskey The accesskey string
+   * @param string $accessKeySecret The accessKeySecret string
+   * @return string Authorization string
    */
   static public function getAuthorization($request, $signatureAlgorithm, $payload, $accesskey, $accessKeySecret)
   {
@@ -680,5 +649,60 @@ private static function getTimeLeft($rateLimit) {
         }
 
         return $map;
+    }
+    /**
+     * @param string   $product
+     * @param string   $regionId
+     * @param string   $endpointRule
+     * @param string   $network
+     * @param string   $suffix
+     *
+     * @return string
+     */
+    static public function getEndpointRules($product, $regionId, $endpointType, $network, $suffix = null) {
+        $product = $product ?: "";
+        $network = $network ?: "";
+        
+        if ($endpointType == "regional") {
+            if ($regionId === null || $regionId === "") {
+                throw new RuntimeException("RegionId is empty, please set a valid RegionId");
+            }
+            $result = "<product><network>.<region_id>.aliyuncs.com";
+            $result = str_replace("<region_id>", $regionId, $result);
+        } else {
+            $result = "<product><network>.aliyuncs.com";
+        }
+
+        $result = str_replace("<product>", strtolower($product), $result);
+        if ($network === "" || $network === "public") {
+            $result = str_replace("<network>", "", $result);
+        } else {
+            $result = str_replace("<network>", "-" . $network, $result);
+        }
+        return $result;
+    }
+    
+    /**
+     * @param string   $product
+     * @param string   $regionId
+     * @param string   $endpointRule
+     * @param string   $network
+     * @param string   $suffix
+     * @param string[] $endpointMap
+     * @param string   $endpoint
+     *
+     * @return string
+     */
+     static function getProductEndpoint($product, $regionId, $endpointRule, $network, $suffix, $endpointMap, $endpoint)
+    {
+        if (null !== $endpoint) {
+            return $endpoint;
+        }
+
+        if (null !== $endpointMap && null !== @$endpointMap[$regionId]) {
+            return @$endpointMap[$regionId];
+        }
+
+        return self::getEndpointRules($product, $regionId, $endpointRule, $network, $suffix);
     }
 }

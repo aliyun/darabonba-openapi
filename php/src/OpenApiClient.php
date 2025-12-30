@@ -1,8 +1,9 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi;
+use Exception;
 use AlibabaCloud\Dara\Dara;
 use AlibabaCloud\Credentials\Credential;
 use Darabonba\GatewaySpi\Client;
@@ -34,7 +35,8 @@ use Darabonba\OpenApi\Models\SSEResponse;
  * @remarks
  * This is for OpenApi SDK
  */
-class OpenApiClient {
+class OpenApiClient
+{
   /**
    * @var string
    */
@@ -293,16 +295,16 @@ class OpenApiClient {
   public function doRPCRequest($action, $version, $protocol, $method, $authType, $bodyType, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
@@ -326,11 +328,11 @@ class OpenApiClient {
       $_retriesAttempted++;
       try {
         $_request = new Request();
-        $_request->protocol = ''.($this->_protocol ? $this->_protocol : $protocol);
+        $_request->protocol = '' . ($this->_protocol ? $this->_protocol : $protocol);
         $_request->method = $method;
         $_request->pathname = '/';
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
+        $globalQueries = [];
+        $globalHeaders = [];
         if (!is_null($this->_globalParameters)) {
           $globalParams = $this->_globalParameters;
           if (!is_null($globalParams->queries)) {
@@ -343,8 +345,8 @@ class OpenApiClient {
 
         }
 
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
+        $extendsHeaders = [];
+        $extendsQueries = [];
         if (!is_null($runtime->extendsParameters)) {
           $extendsParameters = $runtime->extendsParameters;
           if (!is_null($extendsParameters->headers)) {
@@ -442,34 +444,34 @@ class OpenApiClient {
           $err = $_res;
           $requestId = (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . (string)$code . '' == 'Throttling') || ('' . (string)$code . '' == 'Throttling.User') || ('' . (string)$code . '' == 'Throttling.Api')) {
+          if (('' . (string) $code . '' == 'Throttling') || ('' . (string) $code . '' == 'Throttling.User') || ('' . (string) $code . '' == 'Throttling.Api')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string)$code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string) $code . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
-              'requestId' => '' . (string)$requestId . '',
+              'requestId' => '' . (string) $requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
             throw new ClientException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string)$code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string) $code . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
-              'requestId' => '' . (string)$requestId . '',
+              'requestId' => '' . (string) $requestId . '',
             ]);
           } else {
             throw new ServerException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string)$code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string) $code . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
-              'requestId' => '' . (string)$requestId . '',
+              'requestId' => '' . (string) $requestId . '',
             ]);
           }
 
@@ -560,16 +562,16 @@ class OpenApiClient {
   public function doROARequest($action, $version, $protocol, $method, $authType, $pathname, $bodyType, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
@@ -593,11 +595,11 @@ class OpenApiClient {
       $_retriesAttempted++;
       try {
         $_request = new Request();
-        $_request->protocol = ''.($this->_protocol ? $this->_protocol : $protocol);
+        $_request->protocol = '' . ($this->_protocol ? $this->_protocol : $protocol);
         $_request->method = $method;
         $_request->pathname = $pathname;
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
+        $globalQueries = [];
+        $globalHeaders = [];
         if (!is_null($this->_globalParameters)) {
           $globalParams = $this->_globalParameters;
           if (!is_null($globalParams->queries)) {
@@ -610,8 +612,8 @@ class OpenApiClient {
 
         }
 
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
+        $extendsHeaders = [];
+        $extendsQueries = [];
         if (!is_null($runtime->extendsParameters)) {
           $extendsParameters = $runtime->extendsParameters;
           if (!is_null($extendsParameters->headers)) {
@@ -696,15 +698,15 @@ class OpenApiClient {
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
           $_res = StreamUtil::readAsJSON($_response->body);
           $err = $_res;
-          $requestId = ''.(@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
-          $requestId = ''.($requestId ? $requestId : @$err['requestid']);
-          $code = ''.(@$err['Code'] ? @$err['Code'] : @$err['code']);
+          $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
+          $requestId = '' . ($requestId ? $requestId : @$err['requestid']);
+          $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -713,8 +715,8 @@ class OpenApiClient {
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -723,8 +725,8 @@ class OpenApiClient {
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
@@ -817,16 +819,16 @@ class OpenApiClient {
   public function doROARequestWithForm($action, $version, $protocol, $method, $authType, $pathname, $bodyType, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
@@ -850,11 +852,11 @@ class OpenApiClient {
       $_retriesAttempted++;
       try {
         $_request = new Request();
-        $_request->protocol = ''.($this->_protocol ? $this->_protocol : $protocol);
+        $_request->protocol = '' . ($this->_protocol ? $this->_protocol : $protocol);
         $_request->method = $method;
         $_request->pathname = $pathname;
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
+        $globalQueries = [];
+        $globalHeaders = [];
         if (!is_null($this->_globalParameters)) {
           $globalParams = $this->_globalParameters;
           if (!is_null($globalParams->queries)) {
@@ -867,8 +869,8 @@ class OpenApiClient {
 
         }
 
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
+        $extendsHeaders = [];
+        $extendsQueries = [];
         if (!is_null($runtime->extendsParameters)) {
           $extendsParameters = $runtime->extendsParameters;
           if (!is_null($extendsParameters->headers)) {
@@ -954,14 +956,14 @@ class OpenApiClient {
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
           $_res = StreamUtil::readAsJSON($_response->body);
           $err = $_res;
-          $requestId = ''.(@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
-          $code = ''.(@$err['Code'] ? @$err['Code'] : @$err['code']);
+          $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
+          $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -970,8 +972,8 @@ class OpenApiClient {
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -980,8 +982,8 @@ class OpenApiClient {
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
@@ -1067,16 +1069,16 @@ class OpenApiClient {
   public function doRequest($params, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
@@ -1100,11 +1102,11 @@ class OpenApiClient {
       $_retriesAttempted++;
       try {
         $_request = new Request();
-        $_request->protocol = ''.($this->_protocol ? $this->_protocol : $params->protocol);
+        $_request->protocol = '' . ($this->_protocol ? $this->_protocol : $params->protocol);
         $_request->method = $params->method;
         $_request->pathname = $params->pathname;
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
+        $globalQueries = [];
+        $globalHeaders = [];
         if (!is_null($this->_globalParameters)) {
           $globalParams = $this->_globalParameters;
           if (!is_null($globalParams->queries)) {
@@ -1117,8 +1119,8 @@ class OpenApiClient {
 
         }
 
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
+        $extendsHeaders = [];
+        $extendsQueries = [];
         if (!is_null($runtime->extendsParameters)) {
           $extendsParameters = $runtime->extendsParameters;
           if (!is_null($extendsParameters->headers)) {
@@ -1152,7 +1154,7 @@ class OpenApiClient {
 
         }
 
-        $signatureAlgorithm = ''.($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
+        $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
         $hashedRequestPayload = Utils::hash(BytesUtil::from('', 'utf-8'), $signatureAlgorithm);
         if (!is_null($request->stream)) {
           $tmp = StreamUtil::readAsBytes($request->stream);
@@ -1228,7 +1230,7 @@ class OpenApiClient {
         $_lastResponse = $_response;
 
         if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
-          $err = [ ];
+          $err = [];
           if (!is_null(@$_response->headers['content-type']) && @$_response->headers['content-type'] == 'text/xml;charset=utf-8') {
             $_str = StreamUtil::readAsString($_response->body);
             $respMap = XML::parseXml($_str, null);
@@ -1238,14 +1240,14 @@ class OpenApiClient {
             $err = $_res;
           }
 
-          $requestId = ''.(@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
-          $code = ''.(@$err['Code'] ? @$err['Code'] : @$err['code']);
+          $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
+          $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -1254,8 +1256,8 @@ class OpenApiClient {
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -1264,8 +1266,8 @@ class OpenApiClient {
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
@@ -1353,16 +1355,16 @@ class OpenApiClient {
   public function execute($params, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
@@ -1389,8 +1391,8 @@ class OpenApiClient {
         $_request = new Request();
         // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
         $headers = $this->getRpcHeaders();
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
+        $globalQueries = [];
+        $globalHeaders = [];
         if (!is_null($this->_globalParameters)) {
           $globalParams = $this->_globalParameters;
           if (!is_null($globalParams->queries)) {
@@ -1403,8 +1405,8 @@ class OpenApiClient {
 
         }
 
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
+        $extendsHeaders = [];
+        $extendsQueries = [];
         if (!is_null($runtime->extendsParameters)) {
           $extendsParameters = $runtime->extendsParameters;
           if (!is_null($extendsParameters->headers)) {
@@ -1429,8 +1431,8 @@ class OpenApiClient {
           'productId' => $this->_productId,
           'action' => $params->action,
           'version' => $params->version,
-          'protocol' => ''.($this->_protocol ? $this->_protocol : $params->protocol),
-          'method' => ''.($this->_method ? $this->_method : $params->method),
+          'protocol' => '' . ($this->_protocol ? $this->_protocol : $params->protocol),
+          'method' => '' . ($this->_method ? $this->_method : $params->method),
           'authType' => $params->authType,
           'bodyType' => $params->bodyType,
           'reqBodyType' => $params->reqBodyType,
@@ -1442,7 +1444,7 @@ class OpenApiClient {
         ]);
         $configurationContext = new configuration([
           'regionId' => $this->_regionId,
-          'endpoint' => ''.($request->endpointOverride ? $request->endpointOverride : $this->_endpoint),
+          'endpoint' => '' . ($request->endpointOverride ? $request->endpointOverride : $this->_endpoint),
           'endpointRule' => $this->_endpointRule,
           'endpointMap' => $this->_endpointMap,
           'endpointType' => $this->_endpointType,
@@ -1453,7 +1455,7 @@ class OpenApiClient {
           'request' => $requestContext,
           'configuration' => $configurationContext,
         ]);
-        $attributeMap = new AttributeMap([ ]);
+        $attributeMap = new AttributeMap([]);
         if (!is_null($this->_attributeMap)) {
           $attributeMap = $this->_attributeMap;
         }
@@ -1508,197 +1510,165 @@ class OpenApiClient {
   public function callSSEApi($params, $request, $runtime)
   {
     $_runtime = [
-      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
-      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
-      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
+      'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => '' . ($runtime->ca ? $runtime->ca : $this->_ca),
       'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
       'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
-      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
-      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
-      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
-      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
-      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'httpProxy' => '' . ($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => '' . ($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => '' . ($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
     ];
-
-    $_retriesAttempted = 0;
-    $_lastRequest = null;
-    $_lastResponse = null;
-    $_context = new RetryPolicyContext([
-      'retriesAttempted' => $_retriesAttempted,
-    ]);
-    while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      if ($_retriesAttempted > 0) {
-        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_backoffTime > 0) {
-          Dara::sleep($_backoffTime);
-        }
+    $_request = new Request();
+    $_request->protocol = '' . ($this->_protocol ? $this->_protocol : $params->protocol);
+    $_request->method = $params->method;
+    $_request->pathname = $params->pathname;
+    $globalQueries = [];
+    $globalHeaders = [];
+    if (!is_null($this->_globalParameters)) {
+      $globalParams = $this->_globalParameters;
+      if (!is_null($globalParams->queries)) {
+        $globalQueries = $globalParams->queries;
       }
 
-      $_retriesAttempted++;
-      try {
-        $_request = new Request();
-        $_request->protocol = ''.($this->_protocol ? $this->_protocol : $params->protocol);
-        $_request->method = $params->method;
-        $_request->pathname = $params->pathname;
-        $globalQueries = [ ];
-        $globalHeaders = [ ];
-        if (!is_null($this->_globalParameters)) {
-          $globalParams = $this->_globalParameters;
-          if (!is_null($globalParams->queries)) {
-            $globalQueries = $globalParams->queries;
-          }
-
-          if (!is_null($globalParams->headers)) {
-            $globalHeaders = $globalParams->headers;
-          }
-
-        }
-
-        $extendsHeaders = [ ];
-        $extendsQueries = [ ];
-        if (!is_null($runtime->extendsParameters)) {
-          $extendsParameters = $runtime->extendsParameters;
-          if (!is_null($extendsParameters->headers)) {
-            $extendsHeaders = $extendsParameters->headers;
-          }
-
-          if (!is_null($extendsParameters->queries)) {
-            $extendsQueries = $extendsParameters->queries;
-          }
-
-        }
-
-        $_request->query = Dara::merge([
-        ], $globalQueries, $extendsQueries, $request->query);
-        // endpoint is setted in product client
-        $_request->headers = Dara::merge([
-          'host' => $this->_endpoint,
-          'x-acs-version' => $params->version,
-          'x-acs-action' => $params->action,
-          'user-agent' => Utils::getUserAgent($this->_userAgent),
-          'x-acs-date' => Utils::getTimestamp(),
-          'x-acs-signature-nonce' => Utils::getNonce(),
-          'accept' => 'application/json',
-        ], $extendsHeaders, $globalHeaders, $request->headers);
-        if ($params->style == 'RPC') {
-          $headers = $this->getRpcHeaders();
-          if (!is_null($headers)) {
-            $_request->headers = Dara::merge([
-            ], $_request->headers, $headers);
-          }
-
-        }
-
-        $signatureAlgorithm = ''.($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
-        $hashedRequestPayload = Utils::hash(BytesUtil::from('', 'utf-8'), $signatureAlgorithm);
-        if (!is_null($request->stream)) {
-          $tmp = StreamUtil::readAsBytes($request->stream);
-          $hashedRequestPayload = Utils::hash($tmp, $signatureAlgorithm);
-          $_request->body = $tmp;
-          @$_request->headers['content-type'] = 'application/octet-stream';
-        } else {
-          if (!is_null($request->body)) {
-            if ($params->reqBodyType == 'byte') {
-              $byteObj = unpack('C*', $request->body);
-              $hashedRequestPayload = Utils::hash($byteObj, $signatureAlgorithm);
-              $_request->body = $byteObj;
-            } else if ($params->reqBodyType == 'json') {
-              $jsonObj = json_encode($request->body, JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES);
-              $hashedRequestPayload = Utils::hash(StringUtil::toBytes($jsonObj, 'utf8'), $signatureAlgorithm);
-              $_request->body = $jsonObj;
-              @$_request->headers['content-type'] = 'application/json; charset=utf-8';
-            } else {
-              $m = $request->body;
-              $formObj = Utils::toForm($m);
-              $hashedRequestPayload = Utils::hash(StringUtil::toBytes($formObj, 'utf8'), $signatureAlgorithm);
-              $_request->body = $formObj;
-              @$_request->headers['content-type'] = 'application/x-www-form-urlencoded';
-            }
-
-          }
-
-        }
-
-        @$_request->headers['x-acs-content-sha256'] = bin2hex(BytesUtil::toString($hashedRequestPayload));
-        if ($params->authType != 'Anonymous') {
-          $credentialModel = $this->_credential->getCredential();
-          if (!is_null($credentialModel->providerName)) {
-            @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
-          }
-
-          $authType = $credentialModel->type;
-          if ($authType == 'bearer') {
-            $bearerToken = $credentialModel->bearerToken;
-            @$_request->headers['x-acs-bearer-token'] = $bearerToken;
-          } else if ($authType == 'id_token') {
-            $idToken = $credentialModel->securityToken;
-            @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
-          } else {
-            $accessKeyId = $credentialModel->accessKeyId;
-            $accessKeySecret = $credentialModel->accessKeySecret;
-            $securityToken = $credentialModel->securityToken;
-            if (!is_null($securityToken) && $securityToken != '') {
-              @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
-              @$_request->headers['x-acs-security-token'] = $securityToken;
-            }
-
-            @$_request->headers['Authorization'] = Utils::getAuthorization($_request, $signatureAlgorithm, bin2hex(BytesUtil::toString($hashedRequestPayload)), $accessKeyId, $accessKeySecret);
-          }
-
-        }
-
-        $_runtime['stream'] = true;
-        $_lastRequest = $_request;
-        $_response = Dara::send($_request, $_runtime);
-        $_lastResponse = $_response;
-
-        if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
-          $err = [ ];
-          if (!is_null(@$_response->headers['content-type']) && @$_response->headers['content-type'] == 'text/xml;charset=utf-8') {
-            $_str = StreamUtil::readAsString($_response->body);
-            $respMap = XML::parseXml($_str, null);
-            $err = @$respMap['Error'];
-          } else {
-            $_res = StreamUtil::readAsJSON($_response->body);
-            $err = $_res;
-          }
-
-          @$err['statusCode'] = $_response->statusCode;
-          throw new DaraException([
-            'code' => '' . (string)(@$err['Code'] ? @$err['Code'] : @$err['code']) . '',
-            'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)(@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']) . '',
-            'data' => $err,
-            'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
-            'accessDeniedDetail' => (@$err['AccessDeniedDetail'] ? @$err['AccessDeniedDetail'] : @$err['accessDeniedDetail']),
-          ]);
-        }
-
-        $events = StreamUtil::readAsSSE($_response->body);
-
-        foreach($events as $event) {
-          yield new SSEResponse([
-            'statusCode' => $_response->statusCode,
-            'headers' => $_response->headers,
-            'event' => $event,
-          ]);
-        }
-        return null;
-      } catch (DaraException $e) {
-        $_context = new RetryPolicyContext([
-          'retriesAttempted' => $_retriesAttempted,
-          'lastRequest' => $_lastRequest,
-          'lastResponse' => $_lastResponse,
-          'exception' => $e,
-        ]);
-        continue;
+      if (!is_null($globalParams->headers)) {
+        $globalHeaders = $globalParams->headers;
       }
+
     }
 
-    throw new DaraUnableRetryException($_context);
+    $extendsHeaders = [];
+    $extendsQueries = [];
+    if (!is_null($runtime->extendsParameters)) {
+      $extendsParameters = $runtime->extendsParameters;
+      if (!is_null($extendsParameters->headers)) {
+        $extendsHeaders = $extendsParameters->headers;
+      }
+
+      if (!is_null($extendsParameters->queries)) {
+        $extendsQueries = $extendsParameters->queries;
+      }
+
+    }
+
+    $_request->query = Dara::merge([
+    ], $globalQueries, $extendsQueries, $request->query);
+    // endpoint is setted in product client
+    $_request->headers = Dara::merge([
+      'host' => $this->_endpoint,
+      'x-acs-version' => $params->version,
+      'x-acs-action' => $params->action,
+      'user-agent' => Utils::getUserAgent($this->_userAgent),
+      'x-acs-date' => Utils::getTimestamp(),
+      'x-acs-signature-nonce' => Utils::getNonce(),
+      'accept' => 'application/json',
+    ], $extendsHeaders, $globalHeaders, $request->headers);
+    if ($params->style == 'RPC') {
+      $headers = $this->getRpcHeaders();
+      if (!is_null($headers)) {
+        $_request->headers = Dara::merge([
+        ], $_request->headers, $headers);
+      }
+
+    }
+
+    $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
+    $hashedRequestPayload = Utils::hash(BytesUtil::from('', 'utf-8'), $signatureAlgorithm);
+    if (!is_null($request->stream)) {
+      $tmp = StreamUtil::readAsBytes($request->stream);
+      $hashedRequestPayload = Utils::hash($tmp, $signatureAlgorithm);
+      $_request->body = $tmp;
+      @$_request->headers['content-type'] = 'application/octet-stream';
+    } else {
+      if (!is_null($request->body)) {
+        if ($params->reqBodyType == 'byte') {
+          $byteObj = unpack('C*', $request->body);
+          $hashedRequestPayload = Utils::hash($byteObj, $signatureAlgorithm);
+          $_request->body = $byteObj;
+        } else if ($params->reqBodyType == 'json') {
+          $jsonObj = json_encode($request->body, JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES);
+          $hashedRequestPayload = Utils::hash(StringUtil::toBytes($jsonObj, 'utf8'), $signatureAlgorithm);
+          $_request->body = $jsonObj;
+          @$_request->headers['content-type'] = 'application/json; charset=utf-8';
+        } else {
+          $m = $request->body;
+          $formObj = Utils::toForm($m);
+          $hashedRequestPayload = Utils::hash(StringUtil::toBytes($formObj, 'utf8'), $signatureAlgorithm);
+          $_request->body = $formObj;
+          @$_request->headers['content-type'] = 'application/x-www-form-urlencoded';
+        }
+
+      }
+
+    }
+
+    @$_request->headers['x-acs-content-sha256'] = bin2hex(BytesUtil::toString($hashedRequestPayload));
+    if ($params->authType != 'Anonymous') {
+      $credentialModel = $this->_credential->getCredential();
+      if (!is_null($credentialModel->providerName)) {
+        @$_request->headers['x-acs-credentials-provider'] = $credentialModel->providerName;
+      }
+
+      $authType = $credentialModel->type;
+      if ($authType == 'bearer') {
+        $bearerToken = $credentialModel->bearerToken;
+        @$_request->headers['x-acs-bearer-token'] = $bearerToken;
+      } else if ($authType == 'id_token') {
+        $idToken = $credentialModel->securityToken;
+        @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
+      } else {
+        $accessKeyId = $credentialModel->accessKeyId;
+        $accessKeySecret = $credentialModel->accessKeySecret;
+        $securityToken = $credentialModel->securityToken;
+        if (!is_null($securityToken) && $securityToken != '') {
+          @$_request->headers['x-acs-accesskey-id'] = $accessKeyId;
+          @$_request->headers['x-acs-security-token'] = $securityToken;
+        }
+
+        @$_request->headers['Authorization'] = Utils::getAuthorization($_request, $signatureAlgorithm, bin2hex(BytesUtil::toString($hashedRequestPayload)), $accessKeyId, $accessKeySecret);
+      }
+
+    }
+
+    $_runtime['stream'] = true;
+    $_response = Dara::send($_request, $_runtime);
+
+    if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
+      $err = [];
+      if (!is_null(@$_response->headers['content-type']) && @$_response->headers['content-type'] == 'text/xml;charset=utf-8') {
+        $_str = StreamUtil::readAsString($_response->body);
+        $respMap = XML::parseXml($_str, null);
+        $err = @$respMap['Error'];
+      } else {
+        $_res = StreamUtil::readAsJSON($_response->body);
+        $err = $_res;
+      }
+
+      @$err['statusCode'] = $_response->statusCode;
+      throw new DaraException([
+        'code' => '' . (string) (@$err['Code'] ? @$err['Code'] : @$err['code']) . '',
+        'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']) . '',
+        'data' => $err,
+        'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+        'accessDeniedDetail' => (@$err['AccessDeniedDetail'] ? @$err['AccessDeniedDetail'] : @$err['accessDeniedDetail']),
+      ]);
+    }
+
+    $events = StreamUtil::readAsSSE($_response->body);
+
+    foreach ($events as $event) {
+      yield new SSEResponse([
+        'statusCode' => $_response->statusCode,
+        'headers' => $_response->headers,
+        'event' => $event,
+      ]);
+    }
   }
 
   /**
