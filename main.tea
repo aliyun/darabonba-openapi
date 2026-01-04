@@ -861,6 +861,24 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
     }
   }
 
+  var isWebSocket : boolean = false
+  if (params.protocol == 'wss' || params.protocol == 'ws') {
+    isWebSocket = true
+    if (params.websocketSubProtocol == null) {
+      throw new Client {
+        code = 'ParameterMissing',
+        message = '\'websocketSubProtocol\' can not be unset'
+      };
+    }
+    if (runtime.handler == null) {
+      throw new Client {
+        code = 'ParameterMissing',
+        message = '\'handler\' for websocket api can not be unset'
+      };
+    }
+    __request.headers["sec-websocket-protocol"] = params.websocketSubProtocol
+  }
+
   var signatureAlgorithm = $string($default(@signatureAlgorithm, 'ACS3-HMAC-SHA256'));
   var hashedRequestPayload = OpenApiUtil.hash($Bytes.from('', 'utf-8'), signatureAlgorithm);
 
@@ -971,7 +989,12 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       };
     }
   }
-  if (params.bodyType == 'binary') {
+  if (params.protocol == 'wss' || params.protocol == 'ws') {
+    var resp = {
+      websocketClient = __response.webSocketClient,
+    };
+    return resp;
+  } else if (params.bodyType == 'binary') {
     var resp = {
       body = __response.body,
       headers = __response.headers,
@@ -1029,7 +1052,17 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
-  tlsMinVersion = @tlsMinVersion
+  tlsMinVersion = @tlsMinVersion,
+  isWebSocket = params.protocol == 'wss' || params.protocol == 'ws',
+  webSocketPingInterval = runtime.webSocketPingInterval,
+  webSocketPongTimeout = runtime.webSocketPongTimeout,
+  webSocketEnableReconnect = runtime.webSocketEnableReconnect,
+  webSocketReconnectInterval = runtime.webSocketReconnectInterval,
+  webSocketMaxReconnectTimes = runtime.webSocketMaxReconnectTimes,
+  webSocketWriteTimeout = runtime.webSocketWriteTimeout,
+  webSocketHandshakeTimeout = runtime.webSocketHandshakeTimeout,
+  webSocketHandler = runtime.webSocketHandler,
+  websocketSubProtocol = runtime.websocketSubProtocol,
 }
 
 
