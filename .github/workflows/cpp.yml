@@ -1,0 +1,210 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+defaults:
+  run:
+    working-directory: cpp
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} - ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-latest]
+        compiler: [gcc, clang]
+        exclude:
+          # macOS 默认使用 clang，不需要测试 gcc
+          - os: macos-latest
+            compiler: gcc
+        include:
+          # Windows 使用 MSVC
+          - os: windows-latest
+            compiler: msvc
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    # ============ Linux 依赖安装 ============
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          libssl-dev \
+          libcurl4-openssl-dev \
+          uuid-dev \
+          lcov
+    
+    # ============ macOS 依赖安装 ============
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install \
+          cmake \
+          openssl \
+          curl
+    
+    # ============ Windows 依赖安装 ============
+    - name: Setup vcpkg (Windows)
+      if: runner.os == 'Windows'
+      id: setup-vcpkg
+      shell: pwsh
+      run: |
+        $vcpkgRoot = "$env:RUNNER_TEMP\vcpkg"
+        git clone https://github.com/Microsoft/vcpkg.git $vcpkgRoot
+        & "$vcpkgRoot\bootstrap-vcpkg.bat"
+        echo "VCPKG_ROOT=$vcpkgRoot" >> $env:GITHUB_ENV
+        echo "vcpkg-root=$vcpkgRoot" >> $env:GITHUB_OUTPUT
+
+    - name: Cache vcpkg
+      if: runner.os == 'Windows'
+      uses: actions/cache@v4
+      id: vcpkg-cache
+      with:
+        path: ${{ steps.setup-vcpkg.outputs.vcpkg-root }}/installed
+        key: ${{ runner.os }}-vcpkg-curl-openssl-x64-windows-v1
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
+
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $vcpkgRoot = $env:VCPKG_ROOT
+        $cacheHit = "${{ steps.vcpkg-cache.outputs.cache-hit }}" -eq "true"
+        if (-not $cacheHit) {
+          Write-Host "Cache miss, installing vcpkg packages..."
+          & "$vcpkgRoot\vcpkg.exe" install curl:x64-windows openssl:x64-windows
+        } else {
+          Write-Host "Cache hit! Using cached vcpkg packages."
+        }
+        echo "CMAKE_TOOLCHAIN_FILE=$vcpkgRoot/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+    # ============ 设置编译器 (Linux) ============
+    - name: Set up GCC (Linux)
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      run: |
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+    
+    - name: Set up Clang (Linux)
+      if: runner.os == 'Linux' && matrix.compiler == 'clang'
+      run: |
+        sudo apt-get install -y clang
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+    
+    # ============ Windows: 设置 MSVC 环境 ============
+    - name: Setup MSVC Environment (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    # ============ 配置和构建 ============
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% -Dgtest_force_shared_crt=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+
+    - name: Configure CMake (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        # macOS 需要指定 OpenSSL 路径
+        OPENSSL_ROOT_DIR=$(brew --prefix openssl)
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR
+
+    - name: Configure CMake (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      shell: bash
+      run: |
+        NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+        cmake --build build --config Release -j$NPROC
+
+    # ============ 安装测试 ============
+    - name: Test Install
+      shell: bash
+      run: |
+        cd build
+        cmake --install . --prefix install_test
+    
+    # ============ 代码覆盖率 (仅 Linux + GCC) ============
+    - name: Generate coverage report
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      run: |
+        cd build
+        # 如果有 lcov，生成覆盖率报告
+        if command -v lcov &> /dev/null; then
+          lcov --capture --directory . --output-file coverage.info || true
+          lcov --remove coverage.info '/usr/*' '*/external/*' '*/build/*' --output-file coverage.info || true
+          lcov --list coverage.info || true
+        fi
+    
+    - name: Upload coverage to Codecov
+      if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./cpp/build/coverage.info
+        flags: cpp
+        name: codecov-cpp
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ============ 代码格式检查 ============
+  format-check:
+    name: Code Format Check
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install clang-format
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format
+    
+    - name: Check code format
+      working-directory: cpp
+      run: |
+        # 检查所有 C++ 源文件格式
+        find include src -name '*.hpp' -o -name '*.cpp' 2>/dev/null | \
+          xargs clang-format --dry-run --Werror 2>&1 || true
+        echo "Format check completed (non-blocking)"
+
+  # ============ 构建状态汇总 ============
+  build-status:
+    name: Build Status
+    if: always()
+    needs: [build-and-test, format-check]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check build status
+      run: |
+        if [ "${{ needs.build-and-test.result }}" != "success" ]; then
+          echo "Build and test failed!"
+          exit 1
+        fi
+        echo "All builds passed!"
