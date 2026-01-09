@@ -1,103 +1,90 @@
-English | [简体中文](/README-CN.md)
-
-
-# Alibabacloud OpenApi SDK for C++
-
+English | [简体中文](README-CN.md)
 ![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
-The Alibabacloud OpenApi SDK is based on the [`Darabonba DSL`](https://github.com/aliyun/darabonba) solution, which is a domain specific language for OpenAPI applications. It can be used to generate multilingual SDKs, code samples, test cases, interface choreography, etc. for any style of API.
+## Alibaba Cloud OpenApi Client for C++
 
-## Required Dependency Libraries
+Alibaba Cloud OpenApi C++ 客户端（基于 Tea/Darabonba C++ 核心库），用于调用阿里云各产品的 OpenAPI。
 
-- [Boost](https://www.boost.org/users/download/)
-- [CPPRestSDK](https://github.com/microsoft/cpprestsdk/releases)
-- [OpenSSL](https://www.openssl.org/source/)
+## Requirements
 
-To use this SDK to access the API, you must first install the required dependency libraries.
-
-- Install with Homebrew
-
-```bash
-brew install boost cpprestsdk openssl
-```
-
-- Install with yum
-
-```bash
-yum install boost-devel openssl-devel
-
-# The cpprestsdk does not support installation with yum.
-```
-
-- Install with api-get
-
-```bash
-# install boost
-sudo add-apt-repository ppa:mhier/libboost-latest -y
-sudo apt-get update
-sudo apt-get install libboost-all-dev
-
-sudo apt-get install libcpprest-dev libcurl4-openssl-dev libssl-dev
-```
-
-- Install with vcpkg
-
-```bash
-vcpkg install boost cpprestsdk openssl-windows
-```
+- A C++11 compatible compiler (e.g. GCC 5+, Clang 3.8+, MSVC 2015+).
+- CMake 3.5 or newer.
+- OpenSSL and libcurl installed on your system.
+- Git (optional, used when CMake fetches dependencies automatically).
 
 ## Installation
 
-### Linux
+You can build and install this library from source with CMake:
 
 ```bash
-git clone https://github.com/alibabacloud-sdk-cpp/dara-openapi.git
-cd dara-openapi
-sh scripts/install.sh
+# In the root directory of this project
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . --target install
 ```
 
-### Windows
+By default it will be installed under `alibabacloud_open_api_v2_build` in the project directory.  
+If you want to install it to another location, pass `-DCMAKE_INSTALL_PREFIX=/your/path` to `cmake ..`.
 
-1. Run the following command to clone code from Github via [git-bash](https://git-scm.com/downloads):
+After installation, you can use `find_package` in your own CMake project:
 
-  ```bash
-  git clone https://github.com/alibabacloud-sdk-cpp/dara-openapi.git
-  ```
-2. Build Visual Studio solution
-  * Install [CMake](https://cmake.org/download/) && [Visual Studio](https://visualstudio.microsoft.com/zh-hans/)
-  * Change directory to source code and make the `cmake_build` folder in the project root directory.
-  * Open [CMake](https://cmake.org/download/) software and
-    * `Browse Source` to open source code directory.
-    * `Browse build`  to open the created `cmake_build` directory
-    * click `configure`
-    * click `generate`, Generate VS solution
+```cmake
+find_package(alibabacloud_open_api_v2 REQUIRED)
 
-3. Build and Install C++ SDK
-  * Go to the cmake_build directory and open alibabacloud_open_api.sln with Visual Studio Solutions
-  * Select  `Release`
-  * Check INSTALL option from Build -> Configuration Manager
-  * Build->Build Solutions to build.
+add_executable(example main.cpp)
+target_link_libraries(example PRIVATE alibabacloud_open_api_v2::alibabacloud_open_api_v2)
+```
 
+## Usage
 
-## Issue
+Below is a minimal example showing how to create a client and send a request:
 
-[Submit Issue](https://github.com/alibabacloud-sdk-cpp/dara-openapi/issues/new/choose), Problems that do not meet the guidelines may close immediately.
+```cpp
+#include <alibabacloud/Openapi.hpp>
+#include <alibabacloud/utils/models/Config.hpp>
+#include <alibabacloud/utils/models/OpenApiRequest.hpp>
+#include <alibabacloud/utils/models/Params.hpp>
+#include <darabonba/Runtime.hpp>
 
+using namespace AlibabaCloud::OpenApi;
+using namespace AlibabaCloud::OpenApi::Utils::Models;
 
-## Related
+int main() {
+    Config config;
+    config.setAccessKeyId("your-access-key-id");
+    config.setAccessKeySecret("your-access-key-secret");
+    config.setRegionId("cn-hangzhou");
+    config.setEndpoint("ecs.aliyuncs.com");
+    config.setProtocol("https");
+    config.setMethod("POST");
 
-* [OpenAPI Developer Portal][open-api]
-* [Latest Release][latest-release]
-* [Alibabacloud Console System][console]
-* [Alibaba Cloud Home Page][aliyun]
+    Client client(config);
+
+    OpenApiRequest request;
+    // TODO: set request.query / request.body / request.headers ...
+
+    Params params;
+    // TODO: set action, version, path, etc. on params
+
+    Darabonba::RuntimeOptions runtime;
+    auto result = client.callApi(params, request, runtime);
+
+    // Handle result ...
+    return 0;
+}
+```
+
+For more configuration options, please refer to the definitions in `include/alibabacloud/utils/models/Config.hpp` and other headers under `include/alibabacloud`.
+
+## Issues
+
+If you encounter any problems while using this library, please submit an Issue in the corresponding code repository.
+
+## References
+
+This project depends on the C++ implementations of Darabonba core and Alibaba Cloud credentials. Please refer to their documentation for more details.
 
 ## License
-
-[Apache-2.0](/LICENSE.md)
+[Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright (c) 2009-present, Alibaba Cloud All rights reserved.
-
-[open-api]: https://next.api.aliyun.com
-[latest-release]: https://github.com/alibabacloud-sdk-cpp/dara-openapi/releases
-[console]: https://home.console.aliyun.com
-[aliyun]: https://www.aliyun.com

@@ -27,7 +27,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(SOURCE_FILES
         src/Client.cpp
-        src/Utils.cpp)
+        src/Utils.cpp
+        src/POP.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
         
