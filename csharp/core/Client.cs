@@ -503,6 +503,45 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
+        public Dictionary<string, object> DoRPCRequest(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return DoRPCRequest(action, version, protocol, method, authType, bodyType, request, newRuntime);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -809,6 +848,45 @@ namespace AlibabaCloud.OpenApiClient
             }
 
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
+        public async Task<Dictionary<string, object>> DoRPCRequestAsync(string action, string version, string protocol, string method, string authType, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await DoRPCRequestAsync(action, version, protocol, method, authType, bodyType, request, newRuntime);
         }
 
         /// <term><b>Description:</b></term>
@@ -1168,6 +1246,48 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
+        public Dictionary<string, object> DoROARequest(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return DoROARequest(action, version, protocol, method, authType, pathname, bodyType, request, newRuntime);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -1451,6 +1571,48 @@ namespace AlibabaCloud.OpenApiClient
             }
 
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
+        public async Task<Dictionary<string, object>> DoROARequestAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await DoROARequestAsync(action, version, protocol, method, authType, pathname, bodyType, request, newRuntime);
         }
 
         /// <term><b>Description:</b></term>
@@ -1810,6 +1972,48 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
+        public Dictionary<string, object> DoROARequestWithForm(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return DoROARequestWithForm(action, version, protocol, method, authType, pathname, bodyType, request, newRuntime);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network with form body</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -2093,6 +2297,48 @@ namespace AlibabaCloud.OpenApiClient
             }
 
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network with form body</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="pathname">
+        /// pathname of every api
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
+        public async Task<Dictionary<string, object>> DoROARequestWithFormAsync(string action, string version, string protocol, string method, string authType, string pathname, string bodyType, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await DoROARequestWithFormAsync(action, version, protocol, method, authType, pathname, bodyType, request, newRuntime);
         }
 
         /// <term><b>Description:</b></term>
@@ -2492,6 +2738,45 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
+        public Dictionary<string, object> DoRequest(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return DoRequest(params_, request, newRuntime);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -2856,6 +3141,45 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// the response
         /// </returns>
+        public async Task<Dictionary<string, object>> DoRequestAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await DoRequestAsync(params_, request, newRuntime);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
         public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -3028,6 +3352,45 @@ namespace AlibabaCloud.OpenApiClient
             }
 
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
+        public Dictionary<string, object> Execute(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return Execute(params_, request, newRuntime);
         }
 
         /// <term><b>Description:</b></term>
@@ -3237,6 +3600,45 @@ namespace AlibabaCloud.OpenApiClient
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Encapsulate the request and invoke the network</para>
+        /// </description>
+        /// 
+        /// <param name="action">
+        /// api name
+        /// </param>
+        /// <param name="version">
+        /// product version
+        /// </param>
+        /// <param name="protocol">
+        /// http or https
+        /// </param>
+        /// <param name="method">
+        /// e.g. GET
+        /// </param>
+        /// <param name="authType">
+        /// authorization type e.g. AK
+        /// </param>
+        /// <param name="bodyType">
+        /// response body type e.g. String
+        /// </param>
+        /// <param name="request">
+        /// object of OpenApiRequest
+        /// </param>
+        /// <param name="runtime">
+        /// which controls some details of call api, such as retry times
+        /// </param>
+        /// 
+        /// <returns>
+        /// the response
+        /// </returns>
+        public async Task<Dictionary<string, object>> ExecuteAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await ExecuteAsync(params_, request, newRuntime);
+        }
+
         public IEnumerable<SSEResponse> CallSSEApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -3429,6 +3831,18 @@ namespace AlibabaCloud.OpenApiClient
                 };
             }
         }
+
+        public IEnumerable<SSEResponse> CallSSEApi(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return CallSSEApi(params_, request, newRuntime);
+        }
+        
+        public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return CallApi(params_, request, newRuntime);
+        }
         
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
@@ -3498,6 +3912,12 @@ namespace AlibabaCloud.OpenApiClient
             {
                 return await ExecuteAsync(params_, request, runtime);
             }
+        }
+
+        public async Task<Dictionary<string, object>> CallApiAsync(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Darabonba.Models.RuntimeOptions newRuntime = runtime;
+            return await CallApiAsync(params_, request, newRuntime);
         }
 
         /// <term><b>Description:</b></term>
