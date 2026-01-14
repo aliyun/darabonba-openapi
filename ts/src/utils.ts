@@ -796,7 +796,12 @@ export default class Client {
     const contentMD5 = request.headers['content-md5'] || '';
     const contentType = request.headers['content-type'] || '';
     const date = request.headers['date'] || '';
-    const header = `${method}\n${accept}\n${contentMD5}\n${contentType}\n${date}\n`;
+    const header = `${method}
+${accept}
+${contentMD5}
+${contentType}
+${date}
+`;
     const canonicalizedHeaders = getCanonicalizedHeaders(request.headers);
     const canonicalizedResource = getCanonicalizedResource(request.pathname, request.query);
 
@@ -1025,6 +1030,60 @@ export default class Client {
       var signature = signerObject.sign({ key: secret, padding: crypto.constants.RSA_PKCS1_PADDING });
       return signature;
     }
+  }
+
+  /**
+   * Transform a map to a flat style map where keys are prefixed with length info.
+   * Map keys are transformed from "key" to "#length#key" format.
+   * @param input the input object (can be an object, array, or primitive type)
+   * @return the transformed object
+   */
+  static mapToFlatStyle(input: any): any {
+    if (input === null || input === undefined) {
+      return input;
+    }
+
+    // Handle array
+    if (Array.isArray(input)) {
+      const result = [];
+      for (const item of input) {
+        result.push(Client.mapToFlatStyle(item));
+      }
+      return result;
+    }
+
+    // Handle $tea.Model
+    if (input instanceof $tea.Model) {
+      // Modify the original Model object's fields
+      for (const [key, value] of Object.entries(input)) {
+        if (value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value) && !(value instanceof $tea.Model)) {
+          // This is a plain object (dictionary), apply flat style to keys
+          const flatMap: { [key: string]: any } = {};
+          for (const [nestedKey, nestedValue] of Object.entries(value)) {
+            const flatKey = `#${nestedKey.length}#${nestedKey}`;
+            flatMap[flatKey] = Client.mapToFlatStyle(nestedValue);
+          }
+          (input as any)[key] = flatMap;
+        } else {
+          // Recursively process other fields
+          (input as any)[key] = Client.mapToFlatStyle(value);
+        }
+      }
+      return input;  // Return the modified original Model
+    }
+
+    // Handle plain object
+    if (typeof input === 'object' && !Array.isArray(input)) {
+      const flatMap: { [key: string]: any } = {};
+      for (const [key, value] of Object.entries(input)) {
+        const flatKey = `#${key.length}#${key}`;
+        flatMap[flatKey] = Client.mapToFlatStyle(value);
+      }
+      return flatMap;
+    }
+
+    // For primitive types, return as-is
+    return input;
   }
 
 }

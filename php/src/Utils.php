@@ -705,4 +705,66 @@ private static function getTimeLeft($rateLimit) {
 
         return self::getEndpointRules($product, $regionId, $endpointRule, $network, $suffix);
     }
+
+    /**
+     * Transform a map to a flat style map where keys are prefixed with length info.
+     * Map keys are transformed from "key" to "#length#key" format.
+     * 
+     * @param mixed $input the input (can be an array, Model, or primitive type)
+     * @return mixed the transformed input
+     */
+    public static function mapToFlatStyle($input)
+    {
+        if ($input === null) {
+            return $input;
+        }
+
+        // Handle array (list)
+        if (\is_array($input) && array_keys($input) === range(0, count($input) - 1)) {
+            $result = [];
+            foreach ($input as $item) {
+                $result[] = self::mapToFlatStyle($item);
+            }
+            return $result;
+        }
+
+        // Handle Model
+        if ($input instanceof Model) {
+            // Modify the original Model object's fields using reflection
+            $reflection = new \ReflectionClass($input);
+            $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+            
+            foreach ($properties as $property) {
+                $propertyName = $property->getName();
+                $value = $property->getValue($input);
+                
+                if (\is_array($value) && !empty($value) && array_keys($value) !== range(0, count($value) - 1)) {
+                    // This is an associative array (dictionary), apply flat style to keys
+                    $flatMap = [];
+                    foreach ($value as $nestedKey => $nestedValue) {
+                        $flatKey = '#' . strlen($nestedKey) . '#' . $nestedKey;
+                        $flatMap[$flatKey] = self::mapToFlatStyle($nestedValue);
+                    }
+                    $property->setValue($input, $flatMap);
+                } else {
+                    // Recursively process other fields
+                    $property->setValue($input, self::mapToFlatStyle($value));
+                }
+            }
+            return $input;  // Return the modified original Model
+        }
+
+        // Handle associative array (dictionary)
+        if (\is_array($input) && !empty($input)) {
+            $flatMap = [];
+            foreach ($input as $key => $value) {
+                $flatKey = '#' . strlen($key) . '#' . $key;
+                $flatMap[$flatKey] = self::mapToFlatStyle($value);
+            }
+            return $flatMap;
+        }
+
+        // For primitive types, return as-is
+        return $input;
+    }
 }

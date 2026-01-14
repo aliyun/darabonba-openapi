@@ -468,3 +468,63 @@ class TestUtils(unittest.TestCase):
 
         self.assertEqual("ecs-intl.aliyuncs.com",
                          Client.get_endpoint_rules("ecs", "cn-hangzhou", "central", "intl"))
+
+    def test_map_to_flat_style(self):
+        # Test null
+        self.assertIsNone(Client.map_to_flat_style(None))
+
+        # Test primitive values
+        self.assertEqual("test", Client.map_to_flat_style("test"))
+        self.assertEqual(123, Client.map_to_flat_style(123))
+        self.assertEqual(True, Client.map_to_flat_style(True))
+
+        # Test plain dict
+        plain_map = {
+            "key1": "value1",
+            "key2": "value2"
+        }
+        flat_map = Client.map_to_flat_style(plain_map)
+        self.assertEqual("value1", flat_map["#4#key1"])
+        self.assertEqual("value2", flat_map["#4#key2"])
+
+        # Test nested dict
+        nested_map = {
+            "outerKey": {
+                "innerKey": "innerValue"
+            }
+        }
+        flat_nested_map = Client.map_to_flat_style(nested_map)
+        self.assertEqual("innerValue", flat_nested_map["#8#outerKey"]["#8#innerKey"])
+
+        # Test list
+        arr = ["item1", "item2"]
+        flat_arr = Client.map_to_flat_style(arr)
+        self.assertEqual("item1", flat_arr[0])
+        self.assertEqual("item2", flat_arr[1])
+
+        # Test list with dict elements
+        arr_with_dict = [
+            {"key": "value"}
+        ]
+        flat_arr_with_dict = Client.map_to_flat_style(arr_with_dict)
+        self.assertEqual("value", flat_arr_with_dict[0]["#3#key"])
+
+        # Test DaraModel
+        model_with_tags = self.TestConvertMapModel()
+        model_with_tags.requestId = "testName"
+        model_with_tags.dic = {"tagKey": "tagValue"}
+        
+        flat_model = Client.map_to_flat_style(model_with_tags)
+        # Should return the same object (modified in place)
+        self.assertIs(flat_model, model_with_tags)
+        self.assertEqual("testName", flat_model.requestId)
+        self.assertEqual("tagValue", flat_model.dic["#6#tagKey"])
+
+        # Test list of DaraModels
+        model2 = self.TestConvertMapModel()
+        model2.requestId = "test2"
+        model2.dic = {"key2": "value2"}
+        model_list = [model2]
+        flat_model_list = Client.map_to_flat_style(model_list)
+        self.assertEqual("test2", flat_model_list[0].requestId)
+        self.assertEqual("value2", flat_model_list[0].dic["#4#key2"])

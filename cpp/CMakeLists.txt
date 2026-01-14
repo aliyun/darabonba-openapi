@@ -183,3 +183,59 @@ install(
         DESTINATION
         ${INSTALL_CMAKEDIR}
 )
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Test set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
+option(BUILD_TESTS "Build test programs" ON)
+
+if(BUILD_TESTS)
+    enable_testing()
+    
+    # Try to find GoogleTest locally first
+    find_package(GTest QUIET)
+    
+    if(NOT GTest_FOUND)
+        # Fetch GoogleTest if not found
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.14.0
+        )
+        # For Windows: Prevent overriding the parent project's compiler/linker settings
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(googletest)
+    endif()
+    
+    # Create test executable
+    add_executable(test_utils tests/test_utils.cpp)
+    
+    # Add dependencies first
+    add_dependencies(test_utils ${PROJECT_NAME} darabonba_core alibabacloud_credential)
+    
+    target_include_directories(test_utils PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}/_deps/_darabonba_core-src/include
+        ${CMAKE_CURRENT_BINARY_DIR}/_deps/_alibabacloud_credential-src/include
+    )
+    
+    if(GTest_FOUND)
+        target_link_libraries(test_utils
+            ${PROJECT_NAME}
+            darabonba_core
+            alibabacloud_credential
+            GTest::gtest
+            GTest::gtest_main
+        )
+    else()
+        target_link_libraries(test_utils
+            ${PROJECT_NAME}
+            darabonba_core
+            alibabacloud_credential
+            gtest
+            gtest_main
+        )
+    endif()
+    
+    # Add test to CTest
+    add_test(NAME UtilsTest COMMAND test_utils)
+endif()
