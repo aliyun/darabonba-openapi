@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(alibabacloud_open_api_v2 VERSION "1.0.0")
 
-# Include required modules
-include(ExternalProject)
-
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< General set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -52,46 +49,41 @@ set_target_properties(${PROJECT_NAME}
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< External set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
 add_subdirectory(external)
 find_package(OpenSSL REQUIRED)
-find_library(CURL_LIB curl)
+
 if(CMAKE_HOST_WIN32)
-  ExternalProject_Get_Property(curl INSTALL_DIR)
-    set(curl_install_dir ${INSTALL_DIR})
-    add_dependencies(${PROJECT_NAME}
-            curl)
-    target_include_directories(${PROJECT_NAME}
-            PRIVATE	${curl_install_dir}/include)
+    # On Windows, use vcpkg-installed curl
+    find_package(CURL REQUIRED)
     target_link_libraries(${PROJECT_NAME}
             OpenSSL::SSL OpenSSL::Crypto
+            CURL::libcurl
             Crypt32
             Rpcrt4
             Ws2_32
-            debug ${curl_install_dir}/lib/libcurl-d.lib
-            optimized ${curl_install_dir}/lib/libcurl.lib
             darabonba_core
             alibabacloud_credential
-            
             )
     target_compile_definitions(${PROJECT_NAME}
-            PRIVATE CURL_STATICLIB
-            _CRT_SECURE_NO_WARNINGS)
+            PRIVATE _CRT_SECURE_NO_WARNINGS)
 elseif(APPLE)
-  find_library(CFLIB CoreFoundation)
-  find_library(UTIL_LIB alibabacloud_open_api_v2 ${CMAKE_CURRENT_SOURCE_DIR}/deps/lib)
-  target_link_libraries(${PROJECT_NAME} 
-      OpenSSL::SSL OpenSSL::Crypto
-      ${CFLIB}
-      ${CURL_LIB} 
-      darabonba_core
-      alibabacloud_credential
-            )
-  target_compile_definitions(${PROJECT_NAME} PRIVATE GUID_CFUUID)
+    find_package(CURL REQUIRED)
+    find_library(CFLIB CoreFoundation)
+    find_library(UTIL_LIB alibabacloud_open_api_v2 ${CMAKE_CURRENT_SOURCE_DIR}/deps/lib)
+    target_link_libraries(${PROJECT_NAME} 
+        OpenSSL::SSL OpenSSL::Crypto
+        ${CFLIB}
+        CURL::libcurl
+        darabonba_core
+        alibabacloud_credential
+        )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GUID_CFUUID)
 else()
-  target_link_libraries(${PROJECT_NAME} 
-      OpenSSL::SSL OpenSSL::Crypto
-      ${CURL_LIB} 
-      darabonba_core
-      alibabacloud_credential
-            )
+    find_package(CURL REQUIRED)
+    target_link_libraries(${PROJECT_NAME} 
+        OpenSSL::SSL OpenSSL::Crypto
+        CURL::libcurl
+        darabonba_core
+        alibabacloud_credential
+        )
 endif()
 
 
