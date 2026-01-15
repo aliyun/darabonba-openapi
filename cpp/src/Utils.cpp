@@ -346,7 +346,14 @@ string Utils::getTimestamp() {
   auto now = chrono::system_clock::now();
   time_t tt = chrono::system_clock::to_time_t(now);
   tm utc_tm;
+  
+#ifdef _WIN32
+  // Windows uses gmtime_s with reversed parameter order
+  gmtime_s(&utc_tm, &tt);
+#else
+  // Unix/Linux/macOS use gmtime_r
   gmtime_r(&tt, &utc_tm);
+#endif
   
   ostringstream oss;
   oss << put_time(&utc_tm, "%Y-%m-%dT%H:%M:%SZ");
@@ -361,7 +368,14 @@ string Utils::getDateUTCString() {
   auto now = chrono::system_clock::now();
   time_t tt = chrono::system_clock::to_time_t(now);
   tm utc_tm;
+  
+#ifdef _WIN32
+  // Windows uses gmtime_s with reversed parameter order
+  gmtime_s(&utc_tm, &tt);
+#else
+  // Unix/Linux/macOS use gmtime_r
   gmtime_r(&tt, &utc_tm);
+#endif
   
   ostringstream oss;
   oss << put_time(&utc_tm, "%a, %d %b %Y %H:%M:%S GMT");
