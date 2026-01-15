@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/alibabacloud-go/tea/dara"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/alibabacloud-go/tea/utils"
 )
 
@@ -326,4 +327,90 @@ func Test_StringifyMapValue(t *testing.T) {
 	utils.AssertEqual(t, `{"test":"ok"}`, dara.StringValue(out["json"]))
 	utils.AssertEqual(t, "ok", dara.StringValue(out["str"]))
 	utils.AssertEqual(t, "ok", dara.StringValue(out["*str"]))
+}
+
+func Test_MapToFlatStyle(t *testing.T) {
+	// Test nil
+	result := MapToFlatStyle(nil)
+	utils.AssertNil(t, result)
+
+	// Test simple slice
+	slice := []interface{}{"a", "b", "c"}
+	result = MapToFlatStyle(slice)
+	utils.AssertNotNil(t, result)
+	resultSlice, ok := result.([]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, 3, len(resultSlice))
+	utils.AssertEqual(t, "a", resultSlice[0])
+
+	// Test simple map
+	simpleMap := map[string]interface{}{
+		"key":  "value",
+		"name": "test",
+	}
+	result = MapToFlatStyle(simpleMap)
+	utils.AssertNotNil(t, result)
+	resultMap, ok := result.(map[string]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, "value", resultMap["#3#key"])
+	utils.AssertEqual(t, "test", resultMap["#4#name"])
+
+	// Test nested map
+	nestedMap := map[string]interface{}{
+		"outer": map[string]interface{}{
+			"inner": "value",
+		},
+	}
+	result = MapToFlatStyle(nestedMap)
+	utils.AssertNotNil(t, result)
+	resultMap, ok = result.(map[string]interface{})
+	utils.AssertEqual(t, true, ok)
+	outerValue, exists := resultMap["#5#outer"]
+	utils.AssertEqual(t, true, exists)
+	outerMap, ok := outerValue.(map[string]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, "value", outerMap["#5#inner"])
+
+	// Test slice with maps
+	sliceWithMaps := []interface{}{
+		map[string]interface{}{"key": "value1"},
+		map[string]interface{}{"key": "value2"},
+	}
+	result = MapToFlatStyle(sliceWithMaps)
+	utils.AssertNotNil(t, result)
+	resultSlice, ok = result.([]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, 2, len(resultSlice))
+	firstMap, ok := resultSlice[0].(map[string]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, "value1", firstMap["#3#key"])
+
+	// Test struct with map field
+	type TestStruct struct {
+		Name string
+		Data map[string]interface{}
+	}
+	testStruct := &TestStruct{
+		Name: "test",
+		Data: map[string]interface{}{
+			"key": "value",
+		},
+	}
+	result = MapToFlatStyle(testStruct)
+	utils.AssertNotNil(t, result)
+	resultStruct, ok := result.(*TestStruct)
+	utils.AssertEqual(t, true, ok)
+	utils.AssertEqual(t, "test", resultStruct.Name)
+	utils.AssertNotNil(t, resultStruct.Data)
+	utils.AssertEqual(t, "value", resultStruct.Data["#3#key"])
+
+	// Test with tea.String pointers in map
+	ptrMap := map[string]interface{}{
+		"key": tea.String("value"),
+	}
+	result = MapToFlatStyle(ptrMap)
+	utils.AssertNotNil(t, result)
+	resultMap, ok = result.(map[string]interface{})
+	utils.AssertEqual(t, true, ok)
+	utils.AssertNotNil(t, resultMap["#3#key"])
 }

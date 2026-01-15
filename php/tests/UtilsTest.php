@@ -530,4 +530,57 @@ class UtilsTest extends TestCase
             $this->assertTrue((bool) preg_match($pattern, $string), $message);
         }
     }
+
+    public function testMapToFlatStyle()
+    {
+        // Test null
+        $this->assertNull(Utils::mapToFlatStyle(null));
+
+        // Test primitive values
+        $this->assertEquals('test', Utils::mapToFlatStyle('test'));
+        $this->assertEquals(123, Utils::mapToFlatStyle(123));
+        $this->assertEquals(true, Utils::mapToFlatStyle(true));
+
+        // Test plain array (associative array)
+        $plainMap = [
+            'key1' => 'value1',
+            'key2' => 'value2'
+        ];
+        $flatMap = Utils::mapToFlatStyle($plainMap);
+        $this->assertEquals('value1', $flatMap['#4#key1']);
+        $this->assertEquals('value2', $flatMap['#4#key2']);
+
+        // Test nested array
+        $nestedMap = [
+            'outerKey' => [
+                'innerKey' => 'innerValue'
+            ]
+        ];
+        $flatNestedMap = Utils::mapToFlatStyle($nestedMap);
+        $this->assertEquals('innerValue', $flatNestedMap['#8#outerKey']['#8#innerKey']);
+
+        // Test indexed array (list)
+        $arr = ['item1', 'item2'];
+        $flatArr = Utils::mapToFlatStyle($arr);
+        $this->assertEquals('item1', $flatArr[0]);
+        $this->assertEquals('item2', $flatArr[1]);
+
+        // Test indexed array with associative array elements
+        $arrWithDict = [
+            ['key' => 'value']
+        ];
+        $flatArrWithDict = Utils::mapToFlatStyle($arrWithDict);
+        $this->assertEquals('value', $flatArrWithDict[0]['#3#key']);
+
+        // Test with nested structures
+        $complexMap = [
+            'name' => 'testName',
+            'tags' => [
+                'tagKey' => 'tagValue'
+            ]
+        ];
+        $flatComplexMap = Utils::mapToFlatStyle($complexMap);
+        $this->assertEquals('testName', $flatComplexMap['#4#name']);
+        $this->assertEquals('tagValue', $flatComplexMap['#4#tags']['#6#tagKey']);
+    }
 }

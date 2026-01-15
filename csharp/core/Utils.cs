@@ -933,6 +933,80 @@ namespace AlibabaCloud.OpenApiClient
 
             return result;
         }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Transform a map to a flat style map where keys are prefixed with length info.
+        /// Map keys are transformed from "key" to "#length#key" format.</para>
+        /// </description>
+        /// 
+        /// <param name="obj">
+        /// the input object (can be a TeaModel, List, Dictionary, or other types)
+        /// </param>
+        /// 
+        /// <returns>
+        /// the transformed object
+        /// </returns>
+        public static object MapToFlatStyle(object obj)
+        {
+            if (obj == null)
+            {
+                return obj;
+            }
+
+            if (typeof(IList).IsAssignableFrom(obj.GetType()) && !typeof(Array).IsAssignableFrom(obj.GetType()))
+            {
+                List<object> list = new List<object>();
+                foreach (var item in (IList)obj)
+                {
+                    list.Add(MapToFlatStyle(item));
+                }
+                return list;
+            }
+            else if (typeof(TeaModel).IsAssignableFrom(obj.GetType()))
+            {
+                // Modify the original TeaModel object's fields
+                TeaModel model = (TeaModel)obj;
+                FieldInfo[] fields = model.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+                
+                foreach (FieldInfo field in fields)
+                {
+                    object value = field.GetValue(model);
+                    
+                    if (value != null && typeof(IDictionary).IsAssignableFrom(value.GetType()))
+                    {
+                        // This is a dictionary, apply flat style to keys
+                        Dictionary<string, object> flatMap = new Dictionary<string, object>();
+                        Dictionary<string, object> valueDict = ((IDictionary)value).Keys.Cast<string>()
+                            .ToDictionary(key => key, key => ((IDictionary)value)[key]);
+                        foreach (var entry in valueDict)
+                        {
+                            flatMap.Add(string.Format("#{0}#{1}", entry.Key.Length, entry.Key), MapToFlatStyle(entry.Value));
+                        }
+                        field.SetValue(model, flatMap);
+                    }
+                    else
+                    {
+                        // Recursively process other fields
+                        field.SetValue(model, MapToFlatStyle(value));
+                    }
+                }
+                return model;  // Return the modified original TeaModel
+            }
+            else if (typeof(IDictionary).IsAssignableFrom(obj.GetType()))
+            {
+                Dictionary<string, object> flatMap = new Dictionary<string, object>();
+                Dictionary<string, object> dicIn = ((IDictionary)obj).Keys.Cast<string>()
+                    .ToDictionary(key => key, key => ((IDictionary)obj)[key]);
+                foreach (var keypair in dicIn)
+                {
+                    flatMap.Add(string.Format("#{0}#{1}", keypair.Key.Length, keypair.Key), MapToFlatStyle(keypair.Value));
+                }
+                return flatMap;
+            }
+
+            return obj;
+        }
     }
 }
 

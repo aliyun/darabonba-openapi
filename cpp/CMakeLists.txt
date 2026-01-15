@@ -49,46 +49,41 @@ set_target_properties(${PROJECT_NAME}
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< External set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
 add_subdirectory(external)
 find_package(OpenSSL REQUIRED)
-find_library(CURL_LIB curl)
+
 if(CMAKE_HOST_WIN32)
-  ExternalProject_Get_Property(curl INSTALL_DIR)
-    set(curl_install_dir ${INSTALL_DIR})
-    add_dependencies(${PROJECT_NAME}
-            curl)
-    target_include_directories(${PROJECT_NAME}
-            PRIVATE	${curl_install_dir}/include)
+    # On Windows, use vcpkg-installed curl
+    find_package(CURL REQUIRED)
     target_link_libraries(${PROJECT_NAME}
             OpenSSL::SSL OpenSSL::Crypto
+            CURL::libcurl
             Crypt32
             Rpcrt4
             Ws2_32
-            debug ${curl_install_dir}/lib/libcurl-d.lib
-            optimized ${curl_install_dir}/lib/libcurl.lib
             darabonba_core
             alibabacloud_credential
-            
             )
     target_compile_definitions(${PROJECT_NAME}
-            PRIVATE CURL_STATICLIB
-            _CRT_SECURE_NO_WARNINGS)
+            PRIVATE _CRT_SECURE_NO_WARNINGS)
 elseif(APPLE)
-  find_library(CFLIB CoreFoundation)
-  find_library(UTIL_LIB alibabacloud_open_api_v2 ${CMAKE_CURRENT_SOURCE_DIR}/deps/lib)
-  target_link_libraries(${PROJECT_NAME} 
-      OpenSSL::SSL OpenSSL::Crypto
-      ${CFLIB}
-      ${CURL_LIB} 
-      darabonba_core
-      alibabacloud_credential
-            )
-  target_compile_definitions(${PROJECT_NAME} PRIVATE GUID_CFUUID)
+    find_package(CURL REQUIRED)
+    find_library(CFLIB CoreFoundation)
+    find_library(UTIL_LIB alibabacloud_open_api_v2 ${CMAKE_CURRENT_SOURCE_DIR}/deps/lib)
+    target_link_libraries(${PROJECT_NAME} 
+        OpenSSL::SSL OpenSSL::Crypto
+        ${CFLIB}
+        CURL::libcurl
+        darabonba_core
+        alibabacloud_credential
+        )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GUID_CFUUID)
 else()
-  target_link_libraries(${PROJECT_NAME} 
-      OpenSSL::SSL OpenSSL::Crypto
-      ${CURL_LIB} 
-      darabonba_core
-      alibabacloud_credential
-            )
+    find_package(CURL REQUIRED)
+    target_link_libraries(${PROJECT_NAME} 
+        OpenSSL::SSL OpenSSL::Crypto
+        CURL::libcurl
+        darabonba_core
+        alibabacloud_credential
+        )
 endif()
 
 
@@ -183,3 +178,59 @@ install(
         DESTINATION
         ${INSTALL_CMAKEDIR}
 )
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Test set up >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
+option(BUILD_TESTS "Build test programs" ON)
+
+if(BUILD_TESTS)
+    enable_testing()
+    
+    # Try to find GoogleTest locally first
+    find_package(GTest QUIET)
+    
+    if(NOT GTest_FOUND)
+        # Fetch GoogleTest if not found
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.14.0
+        )
+        # For Windows: Prevent overriding the parent project's compiler/linker settings
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(googletest)
+    endif()
+    
+    # Create test executable
+    add_executable(test_utils tests/test_utils.cpp)
+    
+    # Add dependencies first
+    add_dependencies(test_utils ${PROJECT_NAME} darabonba_core alibabacloud_credential)
+    
+    target_include_directories(test_utils PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}/_deps/_darabonba_core-src/include
+        ${CMAKE_CURRENT_BINARY_DIR}/_deps/_alibabacloud_credential-src/include
+    )
+    
+    if(GTest_FOUND)
+        target_link_libraries(test_utils
+            ${PROJECT_NAME}
+            darabonba_core
+            alibabacloud_credential
+            GTest::gtest
+            GTest::gtest_main
+        )
+    else()
+        target_link_libraries(test_utils
+            ${PROJECT_NAME}
+            darabonba_core
+            alibabacloud_credential
+            gtest
+            gtest_main
+        )
+    endif()
+    
+    # Add test to CTest
+    add_test(NAME UtilsTest COMMAND test_utils)
+endif()
