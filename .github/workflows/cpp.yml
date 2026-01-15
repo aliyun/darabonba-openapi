@@ -200,6 +200,11 @@ jobs:
     needs: [build-and-test, format-check]
     runs-on: ubuntu-latest
     
+    # 覆盖全局的 working-directory 设置
+    defaults:
+      run:
+        working-directory: .
+    
     steps:
     - name: Check build status
       run: |
