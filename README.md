@@ -10,6 +10,22 @@ English | [简体中文](README-CN.md)
 [![TypeScript CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml)
 [![codecov](https://codecov.io/gh/aliyun/darabonba-openapi/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/darabonba-openapi)
 
+## FAQ
+
+Having trouble with the SDK? Check out our comprehensive FAQ documentation:
+
+📚 [FAQ Index](FAQ-INDEX.md) - Overview of all language-specific FAQs
+
+Language-specific FAQs:
+- [Python FAQ](python/FAQ.md)
+- [TypeScript/JavaScript FAQ](ts/FAQ.md)
+- [Golang FAQ](golang/FAQ.md)
+- [PHP FAQ](php/FAQ.md)
+- [C# FAQ](csharp/FAQ.md)
+- [Java FAQ](java/FAQ.md)
+- [C++ FAQ](cpp/FAQ.md)
+- [Swift FAQ](swift/FAQ.md)
+
 ## Issues
 
 [Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
