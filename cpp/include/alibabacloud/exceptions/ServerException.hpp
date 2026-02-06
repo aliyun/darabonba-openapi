@@ -13,6 +13,7 @@ namespace Exceptions
   class ServerException : public AlibabaCloudException {
   public:
     friend void from_json(const Darabonba::Json& j, ServerException& obj) { 
+      (void)j; (void)obj; 
     };
     ServerException() ;
     ServerException(const ServerException &) = default ;

@@ -16,6 +16,4 @@ else()
   FetchContent_MakeAvailable(_darabonba_core)
   message(STATUS "Added darabonba_core source : ${_darabonba_core_SOURCE_DIR}")
   message(STATUS "Added darabonba_core binary : ${_darabonba_core_BINARY_DIR}")
-
-  target_include_directories(${PROJECT_NAME} PRIVATE "${_darabonba_core_SOURCE_DIR}/include")
 endif()

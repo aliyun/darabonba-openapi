@@ -114,6 +114,41 @@ static int64_t getTimeLeft(const string &rateLimit) {
   return 0;
 }
 
+// Helper function to filter out Stream types from JSON
+static json exceptStream(const json &obj) {
+  if (obj.is_array()) {
+    json result = json::array();
+    for (const auto &item : obj) {
+      if (!item.is_null()) {
+        json filtered = exceptStream(item);
+        if (!filtered.is_null()) {
+          result.push_back(filtered);
+        }
+      } else {
+        result.push_back(item);
+      }
+    }
+    return result;
+  } else if (obj.is_object()) {
+    json result = json::object();
+    for (auto it = obj.begin(); it != obj.end(); ++it) {
+      if (!it.value().is_null()) {
+        json filtered = exceptStream(it.value());
+        if (!filtered.is_null()) {
+          result[it.key()] = filtered;
+        }
+      } else {
+        result[it.key()] = it.value();
+      }
+    }
+    return result;
+  }
+  // Note: In C++, we cannot directly detect Stream types in JSON
+  // Stream types should not be serialized to JSON in the first place
+  // If a field contains a Stream, it should be handled before calling toMap()
+  return obj;
+}
+
 /**
  * Convert all params of body other than type of readable into content 
  * @param body source Model
@@ -121,8 +156,14 @@ static int64_t getTimeLeft(const string &rateLimit) {
  * @return void
  */
 void Utils::convert(const Darabonba::Model &body, const Darabonba::Model &content) {
-  // This function is typically empty or performs model-to-model conversion
-  // Based on other language implementations, it's usually a no-op
+  // Convert body to JSON map
+  json bodyMap = body.toMap();
+  
+  // Filter out Stream types
+  json filteredMap = exceptStream(bodyMap);
+  
+  // Apply filtered map to content
+  const_cast<Darabonba::Model &>(content).fromMap(filteredMap);
 }
 
 /**

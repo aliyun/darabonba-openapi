@@ -2,7 +2,7 @@
 #include <alibabacloud/Openapi.hpp>
 #include <alibabacloud/Utils.hpp>
 #include <map>
-#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credentials/Client.hpp>
 #include <darabonba/Runtime.hpp>
 #include <darabonba/policy/Retry.hpp>
 #include <darabonba/Exception.hpp>
@@ -18,10 +18,10 @@ using json = nlohmann::json;
 using namespace AlibabaCloud::OpenApi;
 using namespace AlibabaCloud::Gateway;
 using namespace AlibabaCloud::Gateway::Models;
-using namespace AlibabaCloud::Credential::Models;
 using namespace AlibabaCloud::OpenApi::Exceptions;
+using namespace AlibabaCloud::Credentials::Models;
 using namespace AlibabaCloud::OpenApi::Utils::Models;
-using CredentialClient = AlibabaCloud::Credential::Client;
+using CredentialClient = AlibabaCloud::Credentials::Client;
 namespace AlibabaCloud
 {
 namespace OpenApi
@@ -46,7 +46,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
       config.setType("access_key");
     }
 
-    AlibabaCloud::Credential::Models::Config credentialConfig = AlibabaCloud::Credential::Models::Config(json({
+    AlibabaCloud::Credentials::Models::Config credentialConfig = AlibabaCloud::Credentials::Models::Config(json({
       {"accessKeyId" , config.getAccessKeyId()},
       {"type" , config.getType()},
       {"accessKeySecret" , config.getAccessKeySecret()}
@@ -54,7 +54,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
     credentialConfig.setSecurityToken(config.getSecurityToken());
     this->_credential = make_shared<CredentialClient>(credentialConfig);
   } else if (!!config.hasBearerToken() && config.getBearerToken() != "") {
-    AlibabaCloud::Credential::Models::Config cc = AlibabaCloud::Credential::Models::Config(json({
+    AlibabaCloud::Credentials::Models::Config cc = AlibabaCloud::Credentials::Models::Config(json({
       {"type" , "bearer"},
       {"bearerToken" , config.getBearerToken()}
     }).get<map<string, string>>());
@@ -111,7 +111,6 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
 
   shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
   shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -333,7 +332,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
         {"lastRequest" , _lastRequest},
@@ -344,7 +343,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
     }
   }
 
-  throw *_context.getException();
+  throw Darabonba::UnretryableException(_context);
 }
 
 Darabonba::Json Client::doROARequest(const string &action, const string &version, const string &protocol, const string &method, const string &authType, const string &pathname, const string &bodyType, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -367,7 +366,6 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
 
   shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
   shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -571,7 +569,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
         {"lastRequest" , _lastRequest},
@@ -582,7 +580,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
     }
   }
 
-  throw *_context.getException();
+  throw Darabonba::UnretryableException(_context);
 }
 
 Darabonba::Json Client::doROARequestWithForm(const string &action, const string &version, const string &protocol, const string &method, const string &authType, const string &pathname, const string &bodyType, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -605,7 +603,6 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
 
   shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
   shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -809,7 +806,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
         {"lastRequest" , _lastRequest},
@@ -820,7 +817,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
     }
   }
 
-  throw *_context.getException();
+  throw Darabonba::UnretryableException(_context);
 }
 
 Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -843,7 +840,6 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
 
   shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
   shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -1084,7 +1080,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
         {"lastRequest" , _lastRequest},
@@ -1095,7 +1091,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
     }
   }
 
-  throw *_context.getException();
+  throw Darabonba::UnretryableException(_context);
 }
 
 Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -1119,7 +1115,6 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
 
   shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
   shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -1238,7 +1233,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
         {"statusCode" , interceptorContext.getResponse().getStatusCode()},
         {"body" , interceptorContext.getResponse().getDeserializedBody()}
       });
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
         {"lastRequest" , _lastRequest},
@@ -1249,7 +1244,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
     }
   }
 
-  throw *_context.getException();
+  throw Darabonba::UnretryableException(_context);
 }
 
 

@@ -2,7 +2,7 @@
 #ifndef ALIBABACLOUD_UTILS_MODELS_CONFIG_HPP_
 #define ALIBABACLOUD_UTILS_MODELS_CONFIG_HPP_
 #include <darabonba/Core.hpp>
-#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credentials/Client.hpp>
 #include <alibabacloud/utils/models/GlobalParameters.hpp>
 #include <darabonba/policy/Retry.hpp>
 using namespace std;
@@ -187,8 +187,8 @@ namespace Models
     // credential Field Functions 
     bool hasCredential() const { return this->credential_ != nullptr;};
     void deleteCredential() { this->credential_ = nullptr;};
-    inline shared_ptr<AlibabaCloud::Credential::Client> getCredential() const { DARABONBA_GET(credential_) };
-    inline Config& setCredential(shared_ptr<AlibabaCloud::Credential::Client> credential) { DARABONBA_SET_RVALUE(credential_, credential) };
+    inline shared_ptr<AlibabaCloud::Credentials::Client> getCredential() const { DARABONBA_GET(credential_) };
+    inline Config& setCredential(shared_ptr<AlibabaCloud::Credentials::Client> credential) { DARABONBA_SET_RVALUE(credential_, credential) };
 
 
     // endpoint Field Functions 
@@ -359,7 +359,7 @@ namespace Models
     // https proxy
     shared_ptr<string> httpsProxy_ {};
     // credential
-    shared_ptr<AlibabaCloud::Credential::Client> credential_ {};
+    shared_ptr<AlibabaCloud::Credentials::Client> credential_ {};
     // endpoint
     shared_ptr<string> endpoint_ {};
     // proxy white list

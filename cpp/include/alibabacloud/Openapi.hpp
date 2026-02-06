@@ -8,7 +8,7 @@
 #include <darabonba/Runtime.hpp>
 #include <alibabacloud/gateway/SPI.hpp>
 #include <map>
-#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credentials/Client.hpp>
 #include <darabonba/policy/Retry.hpp>
 using namespace std;
 using json = nlohmann::json;
@@ -132,7 +132,7 @@ namespace OpenApi
 
       string _openPlatformEndpoint;
 
-      shared_ptr<AlibabaCloud::Credential::Client> _credential;
+      shared_ptr<AlibabaCloud::Credentials::Client> _credential;
 
       string _signatureVersion;
 
