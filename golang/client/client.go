@@ -17,6 +17,7 @@ type Params = models.Params
 type OpenApiRequest = models.OpenApiRequest
 type Client struct {
 	DisableSDKError      *bool
+	EnableValidate       *bool
 	Endpoint             *string
 	RegionId             *string
 	Protocol             *string
@@ -55,7 +56,7 @@ type Client struct {
 
 // Description:
 //
-// # Init client with Config
+// Init client with Config
 //
 // @param config - config contains the necessary information to create a client
 func NewClient(config *openapiutil.Config) (*Client, error) {
@@ -136,7 +137,7 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -332,7 +333,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -368,7 +369,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -532,7 +533,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -568,7 +569,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// # Encapsulate the request and invoke the network with form body
+// Encapsulate the request and invoke the network with form body
 //
 // @param action - api name
 //
@@ -733,7 +734,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -769,7 +770,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -989,7 +990,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -1025,7 +1026,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -1200,7 +1201,7 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 		request_.Query = interceptorContext.Request.Query
 		request_.Body = interceptorContext.Request.Stream
 		request_.Headers = interceptorContext.Request.Headers
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -1233,12 +1234,12 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 			continue
 		}
 
-		_err = dara.Convert(map[string]interface{}{
+		resp := map[string]interface{}{
 			"headers":    interceptorContext.Response.Headers,
 			"statusCode": dara.IntValue(interceptorContext.Response.StatusCode),
 			"body":       interceptorContext.Response.DeserializedBody,
-		}, &_result)
-
+		}
+		_result = resp
 		return _result, _err
 	}
 	if dara.BoolValue(client.DisableSDKError) != true {
@@ -1272,6 +1273,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 	var request_ *dara.Request
 	var response_ *dara.Response
 	var _resultErr error
+	var _err error
 	retriesAttempted := int(0)
 	retryPolicyContext = &dara.RetryPolicyContext{
 		RetriesAttempted: retriesAttempted,
@@ -1432,7 +1434,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 
 		}
 
-		response_, _err := dara.DoRequest(request_, _runtime)
+		response_, _err = dara.DoRequest(request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -1446,6 +1448,19 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 		}
 
 		callSSEApi_opResponse(_yield, _yieldErr, response_)
+		_err = <-_yieldErr
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
 		return
 	}
 	_yieldErr <- _resultErr
@@ -1505,7 +1520,7 @@ func (client *Client) CallApi(params *openapiutil.Params, request *openapiutil.O
 
 // Description:
 //
-// # Get accesskey id by using credential
+// Get accesskey id by using credential
 //
 // @return accesskey id
 func (client *Client) GetAccessKeyId() (_result *string, _err error) {
@@ -1526,7 +1541,7 @@ func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 
 // Description:
 //
-// # Get accesskey secret by using credential
+// Get accesskey secret by using credential
 //
 // @return accesskey secret
 func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
@@ -1547,7 +1562,7 @@ func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 
 // Description:
 //
-// # Get security token by using credential
+// Get security token by using credential
 //
 // @return security token
 func (client *Client) GetSecurityToken() (_result *string, _err error) {
@@ -1568,7 +1583,7 @@ func (client *Client) GetSecurityToken() (_result *string, _err error) {
 
 // Description:
 //
-// # Get bearer token by credential
+// Get bearer token by credential
 //
 // @return bearer token
 func (client *Client) GetBearerToken() (_result *string, _err error) {
@@ -1584,7 +1599,7 @@ func (client *Client) GetBearerToken() (_result *string, _err error) {
 
 // Description:
 //
-// # Get credential type by credential
+// Get credential type by credential
 //
 // @return credential type e.g. access_key
 func (client *Client) GetType() (_result *string, _err error) {
@@ -1600,7 +1615,7 @@ func (client *Client) GetType() (_result *string, _err error) {
 
 // Description:
 //
-// # If the endpointRule and config.endpoint are empty, throw error
+// If the endpointRule and config.endpoint are empty, throw error
 //
 // @param config - config contains the necessary information to create a client
 func (client *Client) CheckConfig(config *openapiutil.Config) (_err error) {

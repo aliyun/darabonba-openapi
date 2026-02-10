@@ -1668,6 +1668,21 @@ func TestRetryWithError(t *testing.T) {
 	client.SetGatewayClient(gatewayClient)
 	_, _err = client.Execute(params, request, runtime)
 	tea_util.AssertNotNil(t, _err)
+
+	params = &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/test"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("Anonymous"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("binary"),
+	}
+	result, _err := client.Execute(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
+	tea_util.AssertNil(t, result["body"])
 }
 
 func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
