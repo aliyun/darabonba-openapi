@@ -12,6 +12,9 @@ namespace Exceptions
 {
   class ThrottlingException : public AlibabaCloudException {
   public:
+    friend void to_json(Darabonba::Json& j, const ThrottlingException& obj) { 
+      DARABONBA_PTR_TO_JSON(retryAfter, retryAfter_);
+    };
     friend void from_json(const Darabonba::Json& j, ThrottlingException& obj) { 
       DARABONBA_PTR_FROM_JSON(retryAfter, retryAfter_);
     };

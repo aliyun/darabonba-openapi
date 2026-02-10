@@ -2,7 +2,7 @@
 #define ALIBABACLOUD_GATEWAY_INTERCEPTORCONTEXT_H_
 
 #include <darabonba/Type.hpp>
-#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credentials/Client.hpp>
 #include <darabonba/Model.hpp>
 #include <darabonba/Stream.hpp>
 #include <darabonba/http/Header.hpp>
@@ -148,24 +148,24 @@ namespace AlibabaCloud {
 
         bool hasCredential() const { return this->credential_ != nullptr; }
 
-        const std::shared_ptr<Credential::Client> &getCredential() const {
+        const std::shared_ptr<Credentials::Client> &getCredential() const {
           DARABONBA_GET(credential_);
         }
 
-        std::shared_ptr<Credential::Client> &getCredential() { DARABONBA_GET(credential_); }
+        std::shared_ptr<Credentials::Client> &getCredential() { DARABONBA_GET(credential_); }
 
-        InterceptorContextRequest &setCredential(const Credential::Client &credential) {
+        InterceptorContextRequest &setCredential(const Credentials::Client &credential) {
           DARABONBA_PTR_SET_VALUE(credential_, credential);
         }
 
-        InterceptorContextRequest &setCredential(Credential::Client &&credential) {
+        InterceptorContextRequest &setCredential(Credentials::Client &&credential) {
           DARABONBA_PTR_SET_RVALUE(credential_, credential);
         }
 
         bool hasHeaders() const { return this->headers_ != nullptr; }
 
         const Darabonba::Http::Header &getHeaders() const {
-          DARABONBA_PTR_GET(headers_, Darabonba::Http::Header);
+          DARABONBA_PTR_GET_CONST(headers_, Darabonba::Http::Header);
         }
 
         Darabonba::Http::Header getHeaders() { DARABONBA_PTR_GET(headers_, Darabonba::Http::Header); }
@@ -181,7 +181,7 @@ namespace AlibabaCloud {
         bool hasHostMap() const { return this->hostMap_ != nullptr; }
 
         const std::map<std::string, std::string> &getHostMap() const {
-          DARABONBA_PTR_GET(hostMap_, std::map<std::string, std::string>);
+          DARABONBA_PTR_GET_CONST(hostMap_, std::map<std::string, std::string>);
         }
 
         std::map<std::string, std::string> getHostMap() {
@@ -246,7 +246,7 @@ namespace AlibabaCloud {
 
         bool hasQuery() const { return this->query_ != nullptr; }
 
-        const Darabonba::Http::Query &getQuery() const { DARABONBA_PTR_GET(query_, Darabonba::Http::Query); }
+        const Darabonba::Http::Query &getQuery() const { DARABONBA_PTR_GET_CONST(query_, Darabonba::Http::Query); }
 
         Darabonba::Http::Query getQuery() { DARABONBA_PTR_GET(query_, Darabonba::Http::Query); }
 
@@ -355,7 +355,7 @@ namespace AlibabaCloud {
         std::shared_ptr<std::string> authType_ = nullptr;
         std::shared_ptr<std::string> bodyType_ = nullptr;
         Darabonba::Json body_ = nullptr;
-        std::shared_ptr<Credential::Client> credential_ = nullptr;
+        std::shared_ptr<Credentials::Client> credential_ = nullptr;
         std::shared_ptr<Darabonba::Http::Header> headers_ = nullptr;
         std::shared_ptr<std::map<std::string, std::string>> hostMap_ = nullptr;
         std::shared_ptr<std::string> method_ = nullptr;
@@ -430,7 +430,7 @@ namespace AlibabaCloud {
         bool hasEndpointMap() const { return this->endpointMap_ != nullptr; }
 
         const std::map<std::string, std::string> &getEndpointMap() const {
-          DARABONBA_PTR_GET(endpointMap_, std::map<std::string, std::string>);
+          DARABONBA_PTR_GET_CONST(endpointMap_, std::map<std::string, std::string>);
         }
 
         std::map<std::string, std::string> getEndpointMap() {
@@ -596,11 +596,9 @@ namespace AlibabaCloud {
           return this->deserializedBody_ != nullptr;
         }
 
-        const std::shared_ptr<Darabonba::IStream> &getDeserializedBody() const {
+        const Darabonba::Json &getDeserializedBody() const {
           DARABONBA_GET(deserializedBody_);
         }
-
-        inline const Darabonba::Json &getDeserializedBody() { DARABONBA_GET(deserializedBody_); }
         Darabonba::Json & getBody() { DARABONBA_GET(deserializedBody_) };
 
         InterceptorContextResponse &setDeserializedBody(const Darabonba::Json &deserializedBody) {
@@ -614,7 +612,7 @@ namespace AlibabaCloud {
         bool hasHeaders() const { return this->headers_ != nullptr; }
 
         const Darabonba::Http::Header &headers() const {
-          DARABONBA_PTR_GET(headers_, Darabonba::Http::Header);
+          DARABONBA_PTR_GET_CONST(headers_, Darabonba::Http::Header);
         }
 
         Darabonba::Http::Header getHeaders() { DARABONBA_PTR_GET(headers_, Darabonba::Http::Header); }
@@ -689,7 +687,7 @@ namespace AlibabaCloud {
         bool hasInterceptorContextConfiguration() const { return this->configuration_ != nullptr; }
 
         const InterceptorContextConfiguration &getConfiguration() const {
-          DARABONBA_PTR_GET(configuration_, InterceptorContextConfiguration);
+          DARABONBA_PTR_GET_CONST(configuration_, InterceptorContextConfiguration);
         }
 
         InterceptorContextConfiguration getConfiguration() { DARABONBA_PTR_GET(configuration_, InterceptorContextConfiguration); }
@@ -704,7 +702,7 @@ namespace AlibabaCloud {
 
         bool hasInterceptorContextRequest() const { return this->request_ != nullptr; }
 
-        const InterceptorContextRequest &getRequest() const { DARABONBA_PTR_GET(request_, InterceptorContextRequest); }
+        const InterceptorContextRequest &getRequest() const { DARABONBA_PTR_GET_CONST(request_, InterceptorContextRequest); }
 
         InterceptorContextRequest getRequest() { DARABONBA_PTR_GET(request_, InterceptorContextRequest); }
 
@@ -718,7 +716,7 @@ namespace AlibabaCloud {
 
         bool hasResponse() const { return this->response_ != nullptr; }
 
-        const InterceptorContextResponse &getResponse() const { DARABONBA_PTR_GET(response_, InterceptorContextResponse); }
+        const InterceptorContextResponse &getResponse() const { DARABONBA_PTR_GET_CONST(response_, InterceptorContextResponse); }
 
         InterceptorContextResponse getResponse() { DARABONBA_PTR_GET(response_, InterceptorContextResponse); }
 

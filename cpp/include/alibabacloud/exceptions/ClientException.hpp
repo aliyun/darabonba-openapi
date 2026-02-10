@@ -12,6 +12,9 @@ namespace Exceptions
 {
   class ClientException : public AlibabaCloudException {
   public:
+    friend void to_json(Darabonba::Json& j, const ClientException& obj) { 
+      DARABONBA_ANY_TO_JSON(accessDeniedDetail, accessDeniedDetail_);
+    };
     friend void from_json(const Darabonba::Json& j, ClientException& obj) { 
       DARABONBA_ANY_FROM_JSON(accessDeniedDetail, accessDeniedDetail_);
     };

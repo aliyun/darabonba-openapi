@@ -28,6 +28,7 @@ POP::POP() {
 
 void POP::modifyConfiguration(InterceptorContext &context,
                               AttributeMap &attributeMap) {
+  (void)attributeMap;
   if(!context.hasInterceptorContextConfiguration() && !context.hasInterceptorContextRequest()) {
     throw ClientException(json({
          {"code" , "ParameterMissing"},
@@ -44,6 +45,7 @@ void POP::modifyConfiguration(InterceptorContext &context,
 
 void POP::modifyRequest(InterceptorContext &context,
                         AttributeMap &attributeMap) {
+  (void)attributeMap;
   if(!context.hasInterceptorContextConfiguration() && !context.hasInterceptorContextRequest()) {
     throw ClientException(json({
                                    {"code" , "ParameterMissing"},
@@ -129,6 +131,7 @@ void POP::modifyRequest(InterceptorContext &context,
 
 void POP::modifyResponse(InterceptorContext &context,
                          AttributeMap &attributeMap) {
+  (void)attributeMap;
   auto request = context.getRequest();
   auto response = context.getResponse();
   if ((response.getStatusCode() >= 400) && (response.getStatusCode() < 600)) {

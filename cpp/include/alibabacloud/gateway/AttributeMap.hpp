@@ -66,7 +66,7 @@ namespace AlibabaCloud {
         bool hasKey() const { return this->key_ != nullptr; }
 
         const std::map<std::string, std::string> &key() const {
-          DARABONBA_PTR_GET(key_, std::map<std::string, std::string>);
+          DARABONBA_PTR_GET_CONST(key_, std::map<std::string, std::string>);
         }
 
         std::map<std::string, std::string> getKey() { DARABONBA_PTR_GET(key_, std::map<std::string, std::string>); }

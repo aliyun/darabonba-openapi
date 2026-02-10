@@ -2,7 +2,7 @@
 #include <alibabacloud/Openapi.hpp>
 #include <alibabacloud/Utils.hpp>
 #include <map>
-#include <alibabacloud/credential/Credential.hpp>
+#include <alibabacloud/credentials/Client.hpp>
 #include <darabonba/Runtime.hpp>
 #include <darabonba/policy/Retry.hpp>
 #include <darabonba/Exception.hpp>
@@ -18,10 +18,10 @@ using json = nlohmann::json;
 using namespace AlibabaCloud::OpenApi;
 using namespace AlibabaCloud::Gateway;
 using namespace AlibabaCloud::Gateway::Models;
-using namespace AlibabaCloud::Credential::Models;
 using namespace AlibabaCloud::OpenApi::Exceptions;
+using namespace AlibabaCloud::Credentials::Models;
 using namespace AlibabaCloud::OpenApi::Utils::Models;
-using CredentialClient = AlibabaCloud::Credential::Client;
+using CredentialClient = AlibabaCloud::Credentials::Client;
 namespace AlibabaCloud
 {
 namespace OpenApi
@@ -46,7 +46,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
       config.setType("access_key");
     }
 
-    AlibabaCloud::Credential::Models::Config credentialConfig = AlibabaCloud::Credential::Models::Config(json({
+    AlibabaCloud::Credentials::Models::Config credentialConfig = AlibabaCloud::Credentials::Models::Config(json({
       {"accessKeyId" , config.getAccessKeyId()},
       {"type" , config.getType()},
       {"accessKeySecret" , config.getAccessKeySecret()}
@@ -54,7 +54,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
     credentialConfig.setSecurityToken(config.getSecurityToken());
     this->_credential = make_shared<CredentialClient>(credentialConfig);
   } else if (!!config.hasBearerToken() && config.getBearerToken() != "") {
-    AlibabaCloud::Credential::Models::Config cc = AlibabaCloud::Credential::Models::Config(json({
+    AlibabaCloud::Credentials::Models::Config cc = AlibabaCloud::Credentials::Models::Config(json({
       {"type" , "bearer"},
       {"bearerToken" , config.getBearerToken()}
     }).get<map<string, string>>());
@@ -109,9 +109,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
     {"tlsMinVersion", _tlsMinVersion}
     }));
 
-  shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
-  shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
+  std::exception_ptr _lastExceptionPtr;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -247,22 +245,20 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
 
       }
 
-      _lastRequest = make_shared<Darabonba::Http::Request>(request_);
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-      _lastResponse  = response_;
 
       if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
         Darabonba::Json _res = Darabonba::Stream::readAsJSON(response_->getBody());
         json err = json(_res);
-        Darabonba::Json requestId = Darabonba::defaultVal(err["RequestId"], err["requestId"]);
-        Darabonba::Json code = Darabonba::defaultVal(err["Code"], err["code"]);
+        Darabonba::Json requestId = Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json()));
+        Darabonba::Json code = Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json()));
         if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -271,8 +267,8 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
           throw ClientException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"accessDeniedDetail" , getAccessDeniedDetail(err)},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -281,8 +277,8 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
           throw ServerException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -333,18 +329,17 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
-        {"lastRequest" , _lastRequest},
-        {"lastResponse" , _lastResponse},
         {"exception" , ex},
       }));
       continue;
     }
   }
 
-  throw *_context.getException();
+  std::rethrow_exception(_lastExceptionPtr);
 }
 
 Darabonba::Json Client::doROARequest(const string &action, const string &version, const string &protocol, const string &method, const string &authType, const string &pathname, const string &bodyType, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -365,9 +360,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
     {"tlsMinVersion", _tlsMinVersion}
     }));
 
-  shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
-  shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
+  std::exception_ptr _lastExceptionPtr;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -478,10 +471,8 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
 
       }
 
-      _lastRequest = make_shared<Darabonba::Http::Request>(request_);
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-      _lastResponse  = response_;
 
       if (response_->getStatusCode() == 204) {
         return json({
@@ -492,15 +483,15 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
       if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
         Darabonba::Json _res = Darabonba::Stream::readAsJSON(response_->getBody());
         json err = json(_res);
-        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["RequestId"], err["requestId"]));
-        requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(requestId, err["requestid"]));
-        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["Code"], err["code"]));
+        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
+        requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(requestId, err.value("requestid", Darabonba::Json())));
+        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
         if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -509,8 +500,8 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
           throw ClientException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"accessDeniedDetail" , getAccessDeniedDetail(err)},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -519,8 +510,8 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
           throw ServerException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -571,18 +562,17 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
-        {"lastRequest" , _lastRequest},
-        {"lastResponse" , _lastResponse},
         {"exception" , ex},
       }));
       continue;
     }
   }
 
-  throw *_context.getException();
+  std::rethrow_exception(_lastExceptionPtr);
 }
 
 Darabonba::Json Client::doROARequestWithForm(const string &action, const string &version, const string &protocol, const string &method, const string &authType, const string &pathname, const string &bodyType, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -603,9 +593,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
     {"tlsMinVersion", _tlsMinVersion}
     }));
 
-  shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
-  shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
+  std::exception_ptr _lastExceptionPtr;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -717,10 +705,8 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
 
       }
 
-      _lastRequest = make_shared<Darabonba::Http::Request>(request_);
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-      _lastResponse  = response_;
 
       if (response_->getStatusCode() == 204) {
         return json({
@@ -731,14 +717,14 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
       if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
         Darabonba::Json _res = Darabonba::Stream::readAsJSON(response_->getBody());
         json err = json(_res);
-        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["RequestId"], err["requestId"]));
-        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["Code"], err["code"]));
+        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
+        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
         if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -747,8 +733,8 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
           throw ClientException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"accessDeniedDetail" , getAccessDeniedDetail(err)},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -757,8 +743,8 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
           throw ServerException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -809,18 +795,17 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
-        {"lastRequest" , _lastRequest},
-        {"lastResponse" , _lastResponse},
         {"exception" , ex},
       }));
       continue;
     }
   }
 
-  throw *_context.getException();
+  std::rethrow_exception(_lastExceptionPtr);
 }
 
 Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -841,9 +826,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
     {"tlsMinVersion", _tlsMinVersion}
     }));
 
-  shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
-  shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
+  std::exception_ptr _lastExceptionPtr;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -988,30 +971,28 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
 
       }
 
-      _lastRequest = make_shared<Darabonba::Http::Request>(request_);
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-      _lastResponse  = response_;
 
       if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
         json err = {};
         if (!Darabonba::isNull(response_->getHeaders().at("content-type")) && response_->getHeaders().at("content-type") == "text/xml;charset=utf-8") {
           string _str = Darabonba::Stream::readAsString(response_->getBody());
           json respMap = Darabonba::XML::parseXml(_str, nullptr);
-          err = json(respMap["Error"]);
+          err = json(respMap.value("Error", Darabonba::Json()));
         } else {
           Darabonba::Json _res = Darabonba::Stream::readAsJSON(response_->getBody());
           err = json(_res);
         }
 
-        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["RequestId"], err["requestId"]));
-        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err["Code"], err["code"]));
+        string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
+        string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
         if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -1020,8 +1001,8 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
           throw ClientException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"accessDeniedDetail" , getAccessDeniedDetail(err)},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
@@ -1030,8 +1011,8 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
           throw ServerException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
-            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err["Message"], err["message"]) , " request id: " , requestId)},
-            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err["Description"], err["description"]))},
+            {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
+            {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -1084,18 +1065,17 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
         });
       }
 
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
-        {"lastRequest" , _lastRequest},
-        {"lastResponse" , _lastResponse},
         {"exception" , ex},
       }));
       continue;
     }
   }
 
-  throw *_context.getException();
+  std::rethrow_exception(_lastExceptionPtr);
 }
 
 Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime) {
@@ -1117,9 +1097,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
     {"disableHttp2", Darabonba::Convert::boolVal(Darabonba::defaultVal(_disableHttp2, false))}
     }));
 
-  shared_ptr<Darabonba::Http::Request> _lastRequest = nullptr;
-  shared_ptr<Darabonba::Http::MCurlResponse> _lastResponse = nullptr;
-  Darabonba::Exception _lastException;
+  std::exception_ptr _lastExceptionPtr;
   int _retriesAttempted = 0;
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
@@ -1220,10 +1198,8 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
       request_.setQuery(interceptorContext.getRequest().getQuery());
       request_.setBody(interceptorContext.getRequest().getStream());
       request_.setHeaders(interceptorContext.getRequest().getHeaders());
-      _lastRequest = make_shared<Darabonba::Http::Request>(request_);
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-      _lastResponse  = response_;
 
       InterceptorContextResponse responseContext = InterceptorContextResponse(json({
         {"statusCode" , response_->getStatusCode()},
@@ -1238,18 +1214,17 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
         {"statusCode" , interceptorContext.getResponse().getStatusCode()},
         {"body" , interceptorContext.getResponse().getDeserializedBody()}
       });
-    } catch (const Darabonba::Exception& ex) {
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
       _context = Darabonba::Policy::RetryPolicyContext(json({
         {"retriesAttempted" , _retriesAttempted},
-        {"lastRequest" , _lastRequest},
-        {"lastResponse" , _lastResponse},
         {"exception" , ex},
       }));
       continue;
     }
   }
 
-  throw *_context.getException();
+  std::rethrow_exception(_lastExceptionPtr);
 }
 
 
@@ -1385,10 +1360,10 @@ map<string, string> Client::getRpcHeaders() {
 json Client::getAccessDeniedDetail(const json &err) {
   json accessDeniedDetail = nullptr;
   if (!!err.contains("AccessDeniedDetail")) {
-    json detail1 = json(err["AccessDeniedDetail"]);
+    json detail1 = json(err.value("AccessDeniedDetail", Darabonba::Json()));
     accessDeniedDetail = detail1;
   } else if (!!err.contains("accessDeniedDetail")) {
-    json detail2 = json(err["accessDeniedDetail"]);
+    json detail2 = json(err.value("accessDeniedDetail", Darabonba::Json()));
     accessDeniedDetail = detail2;
   }
 

@@ -13,6 +13,13 @@ namespace Exceptions
 {
   class AlibabaCloudException : public Darabonba::ResponseException {
   public:
+    friend void to_json(Darabonba::Json& j, const AlibabaCloudException& obj) { 
+      DARABONBA_PTR_TO_JSON(statusCode, statusCode_);
+      DARABONBA_PTR_TO_JSON(code, code_);
+      DARABONBA_PTR_TO_JSON(message, message_);
+      DARABONBA_PTR_TO_JSON(description, description_);
+      DARABONBA_PTR_TO_JSON(requestId, requestId_);
+    };
     friend void from_json(const Darabonba::Json& j, AlibabaCloudException& obj) { 
       DARABONBA_PTR_FROM_JSON(statusCode, statusCode_);
       DARABONBA_PTR_FROM_JSON(code, code_);
