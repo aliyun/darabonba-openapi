@@ -1143,11 +1143,12 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
   @spi.modifyResponse(interceptorContext, attributeMap);
 
-  return {
+  var resp = {
     headers = interceptorContext.response.headers,
     statusCode = interceptorContext.response.statusCode,
     body = interceptorContext.response.deserializedBody
   };
+  return resp;
 
 } runtime {
   key = $string($default(runtime.key, @key)),
