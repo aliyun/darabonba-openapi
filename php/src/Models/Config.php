@@ -43,6 +43,7 @@ class Config extends Model
         'cert' => '',
         'ca' => '',
         'tlsMinVersion' => '',
+        'enableUsageDataCollection' => 'false',
     ];
     public function validate() {}
     public function toMap()
@@ -140,6 +141,9 @@ class Config extends Model
         }
         if (null !== $this->tlsMinVersion) {
             $res['tlsMinVersion'] = $this->tlsMinVersion;
+        }
+        if (null !== $this->enableUsageDataCollection) {
+            $res['enableUsageDataCollection'] = $this->enableUsageDataCollection;
         }
         return $res;
     }
@@ -242,6 +246,9 @@ class Config extends Model
         }
         if (isset($map['tlsMinVersion'])) {
             $model->tlsMinVersion = $map['tlsMinVersion'];
+        }
+        if (isset($map['enableUsageDataCollection'])) {
+            $model->enableUsageDataCollection = $map['enableUsageDataCollection'];
         }
         return $model;
     }
@@ -460,4 +467,10 @@ xxx-----END CERTIFICATE-----
      * @var string
      */
     public $tlsMinVersion;
+
+    /**
+     * @description Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.
+     * @var bool
+     */
+    public $enableUsageDataCollection;
 }

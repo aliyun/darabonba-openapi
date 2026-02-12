@@ -1,12 +1,21 @@
 // This file is auto-generated, don't edit it. Thanks.
 package com.aliyun.teaopenapi;
 
-import com.aliyun.tea.*;
+import com.aliyun.tea.Tea;
+import com.aliyun.tea.TeaConverter;
+import com.aliyun.tea.TeaException;
+import com.aliyun.tea.TeaModel;
+import com.aliyun.tea.TeaPair;
+import com.aliyun.tea.TeaRequest;
+import com.aliyun.tea.TeaResponse;
+import com.aliyun.tea.TeaUnretryableException;
 import com.aliyun.tea.interceptor.InterceptorChain;
-import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
 import com.aliyun.tea.interceptor.RequestInterceptor;
 import com.aliyun.tea.interceptor.ResponseInterceptor;
-import com.aliyun.teaopenapi.models.*;
+import com.aliyun.tea.interceptor.RuntimeOptionsInterceptor;
+import com.aliyun.teaopenapi.models.GlobalParameters;
+import com.aliyun.teaopenapi.models.OpenApiRequest;
+import com.aliyun.teaopenapi.models.Params;
 
 public class Client {
 
@@ -550,10 +559,15 @@ public class Client {
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
                     requestId = Client.defaultAny(requestId, err.get("requestid"));
+                    requestId = Client.defaultAny(requestId, err.get("request_id"));
+                    Object errorCode = Client.defaultAny(err.get("Code"), err.get("code"));
+                    errorCode = Client.defaultAny(errorCode, err.get("error"));
+                    Object errorMessage = Client.defaultAny(err.get("Message"), err.get("message"));
+                    errorMessage = Client.defaultAny(errorMessage, err.get("error_description"));
                     err.put("statusCode", response_.statusCode);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
-                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
+                        new TeaPair("code", "" + errorCode + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -792,10 +806,17 @@ public class Client {
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
+                    Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
+                    requestId = Client.defaultAny(requestId, err.get("requestid"));
+                    requestId = Client.defaultAny(requestId, err.get("request_id"));
+                    Object errorCode = Client.defaultAny(err.get("Code"), err.get("code"));
+                    errorCode = Client.defaultAny(errorCode, err.get("error"));
+                    Object errorMessage = Client.defaultAny(err.get("Message"), err.get("message"));
+                    errorMessage = Client.defaultAny(errorMessage, err.get("error_description"));
                     err.put("statusCode", response_.statusCode);
                     throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
-                        new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("code", "" + errorCode + ""),
+                        new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -860,7 +881,6 @@ public class Client {
      * <b>description</b> :
      * <p>Encapsulate the request and invoke the network</p>
      * 
-     * @param request object of OpenApiRequest
      * @param runtime which controls some details of call api, such as retry times
      * @return the response
      */
@@ -1133,7 +1153,6 @@ public class Client {
      * <b>description</b> :
      * <p>Encapsulate the request and invoke the network</p>
      * 
-     * @param request object of OpenApiRequest
      * @param runtime which controls some details of call api, such as retry times
      * @return the response
      */

@@ -313,6 +313,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public string TlsMinVersion { get; set; }
 
+        /// <summary>
+        /// <para>Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.</para>
+        /// </summary>
+        [NameInMap("enableUsageDataCollection")]
+        [Validation(Required=false)]
+        public bool? EnableUsageDataCollection { get; set; }
+
     }
 
 }

@@ -275,6 +275,11 @@ export class Config extends $tea.Model {
    * TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
    */
   tlsMinVersion?: string;
+  /**
+   * @remarks
+   * Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.
+   */
+  enableUsageDataCollection?: boolean;
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'accessKeyId',
@@ -308,6 +313,7 @@ export class Config extends $tea.Model {
       ca: 'ca',
       disableHttp2: 'disableHttp2',
       tlsMinVersion: 'tlsMinVersion',
+      enableUsageDataCollection: 'enableUsageDataCollection',
     };
   }
 
@@ -344,6 +350,7 @@ export class Config extends $tea.Model {
       ca: 'string',
       disableHttp2: 'boolean',
       tlsMinVersion: 'string',
+      enableUsageDataCollection: 'boolean',
     };
   }
 
@@ -463,6 +470,7 @@ export default class Client {
   _disableHttp2: boolean;
   _tlsMinVersion: string;
   _attributeMap: $SPI.AttributeMap;
+  _enableUsageDataCollection: boolean;
 
   /**
    * @remarks
@@ -526,6 +534,7 @@ export default class Client {
     this._ca = config.ca;
     this._disableHttp2 = config.disableHttp2;
     this._tlsMinVersion = config.tlsMinVersion;
+    this._enableUsageDataCollection = config.enableUsageDataCollection;
   }
 
   /**
@@ -646,6 +655,15 @@ export default class Client {
             ...request.headers,
             ...headers,
           };
+        }
+
+        if (!Util.isUnset(this._enableUsageDataCollection) && this._enableUsageDataCollection) {
+          let hostname = Util.getHostName();
+          if (Util.isUnset(hostname)) {
+            hostname = "unknown";
+          }
+
+          request_.headers["x-sdk-hostname"] = hostname;
         }
 
         if (!Util.isUnset(request.body)) {
@@ -872,6 +890,15 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
+        if (!Util.isUnset(this._enableUsageDataCollection) && this._enableUsageDataCollection) {
+          let hostname = Util.getHostName();
+          if (Util.isUnset(hostname)) {
+            hostname = "unknown";
+          }
+
+          request_.headers["x-sdk-hostname"] = hostname;
+        }
+
         if (!Util.isUnset(request.body)) {
           request_.body = new $tea.BytesReadable(Util.toJSONString(request.body));
           request_.headers["content-type"] = "application/json; charset=utf-8";
@@ -938,10 +965,15 @@ export default class Client {
           let err = Util.assertAsMap(_res);
           let requestId = Client.defaultAny(err["RequestId"], err["requestId"]);
           requestId = Client.defaultAny(requestId, err["requestid"]);
+          requestId = Client.defaultAny(requestId, err["request_id"]);
+          let errorCode = Client.defaultAny(err["Code"], err["code"]);
+          errorCode = Client.defaultAny(errorCode, err["error"]);
+          let errorMessage = Client.defaultAny(err["Message"], err["message"]);
+          errorMessage = Client.defaultAny(errorMessage, err["error_description"]);
           err["statusCode"] = response_.statusCode;
           throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${requestId}`,
+            code: `${errorCode}`,
+            message: `code: ${response_.statusCode}, ${errorMessage} request id: ${requestId}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
             accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
@@ -1102,6 +1134,15 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
+        if (!Util.isUnset(this._enableUsageDataCollection) && this._enableUsageDataCollection) {
+          let hostname = Util.getHostName();
+          if (Util.isUnset(hostname)) {
+            hostname = "unknown";
+          }
+
+          request_.headers["x-sdk-hostname"] = hostname;
+        }
+
         if (!Util.isUnset(request.body)) {
           let m = Util.assertAsMap(request.body);
           request_.body = new $tea.BytesReadable(OpenApiUtil.toForm(m));
@@ -1167,10 +1208,17 @@ export default class Client {
         if (Util.is4xx(response_.statusCode) || Util.is5xx(response_.statusCode)) {
           let _res = await Util.readAsJSON(response_.body);
           let err = Util.assertAsMap(_res);
+          let requestId = Client.defaultAny(err["RequestId"], err["requestId"]);
+          requestId = Client.defaultAny(requestId, err["requestid"]);
+          requestId = Client.defaultAny(requestId, err["request_id"]);
+          let errorCode = Client.defaultAny(err["Code"], err["code"]);
+          errorCode = Client.defaultAny(errorCode, err["error"]);
+          let errorMessage = Client.defaultAny(err["Message"], err["message"]);
+          errorMessage = Client.defaultAny(errorMessage, err["error_description"]);
           err["statusCode"] = response_.statusCode;
           throw $tea.newError({
-            code: `${Client.defaultAny(err["Code"], err["code"])}`,
-            message: `code: ${response_.statusCode}, ${Client.defaultAny(err["Message"], err["message"])} request id: ${Client.defaultAny(err["RequestId"], err["requestId"])}`,
+            code: `${errorCode}`,
+            message: `code: ${response_.statusCode}, ${errorMessage} request id: ${requestId}`,
             data: err,
             description: `${Client.defaultAny(err["Description"], err["description"])}`,
             accessDeniedDetail: Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
@@ -1235,13 +1283,6 @@ export default class Client {
    * @remarks
    * Encapsulate the request and invoke the network
    * 
-   * @param action - api name
-   * @param version - product version
-   * @param protocol - http or https
-   * @param method - e.g. GET
-   * @param authType - authorization type e.g. AK
-   * @param bodyType - response body type e.g. String
-   * @param request - object of OpenApiRequest
    * @param runtime - which controls some details of call api, such as retry times
    * @returns the response
    */
@@ -1343,6 +1384,15 @@ export default class Client {
             };
           }
 
+        }
+
+        if (!Util.isUnset(this._enableUsageDataCollection) && this._enableUsageDataCollection) {
+          let hostname = Util.getHostName();
+          if (Util.isUnset(hostname)) {
+            hostname = "unknown";
+          }
+
+          request_.headers["x-sdk-hostname"] = hostname;
         }
 
         let signatureAlgorithm = Util.defaultString(this._signatureAlgorithm, "ACS3-HMAC-SHA256");
@@ -1500,13 +1550,6 @@ export default class Client {
    * @remarks
    * Encapsulate the request and invoke the network
    * 
-   * @param action - api name
-   * @param version - product version
-   * @param protocol - http or https
-   * @param method - e.g. GET
-   * @param authType - authorization type e.g. AK
-   * @param bodyType - response body type e.g. String
-   * @param request - object of OpenApiRequest
    * @param runtime - which controls some details of call api, such as retry times
    * @returns the response
    */

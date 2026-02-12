@@ -536,7 +536,7 @@ type Client struct {
 
 // Description:
 //
-// # Init client with Config
+// Init client with Config
 //
 // @param config - config contains the necessary information to create a client
 func NewClient(config *Config) (*Client, error) {
@@ -616,7 +616,7 @@ func (client *Client) Init(config *Config) (_err error) {
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -932,7 +932,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -1129,10 +1129,15 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 				requestId := DefaultAny(err["RequestId"], err["requestId"])
 				requestId = DefaultAny(requestId, err["requestid"])
+				requestId = DefaultAny(requestId, err["request_id"])
+				errorCode := DefaultAny(err["Code"], err["code"])
+				errorCode = DefaultAny(errorCode, err["error"])
+				errorMessage := DefaultAny(err["Message"], err["message"])
+				errorMessage = DefaultAny(errorMessage, err["error_description"])
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(requestId),
+					"code":               tea.ToString(errorCode),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(errorMessage) + " request id: " + tea.ToString(requestId),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
 					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
@@ -1225,7 +1230,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// # Encapsulate the request and invoke the network with form body
+// Encapsulate the request and invoke the network with form body
 //
 // @param action - api name
 //
@@ -1425,10 +1430,17 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					return _result, _err
 				}
 
+				requestId := DefaultAny(err["RequestId"], err["requestId"])
+				requestId = DefaultAny(requestId, err["requestid"])
+				requestId = DefaultAny(requestId, err["request_id"])
+				errorCode := DefaultAny(err["Code"], err["code"])
+				errorCode = DefaultAny(errorCode, err["error"])
+				errorMessage := DefaultAny(err["Message"], err["message"])
+				errorMessage = DefaultAny(errorMessage, err["error_description"])
 				err["statusCode"] = response_.StatusCode
 				_err = tea.NewSDKError(map[string]interface{}{
-					"code":               tea.ToString(DefaultAny(err["Code"], err["code"])),
-					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"code":               tea.ToString(errorCode),
+					"message":            "code: " + tea.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(errorMessage) + " request id: " + tea.ToString(requestId),
 					"data":               err,
 					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
 					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
@@ -1521,21 +1533,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
-//
-// @param action - api name
-//
-// @param version - product version
-//
-// @param protocol - http or https
-//
-// @param method - e.g. GET
-//
-// @param authType - authorization type e.g. AK
-//
-// @param bodyType - response body type e.g. String
-//
-// @param request - object of OpenApiRequest
+// Encapsulate the request and invoke the network
 //
 // @param runtime - which controls some details of call api, such as retry times
 //
@@ -1878,21 +1876,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
-//
-// @param action - api name
-//
-// @param version - product version
-//
-// @param protocol - http or https
-//
-// @param method - e.g. GET
-//
-// @param authType - authorization type e.g. AK
-//
-// @param bodyType - response body type e.g. String
-//
-// @param request - object of OpenApiRequest
+// Encapsulate the request and invoke the network
 //
 // @param runtime - which controls some details of call api, such as retry times
 //
@@ -2129,7 +2113,7 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 
 // Description:
 //
-// # Get user agent
+// Get user agent
 //
 // @return user agent
 func (client *Client) GetUserAgent() (_result *string) {
@@ -2140,7 +2124,7 @@ func (client *Client) GetUserAgent() (_result *string) {
 
 // Description:
 //
-// # Get accesskey id by using credential
+// Get accesskey id by using credential
 //
 // @return accesskey id
 func (client *Client) GetAccessKeyId() (_result *string, _err error) {
@@ -2160,7 +2144,7 @@ func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 
 // Description:
 //
-// # Get accesskey secret by using credential
+// Get accesskey secret by using credential
 //
 // @return accesskey secret
 func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
@@ -2180,7 +2164,7 @@ func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 
 // Description:
 //
-// # Get security token by using credential
+// Get security token by using credential
 //
 // @return security token
 func (client *Client) GetSecurityToken() (_result *string, _err error) {
@@ -2200,7 +2184,7 @@ func (client *Client) GetSecurityToken() (_result *string, _err error) {
 
 // Description:
 //
-// # Get bearer token by credential
+// Get bearer token by credential
 //
 // @return bearer token
 func (client *Client) GetBearerToken() (_result *string, _err error) {
@@ -2216,7 +2200,7 @@ func (client *Client) GetBearerToken() (_result *string, _err error) {
 
 // Description:
 //
-// # Get credential type by credential
+// Get credential type by credential
 //
 // @return credential type e.g. access_key
 func (client *Client) GetType() (_result *string, _err error) {
@@ -2232,7 +2216,7 @@ func (client *Client) GetType() (_result *string, _err error) {
 
 // Description:
 //
-// # If inputValue is not null, return it or return defaultValue
+// If inputValue is not null, return it or return defaultValue
 //
 // @param inputValue - users input value
 //
@@ -2251,7 +2235,7 @@ func DefaultAny(inputValue interface{}, defaultValue interface{}) (_result inter
 
 // Description:
 //
-// # If the endpointRule and config.endpoint are empty, throw error
+// If the endpointRule and config.endpoint are empty, throw error
 //
 // @param config - config contains the necessary information to create a client
 func (client *Client) CheckConfig(config *Config) (_err error) {

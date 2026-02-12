@@ -345,7 +345,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA1&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
     assert.ok(regexp.test(headers["raw-query"]));
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["global-key"], "global-value");
     assert.strictEqual(headers["extends-key"], "extends-value");
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
@@ -413,7 +413,7 @@ describe('$openapi', function () {
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true/;
     assert.ok(regexp.test(headers["raw-query"]));
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["global-key"], "global-value");
     assert.strictEqual(headers["extends-key"], "extends-value");
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
@@ -455,7 +455,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -576,7 +576,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
@@ -623,7 +623,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -705,7 +705,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
@@ -750,7 +750,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/x-www-form-urlencoded");
@@ -831,7 +831,7 @@ describe('$openapi', function () {
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
     assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
-    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/1 config.userAgent"));
+    assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
     assert.strictEqual(headers["content-type"], "application/json; charset=utf-8");
