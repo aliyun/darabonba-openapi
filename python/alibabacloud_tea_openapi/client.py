@@ -688,10 +688,15 @@ class Client:
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
                     request_id = self.default_any(request_id, err.get('requestid'))
+                    request_id = self.default_any(request_id, err.get('request_id'))
+                    error_code = self.default_any(err.get('Code'), err.get('code'))
+                    error_code = self.default_any(error_code, err.get('error'))
+                    error_message = self.default_any(err.get('Message'), err.get('message'))
+                    error_message = self.default_any(error_message, err.get('error_description'))
                     err['statusCode'] = _response.status_code
                     raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
+                        'code': f'{error_code}',
+                        'message': f'code: {_response.status_code}, {error_message} request id: {request_id}',
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
                         'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
@@ -889,10 +894,15 @@ class Client:
                     err = UtilClient.assert_as_map(_res)
                     request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
                     request_id = self.default_any(request_id, err.get('requestid'))
+                    request_id = self.default_any(request_id, err.get('request_id'))
+                    error_code = self.default_any(err.get('Code'), err.get('code'))
+                    error_code = self.default_any(error_code, err.get('error'))
+                    error_message = self.default_any(err.get('Message'), err.get('message'))
+                    error_message = self.default_any(error_message, err.get('error_description'))
                     err['statusCode'] = _response.status_code
                     raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {request_id}",
+                        'code': f'{error_code}',
+                        'message': f'code: {_response.status_code}, {error_message} request id: {request_id}',
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
                         'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
@@ -1089,10 +1099,17 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = UtilClient.read_as_json(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
+                    request_id = self.default_any(request_id, err.get('request_id'))
+                    error_code = self.default_any(err.get('Code'), err.get('code'))
+                    error_code = self.default_any(error_code, err.get('error'))
+                    error_message = self.default_any(err.get('Message'), err.get('message'))
+                    error_message = self.default_any(error_message, err.get('error_description'))
                     err['statusCode'] = _response.status_code
                     raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'code': f'{error_code}',
+                        'message': f'code: {_response.status_code}, {error_message} request id: {request_id}',
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
                         'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
@@ -1289,10 +1306,17 @@ class Client:
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
                     _res = await UtilClient.read_as_json_async(_response.body)
                     err = UtilClient.assert_as_map(_res)
+                    request_id = self.default_any(err.get('RequestId'), err.get('requestId'))
+                    request_id = self.default_any(request_id, err.get('requestid'))
+                    request_id = self.default_any(request_id, err.get('request_id'))
+                    error_code = self.default_any(err.get('Code'), err.get('code'))
+                    error_code = self.default_any(error_code, err.get('error'))
+                    error_message = self.default_any(err.get('Message'), err.get('message'))
+                    error_message = self.default_any(error_message, err.get('error_description'))
                     err['statusCode'] = _response.status_code
                     raise TeaException({
-                        'code': f"{self.default_any(err.get('Code'), err.get('code'))}",
-                        'message': f"code: {_response.status_code}, {self.default_any(err.get('Message'), err.get('message'))} request id: {self.default_any(err.get('RequestId'), err.get('requestId'))}",
+                        'code': f'{error_code}',
+                        'message': f'code: {_response.status_code}, {error_message} request id: {request_id}',
                         'data': err,
                         'description': f"{self.default_any(err.get('Description'), err.get('description'))}",
                         'accessDeniedDetail': self.default_any(err.get('AccessDeniedDetail'), err.get('accessDeniedDetail'))
@@ -1353,13 +1377,6 @@ class Client:
     ) -> dict:
         """
         Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
         @param runtime: which controls some details of call api, such as retry times
         @return: the response
         """
@@ -1576,13 +1593,6 @@ class Client:
     ) -> dict:
         """
         Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
         @param runtime: which controls some details of call api, such as retry times
         @return: the response
         """
@@ -1799,13 +1809,6 @@ class Client:
     ) -> dict:
         """
         Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
         @param runtime: which controls some details of call api, such as retry times
         @return: the response
         """
@@ -1948,13 +1951,6 @@ class Client:
     ) -> dict:
         """
         Encapsulate the request and invoke the network
-        @param action: api name
-        @param version: product version
-        @param protocol: http or https
-        @param method: e.g. GET
-        @param auth_type: authorization type e.g. AK
-        @param body_type: response body type e.g. String
-        @param request: object of OpenApiRequest
         @param runtime: which controls some details of call api, such as retry times
         @return: the response
         """

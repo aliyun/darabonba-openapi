@@ -47,6 +47,7 @@ namespace AlibabaCloud.OpenApiClient
         protected bool? _disableHttp2;
         protected string _tlsMinVersion;
         protected AlibabaCloud.GatewaySpi.Models.AttributeMap _attributeMap;
+        protected bool? _enableUsageDataCollection;
 
         /// <term><b>Description:</b></term>
         /// <description>
@@ -122,6 +123,7 @@ namespace AlibabaCloud.OpenApiClient
             this._ca = config.Ca;
             this._disableHttp2 = config.DisableHttp2;
             this._tlsMinVersion = config.TlsMinVersion;
+            this._enableUsageDataCollection = config.EnableUsageDataCollection;
         }
 
         /// <term><b>Description:</b></term>
@@ -285,6 +287,15 @@ namespace AlibabaCloud.OpenApiClient
                             request.Headers,
                             headers
                         );
+                    }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
                     }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
@@ -599,6 +610,15 @@ namespace AlibabaCloud.OpenApiClient
                             headers
                         );
                     }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
@@ -884,6 +904,15 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body));
@@ -959,11 +988,16 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
                         requestId = DefaultAny(requestId, err.Get("requestid"));
+                        requestId = DefaultAny(requestId, err.Get("request_id"));
+                        object errorCode = DefaultAny(err.Get("Code"), err.Get("code"));
+                        errorCode = DefaultAny(errorCode, err.Get("error"));
+                        object errorMessage = DefaultAny(err.Get("Message"), err.Get("message"));
+                        errorMessage = DefaultAny(errorMessage, err.Get("error_description"));
                         err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
+                            {"code", "" + errorCode},
+                            {"message", "code: " + response_.StatusCode + ", " + errorMessage + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
                             {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
@@ -1177,6 +1211,15 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         request_.Body = TeaCore.BytesReadable(AlibabaCloud.TeaUtil.Common.ToJSONString(request.Body));
@@ -1252,11 +1295,16 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
                         object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
                         requestId = DefaultAny(requestId, err.Get("requestid"));
+                        requestId = DefaultAny(requestId, err.Get("request_id"));
+                        object errorCode = DefaultAny(err.Get("Code"), err.Get("code"));
+                        errorCode = DefaultAny(errorCode, err.Get("error"));
+                        object errorMessage = DefaultAny(err.Get("Message"), err.Get("message"));
+                        errorMessage = DefaultAny(errorMessage, err.Get("error_description"));
                         err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + requestId},
+                            {"code", "" + errorCode},
+                            {"message", "code: " + response_.StatusCode + ", " + errorMessage + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
                             {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
@@ -1470,6 +1518,15 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
@@ -1544,11 +1601,18 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
+                        requestId = DefaultAny(requestId, err.Get("request_id"));
+                        object errorCode = DefaultAny(err.Get("Code"), err.Get("code"));
+                        errorCode = DefaultAny(errorCode, err.Get("error"));
+                        object errorMessage = DefaultAny(err.Get("Message"), err.Get("message"));
+                        errorMessage = DefaultAny(errorMessage, err.Get("error_description"));
                         err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", "" + errorCode},
+                            {"message", "code: " + response_.StatusCode + ", " + errorMessage + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
                             {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
@@ -1762,6 +1826,15 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
+                    }
                     if (!AlibabaCloud.TeaUtil.Common.IsUnset(request.Body))
                     {
                         Dictionary<string, object> m = AlibabaCloud.TeaUtil.Common.AssertAsMap(request.Body);
@@ -1836,11 +1909,18 @@ namespace AlibabaCloud.OpenApiClient
                     {
                         object _res = AlibabaCloud.TeaUtil.Common.ReadAsJSON(response_.Body);
                         Dictionary<string, object> err = AlibabaCloud.TeaUtil.Common.AssertAsMap(_res);
+                        object requestId = DefaultAny(err.Get("RequestId"), err.Get("requestId"));
+                        requestId = DefaultAny(requestId, err.Get("requestid"));
+                        requestId = DefaultAny(requestId, err.Get("request_id"));
+                        object errorCode = DefaultAny(err.Get("Code"), err.Get("code"));
+                        errorCode = DefaultAny(errorCode, err.Get("error"));
+                        object errorMessage = DefaultAny(err.Get("Message"), err.Get("message"));
+                        errorMessage = DefaultAny(errorMessage, err.Get("error_description"));
                         err["statusCode"] = response_.StatusCode;
                         throw new TeaException(new Dictionary<string, object>
                         {
-                            {"code", "" + DefaultAny(err.Get("Code"), err.Get("code"))},
-                            {"message", "code: " + response_.StatusCode + ", " + DefaultAny(err.Get("Message"), err.Get("message")) + " request id: " + DefaultAny(err.Get("RequestId"), err.Get("requestId"))},
+                            {"code", "" + errorCode},
+                            {"message", "code: " + response_.StatusCode + ", " + errorMessage + " request id: " + requestId},
                             {"data", err},
                             {"description", "" + DefaultAny(err.Get("Description"), err.Get("description"))},
                             {"accessDeniedDetail", DefaultAny(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
@@ -1925,27 +2005,6 @@ namespace AlibabaCloud.OpenApiClient
         /// <para>Encapsulate the request and invoke the network</para>
         /// </description>
         /// 
-        /// <param name="action">
-        /// api name
-        /// </param>
-        /// <param name="version">
-        /// product version
-        /// </param>
-        /// <param name="protocol">
-        /// http or https
-        /// </param>
-        /// <param name="method">
-        /// e.g. GET
-        /// </param>
-        /// <param name="authType">
-        /// authorization type e.g. AK
-        /// </param>
-        /// <param name="bodyType">
-        /// response body type e.g. String
-        /// </param>
-        /// <param name="request">
-        /// object of OpenApiRequest
-        /// </param>
         /// <param name="runtime">
         /// which controls some details of call api, such as retry times
         /// </param>
@@ -2068,6 +2127,15 @@ namespace AlibabaCloud.OpenApiClient
                                 headers
                             );
                         }
+                    }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
                     }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
@@ -2261,27 +2329,6 @@ namespace AlibabaCloud.OpenApiClient
         /// <para>Encapsulate the request and invoke the network</para>
         /// </description>
         /// 
-        /// <param name="action">
-        /// api name
-        /// </param>
-        /// <param name="version">
-        /// product version
-        /// </param>
-        /// <param name="protocol">
-        /// http or https
-        /// </param>
-        /// <param name="method">
-        /// e.g. GET
-        /// </param>
-        /// <param name="authType">
-        /// authorization type e.g. AK
-        /// </param>
-        /// <param name="bodyType">
-        /// response body type e.g. String
-        /// </param>
-        /// <param name="request">
-        /// object of OpenApiRequest
-        /// </param>
         /// <param name="runtime">
         /// which controls some details of call api, such as retry times
         /// </param>
@@ -2404,6 +2451,15 @@ namespace AlibabaCloud.OpenApiClient
                                 headers
                             );
                         }
+                    }
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    {
+                        string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
+                        if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
+                        {
+                            hostname = "unknown";
+                        }
+                        request_.Headers["x-sdk-hostname"] = hostname;
                     }
                     string signatureAlgorithm = AlibabaCloud.TeaUtil.Common.DefaultString(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     string hashedRequestPayload = AlibabaCloud.OpenApiUtil.Client.HexEncode(AlibabaCloud.OpenApiUtil.Client.Hash(AlibabaCloud.TeaUtil.Common.ToBytes(""), signatureAlgorithm));
@@ -2597,27 +2653,6 @@ namespace AlibabaCloud.OpenApiClient
         /// <para>Encapsulate the request and invoke the network</para>
         /// </description>
         /// 
-        /// <param name="action">
-        /// api name
-        /// </param>
-        /// <param name="version">
-        /// product version
-        /// </param>
-        /// <param name="protocol">
-        /// http or https
-        /// </param>
-        /// <param name="method">
-        /// e.g. GET
-        /// </param>
-        /// <param name="authType">
-        /// authorization type e.g. AK
-        /// </param>
-        /// <param name="bodyType">
-        /// response body type e.g. String
-        /// </param>
-        /// <param name="request">
-        /// object of OpenApiRequest
-        /// </param>
         /// <param name="runtime">
         /// which controls some details of call api, such as retry times
         /// </param>
@@ -2805,27 +2840,6 @@ namespace AlibabaCloud.OpenApiClient
         /// <para>Encapsulate the request and invoke the network</para>
         /// </description>
         /// 
-        /// <param name="action">
-        /// api name
-        /// </param>
-        /// <param name="version">
-        /// product version
-        /// </param>
-        /// <param name="protocol">
-        /// http or https
-        /// </param>
-        /// <param name="method">
-        /// e.g. GET
-        /// </param>
-        /// <param name="authType">
-        /// authorization type e.g. AK
-        /// </param>
-        /// <param name="bodyType">
-        /// response body type e.g. String
-        /// </param>
-        /// <param name="request">
-        /// object of OpenApiRequest
-        /// </param>
         /// <param name="runtime">
         /// which controls some details of call api, such as retry times
         /// </param>
