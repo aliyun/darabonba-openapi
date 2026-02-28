@@ -355,9 +355,9 @@ string Utils::getROASignature(const string &stringToSign, const string &secret) 
   unsigned char hashData[SHA_DIGEST_LENGTH];
   unsigned int hashLen;
   
-  HMAC(EVP_sha1(), secret.c_str(), secret.length(),
+  HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.length()),
        reinterpret_cast<const unsigned char*>(stringToSign.c_str()),
-       stringToSign.length(), hashData, &hashLen);
+       static_cast<int>(stringToSign.length()), hashData, &hashLen);
   
   Darabonba::Bytes bytes;
   bytes.assign(hashData, hashData + hashLen);
@@ -467,9 +467,9 @@ string Utils::getRPCSignature(const map<string, string> &signedParams, const str
   unsigned char hashData[SHA_DIGEST_LENGTH];
   unsigned int hashLen;
   
-  HMAC(EVP_sha1(), key.c_str(), key.length(),
+  HMAC(EVP_sha1(), key.c_str(), static_cast<int>(key.length()),
        reinterpret_cast<const unsigned char*>(stringToSign.c_str()),
-       stringToSign.length(), hashData, &hashLen);
+       static_cast<int>(stringToSign.length()), hashData, &hashLen);
   
   Darabonba::Bytes bytes;
   bytes.assign(hashData, hashData + hashLen);
@@ -743,9 +743,9 @@ string Utils::getAuthorization(const Darabonba::Http::Request &request, const st
   if (signatureAlgorithm == "ACS3-HMAC-SHA256") {
     unsigned char hashData[SHA256_DIGEST_LENGTH];
     unsigned int hashLen;
-    HMAC(EVP_sha256(), accessKeySecret.c_str(), accessKeySecret.length(),
+    HMAC(EVP_sha256(), accessKeySecret.c_str(), static_cast<int>(accessKeySecret.length()),
          reinterpret_cast<const unsigned char*>(stringToSign.c_str()),
-         stringToSign.length(), hashData, &hashLen);
+         static_cast<int>(stringToSign.length()), hashData, &hashLen);
     signature.assign(hashData, hashData + hashLen);
   } else if (signatureAlgorithm == "ACS3-RSA-SHA256") {
     // RSA signature - would need private key handling
