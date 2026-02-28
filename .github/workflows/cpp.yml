@@ -117,7 +117,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% -Dgtest_force_shared_crt=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+        cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% -Dgtest_force_shared_crt=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
 
     - name: Configure CMake (macOS)
       if: runner.os == 'macOS'

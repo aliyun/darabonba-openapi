@@ -21,7 +21,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC)
   # Standardize MSVC runtime (MD/MDd for shared, MT/MTd for static)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX)
-  add_compile_options(/W4 /WX /Zc:__cplusplus /utf-8)
   
   # Runtime library selection
   if(BUILD_SHARED_LIBS)
@@ -32,12 +31,7 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   endif()
 else()
-  # Base warning flags (apply to all targets including dependencies)
-  add_compile_options(-Wall -Wextra -Wpedantic)
-  # Enable additional deprecation warnings for better C++ compliance
-  add_compile_options(-Wdeprecated -Wdeprecated-copy)
-  
-  # RTTI control for GCC/Clang
+  # RTTI control for GCC/Clang (applies globally as it affects ABI)
   if(NOT ENABLE_RTTI)
     add_compile_options(-fno-rtti)
   endif()
@@ -120,10 +114,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Strict warning treatment for our own code only
-if(NOT MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE -Werror)
+if(MSVC)
+  # MSVC: Enable high warning level and treat warnings as errors
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /Zc:__cplusplus /utf-8 /WX)
 else()
-  target_compile_options(${PROJECT_NAME} PRIVATE /WX)
+  # GCC/Clang: Enable warnings and treat as errors
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Wdeprecated -Wdeprecated-copy -Werror)
 endif()
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Installation >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
