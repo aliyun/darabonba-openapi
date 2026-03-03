@@ -288,7 +288,7 @@ namespace AlibabaCloud.OpenApiClient
                             headers
                         );
                     }
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -610,7 +610,7 @@ namespace AlibabaCloud.OpenApiClient
                             headers
                         );
                     }
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -904,7 +904,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -1211,7 +1211,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -1518,7 +1518,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -1826,7 +1826,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -2128,7 +2128,7 @@ namespace AlibabaCloud.OpenApiClient
                             );
                         }
                     }
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
@@ -2452,7 +2452,7 @@ namespace AlibabaCloud.OpenApiClient
                             );
                         }
                     }
-                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection)
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(_enableUsageDataCollection) && _enableUsageDataCollection.Value)
                     {
                         string hostname = AlibabaCloud.TeaUtil.Common.GetHostName();
                         if (AlibabaCloud.TeaUtil.Common.IsUnset(hostname))
