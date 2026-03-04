@@ -764,8 +764,34 @@ string Utils::getAuthorization(const Darabonba::Http::Request &request, const st
   return auth.str();
 }
 
+static string getDefaultAgent() {
+#ifdef _WIN32
+  string os = "Windows";
+#elif __APPLE__
+  string os = "Darwin";
+#elif __linux__
+  string os = "Linux";
+#else
+  string os = "Unknown";
+#endif
+
+#ifdef __x86_64__
+  string arch = "x86_64";
+#elif __i386__
+  string arch = "i386";
+#elif __aarch64__
+  string arch = "aarch64";
+#elif __arm__
+  string arch = "arm";
+#else
+  string arch = "unknown";
+#endif
+
+  return "AlibabaCloud (" + os + "; " + arch + ") C++/" + to_string(__cplusplus) + " Core/1.0.0-beta TeaDSL/2";
+}
+
 string Utils::getUserAgent(const string &userAgent) {
-  string defaultUA = "AlibabaCloud/cpp";
+  string defaultUA = getDefaultAgent();
   
   if (userAgent.empty()) {
     return defaultUA;
