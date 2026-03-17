@@ -1,18 +1,21 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi;
+
 use AlibabaCloud\Dara\Model;
 use RuntimeException;
 use AlibabaCloud\Dara\Request;
 use AlibabaCloud\Dara\Util\BytesUtil;
 use Psr\Http\Message\StreamInterface;
+
 /**
  * @remarks
  * This is for OpenApi Util
  */
-class Utils {
+class Utils
+{
 
   private static $defaultUserAgent = '';
   /**
@@ -90,38 +93,40 @@ class Utils {
    * @param string[] $headers The response headers
    * @return int Time left
    */
-  public static function getThrottlingTimeLeft(array $headers) {
+  public static function getThrottlingTimeLeft(array $headers)
+  {
     $rateLimitForUserApi = isset($headers["x-ratelimit-user-api"]) ? $headers["x-ratelimit-user-api"] : null;
     $rateLimitForUser = isset($headers["x-ratelimit-user"]) ? $headers["x-ratelimit-user"] : null;
 
     $timeLeftForUserApi = self::getTimeLeft($rateLimitForUserApi);
     $timeLeftForUser = self::getTimeLeft($rateLimitForUser);
-    
+
     $maxValue = max($timeLeftForUserApi, $timeLeftForUser);
     return $maxValue !== null ? $maxValue : 0;
   }
 
 
-private static function getTimeLeft($rateLimit) {
-  if ($rateLimit) {
-    $pairs = explode(',', $rateLimit);
-    foreach ($pairs as $pair) {
-      $kv = explode(':', $pair);
-      if (count($kv) === 2) {
-        $key = trim($kv[0]);
-        $value = trim($kv[1]);
-        if ($key === 'TimeLeft') {
-          $timeLeftValue = intval($value); 
-          if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
-            return null; 
+  private static function getTimeLeft($rateLimit)
+  {
+    if ($rateLimit) {
+      $pairs = explode(',', $rateLimit);
+      foreach ($pairs as $pair) {
+        $kv = explode(':', $pair);
+        if (count($kv) === 2) {
+          $key = trim($kv[0]);
+          $value = trim($kv[1]);
+          if ($key === 'TimeLeft') {
+            $timeLeftValue = intval($value);
+            if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
+              return null;
+            }
+            return $timeLeftValue;
           }
-          return $timeLeftValue;
         }
       }
     }
+    return null;
   }
-  return null;
-}
 
   /**
    * @remarks
@@ -136,13 +141,13 @@ private static function getTimeLeft($rateLimit) {
     $str = BytesUtil::toString($raw);
 
     switch ($signatureAlgorithm) {
-        case 'ACS3-HMAC-SHA256':
-        case 'ACS3-RSA-SHA256':
-            $res = hash('sha256', $str, true);
-            return $res;
-        case 'ACS3-HMAC-SM3':
-            $res = self::sm3($str);
-            return hex2bin($res);
+      case 'ACS3-HMAC-SHA256':
+      case 'ACS3-RSA-SHA256':
+        $res = hash('sha256', $str, true);
+        return $res;
+      case 'ACS3-HMAC-SM3':
+        $res = self::sm3($str);
+        return hex2bin($res);
     }
 
     return [];
@@ -242,22 +247,22 @@ private static function getTimeLeft($rateLimit) {
   static public function toForm($filter)
   {
     $query = $filter;
-      if (null === $query) {
-          return '';
+    if (null === $query) {
+      return '';
+    }
+    if ($query instanceof Model) {
+      $query = $query->toMap();
+    }
+    $tmp = [];
+    foreach ($query as $k => $v) {
+      if (0 !== strpos($k, '_')) {
+        $tmp[$k] = $v;
       }
-      if ($query instanceof Model) {
-          $query = $query->toMap();
-      }
-      $tmp = [];
-      foreach ($query as $k => $v) {
-          if (0 !== strpos($k, '_')) {
-              $tmp[$k] = $v;
-          }
-      }
-      $res = self::flatten($tmp);
-      ksort($res);
+    }
+    $res = self::flatten($tmp);
+    ksort($res);
 
-      return http_build_query($res);
+    return http_build_query($res);
   }
 
   /**
@@ -419,7 +424,7 @@ private static function getTimeLeft($rateLimit) {
     }
 
     $canonicalRequest = $method . "\n" . $canonicalURI . "\n" . $canonicalQueryString . "\n" .
-        $canonicalHeaderString . "\n" . implode(';', array_keys($signHeaders)) . "\n" . $payload;
+      $canonicalHeaderString . "\n" . implode(';', array_keys($signHeaders)) . "\n" . $payload;
     $strtosign        = $signatureAlgorithm . "\n" . bin2hex(self::hash(BytesUtil::from($canonicalRequest), $signatureAlgorithm));
 
     $signature        = self::sign($accessKeySecret, $strtosign, $signatureAlgorithm);
@@ -487,7 +492,7 @@ private static function getTimeLeft($rateLimit) {
 
   private static function sm3($message)
   {
-      return (new Sm3())->sign($message);
+    return (new Sm3())->sign($message);
   }
 
   private static function encode($signMethod, $strToSign, $secret)
@@ -501,12 +506,12 @@ private static function getTimeLeft($rateLimit) {
   }
 
   /**
-     * @param array  $items
-     * @param string $delimiter
-     * @param string $prepend
-     *
-     * @return array
-     */
+   * @param array  $items
+   * @param string $delimiter
+   * @param string $prepend
+   *
+   * @return array
+   */
   private static function flatten($items = [], $delimiter = '.', $prepend = '')
   {
     $flatten = [];
@@ -607,164 +612,165 @@ private static function getTimeLeft($rateLimit) {
    * @param mixed $input
    *
    * @return array
-  */
+   */
   public static function toArray($input)
   {
-      if (\is_array($input)) {
-          foreach ($input as $k => &$v) {
-              $v = self::toArray($v);
-          }
-      } elseif ($input instanceof Model) {
-          $input = $input->toMap();
-          foreach ($input as $k => &$v) {
-              $v = self::toArray($v);
-          }
+    if (\is_array($input)) {
+      foreach ($input as $k => &$v) {
+        $v = self::toArray($v);
       }
+    } elseif ($input instanceof Model) {
+      $input = $input->toMap();
+      foreach ($input as $k => &$v) {
+        $v = self::toArray($v);
+      }
+    }
 
-      return $input;
+    return $input;
   }
 
   /**
-     * Stringify the value of map.
-     *
-     * @param array $map
-     *
-     * @return array the new stringified map
-     */
-    public static function stringifyMapValue($map)
-    {
-        if (null === $map) {
-            return [];
-        }
-        foreach ($map as &$node) {
-            if (is_numeric($node)) {
-                $node = (string) $node;
-            } elseif (null === $node) {
-                $node = '';
-            } elseif (\is_bool($node)) {
-                $node = true === $node ? 'true' : 'false';
-            } elseif (\is_object($node)) {
-                $node = json_decode(json_encode($node), true);
-            }
-        }
-
-        return $map;
+   * Stringify the value of map.
+   *
+   * @param array $map
+   *
+   * @return array the new stringified map
+   */
+  public static function stringifyMapValue($map)
+  {
+    if (null === $map) {
+      return [];
     }
-    /**
-     * @param string   $product
-     * @param string   $regionId
-     * @param string   $endpointRule
-     * @param string   $network
-     * @param string   $suffix
-     *
-     * @return string
-     */
-    static public function getEndpointRules($product, $regionId, $endpointType, $network, $suffix = null) {
-        $product = $product ?: "";
-        $network = $network ?: "";
-        
-        if ($endpointType == "regional") {
-            if ($regionId === null || $regionId === "") {
-                throw new RuntimeException("RegionId is empty, please set a valid RegionId");
-            }
-            $result = "<product><network>.<region_id>.aliyuncs.com";
-            $result = str_replace("<region_id>", $regionId, $result);
+    foreach ($map as &$node) {
+      if (is_numeric($node)) {
+        $node = (string) $node;
+      } elseif (null === $node) {
+        $node = '';
+      } elseif (\is_bool($node)) {
+        $node = true === $node ? 'true' : 'false';
+      } elseif (\is_object($node)) {
+        $node = json_decode(json_encode($node), true);
+      }
+    }
+
+    return $map;
+  }
+  /**
+   * @param string   $product
+   * @param string   $regionId
+   * @param string   $endpointRule
+   * @param string   $network
+   * @param string   $suffix
+   *
+   * @return string
+   */
+  static public function getEndpointRules($product, $regionId, $endpointType, $network, $suffix = null)
+  {
+    $product = $product ?: "";
+    $network = $network ?: "";
+
+    if ($endpointType == "regional") {
+      if ($regionId === null || $regionId === "") {
+        throw new RuntimeException("RegionId is empty, please set a valid RegionId");
+      }
+      $result = "<product><network>.<region_id>.aliyuncs.com";
+      $result = str_replace("<region_id>", $regionId, $result);
+    } else {
+      $result = "<product><network>.aliyuncs.com";
+    }
+
+    $result = str_replace("<product>", strtolower($product), $result);
+    if ($network === "" || $network === "public") {
+      $result = str_replace("<network>", "", $result);
+    } else {
+      $result = str_replace("<network>", "-" . $network, $result);
+    }
+    return $result;
+  }
+
+  /**
+   * @param string   $product
+   * @param string   $regionId
+   * @param string   $endpointRule
+   * @param string   $network
+   * @param string   $suffix
+   * @param string[] $endpointMap
+   * @param string   $endpoint
+   *
+   * @return string
+   */
+  static function getProductEndpoint($product, $regionId, $endpointRule, $network, $suffix, $endpointMap, $endpoint)
+  {
+    if (null !== $endpoint) {
+      return $endpoint;
+    }
+
+    if (null !== $endpointMap && null !== @$endpointMap[$regionId]) {
+      return @$endpointMap[$regionId];
+    }
+
+    return self::getEndpointRules($product, $regionId, $endpointRule, $network, $suffix);
+  }
+
+  /**
+   * Transform a map to a flat style map where keys are prefixed with length info.
+   * Map keys are transformed from "key" to "#length#key" format.
+   * 
+   * @param mixed $input the input (can be an array, Model, or primitive type)
+   * @return mixed the transformed input
+   */
+  public static function mapToFlatStyle($input)
+  {
+    if ($input === null) {
+      return $input;
+    }
+
+    // Handle array (list)
+    if (\is_array($input) && array_keys($input) === range(0, count($input) - 1)) {
+      $result = [];
+      foreach ($input as $item) {
+        $result[] = self::mapToFlatStyle($item);
+      }
+      return $result;
+    }
+
+    // Handle Model
+    if ($input instanceof Model) {
+      // Modify the original Model object's fields using reflection
+      $reflection = new \ReflectionClass($input);
+      $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+      foreach ($properties as $property) {
+        $propertyName = $property->getName();
+        $value = $property->getValue($input);
+
+        if (\is_array($value) && !empty($value) && array_keys($value) !== range(0, count($value) - 1)) {
+          // This is an associative array (dictionary), apply flat style to keys
+          $flatMap = [];
+          foreach ($value as $nestedKey => $nestedValue) {
+            $flatKey = '#' . strlen($nestedKey) . '#' . $nestedKey;
+            $flatMap[$flatKey] = self::mapToFlatStyle($nestedValue);
+          }
+          $property->setValue($input, $flatMap);
         } else {
-            $result = "<product><network>.aliyuncs.com";
+          // Recursively process other fields
+          $property->setValue($input, self::mapToFlatStyle($value));
         }
-
-        $result = str_replace("<product>", strtolower($product), $result);
-        if ($network === "" || $network === "public") {
-            $result = str_replace("<network>", "", $result);
-        } else {
-            $result = str_replace("<network>", "-" . $network, $result);
-        }
-        return $result;
-    }
-    
-    /**
-     * @param string   $product
-     * @param string   $regionId
-     * @param string   $endpointRule
-     * @param string   $network
-     * @param string   $suffix
-     * @param string[] $endpointMap
-     * @param string   $endpoint
-     *
-     * @return string
-     */
-     static function getProductEndpoint($product, $regionId, $endpointRule, $network, $suffix, $endpointMap, $endpoint)
-    {
-        if (null !== $endpoint) {
-            return $endpoint;
-        }
-
-        if (null !== $endpointMap && null !== @$endpointMap[$regionId]) {
-            return @$endpointMap[$regionId];
-        }
-
-        return self::getEndpointRules($product, $regionId, $endpointRule, $network, $suffix);
+      }
+      return $input;  // Return the modified original Model
     }
 
-    /**
-     * Transform a map to a flat style map where keys are prefixed with length info.
-     * Map keys are transformed from "key" to "#length#key" format.
-     * 
-     * @param mixed $input the input (can be an array, Model, or primitive type)
-     * @return mixed the transformed input
-     */
-    public static function mapToFlatStyle($input)
-    {
-        if ($input === null) {
-            return $input;
-        }
-
-        // Handle array (list)
-        if (\is_array($input) && array_keys($input) === range(0, count($input) - 1)) {
-            $result = [];
-            foreach ($input as $item) {
-                $result[] = self::mapToFlatStyle($item);
-            }
-            return $result;
-        }
-
-        // Handle Model
-        if ($input instanceof Model) {
-            // Modify the original Model object's fields using reflection
-            $reflection = new \ReflectionClass($input);
-            $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-            
-            foreach ($properties as $property) {
-                $propertyName = $property->getName();
-                $value = $property->getValue($input);
-                
-                if (\is_array($value) && !empty($value) && array_keys($value) !== range(0, count($value) - 1)) {
-                    // This is an associative array (dictionary), apply flat style to keys
-                    $flatMap = [];
-                    foreach ($value as $nestedKey => $nestedValue) {
-                        $flatKey = '#' . strlen($nestedKey) . '#' . $nestedKey;
-                        $flatMap[$flatKey] = self::mapToFlatStyle($nestedValue);
-                    }
-                    $property->setValue($input, $flatMap);
-                } else {
-                    // Recursively process other fields
-                    $property->setValue($input, self::mapToFlatStyle($value));
-                }
-            }
-            return $input;  // Return the modified original Model
-        }
-
-        // Handle associative array (dictionary)
-        if (\is_array($input) && !empty($input)) {
-            $flatMap = [];
-            foreach ($input as $key => $value) {
-                $flatKey = '#' . strlen($key) . '#' . $key;
-                $flatMap[$flatKey] = self::mapToFlatStyle($value);
-            }
-            return $flatMap;
-        }
-
-        // For primitive types, return as-is
-        return $input;
+    // Handle associative array (dictionary)
+    if (\is_array($input) && !empty($input)) {
+      $flatMap = [];
+      foreach ($input as $key => $value) {
+        $flatKey = '#' . strlen($key) . '#' . $key;
+        $flatMap[$flatKey] = self::mapToFlatStyle($value);
+      }
+      return $flatMap;
     }
+
+    // For primitive types, return as-is
+    return $input;
+  }
 }

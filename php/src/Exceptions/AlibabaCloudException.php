@@ -1,29 +1,32 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Exceptions;
+
 use AlibabaCloud\Dara\Exception\DaraException;
-class AlibabaCloudException extends DaraException {
+
+class AlibabaCloudException extends DaraException
+{
   /**
-  * @var int
-  */
+   * @var int
+   */
   public $statusCode;
   /**
-  * @var string
-  */
+   * @var string
+   */
   public $code;
   /**
-  * @var string
-  */
+   * @var string
+   */
   public $message;
   /**
-  * @var string
-  */
+   * @var string
+   */
   public $description;
   /**
-  * @var string
-  */
+   * @var string
+   */
   protected $requestId;
 
   public function __construct($map)
@@ -37,22 +40,22 @@ class AlibabaCloudException extends DaraException {
   }
 
   /**
-  * @return int
-  */
+   * @return int
+   */
   public function getStatusCode()
   {
     return $this->statusCode;
   }
   /**
-  * @return string
-  */
+   * @return string
+   */
   public function getDescription()
   {
     return $this->description;
   }
   /**
-  * @return string
-  */
+   * @return string
+   */
   public function getRequestId()
   {
     return $this->requestId;

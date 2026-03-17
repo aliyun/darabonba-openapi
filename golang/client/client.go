@@ -3,6 +3,7 @@ package client
 
 import (
 	"encoding/hex"
+	"os"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
@@ -106,6 +107,12 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 		client.Credential = config.Credential
 	}
 
+	if dara.IsNil(config.UserAgent) {
+		client.UserAgent = dara.String(os.Getenv("ALIBABA_CLOUD_USER_AGENT"))
+	} else {
+		client.UserAgent = config.UserAgent
+	}
+
 	client.Endpoint = config.Endpoint
 	client.EndpointType = config.EndpointType
 	client.Network = config.Network
@@ -113,7 +120,6 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 	client.Protocol = config.Protocol
 	client.Method = config.Method
 	client.RegionId = config.RegionId
-	client.UserAgent = config.UserAgent
 	client.ReadTimeout = config.ReadTimeout
 	client.ConnectTimeout = config.ConnectTimeout
 	client.HttpProxy = config.HttpProxy

@@ -1,12 +1,14 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Exceptions;
-class ClientException extends AlibabaCloudException {
+
+class ClientException extends AlibabaCloudException
+{
   /**
-  * @var mixed[]
-  */
+   * @var mixed[]
+   */
   public $accessDeniedDetail;
 
   public function __construct($map)
@@ -16,8 +18,8 @@ class ClientException extends AlibabaCloudException {
   }
 
   /**
-  * @return mixed[]
-  */
+   * @return mixed[]
+   */
   public function getAccessDeniedDetail()
   {
     return $this->accessDeniedDetail;

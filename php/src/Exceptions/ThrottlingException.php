@@ -1,12 +1,14 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Exceptions;
-class ThrottlingException extends AlibabaCloudException {
+
+class ThrottlingException extends AlibabaCloudException
+{
   /**
-  * @var int
-  */
+   * @var int
+   */
   protected $retryAfter;
 
   public function __construct($map)
@@ -16,8 +18,8 @@ class ThrottlingException extends AlibabaCloudException {
   }
 
   /**
-  * @return int
-  */
+   * @return int
+   */
   public function getRetryAfter()
   {
     return $this->retryAfter;
