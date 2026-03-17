@@ -3,7 +3,7 @@
 // This file is auto-generated, don't edit it. Thanks.
 
 namespace Darabonba\OpenApi;
-use Exception;
+
 use AlibabaCloud\Dara\Dara;
 use AlibabaCloud\Credentials\Credential;
 use Darabonba\GatewaySpi\Client;
@@ -31,6 +31,7 @@ use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
 use Darabonba\GatewaySpi\Models\InterceptorContext\response;
 use Darabonba\OpenApi\Models\SSEResponse;
+
 /**
  * @remarks
  * This is for OpenApi SDK
@@ -242,6 +243,12 @@ class OpenApiClient
       $this->_credential = $config->credential;
     }
 
+    if (is_null($config->userAgent)) {
+      $this->_userAgent = getenv('ALIBABA_CLOUD_USER_AGENT');
+    } else {
+      $this->_userAgent = $config->userAgent;
+    }
+
     $this->_endpoint = $config->endpoint;
     $this->_endpointType = $config->endpointType;
     $this->_network = $config->network;
@@ -249,7 +256,6 @@ class OpenApiClient
     $this->_protocol = $config->protocol;
     $this->_method = $config->method;
     $this->_regionId = $config->regionId;
-    $this->_userAgent = $config->userAgent;
     $this->_readTimeout = $config->readTimeout;
     $this->_connectTimeout = $config->connectTimeout;
     $this->_httpProxy = $config->httpProxy;
@@ -342,7 +348,6 @@ class OpenApiClient
           if (!is_null($globalParams->headers)) {
             $globalHeaders = $globalParams->headers;
           }
-
         }
 
         $extendsHeaders = [];
@@ -356,7 +361,6 @@ class OpenApiClient
           if (!is_null($extendsParameters->queries)) {
             $extendsQueries = $extendsParameters->queries;
           }
-
         }
 
         $_request->query = Dara::merge([
@@ -428,11 +432,9 @@ class OpenApiClient
               $t = $request->body;
             }
 
-            $signedParam = Dara::merge([
-            ], $_request->query, Utils::query($t));
+            $signedParam = Dara::merge([], $_request->query, Utils::query($t));
             @$_request->query['Signature'] = Utils::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
           }
-
         }
 
         $_lastRequest = $_request;
@@ -444,37 +446,36 @@ class OpenApiClient
           $err = $_res;
           $requestId = (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . (string) $code . '' == 'Throttling') || ('' . (string) $code . '' == 'Throttling.User') || ('' . (string) $code . '' == 'Throttling.Api')) {
+          if (('' . (string)$code . '' == 'Throttling') || ('' . (string)$code . '' == 'Throttling.User') || ('' . (string)$code . '' == 'Throttling.Api')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string) $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string)$code . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
-              'requestId' => '' . (string) $requestId . '',
+              'requestId' => '' . (string)$requestId . '',
             ]);
           } else if (($_response->statusCode >= 400) && ($_response->statusCode < 500)) {
             throw new ClientException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string) $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string)$code . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
-              'requestId' => '' . (string) $requestId . '',
+              'requestId' => '' . (string)$requestId . '',
             ]);
           } else {
             throw new ServerException([
               'statusCode' => $_response->statusCode,
-              'code' => '' . (string) $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'code' => '' . (string)$code . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
-              'requestId' => '' . (string) $requestId . '',
+              'requestId' => '' . (string)$requestId . '',
             ]);
           }
-
         }
 
         if ($bodyType == 'binary') {
@@ -519,7 +520,6 @@ class OpenApiClient
             'statusCode' => $_response->statusCode,
           ];
         }
-
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,
@@ -609,7 +609,6 @@ class OpenApiClient
           if (!is_null($globalParams->headers)) {
             $globalHeaders = $globalParams->headers;
           }
-
         }
 
         $extendsHeaders = [];
@@ -623,7 +622,6 @@ class OpenApiClient
           if (!is_null($extendsParameters->queries)) {
             $extendsQueries = $extendsParameters->queries;
           }
-
         }
 
         $_request->headers = Dara::merge([
@@ -642,11 +640,9 @@ class OpenApiClient
           @$_request->headers['content-type'] = 'application/json; charset=utf-8';
         }
 
-        $_request->query = Dara::merge([
-        ], $globalQueries, $extendsQueries);
+        $_request->query = Dara::merge([], $globalQueries, $extendsQueries);
         if (!is_null($request->query)) {
-          $_request->query = Dara::merge([
-          ], $_request->query, $request->query);
+          $_request->query = Dara::merge([], $_request->query, $request->query);
         }
 
         if ($authType != 'Anonymous') {
@@ -682,7 +678,6 @@ class OpenApiClient
             $stringToSign = Utils::getStringToSign($_request);
             @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
           }
-
         }
 
         $_lastRequest = $_request;
@@ -705,8 +700,8 @@ class OpenApiClient
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -715,8 +710,8 @@ class OpenApiClient
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -725,13 +720,12 @@ class OpenApiClient
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
-
         }
 
         if ($bodyType == 'binary') {
@@ -776,7 +770,6 @@ class OpenApiClient
             'statusCode' => $_response->statusCode,
           ];
         }
-
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,
@@ -866,7 +859,6 @@ class OpenApiClient
           if (!is_null($globalParams->headers)) {
             $globalHeaders = $globalParams->headers;
           }
-
         }
 
         $extendsHeaders = [];
@@ -880,7 +872,6 @@ class OpenApiClient
           if (!is_null($extendsParameters->queries)) {
             $extendsQueries = $extendsParameters->queries;
           }
-
         }
 
         $_request->headers = Dara::merge([
@@ -900,11 +891,9 @@ class OpenApiClient
           @$_request->headers['content-type'] = 'application/x-www-form-urlencoded';
         }
 
-        $_request->query = Dara::merge([
-        ], $globalQueries, $extendsQueries);
+        $_request->query = Dara::merge([], $globalQueries, $extendsQueries);
         if (!is_null($request->query)) {
-          $_request->query = Dara::merge([
-          ], $_request->query, $request->query);
+          $_request->query = Dara::merge([], $_request->query, $request->query);
         }
 
         if ($authType != 'Anonymous') {
@@ -940,7 +929,6 @@ class OpenApiClient
             $stringToSign = Utils::getStringToSign($_request);
             @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
           }
-
         }
 
         $_lastRequest = $_request;
@@ -962,8 +950,8 @@ class OpenApiClient
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -972,8 +960,8 @@ class OpenApiClient
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -982,13 +970,12 @@ class OpenApiClient
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
-
         }
 
         if ($bodyType == 'binary') {
@@ -1033,7 +1020,6 @@ class OpenApiClient
             'statusCode' => $_response->statusCode,
           ];
         }
-
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,
@@ -1116,7 +1102,6 @@ class OpenApiClient
           if (!is_null($globalParams->headers)) {
             $globalHeaders = $globalParams->headers;
           }
-
         }
 
         $extendsHeaders = [];
@@ -1130,11 +1115,9 @@ class OpenApiClient
           if (!is_null($extendsParameters->queries)) {
             $extendsQueries = $extendsParameters->queries;
           }
-
         }
 
-        $_request->query = Dara::merge([
-        ], $globalQueries, $extendsQueries, $request->query);
+        $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
         // endpoint is setted in product client
         $_request->headers = Dara::merge([
           'host' => $this->_endpoint,
@@ -1148,10 +1131,8 @@ class OpenApiClient
         if ($params->style == 'RPC') {
           $headers = $this->getRpcHeaders();
           if (!is_null($headers)) {
-            $_request->headers = Dara::merge([
-            ], $_request->headers, $headers);
+            $_request->headers = Dara::merge([], $_request->headers, $headers);
           }
-
         }
 
         $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
@@ -1179,9 +1160,7 @@ class OpenApiClient
               $_request->body = $formObj;
               @$_request->headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-
           }
-
         }
 
         @$_request->headers['x-acs-content-sha256'] = bin2hex(BytesUtil::toString($hashedRequestPayload));
@@ -1207,7 +1186,6 @@ class OpenApiClient
             } else {
               @$_request->headers['x-acs-signature-type'] = 'BEARERTOKEN';
             }
-
           } else if ($authType == 'id_token') {
             $idToken = $credentialModel->securityToken;
             @$_request->headers['x-acs-zero-trust-idtoken'] = $idToken;
@@ -1222,7 +1200,6 @@ class OpenApiClient
 
             @$_request->headers['Authorization'] = Utils::getAuthorization($_request, $signatureAlgorithm, bin2hex(BytesUtil::toString($hashedRequestPayload)), $accessKeyId, $accessKeySecret);
           }
-
         }
 
         $_lastRequest = $_request;
@@ -1246,8 +1223,8 @@ class OpenApiClient
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -1256,8 +1233,8 @@ class OpenApiClient
             throw new ClientException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
               'requestId' => '' . $requestId . '',
@@ -1266,13 +1243,12 @@ class OpenApiClient
             throw new ServerException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
-              'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
-              'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
+              'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
           }
-
         }
 
         if ($params->bodyType == 'binary') {
@@ -1319,7 +1295,6 @@ class OpenApiClient
             'statusCode' => $_response->statusCode,
           ];
         }
-
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,
@@ -1402,7 +1377,6 @@ class OpenApiClient
           if (!is_null($globalParams->headers)) {
             $globalHeaders = $globalParams->headers;
           }
-
         }
 
         $extendsHeaders = [];
@@ -1416,14 +1390,11 @@ class OpenApiClient
           if (!is_null($extendsParameters->queries)) {
             $extendsQueries = $extendsParameters->queries;
           }
-
         }
 
         $requestContext = new \Darabonba\GatewaySpi\Models\InterceptorContext\request([
-          'headers' => Dara::merge([
-          ], $globalHeaders, $extendsHeaders, $request->headers, $headers),
-          'query' => Dara::merge([
-          ], $globalQueries, $extendsQueries, $request->query),
+          'headers' => Dara::merge([], $globalHeaders, $extendsHeaders, $request->headers, $headers),
+          'query' => Dara::merge([], $globalQueries, $extendsQueries, $request->query),
           'body' => $request->body,
           'stream' => $request->stream,
           'hostMap' => $request->hostMap,
@@ -1482,11 +1453,12 @@ class OpenApiClient
         $interceptorContext->response = $responseContext;
         // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         $this->_spi->modifyResponse($interceptorContext, $attributeMap);
-        return [
+        $resp = [
           'headers' => $interceptorContext->response->headers,
           'statusCode' => $interceptorContext->response->statusCode,
           'body' => $interceptorContext->response->deserializedBody,
         ];
+        return $resp;
       } catch (DaraException $e) {
         $_context = new RetryPolicyContext([
           'retriesAttempted' => $_retriesAttempted,
@@ -1540,7 +1512,6 @@ class OpenApiClient
       if (!is_null($globalParams->headers)) {
         $globalHeaders = $globalParams->headers;
       }
-
     }
 
     $extendsHeaders = [];
@@ -1554,11 +1525,9 @@ class OpenApiClient
       if (!is_null($extendsParameters->queries)) {
         $extendsQueries = $extendsParameters->queries;
       }
-
     }
 
-    $_request->query = Dara::merge([
-    ], $globalQueries, $extendsQueries, $request->query);
+    $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
     // endpoint is setted in product client
     $_request->headers = Dara::merge([
       'host' => $this->_endpoint,
@@ -1572,10 +1541,8 @@ class OpenApiClient
     if ($params->style == 'RPC') {
       $headers = $this->getRpcHeaders();
       if (!is_null($headers)) {
-        $_request->headers = Dara::merge([
-        ], $_request->headers, $headers);
+        $_request->headers = Dara::merge([], $_request->headers, $headers);
       }
-
     }
 
     $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
@@ -1603,9 +1570,7 @@ class OpenApiClient
           $_request->body = $formObj;
           @$_request->headers['content-type'] = 'application/x-www-form-urlencoded';
         }
-
       }
-
     }
 
     @$_request->headers['x-acs-content-sha256'] = bin2hex(BytesUtil::toString($hashedRequestPayload));
@@ -1633,7 +1598,6 @@ class OpenApiClient
 
         @$_request->headers['Authorization'] = Utils::getAuthorization($_request, $signatureAlgorithm, bin2hex(BytesUtil::toString($hashedRequestPayload)), $accessKeyId, $accessKeySecret);
       }
-
     }
 
     $_runtime['stream'] = true;
@@ -1696,11 +1660,9 @@ class OpenApiClient
       } else {
         return $this->doRPCRequest($params->action, $params->version, $params->protocol, $params->method, $params->authType, $params->bodyType, $request, $runtime);
       }
-
     } else {
       return $this->execute($params, $request, $runtime);
     }
-
   }
 
   /**
@@ -1799,7 +1761,6 @@ class OpenApiClient
         'message' => '\'config.endpoint\' can not be empty',
       ]);
     }
-
   }
 
   /**
@@ -1857,5 +1818,4 @@ class OpenApiClient
 
     return $accessDeniedDetail;
   }
-
 }

@@ -1,10 +1,13 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Models;
+
 use AlibabaCloud\Dara\Model;
-class Params extends Model {
+
+class Params extends Model
+{
   /**
    * @var string
    */
@@ -42,15 +45,15 @@ class Params extends Model {
    */
   public $style;
   protected $_name = [
-      'action' => 'action',
-      'version' => 'version',
-      'protocol' => 'protocol',
-      'pathname' => 'pathname',
-      'method' => 'method',
-      'authType' => 'authType',
-      'bodyType' => 'bodyType',
-      'reqBodyType' => 'reqBodyType',
-      'style' => 'style',
+    'action' => 'action',
+    'version' => 'version',
+    'protocol' => 'protocol',
+    'pathname' => 'pathname',
+    'method' => 'method',
+    'authType' => 'authType',
+    'bodyType' => 'bodyType',
+    'reqBodyType' => 'reqBodyType',
+    'style' => 'style',
   ];
 
   public function validate()
@@ -154,7 +157,4 @@ class Params extends Model {
 
     return $model;
   }
-
-
 }
-

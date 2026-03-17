@@ -2,6 +2,8 @@
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
 
+import os
+
 from typing import Dict, Generator, AsyncGenerator, Any
 
 from alibabacloud_credentials import models as credential_models
@@ -92,6 +94,11 @@ class Client:
             self._credential = CredentialClient(cc)
         elif not DaraCore.is_null(config.credential):
             self._credential = config.credential
+        if DaraCore.is_null(config.user_agent):
+            self._user_agent = os.environ.get('ALIBABA_CLOUD_USER_AGENT')
+        else:
+            self._user_agent = config.user_agent
+
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
         self._network = config.network
@@ -99,7 +106,6 @@ class Client:
         self._protocol = config.protocol
         self._method = config.method
         self._region_id = config.region_id
-        self._user_agent = config.user_agent
         self._read_timeout = config.read_timeout
         self._connect_timeout = config.connect_timeout
         self._http_proxy = config.http_proxy
@@ -1977,11 +1983,12 @@ class Client:
                 interceptor_context.response = response_context
                 # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 self._spi.modify_response(interceptor_context, attribute_map)
-                return {
+                resp = {
                     'headers': interceptor_context.response.headers,
                     'statusCode': interceptor_context.response.status_code,
                     'body': interceptor_context.response.deserialized_body
                 }
+                return resp
             except Exception as e:
                 _context = RetryPolicyContext(
                     retries_attempted= _retries_attempted,
@@ -2105,11 +2112,12 @@ class Client:
                 interceptor_context.response = response_context
                 # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 await self._spi.modify_response_async(interceptor_context, attribute_map)
-                return {
+                resp = {
                     'headers': interceptor_context.response.headers,
                     'statusCode': interceptor_context.response.status_code,
                     'body': interceptor_context.response.deserialized_body
                 }
+                return resp
             except Exception as e:
                 _context = RetryPolicyContext(
                     retries_attempted= _retries_attempted,

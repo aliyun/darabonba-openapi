@@ -11,8 +11,14 @@ namespace Darabonba\OpenApi;
 class Sm3
 {
     private static $IV = [
-        0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
-        0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e
+        0x7380166f,
+        0x4914b2b9,
+        0x172442d7,
+        0xda8a0600,
+        0xa96f30bc,
+        0x163138aa,
+        0xe38dee4d,
+        0xb0fb0e4e
     ];
 
     private static $T_0_15 = 0x79cc4519;
@@ -28,30 +34,30 @@ class Sm3
     {
         $len = strlen($message);
         $bitLen = $len * 8;
-        
+
         // Padding
         $message .= "\x80";
         $padLen = (56 - (($len + 1) % 64)) % 64;
         $message .= str_repeat("\x00", $padLen);
-        
+
         // Append length
         $message .= pack('N', $bitLen >> 32);
         $message .= pack('N', $bitLen & 0xFFFFFFFF);
-        
+
         // Process message in 512-bit blocks
         $v = self::$IV;
         $blocks = str_split($message, 64);
-        
+
         foreach ($blocks as $block) {
             $v = $this->cf($v, $block);
         }
-        
+
         // Convert to hex string
         $result = '';
         foreach ($v as $word) {
             $result .= sprintf('%08x', $word);
         }
-        
+
         return $result;
     }
 
@@ -62,22 +68,22 @@ class Sm3
     {
         $w = [];
         $w1 = [];
-        
+
         // Expand message block
         for ($i = 0; $i < 16; $i++) {
             $w[$i] = unpack('N', substr($block, $i * 4, 4))[1];
         }
-        
+
         for ($i = 16; $i < 68; $i++) {
             $w[$i] = $this->p1(
                 $w[$i - 16] ^ $w[$i - 9] ^ $this->rotl($w[$i - 3], 15)
             ) ^ $this->rotl($w[$i - 13], 7) ^ $w[$i - 6];
         }
-        
+
         for ($i = 0; $i < 64; $i++) {
             $w1[$i] = $w[$i] ^ $w[$i + 4];
         }
-        
+
         // Compression
         $a = $v[0];
         $b = $v[1];
@@ -87,7 +93,7 @@ class Sm3
         $f = $v[5];
         $g = $v[6];
         $h = $v[7];
-        
+
         for ($i = 0; $i < 64; $i++) {
             $ss1 = $this->rotl(
                 $this->add32(
@@ -96,7 +102,7 @@ class Sm3
                 ),
                 7
             );
-            
+
             $ss2 = $ss1 ^ $this->rotl($a, 12);
             $tt1 = $this->add32(
                 $this->add32(
@@ -105,7 +111,7 @@ class Sm3
                 ),
                 $w1[$i]
             );
-            
+
             $tt2 = $this->add32(
                 $this->add32(
                     $this->add32($this->gg($e, $f, $g, $i), $h),
@@ -113,7 +119,7 @@ class Sm3
                 ),
                 $w[$i]
             );
-            
+
             $d = $c;
             $c = $this->rotl($b, 9);
             $b = $a;
@@ -123,7 +129,7 @@ class Sm3
             $f = $e;
             $e = $this->p0($tt2);
         }
-        
+
         return [
             $a ^ $v[0],
             $b ^ $v[1],

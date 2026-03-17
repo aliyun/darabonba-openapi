@@ -74,7 +74,7 @@ class UtilsTest extends TestCase
         $data = 'test message';
         $bytes = BytesUtil::from($data);
         $result = Utils::hash($bytes, 'ACS3-HMAC-SHA256');
-        
+
         $this->checkInternalType('string', $result);
         $this->assertEquals(32, strlen($result)); // SHA256 produces 32 bytes
 
@@ -110,7 +110,7 @@ class UtilsTest extends TestCase
     public function testGetTimestamp()
     {
         $timestamp = Utils::getTimestamp();
-        
+
         $this->checkInternalType('string', $timestamp);
         // Format: 2023-12-26T10:30:00Z
         $this->checkRegExp('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $timestamp);
@@ -122,7 +122,7 @@ class UtilsTest extends TestCase
     public function testGetDateUTCString()
     {
         $dateString = Utils::getDateUTCString();
-        
+
         $this->checkInternalType('string', $dateString);
         // Format: Mon, 26 Dec 2023 10:30:00 GMT
         $this->checkRegExp('/^\w{3}, \d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2} \w+$/', $dateString);
@@ -135,9 +135,9 @@ class UtilsTest extends TestCase
     {
         $stringToSign = "GET\n\n\n\nTue, 26 Dec 2023 10:30:00 GMT\n/test";
         $secret = "test-secret";
-        
+
         $signature = Utils::getROASignature($stringToSign, $secret);
-        
+
         $this->checkInternalType('string', $signature);
         $this->assertNotEmpty($signature);
     }
@@ -154,9 +154,9 @@ class UtilsTest extends TestCase
         );
         $method = 'GET';
         $secret = 'test-secret';
-        
+
         $signature = Utils::getRPCSignature($signedParams, $method, $secret);
-        
+
         $this->checkInternalType('string', $signature);
         $this->assertNotEmpty($signature);
     }
@@ -171,9 +171,9 @@ class UtilsTest extends TestCase
             'key2' => 'value2',
             'nested' => array('key3' => 'value3')
         );
-        
+
         $result = Utils::toForm($filter);
-        
+
         $this->checkInternalType('string', $result);
         $this->checkStringContains('key1=value1', $result);
         $this->checkStringContains('key2=value2', $result);
@@ -194,9 +194,9 @@ class UtilsTest extends TestCase
             '_private' => 'ignore',
             'nested' => array('key3' => 'value3')
         );
-        
+
         $result = Utils::query($filter);
-        
+
         $this->checkInternalType('array', $result);
         $this->assertArrayHasKey('key1', $result);
         $this->assertArrayHasKey('key2', $result);
@@ -214,7 +214,7 @@ class UtilsTest extends TestCase
     public function testArrayToStringWithSpecifiedStyle()
     {
         $array = array('a', 'b', 'c');
-        
+
         // Test simple style (comma-separated)
         $result = Utils::arrayToStringWithSpecifiedStyle($array, 'prefix', 'simple');
         $this->assertEquals('a,b,c', $result);
@@ -246,9 +246,9 @@ class UtilsTest extends TestCase
             'key1' => 'value1',
             'key2' => array('nested' => 'value2')
         );
-        
+
         $result = Utils::parseToMap($input);
-        
+
         $this->checkInternalType('array', $result);
         $this->assertEquals('value1', $result['key1']);
         $this->checkInternalType('array', $result['key2']);
@@ -267,7 +267,7 @@ class UtilsTest extends TestCase
     {
         // Test with custom user agent
         $userAgent = Utils::getUserAgent('MyApp/1.0');
-        
+
         $this->checkInternalType('string', $userAgent);
         $this->checkStringContains('AlibabaCloud', $userAgent);
         $this->checkStringContains('PHP/', $userAgent);
@@ -288,9 +288,9 @@ class UtilsTest extends TestCase
             'key1' => 'value1',
             'key2' => array('nested' => 'value2')
         );
-        
+
         $result = Utils::toArray($input);
-        
+
         $this->checkInternalType('array', $result);
         $this->assertEquals($input, $result);
 
@@ -310,9 +310,9 @@ class UtilsTest extends TestCase
             'null' => null,
             'string' => 'test'
         );
-        
+
         $result = Utils::stringifyMapValue($map);
-        
+
         $this->checkInternalType('array', $result);
         $this->assertEquals('123', $result['int']);
         $this->assertEquals('true', $result['bool']);
@@ -418,7 +418,7 @@ class UtilsTest extends TestCase
         );
 
         $result = Utils::getStringToSign($request);
-        
+
         $this->checkInternalType('string', $result);
         $this->checkStringContains('GET', $result);
         $this->checkStringContains('/test', $result);
@@ -447,7 +447,7 @@ class UtilsTest extends TestCase
             'test-ak',
             'test-sk'
         );
-        
+
         $this->checkInternalType('string', $result);
         $this->checkStringContains('ACS3-HMAC-SHA256', $result);
         $this->checkStringContains('Credential=test-ak', $result);
@@ -461,7 +461,7 @@ class UtilsTest extends TestCase
     public function testSm3()
     {
         $sm3 = new Sm3();
-        
+
         // Test known value
         $result = $sm3->sign('abc');
         $this->assertEquals('66c7f0f462eeedd9d1f2d46bdc10e4e24167c4875cf2f7a2297da02b8f4ba8e0', $result);

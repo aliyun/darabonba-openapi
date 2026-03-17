@@ -1,17 +1,20 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Models;
+
 use AlibabaCloud\Dara\Model;
 use AlibabaCloud\Credentials\Credential;
 use Darabonba\OpenApi\Models\GlobalParameters;
 use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
+
 /**
  * @remarks
  * Model for initing client
  */
-class Config extends Model {
+class Config extends Model
+{
   /**
    * @var string
    */
@@ -141,46 +144,46 @@ class Config extends Model {
    */
   public $retryOptions;
   protected $_name = [
-      'accessKeyId' => 'accessKeyId',
-      'accessKeySecret' => 'accessKeySecret',
-      'securityToken' => 'securityToken',
-      'bearerToken' => 'bearerToken',
-      'protocol' => 'protocol',
-      'method' => 'method',
-      'regionId' => 'regionId',
-      'readTimeout' => 'readTimeout',
-      'connectTimeout' => 'connectTimeout',
-      'httpProxy' => 'httpProxy',
-      'httpsProxy' => 'httpsProxy',
-      'credential' => 'credential',
-      'endpoint' => 'endpoint',
-      'noProxy' => 'noProxy',
-      'maxIdleConns' => 'maxIdleConns',
-      'network' => 'network',
-      'userAgent' => 'userAgent',
-      'suffix' => 'suffix',
-      'socks5Proxy' => 'socks5Proxy',
-      'socks5NetWork' => 'socks5NetWork',
-      'endpointType' => 'endpointType',
-      'openPlatformEndpoint' => 'openPlatformEndpoint',
-      'type' => 'type',
-      'signatureVersion' => 'signatureVersion',
-      'signatureAlgorithm' => 'signatureAlgorithm',
-      'globalParameters' => 'globalParameters',
-      'key' => 'key',
-      'cert' => 'cert',
-      'ca' => 'ca',
-      'disableHttp2' => 'disableHttp2',
-      'tlsMinVersion' => 'tlsMinVersion',
-      'retryOptions' => 'retryOptions',
+    'accessKeyId' => 'accessKeyId',
+    'accessKeySecret' => 'accessKeySecret',
+    'securityToken' => 'securityToken',
+    'bearerToken' => 'bearerToken',
+    'protocol' => 'protocol',
+    'method' => 'method',
+    'regionId' => 'regionId',
+    'readTimeout' => 'readTimeout',
+    'connectTimeout' => 'connectTimeout',
+    'httpProxy' => 'httpProxy',
+    'httpsProxy' => 'httpsProxy',
+    'credential' => 'credential',
+    'endpoint' => 'endpoint',
+    'noProxy' => 'noProxy',
+    'maxIdleConns' => 'maxIdleConns',
+    'network' => 'network',
+    'userAgent' => 'userAgent',
+    'suffix' => 'suffix',
+    'socks5Proxy' => 'socks5Proxy',
+    'socks5NetWork' => 'socks5NetWork',
+    'endpointType' => 'endpointType',
+    'openPlatformEndpoint' => 'openPlatformEndpoint',
+    'type' => 'type',
+    'signatureVersion' => 'signatureVersion',
+    'signatureAlgorithm' => 'signatureAlgorithm',
+    'globalParameters' => 'globalParameters',
+    'key' => 'key',
+    'cert' => 'cert',
+    'ca' => 'ca',
+    'disableHttp2' => 'disableHttp2',
+    'tlsMinVersion' => 'tlsMinVersion',
+    'retryOptions' => 'retryOptions',
   ];
 
   public function validate()
   {
-    if(null !== $this->credential) {
+    if (null !== $this->credential) {
       $this->credential->validate();
     }
-    if(null !== $this->globalParameters) {
+    if (null !== $this->globalParameters) {
       $this->globalParameters->validate();
     }
     parent::validate();
@@ -458,7 +461,4 @@ class Config extends Model {
 
     return $model;
   }
-
-
 }
-

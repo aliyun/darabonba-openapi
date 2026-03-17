@@ -110,6 +110,12 @@ init(config: OpenApiUtil.Config) {
   } else if(!$isNull(config.credential)) {
     @credential = config.credential;
   }
+
+  if ($isNull(config.userAgent)) {
+    @userAgent = $Env.get('ALIBABA_CLOUD_USER_AGENT');
+  } else {
+    @userAgent = config.userAgent;
+  }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
   @network = config.network;
@@ -117,7 +123,6 @@ init(config: OpenApiUtil.Config) {
   @protocol = config.protocol;
   @method = config.method;
   @regionId = config.regionId;
-  @userAgent = config.userAgent;
   @readTimeout = config.readTimeout;
   @connectTimeout = config.connectTimeout;
   @httpProxy = config.httpProxy;

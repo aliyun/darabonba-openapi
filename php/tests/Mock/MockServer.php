@@ -6,12 +6,13 @@ if (!$server) {
     die("Error: $errstr ($errno)");
 }
 
-function send_sse($client, $id, $event, $data, $retry = 3000) {
+function send_sse($client, $id, $event, $data, $retry = 3000)
+{
     $sseData = "id: $id\n";
     $sseData .= "event: $event\n";
     $sseData .= "data: " . json_encode($data) . "\n";
     $sseData .= "retry: $retry\n\n";  // The retry comment is optional and should follow client's needs
-    
+
     fwrite($client, $sseData);
     fflush($client);
 }
@@ -32,16 +33,16 @@ while ($client = @stream_socket_accept($server)) {
 
 
     $headerAssoc = [];
-    
+
     foreach ($headerLines as $header) {
         list($name, $value) = explode(": ", $header, 2);
         $headerAssoc[strtolower($name)] = $value;
     }
     if (substr($path, 0, 4) === '/sse') {
         $responseHeaders = "HTTP/1.1 200 OK\r\n" .
-        "Content-Type: text/event-stream;charset=UTF-8\r\n" .
-        "Cache-Control: no-cache\r\n" .
-        "Connection: keep-alive\r\n";
+            "Content-Type: text/event-stream;charset=UTF-8\r\n" .
+            "Cache-Control: no-cache\r\n" .
+            "Connection: keep-alive\r\n";
         foreach ($headerAssoc as $name => $value) {
             $responseHeaders .= $name . ": " . $value . "\r\n";
         }
@@ -77,8 +78,8 @@ while ($client = @stream_socket_accept($server)) {
         // 模拟超时
         sleep(5);
         $responseHeaders = "HTTP/1.1 500 Internal Server Error\r\n" .
-                           "Content-Type: text/plain\r\n" .
-                           "Connection: close\r\n\r\n";
+            "Content-Type: text/plain\r\n" .
+            "Connection: close\r\n\r\n";
         fwrite($client, $responseHeaders . "Server Timeout");
     } else {
         $headerAssoc = [];
@@ -94,17 +95,17 @@ while ($client = @stream_socket_accept($server)) {
 
         // 构建响应头
         $responseHeaders = "HTTP/1.1 200 OK\r\n" .
-                           "Connection: close\r\n" .
-                           "Content-Type: application/json\r\n" .
-                           "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
-                           "http-method: $method\r\n" .
-                           "pathname: $path\r\n" .
-                           "raw-body: $body\r\n";
+            "Connection: close\r\n" .
+            "Content-Type: application/json\r\n" .
+            "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+            "http-method: $method\r\n" .
+            "pathname: $path\r\n" .
+            "raw-body: $body\r\n";
 
         // 构建响应体
         $responseBody = "";
 
-        echo $bodyType."\n";
+        echo $bodyType . "\n";
 
         switch ($bodyType) {
             case 'array':
@@ -112,11 +113,11 @@ while ($client = @stream_socket_accept($server)) {
                 break;
             case 'error':
                 $responseHeaders = "HTTP/1.1 400 Bad Request\r\n" .
-                                   "Connection: close\r\n" .
-                                   "Content-Type: application/json\r\n" .
-                                   "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
-                                   "http-method: $method\r\n" .
-                                   "pathname: $path\r\n";                  
+                    "Connection: close\r\n" .
+                    "Content-Type: application/json\r\n" .
+                    "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                    "http-method: $method\r\n" .
+                    "pathname: $path\r\n";
                 $responseBody = json_encode([
                     "Code" => "error code",
                     "Message" => "error message",
@@ -127,11 +128,11 @@ while ($client = @stream_socket_accept($server)) {
                 break;
             case 'error1':
                 $responseHeaders = "HTTP/1.1 400 Bad Request\r\n" .
-                                   "Connection: close\r\n" .
-                                   "Content-Type: application/json\r\n" .
-                                   "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
-                                   "http-method: $method\r\n" .
-                                   "pathname: $path\r\n";                  
+                    "Connection: close\r\n" .
+                    "Content-Type: application/json\r\n" .
+                    "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                    "http-method: $method\r\n" .
+                    "pathname: $path\r\n";
                 $responseBody = json_encode([
                     "Code" => "error code",
                     "Message" => "error message",
@@ -143,11 +144,11 @@ while ($client = @stream_socket_accept($server)) {
                 break;
             case 'error2':
                 $responseHeaders = "HTTP/1.1 400 Bad Request\r\n" .
-                                   "Connection: close\r\n" .
-                                   "Content-Type: application/json\r\n" .
-                                   "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
-                                   "http-method: $method\r\n" .
-                                   "pathname: $path\r\n";                  
+                    "Connection: close\r\n" .
+                    "Content-Type: application/json\r\n" .
+                    "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                    "http-method: $method\r\n" .
+                    "pathname: $path\r\n";
                 $responseBody = json_encode([
                     "Code" => "error code",
                     "Message" => "error message",
