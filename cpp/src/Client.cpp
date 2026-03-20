@@ -78,7 +78,8 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
   this->_noProxy = config.getNoProxy();
   this->_socks5Proxy = config.getSocks5Proxy();
   this->_socks5NetWork = config.getSocks5NetWork();
-  this->_maxIdleConns = config.getMaxIdleConns();
+  this->_maxConnections = config.getMaxConnections();
+  this->_maxHostConnections = config.getMaxHostConnections();
   this->_signatureVersion = config.getSignatureVersion();
   this->_signatureAlgorithm = config.getSignatureAlgorithm();
   this->_globalParameters = config.getGlobalParameters();
@@ -103,8 +104,10 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
     {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
     {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
     {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
-    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
-    {"retryOptions", _retryOptions},
+    {"maxConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxConnections(), _maxConnections))},
+    {"keepAlive", runtime.getKeepAlive()},
+    {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
+    {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -114,7 +117,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
   });
-  while (Darabonba::allowRetry(runtime_.getRetryOptions(), _context)) {
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
     if (_retriesAttempted > 0) {
       int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
       if (_backoffTime > 0) {
@@ -166,32 +169,16 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
         extendsQueries,
         request.getQuery()
       ).get<map<string, string>>());
-      map<string, string> headers = getRpcHeaders();
-      if (Darabonba::isNull(headers)) {
-        // endpoint is setted in product client
-        request_.setHeaders(Darabonba::Core::merge(json({
-            {"host" , _endpoint},
-            {"x-acs-version" , version},
-            {"x-acs-action" , action},
-            {"user-agent" , Utils::Utils::getUserAgent(_userAgent)}
-          }),
-          globalHeaders,
-          extendsHeaders,
-          request.getHeaders()
-        ).get<map<string, string>>());
-      } else {
-        request_.setHeaders(Darabonba::Core::merge(json({
-            {"host" , _endpoint},
-            {"x-acs-version" , version},
-            {"x-acs-action" , action},
-            {"user-agent" , Utils::Utils::getUserAgent(_userAgent)}
-          }),
-          globalHeaders,
-          extendsHeaders,
-          request.getHeaders(),
-          headers
-        ).get<map<string, string>>());
-      }
+      request_.setHeaders(Darabonba::Core::merge(json({
+          {"host" , _endpoint},
+          {"x-acs-version" , version},
+          {"x-acs-action" , action},
+          {"user-agent" , Utils::Utils::getUserAgent(_userAgent)}
+        }),
+        globalHeaders,
+        extendsHeaders,
+        request.getHeaders()
+      ).get<map<string, string>>());
 
       if (!!request.hasBody()) {
         json m = json(request.getBody());
@@ -247,7 +234,6 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
 
       auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
       shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
-
       if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
         Darabonba::Json _res = Darabonba::Stream::readAsJSON(response_->getBody());
         json err = json(_res);
@@ -354,8 +340,10 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
     {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
     {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
     {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
-    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
-    {"retryOptions", _retryOptions},
+    {"maxConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxConnections(), _maxConnections))},
+    {"keepAlive", runtime.getKeepAlive()},
+    {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
+    {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -365,7 +353,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
   });
-  while (Darabonba::allowRetry(runtime_.getRetryOptions(), _context)) {
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
     if (_retriesAttempted > 0) {
       int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
       if (_backoffTime > 0) {
@@ -587,8 +575,10 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
     {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
     {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
     {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
-    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
-    {"retryOptions", _retryOptions},
+    {"maxConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxConnections(), _maxConnections))},
+    {"keepAlive", runtime.getKeepAlive()},
+    {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
+    {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -598,7 +588,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
   });
-  while (Darabonba::allowRetry(runtime_.getRetryOptions(), _context)) {
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
     if (_retriesAttempted > 0) {
       int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
       if (_backoffTime > 0) {
@@ -820,8 +810,10 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
     {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
     {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
     {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
-    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
-    {"retryOptions", _retryOptions},
+    {"maxConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxConnections(), _maxConnections))},
+    {"keepAlive", runtime.getKeepAlive()},
+    {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
+    {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -831,7 +823,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
   });
-  while (Darabonba::allowRetry(runtime_.getRetryOptions(), _context)) {
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
     if (_retriesAttempted > 0) {
       int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
       if (_backoffTime > 0) {
@@ -890,16 +882,6 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
         extendsHeaders,
         request.getHeaders()
       ).get<map<string, string>>());
-      if (params.getStyle() == "RPC") {
-        map<string, string> headers = getRpcHeaders();
-        if (!Darabonba::isNull(headers)) {
-          request_.setHeaders(Darabonba::Core::merge(request_.getHeaders(),
-            headers
-          ).get<map<string, string>>());
-        }
-
-      }
-
       string signatureAlgorithm = Darabonba::Convert::stringVal(Darabonba::defaultVal(_signatureAlgorithm, "ACS3-HMAC-SHA256"));
       Darabonba::Bytes hashedRequestPayload = Utils::Utils::hash(Darabonba::BytesUtil::from("", "utf-8"), signatureAlgorithm);
       if (!!request.hasStream()) {
@@ -1090,8 +1072,10 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
     {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
     {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
     {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
-    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
-    {"retryOptions", _retryOptions},
+    {"maxConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxConnections(), _maxConnections))},
+    {"keepAlive", runtime.getKeepAlive()},
+    {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
+    {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion},
     {"disableHttp2", Darabonba::Convert::boolVal(Darabonba::defaultVal(_disableHttp2, false))}
@@ -1102,7 +1086,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
   Darabonba::Policy::RetryPolicyContext _context = json({
     {"retriesAttempted" , _retriesAttempted}
   });
-  while (Darabonba::allowRetry(runtime_.getRetryOptions(), _context)) {
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
     if (_retriesAttempted > 0) {
       int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
       if (_backoffTime > 0) {
@@ -1113,7 +1097,6 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
     try {
       Darabonba::Http::Request request_ = Darabonba::Http::Request();
       // spi = new Gateway();//Gateway implements SPI，这一步在产品 SDK 中实例化
-      map<string, string> headers = getRpcHeaders();
       map<string, string> globalQueries = {};
       map<string, string> globalHeaders = {};
       if (!Darabonba::isNull(_globalParameters)) {
@@ -1145,8 +1128,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
       InterceptorContextRequest requestContext = InterceptorContextRequest(json({
         {"headers" , Darabonba::Core::merge(globalHeaders,
           extendsHeaders,
-          request.getHeaders(),
-          headers
+          request.getHeaders()
         ).get<map<string, string>>()},
         {"query" , Darabonba::Core::merge(globalQueries,
           extendsQueries,
@@ -1338,23 +1320,6 @@ void Client::checkConfig(const AlibabaCloud::OpenApi::Utils::Models::Config &con
  */
 void Client::setGatewayClient(const shared_ptr<SPI> &spi) {
   this->_spi = spi;
-}
-
-/**
- * set RPC header for debug
- * @param headers headers for debug, this header can be used only once.
- */
-void Client::setRpcHeaders(const map<string, string> &headers) {
-  this->_headers = headers;
-}
-
-/**
- * get RPC header for debug
- */
-map<string, string> Client::getRpcHeaders() {
-  map<string, string> headers = _headers;
-  this->_headers = map<string, string>();
-  return headers;
 }
 
 json Client::getAccessDeniedDetail(const json &err) {

@@ -35,7 +35,7 @@ namespace Models
       DARABONBA_TO_JSON(credential, credential_);
       DARABONBA_PTR_TO_JSON(endpoint, endpoint_);
       DARABONBA_PTR_TO_JSON(noProxy, noProxy_);
-      DARABONBA_PTR_TO_JSON(maxIdleConns, maxIdleConns_);
+      DARABONBA_PTR_TO_JSON(maxConnections, maxConnections_);
       DARABONBA_PTR_TO_JSON(network, network_);
       DARABONBA_PTR_TO_JSON(userAgent, userAgent_);
       DARABONBA_PTR_TO_JSON(suffix, suffix_);
@@ -69,7 +69,7 @@ namespace Models
       DARABONBA_FROM_JSON(credential, credential_);
       DARABONBA_PTR_FROM_JSON(endpoint, endpoint_);
       DARABONBA_PTR_FROM_JSON(noProxy, noProxy_);
-      DARABONBA_PTR_FROM_JSON(maxIdleConns, maxIdleConns_);
+      DARABONBA_PTR_FROM_JSON(maxConnections, maxConnections_);
       DARABONBA_PTR_FROM_JSON(network, network_);
       DARABONBA_PTR_FROM_JSON(userAgent, userAgent_);
       DARABONBA_PTR_FROM_JSON(suffix, suffix_);
@@ -102,7 +102,7 @@ namespace Models
     virtual bool empty() const override { return this->accessKeyId_ == nullptr
         && this->accessKeySecret_ == nullptr && this->securityToken_ == nullptr && this->bearerToken_ == nullptr && this->protocol_ == nullptr && this->method_ == nullptr
         && this->regionId_ == nullptr && this->readTimeout_ == nullptr && this->connectTimeout_ == nullptr && this->httpProxy_ == nullptr && this->httpsProxy_ == nullptr
-        && this->credential_ == nullptr && this->endpoint_ == nullptr && this->noProxy_ == nullptr && this->maxIdleConns_ == nullptr && this->network_ == nullptr
+        && this->credential_ == nullptr && this->endpoint_ == nullptr && this->noProxy_ == nullptr && this->maxConnections_ == nullptr && this->network_ == nullptr
         && this->userAgent_ == nullptr && this->suffix_ == nullptr && this->socks5Proxy_ == nullptr && this->socks5NetWork_ == nullptr && this->endpointType_ == nullptr
         && this->openPlatformEndpoint_ == nullptr && this->type_ == nullptr && this->signatureVersion_ == nullptr && this->signatureAlgorithm_ == nullptr && this->globalParameters_ == nullptr
         && this->key_ == nullptr && this->cert_ == nullptr && this->ca_ == nullptr && this->disableHttp2_ == nullptr && this->retryOptions_ == nullptr
@@ -205,11 +205,18 @@ namespace Models
     inline Config& setNoProxy(string noProxy) { DARABONBA_PTR_SET_VALUE(noProxy_, noProxy) };
 
 
-    // maxIdleConns Field Functions 
-    bool hasMaxIdleConns() const { return this->maxIdleConns_ != nullptr;};
-    void deleteMaxIdleConns() { this->maxIdleConns_ = nullptr;};
-    inline int32_t getMaxIdleConns() const { DARABONBA_PTR_GET_DEFAULT(maxIdleConns_, 0) };
-    inline Config& setMaxIdleConns(int32_t maxIdleConns) { DARABONBA_PTR_SET_VALUE(maxIdleConns_, maxIdleConns) };
+    // maxConnections Field Functions 
+    bool hasMaxConnections() const { return this->maxConnections_ != nullptr;};
+    void deleteMaxConnections() { this->maxConnections_ = nullptr;};
+    inline int32_t getMaxConnections() const { DARABONBA_PTR_GET_DEFAULT(maxConnections_, 0) };
+    inline Config& setMaxConnections(int32_t maxConnections) { DARABONBA_PTR_SET_VALUE(maxConnections_, maxConnections) };
+
+
+    // maxHostConnections Field Functions 
+    bool hasMaxHostConnections() const { return this->maxHostConnections_ != nullptr;};
+    void deleteMaxHostConnections() { this->maxHostConnections_ = nullptr;};
+    inline int32_t getMaxHostConnections() const { DARABONBA_PTR_GET_DEFAULT(maxHostConnections_, 0) };
+    inline Config& setMaxHostConnections(int32_t maxHostConnections) { DARABONBA_PTR_SET_VALUE(maxHostConnections_, maxHostConnections) };
 
 
     // network Field Functions 
@@ -364,8 +371,10 @@ namespace Models
     shared_ptr<string> endpoint_ {};
     // proxy white list
     shared_ptr<string> noProxy_ {};
-    // max idle conns
-    shared_ptr<int32_t> maxIdleConns_ {};
+    // max total connections (CURLMOPT_MAX_TOTAL_CONNECTIONS)
+    shared_ptr<int32_t> maxConnections_ {};
+    // max host connections
+    shared_ptr<int32_t> maxHostConnections_ {};
     // network for endpoint
     shared_ptr<string> network_ {};
     // user agent
