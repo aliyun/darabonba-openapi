@@ -73,10 +73,14 @@ func Test_ToForm(t *testing.T) {
 			"key": dara.String("value"),
 		},
 		"strs": []string{"str1", "str2"},
+		"array": [][]string{
+			[]string{"a", "b"},
+			[]string{"c", "d"},
+		},
 	}
 
 	result := ToForm(filter)
-	utils.AssertEqual(t, "client=test&strs.1=str1&strs.2=str2&tag.key=value", dara.StringValue(result))
+	utils.AssertEqual(t, "array.1.1=a&array.1.2=b&array.2.1=c&array.2.2=d&client=test&strs.1=str1&strs.2=str2&tag.key=value", dara.StringValue(result))
 }
 
 func Test_flatRepeatedList(t *testing.T) {
