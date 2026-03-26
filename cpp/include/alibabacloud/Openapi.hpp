@@ -79,17 +79,6 @@ namespace OpenApi
        */
       void setGatewayClient(const shared_ptr<AlibabaCloud::Gateway::SPI> &spi);
 
-      /**
-       * set RPC header for debug
-       * @param headers headers for debug, this header can be used only once.
-       */
-      void setRpcHeaders(const map<string, string> &headers);
-
-      /**
-       * get RPC header for debug
-       */
-      map<string, string> getRpcHeaders();
-
       json getAccessDeniedDetail(const json &err);
     protected:
       string _endpoint;
@@ -126,7 +115,9 @@ namespace OpenApi
 
       string _productId;
 
-      int32_t _maxIdleConns;
+      int32_t _maxConnections;
+
+      int32_t _maxHostConnections;
 
       string _endpointType;
 
@@ -137,8 +128,6 @@ namespace OpenApi
       string _signatureVersion;
 
       string _signatureAlgorithm;
-
-      map<string, string> _headers;
 
       shared_ptr<AlibabaCloud::Gateway::SPI> _spi;
 
