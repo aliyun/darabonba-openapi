@@ -40,7 +40,8 @@ REQUIRES = [
     "darabonba-core>=1.0.3, <2.0.0",
     "alibabacloud_credentials>=1.0.2, <2.0.0",
     "alibabacloud_gateway_spi>=0.0.2, <1.0.0",
-    "cryptography>=3.0.0, <45.0.0",
+    "cryptography>=3.0.0, <46.0.0; python_version<'3.8'",
+    "cryptography>=3.0.0, <47.0.0; python_version>='3.8'",
     "alibabacloud_tea_util>=0.3.13, <1.0.0"
 ]
 
