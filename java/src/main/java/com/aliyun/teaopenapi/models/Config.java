@@ -267,6 +267,15 @@ public class Config extends TeaModel {
     public Boolean disableHttp2;
 
     /**
+     * <p>When set to true, the client returns response instead of throwing exceptions. This is only for observing error response headers and body. Retries will not be triggered for the error response.</p>
+     * 
+     * <strong>example:</strong>
+     * <p>false</p>
+     */
+    @NameInMap("returnErrorResponse")
+    public Boolean returnErrorResponse;
+
+    /**
      * <p>TLS Minimum Version</p>
      * 
      * <strong>example:</strong>
@@ -525,6 +534,14 @@ public class Config extends TeaModel {
     }
     public Boolean getDisableHttp2() {
         return this.disableHttp2;
+    }
+
+    public Config setReturnErrorResponse(Boolean returnErrorResponse) {
+        this.returnErrorResponse = returnErrorResponse;
+        return this;
+    }
+    public Boolean getReturnErrorResponse() {
+        return this.returnErrorResponse;
     }
 
     public Config setTlsMinVersion(String tlsMinVersion) {

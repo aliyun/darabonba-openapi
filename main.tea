@@ -38,6 +38,7 @@ type @key = string
 type @cert = string
 type @ca = string
 type @disableHttp2 = boolean
+type @returnErrorResponse = boolean
 type @tlsMinVersion = string
 type @attributeMap = SPI.AttributeMap
 type @enableUsageDataCollection = boolean
@@ -80,6 +81,7 @@ model Config {
   cert?: string(description='client certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   ca?: string(description='server certificate', example='-----BEGIN CERTIFICATE-----\nxxx-----END CERTIFICATE-----',default=''),
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
+  returnErrorResponse?: boolean(description='When set to true, the client returns HTTP error responses instead of throwing exceptions. This is only for observing error response headers and body. Retries will not be triggered for the error response.', example='false'),
   tlsMinVersion?: string(description='TLS Minimum Version', example='TLSv1, TLSv1.1, TLSv1.2, TLSv1.3',default=''),
   enableUsageDataCollection?: boolean(description='Enable usage data collection. If true, it means that you are aware of and confirm your authorization to Alibaba Cloud to collect your machine information. Currently, only the hostname is collected to obtain your call information.', default=false),
 }
@@ -117,6 +119,11 @@ init(config: Config) {
     @credential = new Credential(cc);
   } else if(!Util.isUnset(config.credential)) {
     @credential = config.credential;
+  }
+  if (Util.isUnset(config.returnErrorResponse)) {
+    @returnErrorResponse = false;
+  } else {
+    @returnErrorResponse = config.returnErrorResponse;
   }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
@@ -284,7 +291,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     }
   }
 } returns {
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+  var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
+  if (!@returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -481,7 +489,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     };
   }
 
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+  var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
+  if (!@returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -686,7 +695,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     };
   }
 
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+  var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
+  if (!@returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -940,7 +950,8 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     }
   }
 } returns {
-  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+  var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
+  if (!@returnErrorResponse && isErrorResponse) {
     var err : map[string]any = {};
     if (!Util.isUnset(__response.headers.content-type) && Util.equalString(__response.headers.content-type, 'text/xml;charset=utf-8')) {
       var _str = Util.readAsString(__response.body);
