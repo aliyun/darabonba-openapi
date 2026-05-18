@@ -58,6 +58,7 @@ public class ClientTest {
                 new TeaPair("cert", "config.cert"),
                 new TeaPair("ca", "config.ca"),
                 new TeaPair("disableHttp2", false),
+                new TeaPair("returnErrorResponse", true),
                 new TeaPair("tlsMinVersion", "config.tlsMinVersion"),
                 new TeaPair("enableUsageDataCollection", true)
         ));
@@ -151,6 +152,7 @@ public class ClientTest {
         Assert.assertEquals("config.cert", client._cert);
         Assert.assertEquals("config.ca", client._ca);
         Assert.assertEquals(false, client._disableHttp2);
+        Assert.assertEquals(true, client._returnErrorResponse);
         Assert.assertTrue(client._enableUsageDataCollection);
         Assert.assertEquals("config.tlsMinVersion", client._tlsMinVersion);
 
@@ -1126,6 +1128,77 @@ public class ClientTest {
             Assert.assertEquals(0L, (long) e.getAccessDeniedDetail().get("test"));
         }
 
+    }
+    
+    public static Params createCallApiParams(String style, String reqBodyType) throws Exception {
+        return Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", style),
+                new TeaPair("reqBodyType", reqBodyType),
+                new TeaPair("bodyType", "json")
+        ));
+    }
+
+    public static void assertErrorResponse(Map<String, ?> result) {
+        Assert.assertEquals("A45EE076-334D-5012-9746-A8F828D20FD4", ((Map) result.get("headers")).get("x-acs-request-id"));
+        Assert.assertEquals(400, result.get("statusCode"));
+        Assert.assertEquals("error code", ((Map) result.get("body")).get("Code"));
+        Assert.assertEquals("error message", ((Map) result.get("body")).get("Message"));
+        Assert.assertEquals("A45EE076-334D-5012-9746-A8F828D20FD4", ((Map) result.get("body")).get("RequestId"));
+    }
+
+    @Test
+    public void testReturnErrorResponse() throws Exception {
+        String responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+        Params params = ClientTest.createCallApiParams("RPC", "json");
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withStatus(400).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+
+        Client client = new Client(config);
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+        }
+
+        config.returnErrorResponse = true;
+        client = new Client(config);
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        config.signatureAlgorithm = "v2";
+        config.returnErrorResponse = true;
+        client = new Client(config);
+
+        params = ClientTest.createCallApiParams("RPC", "json");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        params = ClientTest.createCallApiParams("ROA", "json");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        params = ClientTest.createCallApiParams("ROA", "formData");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
     }
 
     @Test

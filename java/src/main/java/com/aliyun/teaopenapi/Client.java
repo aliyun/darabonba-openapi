@@ -51,6 +51,7 @@ public class Client {
     public String _cert;
     public String _ca;
     public Boolean _disableHttp2;
+    public Boolean _returnErrorResponse;
     public String _tlsMinVersion;
     public com.aliyun.gateway.spi.models.AttributeMap _attributeMap;
     public Boolean _enableUsageDataCollection;
@@ -90,6 +91,12 @@ public class Client {
             this._credential = new com.aliyun.credentials.Client(cc);
         } else if (!com.aliyun.teautil.Common.isUnset(config.credential)) {
             this._credential = config.credential;
+        }
+
+        if (com.aliyun.teautil.Common.isUnset(config.returnErrorResponse)) {
+            this._returnErrorResponse = false;
+        } else {
+            this._returnErrorResponse = config.returnErrorResponse;
         }
 
         this._endpoint = config.endpoint;
@@ -312,7 +319,8 @@ public class Client {
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
 
-                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
+                Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
+                if (!_returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -554,7 +562,8 @@ public class Client {
                     );
                 }
 
-                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
+                Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
+                if (!_returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -803,7 +812,8 @@ public class Client {
                     );
                 }
 
-                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
+                Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
+                if (!_returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -1072,7 +1082,8 @@ public class Client {
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
 
-                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
+                Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
+                if (!_returnErrorResponse && isErrorResponse) {
                     java.util.Map<String, Object> err = new java.util.HashMap<>();
                     if (!com.aliyun.teautil.Common.isUnset(response_.headers.get("content-type")) && com.aliyun.teautil.Common.equalString(response_.headers.get("content-type"), "text/xml;charset=utf-8")) {
                         String _str = com.aliyun.teautil.Common.readAsString(response_.body);
