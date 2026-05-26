@@ -1,0 +1,15 @@
+@clientName("WebSocketClient")
+@overwrite(false)
+/**
+ * This is for WebSocket Util 
+ */
+
+init() {
+    
+}
+
+model WebSocketClient {
+    
+}
+
+static function createWebSocketClient(client: any): WebSocketClient

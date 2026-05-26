@@ -9,13 +9,13 @@ import (
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
-	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketutils"
+	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketUtils"
 	"github.com/alibabacloud-go/tea/dara"
 )
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -247,7 +247,7 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -447,7 +447,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 
 // Description:
 //
-// Encapsulate the request and invoke the network with form body
+// # Encapsulate the request and invoke the network with form body
 //
 // @param action - api name
 //
@@ -648,7 +648,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -986,7 +986,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //

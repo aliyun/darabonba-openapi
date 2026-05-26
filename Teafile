@@ -10,7 +10,8 @@
     }
   ],
   "exports": {
-    "OpenApiUtil": "./utils.dara"
+    "OpenApiUtil": "./utils.dara",
+    "WebSocketUtils": "./websocketUtils.dara"
   },
   "libraries": {
     "SPI": "alibabacloud:GatewaySPI:*",
