@@ -1,26 +1,27 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi;
+
 use AlibabaCloud\Dara\Model;
 use RuntimeException;
 use AlibabaCloud\Dara\Request;
 use AlibabaCloud\Dara\Util\BytesUtil;
+use Psr\Http\Message\StreamInterface;
+
 /**
  * @remarks
  * This is for OpenApi Util
  */
-class Utils {
+class Utils
+{
 
   private static $defaultUserAgent = '';
   /**
    * @remarks
    * Convert all params of body other than type of readable into content
    * 
-   * @param body - source Model
-   * @param content - target Model
-   * @returns void
    * @param Model $body
    * @param Model $content
    * @return void
@@ -66,13 +67,10 @@ class Utils {
    * If serverUse is true and endpointType is accelerate, use accelerate endpoint
    * Default return endpoint
    * 
-   * @param serverUse - whether use accelerate endpoint
-   * @param endpointType - value must be internal or accelerate
-   * @returns the final endpoint
-   * @param string $endpoint
-   * @param boolean $useAccelerate
-   * @param string $endpointType
-   * @return string
+   * @param string $endpoint The endpoint URL
+   * @param boolean $useAccelerate Whether use accelerate endpoint
+   * @param string $endpointType Value must be internal or accelerate
+   * @return string The final endpoint
    */
   static public function getEndpoint($endpoint, $useAccelerate, $endpointType)
   {
@@ -92,66 +90,64 @@ class Utils {
    * @remarks
    * Get throttling param
    * 
-   * @param the - response headers
-   * @returns time left
-   * @param string[] $headers
-   * @return int
+   * @param string[] $headers The response headers
+   * @return int Time left
    */
-  public static function getThrottlingTimeLeft(array $headers): int {
-    $rateLimitForUserApi = $headers["x-ratelimit-user-api"] ?? null;
-    $rateLimitForUser = $headers["x-ratelimit-user"] ?? null;
+  public static function getThrottlingTimeLeft(array $headers)
+  {
+    $rateLimitForUserApi = isset($headers["x-ratelimit-user-api"]) ? $headers["x-ratelimit-user-api"] : null;
+    $rateLimitForUser = isset($headers["x-ratelimit-user"]) ? $headers["x-ratelimit-user"] : null;
 
     $timeLeftForUserApi = self::getTimeLeft($rateLimitForUserApi);
     $timeLeftForUser = self::getTimeLeft($rateLimitForUser);
-    
-    return max($timeLeftForUserApi, $timeLeftForUser);
+
+    $maxValue = max($timeLeftForUserApi, $timeLeftForUser);
+    return $maxValue !== null ? $maxValue : 0;
   }
 
 
-private static function getTimeLeft($rateLimit) {
-  if ($rateLimit) {
-    $pairs = explode(',', $rateLimit);
-    foreach ($pairs as $pair) {
-      $kv = explode(':', $pair);
-      if (count($kv) === 2) {
-        $key = trim($kv[0]);
-        $value = trim($kv[1]);
-        if ($key === 'TimeLeft') {
-          $timeLeftValue = intval($value); 
-          if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
-            return null; 
+  private static function getTimeLeft($rateLimit)
+  {
+    if ($rateLimit) {
+      $pairs = explode(',', $rateLimit);
+      foreach ($pairs as $pair) {
+        $kv = explode(':', $pair);
+        if (count($kv) === 2) {
+          $key = trim($kv[0]);
+          $value = trim($kv[1]);
+          if ($key === 'TimeLeft') {
+            $timeLeftValue = intval($value);
+            if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
+              return null;
+            }
+            return $timeLeftValue;
           }
-          return $timeLeftValue;
         }
       }
     }
+    return null;
   }
-  return null;
-}
 
   /**
    * @remarks
    * Hash the raw data with signatureAlgorithm
    * 
-   * @param raw - hashing data
-   * @param signatureAlgorithm - the autograph method
-   * @returns hashed bytes
-   * @param int[] $raw
-   * @param string $signatureAlgorithm
-   * @return int[]
+   * @param int[] $raw Hashing data
+   * @param string $signatureAlgorithm The autograph method
+   * @return string|array Hashed bytes
    */
   static public function hash($raw, $signatureAlgorithm)
   {
     $str = BytesUtil::toString($raw);
 
     switch ($signatureAlgorithm) {
-        case 'ACS3-HMAC-SHA256':
-        case 'ACS3-RSA-SHA256':
-            $res = hash('sha256', $str, true);
-            return $res;
-        case 'ACS3-HMAC-SM3':
-            $res = self::sm3($str);
-            return hex2bin($res);
+      case 'ACS3-HMAC-SHA256':
+      case 'ACS3-RSA-SHA256':
+        $res = hash('sha256', $str, true);
+        return $res;
+      case 'ACS3-HMAC-SM3':
+        $res = self::sm3($str);
+        return hex2bin($res);
     }
 
     return [];
@@ -172,10 +168,8 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get the string to be signed according to request
    * 
-   * @param request - which contains signed messages
-   * @returns the signed string
-   * @param Request $request
-   * @return string
+   * @param Request $request Which contains signed messages
+   * @return string The signed string
    */
   static public function getStringToSign($request)
   {
@@ -234,12 +228,9 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get signature according to stringToSign, secret
    * 
-   * @param stringToSign - the signed string
-   * @param secret - accesskey secret
-   * @returns the signature
-   * @param string $stringToSign
-   * @param string $secret
-   * @return string
+   * @param string $stringToSign The signed string
+   * @param string $secret Accesskey secret
+   * @return string The signature
    */
   static public function getROASignature($stringToSign, $secret)
   {
@@ -250,30 +241,28 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse filter into a form string
    * 
-   * @param filter - object
-   * @returns the string
-   * @param mixed[] $filter
-   * @return string
+   * @param mixed[] $filter Object
+   * @return string The string
    */
   static public function toForm($filter)
   {
     $query = $filter;
-      if (null === $query) {
-          return '';
+    if (null === $query) {
+      return '';
+    }
+    if ($query instanceof Model) {
+      $query = $query->toMap();
+    }
+    $tmp = [];
+    foreach ($query as $k => $v) {
+      if (0 !== strpos($k, '_')) {
+        $tmp[$k] = $v;
       }
-      if ($query instanceof Model) {
-          $query = $query->toMap();
-      }
-      $tmp = [];
-      foreach ($query as $k => $v) {
-          if (0 !== strpos($k, '_')) {
-              $tmp[$k] = $v;
-          }
-      }
-      $res = self::flatten($tmp);
-      ksort($res);
+    }
+    $res = self::flatten($tmp);
+    ksort($res);
 
-      return http_build_query($res);
+    return http_build_query($res);
   }
 
   /**
@@ -302,10 +291,8 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse filter into a object which's type is map[string]string
    * 
-   * @param filter - query param
-   * @returns the object
-   * @param mixed[] $filter
-   * @return string[]
+   * @param mixed[] $filter Query param
+   * @return string[] The object
    */
   static public function query($filter)
   {
@@ -330,14 +317,10 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get signature according to signedParams, method and secret
    * 
-   * @param signedParams - params which need to be signed
-   * @param method - http method e.g. GET
-   * @param secret - AccessKeySecret
-   * @returns the signature
-   * @param string[] $signedParams
-   * @param string $method
-   * @param string $secret
-   * @return string
+   * @param string[] $signedParams Params which need to be signed
+   * @param string $method HTTP method e.g. GET
+   * @param string $secret AccessKeySecret
+   * @return string The signature
    */
   static public function getRPCSignature($signedParams, $method, $secret)
   {
@@ -353,13 +336,10 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Parse array into a string with specified style
    * 
-   * @param array - the array
-   * @param prefix - the prefix string
-   * @returns the string
-   * @param mixed $array_
-   * @param string $prefix
-   * @param string $style
-   * @return string
+   * @param mixed $object The array
+   * @param string $prefix The prefix string
+   * @param string $style The style
+   * @return string The string
    */
   static public function arrayToStringWithSpecifiedStyle($object, $prefix, $style)
   {
@@ -406,18 +386,12 @@ private static function getTimeLeft($rateLimit) {
    * @remarks
    * Get the authorization
    * 
-   * @param request - request params
-   * @param signatureAlgorithm - the autograph method
-   * @param payload - the hashed request
-   * @param acesskey - the acesskey string
-   * @param accessKeySecret - the accessKeySecret string
-   * @returns authorization string
-   * @param Request $request
-   * @param string $signatureAlgorithm
-   * @param string $payload
-   * @param string $acesskey
-   * @param string $accessKeySecret
-   * @return string
+   * @param Request $request Request params
+   * @param string $signatureAlgorithm The autograph method
+   * @param string $payload The hashed request
+   * @param string $accesskey The accesskey string
+   * @param string $accessKeySecret The accessKeySecret string
+   * @return string Authorization string
    */
   static public function getAuthorization($request, $signatureAlgorithm, $payload, $accesskey, $accessKeySecret)
   {
@@ -450,7 +424,7 @@ private static function getTimeLeft($rateLimit) {
     }
 
     $canonicalRequest = $method . "\n" . $canonicalURI . "\n" . $canonicalQueryString . "\n" .
-        $canonicalHeaderString . "\n" . implode(';', array_keys($signHeaders)) . "\n" . $payload;
+      $canonicalHeaderString . "\n" . implode(';', array_keys($signHeaders)) . "\n" . $payload;
     $strtosign        = $signatureAlgorithm . "\n" . bin2hex(self::hash(BytesUtil::from($canonicalRequest), $signatureAlgorithm));
 
     $signature        = self::sign($accessKeySecret, $strtosign, $signatureAlgorithm);
@@ -518,7 +492,7 @@ private static function getTimeLeft($rateLimit) {
 
   private static function sm3($message)
   {
-      return (new Sm3())->sign($message);
+    return (new Sm3())->sign($message);
   }
 
   private static function encode($signMethod, $strToSign, $secret)
@@ -532,12 +506,12 @@ private static function getTimeLeft($rateLimit) {
   }
 
   /**
-     * @param array  $items
-     * @param string $delimiter
-     * @param string $prepend
-     *
-     * @return array
-     */
+   * @param array  $items
+   * @param string $delimiter
+   * @param string $prepend
+   *
+   * @return array
+   */
   private static function flatten($items = [], $delimiter = '.', $prepend = '')
   {
     $flatten = [];
@@ -638,47 +612,165 @@ private static function getTimeLeft($rateLimit) {
    * @param mixed $input
    *
    * @return array
-  */
+   */
   public static function toArray($input)
   {
-      if (\is_array($input)) {
-          foreach ($input as $k => &$v) {
-              $v = self::toArray($v);
-          }
-      } elseif ($input instanceof Model) {
-          $input = $input->toMap();
-          foreach ($input as $k => &$v) {
-              $v = self::toArray($v);
-          }
+    if (\is_array($input)) {
+      foreach ($input as $k => &$v) {
+        $v = self::toArray($v);
       }
+    } elseif ($input instanceof Model) {
+      $input = $input->toMap();
+      foreach ($input as $k => &$v) {
+        $v = self::toArray($v);
+      }
+    }
 
-      return $input;
+    return $input;
   }
 
   /**
-     * Stringify the value of map.
-     *
-     * @param array $map
-     *
-     * @return array the new stringified map
-     */
-    public static function stringifyMapValue($map)
-    {
-        if (null === $map) {
-            return [];
-        }
-        foreach ($map as &$node) {
-            if (is_numeric($node)) {
-                $node = (string) $node;
-            } elseif (null === $node) {
-                $node = '';
-            } elseif (\is_bool($node)) {
-                $node = true === $node ? 'true' : 'false';
-            } elseif (\is_object($node)) {
-                $node = json_decode(json_encode($node), true);
-            }
-        }
-
-        return $map;
+   * Stringify the value of map.
+   *
+   * @param array $map
+   *
+   * @return array the new stringified map
+   */
+  public static function stringifyMapValue($map)
+  {
+    if (null === $map) {
+      return [];
     }
+    foreach ($map as &$node) {
+      if (is_numeric($node)) {
+        $node = (string) $node;
+      } elseif (null === $node) {
+        $node = '';
+      } elseif (\is_bool($node)) {
+        $node = true === $node ? 'true' : 'false';
+      } elseif (\is_object($node)) {
+        $node = json_decode(json_encode($node), true);
+      }
+    }
+
+    return $map;
+  }
+  /**
+   * @param string   $product
+   * @param string   $regionId
+   * @param string   $endpointRule
+   * @param string   $network
+   * @param string   $suffix
+   *
+   * @return string
+   */
+  static public function getEndpointRules($product, $regionId, $endpointType, $network, $suffix = null)
+  {
+    $product = $product ?: "";
+    $network = $network ?: "";
+
+    if ($endpointType == "regional") {
+      if ($regionId === null || $regionId === "") {
+        throw new RuntimeException("RegionId is empty, please set a valid RegionId");
+      }
+      $result = "<product><network>.<region_id>.aliyuncs.com";
+      $result = str_replace("<region_id>", $regionId, $result);
+    } else {
+      $result = "<product><network>.aliyuncs.com";
+    }
+
+    $result = str_replace("<product>", strtolower($product), $result);
+    if ($network === "" || $network === "public") {
+      $result = str_replace("<network>", "", $result);
+    } else {
+      $result = str_replace("<network>", "-" . $network, $result);
+    }
+    return $result;
+  }
+
+  /**
+   * @param string   $product
+   * @param string   $regionId
+   * @param string   $endpointRule
+   * @param string   $network
+   * @param string   $suffix
+   * @param string[] $endpointMap
+   * @param string   $endpoint
+   *
+   * @return string
+   */
+  static function getProductEndpoint($product, $regionId, $endpointRule, $network, $suffix, $endpointMap, $endpoint)
+  {
+    if (null !== $endpoint) {
+      return $endpoint;
+    }
+
+    if (null !== $endpointMap && null !== @$endpointMap[$regionId]) {
+      return @$endpointMap[$regionId];
+    }
+
+    return self::getEndpointRules($product, $regionId, $endpointRule, $network, $suffix);
+  }
+
+  /**
+   * Transform a map to a flat style map where keys are prefixed with length info.
+   * Map keys are transformed from "key" to "#length#key" format.
+   * 
+   * @param mixed $input the input (can be an array, Model, or primitive type)
+   * @return mixed the transformed input
+   */
+  public static function mapToFlatStyle($input)
+  {
+    if ($input === null) {
+      return $input;
+    }
+
+    // Handle array (list)
+    if (\is_array($input) && array_keys($input) === range(0, count($input) - 1)) {
+      $result = [];
+      foreach ($input as $item) {
+        $result[] = self::mapToFlatStyle($item);
+      }
+      return $result;
+    }
+
+    // Handle Model
+    if ($input instanceof Model) {
+      // Modify the original Model object's fields using reflection
+      $reflection = new \ReflectionClass($input);
+      $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+      foreach ($properties as $property) {
+        $propertyName = $property->getName();
+        $value = $property->getValue($input);
+
+        if (\is_array($value) && !empty($value) && array_keys($value) !== range(0, count($value) - 1)) {
+          // This is an associative array (dictionary), apply flat style to keys
+          $flatMap = [];
+          foreach ($value as $nestedKey => $nestedValue) {
+            $flatKey = '#' . strlen($nestedKey) . '#' . $nestedKey;
+            $flatMap[$flatKey] = self::mapToFlatStyle($nestedValue);
+          }
+          $property->setValue($input, $flatMap);
+        } else {
+          // Recursively process other fields
+          $property->setValue($input, self::mapToFlatStyle($value));
+        }
+      }
+      return $input;  // Return the modified original Model
+    }
+
+    // Handle associative array (dictionary)
+    if (\is_array($input) && !empty($input)) {
+      $flatMap = [];
+      foreach ($input as $key => $value) {
+        $flatKey = '#' . strlen($key) . '#' . $key;
+        $flatMap[$flatKey] = self::mapToFlatStyle($value);
+      }
+      return $flatMap;
+    }
+
+    // For primitive types, return as-is
+    return $input;
+  }
 }

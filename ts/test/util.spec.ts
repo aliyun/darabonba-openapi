@@ -607,4 +607,87 @@ describe('Tea Util', function () {
     assert.strictEqual(Client.getUserAgent(''), `AlibabaCloud (${platform()}; ${arch()}) Node.js/${process.version} Core/1.0.1 TeaDSL/2`);
     assert.strictEqual(Client.getUserAgent('2019'), `AlibabaCloud (${platform()}; ${arch()}) Node.js/${process.version} Core/1.0.1 TeaDSL/2 2019`);
   });
+
+  it('mapToFlatStyle', function () {
+    // Test null
+    assert.strictEqual(Client.mapToFlatStyle(null), null);
+    assert.strictEqual(Client.mapToFlatStyle(undefined), undefined);
+
+    // Test primitive values
+    assert.strictEqual(Client.mapToFlatStyle('test'), 'test');
+    assert.strictEqual(Client.mapToFlatStyle(123), 123);
+    assert.strictEqual(Client.mapToFlatStyle(true), true);
+
+    // Test plain object
+    const plainMap = {
+      key1: 'value1',
+      key2: 'value2'
+    };
+    const flatMap = Client.mapToFlatStyle(plainMap);
+    assert.strictEqual(flatMap['#4#key1'], 'value1');
+    assert.strictEqual(flatMap['#4#key2'], 'value2');
+
+    // Test nested object
+    const nestedMap = {
+      outerKey: {
+        innerKey: 'innerValue'
+      }
+    };
+    const flatNestedMap = Client.mapToFlatStyle(nestedMap);
+    assert.strictEqual(flatNestedMap['#8#outerKey']['#8#innerKey'], 'innerValue');
+
+    // Test array
+    const arr = ['item1', 'item2'];
+    const flatArr = Client.mapToFlatStyle(arr);
+    assert.strictEqual(flatArr[0], 'item1');
+    assert.strictEqual(flatArr[1], 'item2');
+
+    // Test array with object elements
+    const arrWithDict = [
+      { key: 'value' }
+    ];
+    const flatArrWithDict = Client.mapToFlatStyle(arrWithDict);
+    assert.strictEqual(flatArrWithDict[0]['#3#key'], 'value');
+
+    // Test $tea.Model
+    class TestModel extends $dara.Model {
+      requestId?: string;
+      dict?: { [key: string]: any };
+      static names(): { [key: string]: string } {
+        return {
+          requestId: 'RequestId',
+          dict: 'Dict'
+        };
+      }
+      static types(): { [key: string]: any } {
+        return {
+          requestId: 'string',
+          dict: { 'type': 'map', 'keyType': 'string', 'valueType': 'any' }
+        };
+      }
+      constructor(map?: { [key: string]: any }) {
+        super(map);
+      }
+    }
+
+    const modelWithTags = new TestModel({
+      requestId: 'testName',
+      dict: { tagKey: 'tagValue' }
+    });
+    const flatModel = Client.mapToFlatStyle(modelWithTags);
+    // Should return the same Model instance (modified in place)
+    assert.strictEqual(flatModel, modelWithTags);
+    assert.strictEqual(flatModel.requestId, 'testName');
+    assert.strictEqual(flatModel.dict['#6#tagKey'], 'tagValue');
+
+    // Test array of $tea.Model
+    const model2 = new TestModel({
+      requestId: 'test2',
+      dict: { key2: 'value2' }
+    });
+    const modelList = [model2];
+    const flatModelList = Client.mapToFlatStyle(modelList);
+    assert.strictEqual(flatModelList[0].requestId, 'test2');
+    assert.strictEqual(flatModelList[0].dict['#4#key2'], 'value2');
+  });
 });

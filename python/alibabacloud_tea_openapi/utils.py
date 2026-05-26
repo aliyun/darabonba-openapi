@@ -614,17 +614,57 @@ class Utils(object):
     @staticmethod
     def map_to_flat_style(input: Any) -> Any:
         """
-        Convert input to a flat style
+        Transform a map to a flat style map where keys are prefixed with length info.
+        Map keys are transformed from "key" to "#length#key" format.
         
         @param input: Input to convert
         @return: A flat representation of the input
         """
+        if input is None:
+            return input
+        
+        # Handle list
+        if isinstance(input, list):
+            result = []
+            for item in input:
+                result.append(Utils.map_to_flat_style(item))
+            return result
+        
+        # Handle DaraModel - modify original object's fields
+        if isinstance(input, DaraModel):
+            # Use reflection to modify fields directly
+            for attr_name in dir(input):
+                # Skip private and special attributes
+                if attr_name.startswith('_'):
+                    continue
+                try:
+                    attr_value = getattr(input, attr_name)
+                    # Skip methods and non-data attributes
+                    if callable(attr_value):
+                        continue
+                    
+                    # If attribute is a dict, apply flat style to its keys
+                    if isinstance(attr_value, dict):
+                        flat_map = {}
+                        for key, value in attr_value.items():
+                            flat_key = f"#{len(key)}#{key}"
+                            flat_map[flat_key] = Utils.map_to_flat_style(value)
+                        setattr(input, attr_name, flat_map)
+                    else:
+                        # Recursively process other fields
+                        setattr(input, attr_name, Utils.map_to_flat_style(attr_value))
+                except (AttributeError, TypeError):
+                    # Skip attributes that can't be accessed or set
+                    continue
+            return input  # Return the modified original object
+        
+        # Handle plain dict - transform ALL keys
         if isinstance(input, dict):
-            return Utils.flat_map(input)
-        elif isinstance(input, list):
-            flat_result = {}
-            for index, item in enumerate(input):
-                flat_result[index + 1] = str(item)
-            return flat_result
-        else:
-            return str(input)
+            result = {}
+            for key, value in input.items():
+                flat_key = f"#{len(key)}#{key}"
+                result[flat_key] = Utils.map_to_flat_style(value)
+            return result
+        
+        # For primitive types, return as-is
+        return input

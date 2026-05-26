@@ -86,6 +86,12 @@ export default class Client {
       this._credential = config.credential;
     }
 
+    if ($dara.isNull(config.userAgent)) {
+      this._userAgent = process.env["ALIBABA_CLOUD_USER_AGENT"];
+    } else {
+      this._userAgent = config.userAgent;
+    }
+
     this._endpoint = config.endpoint;
     this._endpointType = config.endpointType;
     this._network = config.network;
@@ -93,7 +99,6 @@ export default class Client {
     this._protocol = config.protocol;
     this._method = config.method;
     this._regionId = config.regionId;
-    this._userAgent = config.userAgent;
     this._readTimeout = config.readTimeout;
     this._connectTimeout = config.connectTimeout;
     this._httpProxy = config.httpProxy;
@@ -1320,11 +1325,12 @@ export default class Client {
         interceptorContext.response = responseContext;
         // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         await this._spi.modifyResponse(interceptorContext, attributeMap);
-        return {
+        let resp = {
           headers: interceptorContext.response.headers,
           statusCode: interceptorContext.response.statusCode,
           body: interceptorContext.response.deserializedBody,
         };
+        return resp;
       } catch (ex) {
         _context = new $dara.RetryPolicyContext({
           retriesAttempted : _retriesAttempted,

@@ -1,3 +1,11 @@
+### 2025-12-30 Version 0.2.1
+
+- Support call sse api.
+
+### 2025-08-11 Version 0.2.0
+
+- Upgrade by darabonba v2.
+  
 ### 2024-09-23 Version 0.1.12
 
 - Solve the inconsistency of credentials refresh in all methods.

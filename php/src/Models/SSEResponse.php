@@ -1,11 +1,14 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Models;
+
 use AlibabaCloud\Dara\Model;
 use AlibabaCloud\Dara\SSE\Event;
-class SSEResponse extends Model {
+
+class SSEResponse extends Model
+{
   /**
    * @var string[]
    */
@@ -19,14 +22,14 @@ class SSEResponse extends Model {
    */
   public $event;
   protected $_name = [
-      'headers' => 'headers',
-      'statusCode' => 'statusCode',
-      'event' => 'event',
+    'headers' => 'headers',
+    'statusCode' => 'statusCode',
+    'event' => 'event',
   ];
 
   public function validate()
   {
-    if(is_array($this->headers)) {
+    if (is_array($this->headers)) {
       Model::validateArray($this->headers);
     }
     Model::validateRequired('headers', $this->headers, true);
@@ -39,9 +42,9 @@ class SSEResponse extends Model {
   {
     $res = [];
     if (null !== $this->headers) {
-      if(is_array($this->headers)) {
+      if (is_array($this->headers)) {
         $res['headers'] = [];
-        foreach($this->headers as $key1 => $value1) {
+        foreach ($this->headers as $key1 => $value1) {
           $res['headers'][$key1] = $value1;
         }
       }
@@ -67,9 +70,9 @@ class SSEResponse extends Model {
   {
     $model = new self();
     if (isset($map['headers'])) {
-      if(!empty($map['headers'])) {
+      if (!empty($map['headers'])) {
         $model->headers = [];
-        foreach($map['headers'] as $key1 => $value1) {
+        foreach ($map['headers'] as $key1 => $value1) {
           $model->headers[$key1] = $value1;
         }
       }
@@ -85,7 +88,4 @@ class SSEResponse extends Model {
 
     return $model;
   }
-
-
 }
-

@@ -1,11 +1,14 @@
 <?php
 
 // This file is auto-generated, don't edit it. Thanks.
- 
+
 namespace Darabonba\OpenApi\Models;
+
 use AlibabaCloud\Dara\Model;
 use GuzzleHttp\Psr7\Stream;
-class OpenApiRequest extends Model {
+
+class OpenApiRequest extends Model
+{
   /**
    * @var string[]
    */
@@ -31,23 +34,23 @@ class OpenApiRequest extends Model {
    */
   public $endpointOverride;
   protected $_name = [
-      'headers' => 'headers',
-      'query' => 'query',
-      'body' => 'body',
-      'stream' => 'stream',
-      'hostMap' => 'hostMap',
-      'endpointOverride' => 'endpointOverride',
+    'headers' => 'headers',
+    'query' => 'query',
+    'body' => 'body',
+    'stream' => 'stream',
+    'hostMap' => 'hostMap',
+    'endpointOverride' => 'endpointOverride',
   ];
 
   public function validate()
   {
-    if(is_array($this->headers)) {
+    if (is_array($this->headers)) {
       Model::validateArray($this->headers);
     }
-    if(is_array($this->query)) {
+    if (is_array($this->query)) {
       Model::validateArray($this->query);
     }
-    if(is_array($this->hostMap)) {
+    if (is_array($this->hostMap)) {
       Model::validateArray($this->hostMap);
     }
     parent::validate();
@@ -57,18 +60,18 @@ class OpenApiRequest extends Model {
   {
     $res = [];
     if (null !== $this->headers) {
-      if(is_array($this->headers)) {
+      if (is_array($this->headers)) {
         $res['headers'] = [];
-        foreach($this->headers as $key1 => $value1) {
+        foreach ($this->headers as $key1 => $value1) {
           $res['headers'][$key1] = $value1;
         }
       }
     }
 
     if (null !== $this->query) {
-      if(is_array($this->query)) {
+      if (is_array($this->query)) {
         $res['query'] = [];
-        foreach($this->query as $key1 => $value1) {
+        foreach ($this->query as $key1 => $value1) {
           $res['query'][$key1] = $value1;
         }
       }
@@ -83,9 +86,9 @@ class OpenApiRequest extends Model {
     }
 
     if (null !== $this->hostMap) {
-      if(is_array($this->hostMap)) {
+      if (is_array($this->hostMap)) {
         $res['hostMap'] = [];
-        foreach($this->hostMap as $key1 => $value1) {
+        foreach ($this->hostMap as $key1 => $value1) {
           $res['hostMap'][$key1] = $value1;
         }
       }
@@ -107,18 +110,18 @@ class OpenApiRequest extends Model {
   {
     $model = new self();
     if (isset($map['headers'])) {
-      if(!empty($map['headers'])) {
+      if (!empty($map['headers'])) {
         $model->headers = [];
-        foreach($map['headers'] as $key1 => $value1) {
+        foreach ($map['headers'] as $key1 => $value1) {
           $model->headers[$key1] = $value1;
         }
       }
     }
 
     if (isset($map['query'])) {
-      if(!empty($map['query'])) {
+      if (!empty($map['query'])) {
         $model->query = [];
-        foreach($map['query'] as $key1 => $value1) {
+        foreach ($map['query'] as $key1 => $value1) {
           $model->query[$key1] = $value1;
         }
       }
@@ -133,9 +136,9 @@ class OpenApiRequest extends Model {
     }
 
     if (isset($map['hostMap'])) {
-      if(!empty($map['hostMap'])) {
+      if (!empty($map['hostMap'])) {
         $model->hostMap = [];
-        foreach($map['hostMap'] as $key1 => $value1) {
+        foreach ($map['hostMap'] as $key1 => $value1) {
           $model->hostMap[$key1] = $value1;
         }
       }
@@ -147,7 +150,4 @@ class OpenApiRequest extends Model {
 
     return $model;
   }
-
-
 }
-

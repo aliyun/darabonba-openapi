@@ -12,7 +12,9 @@ use AlibabaCloud\Dara\Models\RuntimeOptions;
 use AlibabaCloud\Dara\Models\ExtendsParameters;
 use Darabonba\OpenApi\Models\OpenApiRequest;
 use AlibabaCloud\Credentials\Credential;
+use AlibabaCloud\Dara\RetryPolicy\RetryCondition;
 use PHPUnit\Framework\TestCase;
+use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
 
 /**
  * @internal
@@ -25,29 +27,58 @@ class OpenApiClientTest extends TestCase
      * @var resource
      */
     private $pid = 0;
+    private static $serverStarted = false;
+    private static $serverPid = 0;
+
+    /**
+     * Ensure Mock Server is running (PHP 5.6-8.1 compatible)
+     */
+    private static function ensureMockServer()
+    {
+        if (self::$serverStarted) {
+            return;
+        }
+        // 启动 Mock 服务器
+        $server = __DIR__ . '/Mock/MockServer.php';
+        $command = "php " . escapeshellarg($server) . " > /dev/null 2>&1 & echo $!";
+        $output = shell_exec($command);
+        self::$serverPid = (int)trim($output);
+        self::$serverStarted = true;
+        // 等待服务器启动并验证
+        sleep(2); // 增加等待时间确保服务器完全启动
+        // 注册关闭钩子
+        register_shutdown_function(array(__CLASS__, 'stopMockServer'));
+    }
+
+    /**
+     * Stop Mock Server
+     */
+    public static function stopMockServer()
+    {
+        if (self::$serverStarted && self::$serverPid > 0) {
+            shell_exec('kill ' . self::$serverPid);
+            self::$serverStarted = false;
+        }
+    }
 
     /**
      * @before
      */
     protected function initialize()
     {
-        // $server = dirname(__DIR__). \DIRECTORY_SEPARATOR . 'tests' . \DIRECTORY_SEPARATOR . 'Mock' . \DIRECTORY_SEPARATOR . 'MockServer.php';
-        // $command = "php $server > /dev/null 2>&1 & echo $!";
-        // // $command = "php -S localhost:8000 $server";
-        // $output = shell_exec($command);
-        // $this->pid = (int)trim($output);
-        // sleep(2);
+        // Mock 服务器已在 setUpBeforeClass 中启动
     }
-    
+
     /**
      * @after
      */
     protected function cleanup()
     {
-        // shell_exec('kill '.$this->pid);
+        // Mock 服务器会在 tearDownAfterClass 中关闭
     }
 
-    public function testConfig(){
+    public function testConfig()
+    {
         $globalParameters = new GlobalParameters([
             "headers" => [
                 "global-key" => "global-value"
@@ -86,17 +117,21 @@ class OpenApiClientTest extends TestCase
         $credential = new Credential($creConfig);
         $config->credential = $credential;
         $client = new OpenApiClient($config);
+        $this->assertInstanceOf(OpenApiClient::class, $client);
+
         $config->accessKeyId = "ak";
         $config->accessKeySecret = "secret";
         $config->securityToken = "token";
         $config->type = "sts";
         $client = new OpenApiClient($config);
+        $this->assertInstanceOf(OpenApiClient::class, $client);
     }
 
     /**
      * @return Config
      */
-    public static function createConfig(){
+    public static function createConfig()
+    {
         $globalParameters = new GlobalParameters([
             "headers" => [
                 "global-key" => "global-value"
@@ -124,16 +159,23 @@ class OpenApiClientTest extends TestCase
     /**
      * @return RuntimeOptions
      */
-    public static function createRuntimeOptions(){
+    public static function createRuntimeOptions()
+    {
         $runtime = new RuntimeOptions([
             "readTimeout" => 4000,
             "connectTimeout" => 4000,
             "maxIdleConns" => 100,
             "autoretry" => true,
-            "maxAttempts" => 1,
             "backoffPolicy" => "no",
             "backoffPeriod" => 1,
             "ignoreSSL" => true,
+            "retryOptions" => new RetryOptions([
+                "retryable" => false,
+                "retryCondition" => [new RetryCondition([
+                    "retryOnNonIdempotent" => true,
+                    "retryOnThrottling" => true
+                ])]
+            ]),
             "extendsParameters" => new ExtendsParameters([
                 "headers" => [
                     "extends-key" => "extends-value"
@@ -146,7 +188,8 @@ class OpenApiClientTest extends TestCase
     /**
      * @return OpenApiRequest
      */
-    public static function createOpenApiRequest(){
+    public static function createOpenApiRequest()
+    {
         $query = [];
         $query["key1"] = "value";
         $query["key2"] = 1;
@@ -166,12 +209,14 @@ class OpenApiClientTest extends TestCase
         return $req;
     }
 
-    public function testCallApiForRPCWithV2Sign_AK_Form(){
+    public function testCallApiForRPCWithV2Sign_AK_Form()
+    {
+        self::ensureMockServer();
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
         $config->signatureAlgorithm = "v2";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -185,15 +230,20 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "formData",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForRPCWithV2Sign_Anonymous_JSON(){
+    public function testCallApiForRPCWithV2Sign_Anonymous_JSON()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
         $config->signatureAlgorithm = "v2";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -207,14 +257,20 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "json",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForROAWithV2Sign_HTTPS_AK_Form(){
+    public function testCallApiForROAWithV2Sign_HTTPS_AK_Form()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->signatureAlgorithm = "v2";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->protocol = "HTTP";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -228,15 +284,20 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "formData",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForROAWithV2Sign_Anonymous_JSON(){
+    public function testCallApiForROAWithV2Sign_Anonymous_JSON()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
         $config->signatureAlgorithm = "v2";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -250,14 +311,19 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "json",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForRPCWithV3Sign_AK_Form(){
+    public function testCallApiForRPCWithV3Sign_AK_Form()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -271,14 +337,19 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "formData",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForRPCWithV3Sign_Anonymous_JSON(){
+    public function testCallApiForRPCWithV3Sign_Anonymous_JSON()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -292,14 +363,19 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "json",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForROAWithV3Sign_AK_Form(){
+    public function testCallApiForROAWithV3Sign_AK_Form()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -313,14 +389,19 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "formData",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testCallApiForROAWithV3Sign_Anonymous_JSON(){
+    public function testCallApiForROAWithV3Sign_Anonymous_JSON()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -334,14 +415,19 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "json",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['AppId'])) {
+            $this->assertEquals('test', $response['AppId']);
+        }
     }
 
-    public function testResponseBodyType(){
+    public function testResponseBodyType()
+    {
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
-        $config->endpoint = "test.aliyuncs.com";
+        $config->endpoint = "127.0.0.1:8000";
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -355,17 +441,38 @@ class OpenApiClientTest extends TestCase
             "reqBodyType" => "formData",
             "bodyType" => "json"
         ]);
-        $client->callApi($params, $request, $runtime);
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertTrue(is_array($response));
+
         $params->bodyType = "array";
-        $client->callApi($params, $request, $runtime);
+        $request->headers['bodytype'] = 'array';
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertTrue(is_array($response));
+        // Mock server returns ["AppId", "ClassId", "UserId"] for array type
+        $this->assertNotEmpty($response);
+
         $params->bodyType = "string";
-        $client->callApi($params, $request, $runtime);
+        $request->headers['bodytype'] = 'string';
+        $response = $client->callApi($params, $request, $runtime);
+        // For string type, check if response body exists
+        $this->assertNotEmpty($response);
+        if (is_array($response) && isset($response['body'])) {
+            $this->assertTrue(is_string($response['body']));
+        }
+
         $params->bodyType = "byte";
-        $client->callApi($params, $request, $runtime);
+        $request->headers['bodytype'] = 'byte';
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
     }
 
     public function testCallSSEApiWithSignV3()
     {
+        self::ensureMockServer();
+
+        // 额外等待确保 Mock 服务器完全启动 (for CI environments)
+        usleep(500000); // 0.5秒
+
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
@@ -385,10 +492,10 @@ class OpenApiClientTest extends TestCase
         ]);
         $response = $client->callSSEApi($params, $request, $runtime);
 
-       
+
         // Add more assertions as needed
         $events = [];
-        
+
         // SSE events are typically separated by double newline
         foreach ($response as $event) {
             $this->assertEquals(200, $event->statusCode);

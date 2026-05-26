@@ -15,7 +15,7 @@ import (
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -211,7 +211,7 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 
 		}
 
-		response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
+		response_, _err = dara.DoRequestWithCtx(ctx, request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -247,7 +247,7 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -411,7 +411,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 
 		}
 
-		response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
+		response_, _err = dara.DoRequestWithCtx(ctx, request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -447,7 +447,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 
 // Description:
 //
-// # Encapsulate the request and invoke the network with form body
+// Encapsulate the request and invoke the network with form body
 //
 // @param action - api name
 //
@@ -612,7 +612,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 
 		}
 
-		response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
+		response_, _err = dara.DoRequestWithCtx(ctx, request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -648,7 +648,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -986,7 +986,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 
 // Description:
 //
-// # Encapsulate the request and invoke the network
+// Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -1161,7 +1161,7 @@ func (client *Client) ExecuteWithCtx(ctx context.Context, params *openapiutil.Pa
 		request_.Query = interceptorContext.Request.Query
 		request_.Body = interceptorContext.Request.Stream
 		request_.Headers = interceptorContext.Request.Headers
-		response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
+		response_, _err = dara.DoRequestWithCtx(ctx, request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -1194,12 +1194,12 @@ func (client *Client) ExecuteWithCtx(ctx context.Context, params *openapiutil.Pa
 			continue
 		}
 
-		_err = dara.Convert(map[string]interface{}{
+		resp := map[string]interface{}{
 			"headers":    interceptorContext.Response.Headers,
 			"statusCode": dara.IntValue(interceptorContext.Response.StatusCode),
 			"body":       interceptorContext.Response.DeserializedBody,
-		}, &_result)
-
+		}
+		_result = resp
 		return _result, _err
 	}
 	if dara.BoolValue(client.DisableSDKError) != true {
@@ -1233,6 +1233,7 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 	var request_ *dara.Request
 	var response_ *dara.Response
 	var _resultErr error
+	var _err error
 	retriesAttempted := int(0)
 	retryPolicyContext = &dara.RetryPolicyContext{
 		RetriesAttempted: retriesAttempted,
@@ -1393,7 +1394,7 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 
 		}
 
-		response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
+		response_, _err = dara.DoRequestWithCtx(ctx, request_, _runtime)
 		if _err != nil {
 			retriesAttempted++
 			retryPolicyContext = &dara.RetryPolicyContext{
@@ -1406,6 +1407,19 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 			continue
 		}
 		callSSEApiWithCtx_opResponse(ctx, _yield, _yieldErr, response_)
+		_err = <-_yieldErr
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
 		return
 	}
 	_yieldErr <- _resultErr

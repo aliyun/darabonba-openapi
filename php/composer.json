@@ -26,14 +26,15 @@
     }
   },
   "scripts": {
-    "fixer": "php-cs-fixer fix ./"
+    "fixer": "php-cs-fixer fix ./",
+    "test": "phpunit",
+    "test:unit": "phpunit tests/UtilsTest.php",
+    "test:all": "phpunit --testdox"
   },
   "config": {
     "sort-packages": true,
     "preferred-install": "dist",
     "optimize-autoloader": true
   },
-  "prefer-stable": true,
-  "github": "https://github.com/aliyun/darabonba-openapi",
-  "main": "src/OpenApiClient.php"
+  "prefer-stable": true
 }
