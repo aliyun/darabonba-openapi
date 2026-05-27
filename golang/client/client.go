@@ -5,13 +5,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
-	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketutils"
+	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketUtils"
 	"github.com/alibabacloud-go/tea/dara"
 	credential "github.com/aliyun/credentials-go/credentials"
 )
@@ -61,7 +61,7 @@ type Client struct {
 
 // Description:
 //
-// Init client with Config
+// # Init client with Config
 //
 // @param config - config contains the necessary information to create a client
 func NewClient(config *openapiutil.Config) (*Client, error) {
@@ -147,7 +147,7 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -379,7 +379,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -579,7 +579,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 // Description:
 //
-// Encapsulate the request and invoke the network with form body
+// # Encapsulate the request and invoke the network with form body
 //
 // @param action - api name
 //
@@ -780,7 +780,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -1118,7 +1118,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 
 // Description:
 //
-// Encapsulate the request and invoke the network
+// # Encapsulate the request and invoke the network
 //
 // @param action - api name
 //
@@ -1612,7 +1612,7 @@ func (client *Client) CallApi(params *openapiutil.Params, request *openapiutil.O
 
 // Description:
 //
-// Get accesskey id by using credential
+// # Get accesskey id by using credential
 //
 // @return accesskey id
 func (client *Client) GetAccessKeyId() (_result *string, _err error) {
@@ -1633,7 +1633,7 @@ func (client *Client) GetAccessKeyId() (_result *string, _err error) {
 
 // Description:
 //
-// Get accesskey secret by using credential
+// # Get accesskey secret by using credential
 //
 // @return accesskey secret
 func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
@@ -1654,7 +1654,7 @@ func (client *Client) GetAccessKeySecret() (_result *string, _err error) {
 
 // Description:
 //
-// Get security token by using credential
+// # Get security token by using credential
 //
 // @return security token
 func (client *Client) GetSecurityToken() (_result *string, _err error) {
@@ -1675,7 +1675,7 @@ func (client *Client) GetSecurityToken() (_result *string, _err error) {
 
 // Description:
 //
-// Get bearer token by credential
+// # Get bearer token by credential
 //
 // @return bearer token
 func (client *Client) GetBearerToken() (_result *string, _err error) {
@@ -1691,7 +1691,7 @@ func (client *Client) GetBearerToken() (_result *string, _err error) {
 
 // Description:
 //
-// Get credential type by credential
+// # Get credential type by credential
 //
 // @return credential type e.g. access_key
 func (client *Client) GetType() (_result *string, _err error) {
@@ -1707,7 +1707,7 @@ func (client *Client) GetType() (_result *string, _err error) {
 
 // Description:
 //
-// If the endpointRule and config.endpoint are empty, throw error
+// # If the endpointRule and config.endpoint are empty, throw error
 //
 // @param config - config contains the necessary information to create a client
 func (client *Client) CheckConfig(config *openapiutil.Config) (_err error) {
