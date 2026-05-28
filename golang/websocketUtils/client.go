@@ -77,6 +77,13 @@ func (c *WebSocketClient) IsConnected() bool {
 	return false
 }
 
+func (c *WebSocketClient) Validate() error {
+	if c.wsClient != nil {
+		return nil
+	}
+	return fmt.Errorf("failed to build websocket client")
+}
+
 func (c *WebSocketClient) GetSessionInfo() *dara.WebSocketSessionInfo {
 	if c.wsClient != nil {
 		return c.wsClient.GetSessionInfo()
