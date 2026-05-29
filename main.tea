@@ -291,8 +291,12 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     }
   }
 } returns {
+  var returnErrorResponse = @returnErrorResponse;
+  if (!Util.isUnset(runtime.returnErrorResponse)) {
+    returnErrorResponse = runtime.returnErrorResponse;
+  }
   var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
-  if (!@returnErrorResponse && isErrorResponse) {
+  if (!returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -489,8 +493,12 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     };
   }
 
+  var returnErrorResponse = @returnErrorResponse;
+  if (!Util.isUnset(runtime.returnErrorResponse)) {
+    returnErrorResponse = runtime.returnErrorResponse;
+  }
   var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
-  if (!@returnErrorResponse && isErrorResponse) {
+  if (!returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -695,8 +703,12 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     };
   }
 
+  var returnErrorResponse = @returnErrorResponse;
+  if (!Util.isUnset(runtime.returnErrorResponse)) {
+    returnErrorResponse = runtime.returnErrorResponse;
+  }
   var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
-  if (!@returnErrorResponse && isErrorResponse) {
+  if (!returnErrorResponse && isErrorResponse) {
     var _res = Util.readAsJSON(__response.body);
     var err = Util.assertAsMap(_res);
     var requestId = defaultAny(err.RequestId, err.requestId);
@@ -950,8 +962,12 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
     }
   }
 } returns {
+  var returnErrorResponse = @returnErrorResponse;
+  if (!Util.isUnset(runtime.returnErrorResponse)) {
+    returnErrorResponse = runtime.returnErrorResponse;
+  }
   var isErrorResponse = Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode);
-  if (!@returnErrorResponse && isErrorResponse) {
+  if (!returnErrorResponse && isErrorResponse) {
     var err : map[string]any = {};
     if (!Util.isUnset(__response.headers.content-type) && Util.equalString(__response.headers.content-type, 'text/xml;charset=utf-8')) {
       var _str = Util.readAsString(__response.body);

@@ -1152,6 +1152,21 @@ public class ClientTest {
         Assert.assertEquals("A45EE076-334D-5012-9746-A8F828D20FD4", ((Map) result.get("body")).get("RequestId"));
     }
 
+    public static void assertErrorResponseException(TeaException e) {
+        Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+        Assert.assertEquals("error code", e.getCode());
+        Assert.assertEquals(400, (int) e.getStatusCode());
+    }
+
+    public static void assertThrowErrorResponse(Client client, Params params, OpenApiRequest request, RuntimeOptions runtime) throws Exception {
+        try {
+            client.callApi(params, request, runtime);
+            Assert.fail();
+        } catch (TeaException e) {
+            ClientTest.assertErrorResponseException(e);
+        }
+    }
+
     @Test
     public void testReturnErrorResponse() throws Exception {
         String responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
@@ -1167,14 +1182,7 @@ public class ClientTest {
                         .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
 
         Client client = new Client(config);
-        try {
-            client.callApi(params, request, runtime);
-            Assert.fail();
-        } catch (TeaException e) {
-            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
-            Assert.assertEquals("error code", e.getCode());
-            Assert.assertEquals(400, (int) e.getStatusCode());
-        }
+        ClientTest.assertThrowErrorResponse(client, params, request, runtime);
 
         config.returnErrorResponse = true;
         client = new Client(config);
@@ -1199,6 +1207,51 @@ public class ClientTest {
         params = ClientTest.createCallApiParams("ROA", "formData");
         result = client.callApi(params, request, runtime);
         ClientTest.assertErrorResponse(result);
+    }
+
+    @Test
+    public void testRuntimeReturnErrorResponsePriority() throws Exception {
+        String responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+        RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+        OpenApiRequest request = ClientTest.createOpenApiRequest();
+        Params params = ClientTest.createCallApiParams("RPC", "json");
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+
+        stubFor(post(anyUrl())
+                .willReturn(aResponse().withStatus(400).withBody(responseBody)
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+
+        runtime.returnErrorResponse = true;
+        Client client = new Client(config);
+        Map<String, ?> result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        config.signatureAlgorithm = "v2";
+        client = new Client(config);
+
+        params = ClientTest.createCallApiParams("RPC", "json");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        params = ClientTest.createCallApiParams("ROA", "json");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        params = ClientTest.createCallApiParams("ROA", "formData");
+        result = client.callApi(params, request, runtime);
+        ClientTest.assertErrorResponse(result);
+
+        runtime.returnErrorResponse = false;
+        config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        config.returnErrorResponse = true;
+        client = new Client(config);
+
+        params = ClientTest.createCallApiParams("RPC", "json");
+        ClientTest.assertThrowErrorResponse(client, params, request, runtime);
     }
 
     @Test
