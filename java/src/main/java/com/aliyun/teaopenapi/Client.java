@@ -319,8 +319,13 @@ public class Client {
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
 
+                Boolean returnErrorResponse = _returnErrorResponse;
+                if (!com.aliyun.teautil.Common.isUnset(runtime.returnErrorResponse)) {
+                    returnErrorResponse = runtime.returnErrorResponse;
+                }
+
                 Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
-                if (!_returnErrorResponse && isErrorResponse) {
+                if (!returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -562,8 +567,13 @@ public class Client {
                     );
                 }
 
+                Boolean returnErrorResponse = _returnErrorResponse;
+                if (!com.aliyun.teautil.Common.isUnset(runtime.returnErrorResponse)) {
+                    returnErrorResponse = runtime.returnErrorResponse;
+                }
+
                 Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
-                if (!_returnErrorResponse && isErrorResponse) {
+                if (!returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -812,8 +822,13 @@ public class Client {
                     );
                 }
 
+                Boolean returnErrorResponse = _returnErrorResponse;
+                if (!com.aliyun.teautil.Common.isUnset(runtime.returnErrorResponse)) {
+                    returnErrorResponse = runtime.returnErrorResponse;
+                }
+
                 Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
-                if (!_returnErrorResponse && isErrorResponse) {
+                if (!returnErrorResponse && isErrorResponse) {
                     Object _res = com.aliyun.teautil.Common.readAsJSON(response_.body);
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
@@ -1082,8 +1097,13 @@ public class Client {
                 _lastRequest = request_;
                 TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
 
+                Boolean returnErrorResponse = _returnErrorResponse;
+                if (!com.aliyun.teautil.Common.isUnset(runtime.returnErrorResponse)) {
+                    returnErrorResponse = runtime.returnErrorResponse;
+                }
+
                 Boolean isErrorResponse = com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode);
-                if (!_returnErrorResponse && isErrorResponse) {
+                if (!returnErrorResponse && isErrorResponse) {
                     java.util.Map<String, Object> err = new java.util.HashMap<>();
                     if (!com.aliyun.teautil.Common.isUnset(response_.headers.get("content-type")) && com.aliyun.teautil.Common.equalString(response_.headers.get("content-type"), "text/xml;charset=utf-8")) {
                         String _str = com.aliyun.teautil.Common.readAsString(response_.body);
