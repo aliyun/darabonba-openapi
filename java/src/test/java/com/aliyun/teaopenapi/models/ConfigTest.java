@@ -26,6 +26,8 @@ public class ConfigTest {
         Assert.assertEquals(100, (int) config.getReadTimeout());
         config.setConnectTimeout(100);
         Assert.assertEquals(100, (int) config.getConnectTimeout());
+        config.setCallTimeout(100);
+        Assert.assertEquals(100, (int) config.getCallTimeout());
         config.setHttpProxy("test");
         Assert.assertEquals("test", config.getHttpProxy());
         config.setEndpoint("test");

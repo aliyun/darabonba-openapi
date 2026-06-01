@@ -45,6 +45,7 @@ public class ClientTest {
                 new TeaPair("userAgent", "config.userAgent"),
                 new TeaPair("readTimeout", 3000),
                 new TeaPair("connectTimeout", 3000),
+                new TeaPair("callTimeout", 5000),
                 new TeaPair("httpProxy", "config.httpProxy"),
                 new TeaPair("httpsProxy", "config.httpsProxy"),
                 new TeaPair("noProxy", "config.noProxy"),
@@ -138,6 +139,7 @@ public class ClientTest {
         Assert.assertEquals("config.userAgent", client._userAgent);
         Assert.assertEquals(3000, (int) client._readTimeout);
         Assert.assertEquals(3000, (int) client._connectTimeout);
+        Assert.assertEquals(5000, (int) client._callTimeout);
         Assert.assertEquals("config.httpProxy", client._httpProxy);
         Assert.assertEquals("config.httpsProxy", client._httpsProxy);
         Assert.assertEquals("config.noProxy", client._noProxy);
