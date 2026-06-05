@@ -14,7 +14,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,10 +40,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
  */
 public class ApiTest {
 
-    // High container thread count so WireMock can hold many slow (delayed) requests concurrently.
+    // High container thread count so WireMock can hold hundreds of slow (delayed) requests at once.
     @Rule
     public WireMockRule wireMock = new WireMockRule(
-            WireMockConfiguration.options().dynamicPort().containerThreads(150));
+            WireMockConfiguration.options().dynamicPort().containerThreads(700));
 
     private Client createClient(int port, Integer callTimeout) throws Exception {
         Config config = new Config()
@@ -147,6 +149,169 @@ public class ApiTest {
                     isTimeoutLike(e));
             Assert.assertTrue("callTimeout should win over readTimeout, cost=" + cost + "ms", cost < 2500);
         }
+    }
+
+    /**
+     * High-concurrency timing accuracy test. For each configured callTimeout, fires a burst of
+     * {@code CONCURRENCY} requests <em>simultaneously</em> (released together via a start latch) and
+     * collects the abort latency of every single call. Asserts, across all 500 samples per value:
+     * <ul>
+     *   <li>none fire earlier than the configured timeout (minus small clock jitter);</li>
+     *   <li>p99 stays within a bounded overhead;</li>
+     *   <li>the slowest call still aborts well before the server would have responded
+     *       (i.e. it really is callTimeout, not the server delay).</li>
+     * </ul>
+     * Prints a full latency-distribution report (min/p50/p90/p99/max) to stdout.
+     */
+    @Test
+    public void testCallTimeoutTimingUnderHighConcurrency() throws Exception {
+        final int serverDelayMs = 6000; // far beyond every configured callTimeout below
+        stubFor(post(anyUrl()).willReturn(aResponse()
+                .withStatus(200)
+                .withFixedDelay(serverDelayMs)
+                .withBody("{\"RequestId\":\"test\"}")));
+
+        final int concurrency = 500;
+        int[] configuredTimeouts = {500, 1000};
+        long earlyJitterMs = 150;   // must not fire before configured - jitter
+        long p99OverheadMs = 2000;  // 99% of calls within configured + this
+        long maxOverheadMs = 4000;  // absolute cap, still < serverDelay -> proves it is callTimeout
+
+        StringBuilder report = new StringBuilder();
+        report.append("\n============================ CallTimeout High-Concurrency Timing Report ============================\n");
+        report.append(String.format("%-14s %-8s %-9s %-9s %-9s %-9s %-9s %-9s %-10s %-7s%n",
+                "configured", "samples", "ok", "min", "p50", "p90", "p99", "max", "avgOvhd", "verdict"));
+        report.append("---------------------------------------------------------------------------------------------------\n");
+
+        for (int configured : configuredTimeouts) {
+            long[] latencies = runConcurrentBurst(configured, concurrency);
+
+            long[] sorted = latencies.clone();
+            Arrays.sort(sorted);
+            long min = sorted[0];
+            long max = sorted[sorted.length - 1];
+            long p50 = percentile(sorted, 50);
+            long p90 = percentile(sorted, 90);
+            long p99 = percentile(sorted, 99);
+            long sum = 0;
+            for (long l : sorted) {
+                sum += l;
+            }
+            long avg = sum / sorted.length;
+            long avgOverhead = avg - configured;
+
+            // Never earlier than configured (timer must not fire prematurely) - checked on EVERY sample via min.
+            Assert.assertTrue("callTimeout=" + configured + "ms fired too early under load: min=" + min + "ms",
+                    min >= configured - earlyJitterMs);
+            // 99% within a tight overhead window.
+            Assert.assertTrue("callTimeout=" + configured + "ms p99 too high under load: p99=" + p99 + "ms",
+                    p99 <= configured + p99OverheadMs);
+            // Even the worst sample aborts well before the server delay -> it is callTimeout, not the response.
+            Assert.assertTrue("callTimeout=" + configured + "ms max too high under load: max=" + max + "ms",
+                    max <= configured + maxOverheadMs);
+            Assert.assertTrue("max must stay below server delay to prove callTimeout caused the abort",
+                    max < serverDelayMs);
+
+            report.append(String.format("%-14d %-8d %-9d %-9d %-9d %-9d %-9d %-9d %-10d %-7s%n",
+                    configured, concurrency, concurrency, min, p50, p90, p99, max, avgOverhead, "OK"));
+        }
+        report.append("===================================================================================================\n");
+        report.append("Window rule: configured - ").append(earlyJitterMs)
+                .append("ms <= abort <= configured + ").append(maxOverheadMs)
+                .append("ms (server delay = ").append(serverDelayMs).append("ms)\n");
+        System.out.println(report);
+    }
+
+    /**
+     * Fires {@code concurrency} requests at once (all released via a single start latch) against a
+     * client configured with the given callTimeout, returning each call's abort latency in ms.
+     * Asserts that every call was actually ended by a timeout (no success, no other failure).
+     */
+    private long[] runConcurrentBurst(int configuredTimeout, final int concurrency) throws Exception {
+        final Client client = createClient(wireMock.port(), configuredTimeout);
+        final Params params = createApiInfo();
+        final OpenApiRequest request = new OpenApiRequest();
+
+        // Warm up shared infra (Okio watchdog, TaskRunner) so it is not attributed to the burst.
+        try {
+            client.callApi(params, request, new RuntimeOptions());
+            Assert.fail("warm-up call should time out");
+        } catch (Exception ignore) {
+            // expected
+        }
+
+        final long[] latencies = new long[concurrency];
+        final AtomicInteger timeoutCount = new AtomicInteger(0);
+        final AtomicInteger unexpectedSuccess = new AtomicInteger(0);
+        final AtomicInteger otherFailure = new AtomicInteger(0);
+        final CountDownLatch ready = new CountDownLatch(concurrency);
+        final CountDownLatch startGate = new CountDownLatch(1);
+        final CountDownLatch done = new CountDownLatch(concurrency);
+
+        ExecutorService pool = Executors.newFixedThreadPool(concurrency);
+        for (int i = 0; i < concurrency; i++) {
+            final int idx = i;
+            pool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    ready.countDown();
+                    try {
+                        startGate.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                    long t0 = System.nanoTime();
+                    try {
+                        client.callApi(params, request, new RuntimeOptions());
+                        unexpectedSuccess.incrementAndGet();
+                    } catch (Exception e) {
+                        latencies[idx] = (System.nanoTime() - t0) / 1_000_000L;
+                        if (isTimeoutLike(e)) {
+                            timeoutCount.incrementAndGet();
+                        } else {
+                            otherFailure.incrementAndGet();
+                        }
+                    } finally {
+                        done.countDown();
+                    }
+                }
+            });
+        }
+
+        Assert.assertTrue("workers did not become ready", ready.await(60, TimeUnit.SECONDS));
+        startGate.countDown(); // release the whole burst simultaneously
+        Assert.assertTrue("burst did not finish in time", done.await(120, TimeUnit.SECONDS));
+        pool.shutdownNow();
+
+        Assert.assertEquals("callTimeout=" + configuredTimeout + "ms: a delayed response must never succeed",
+                0, unexpectedSuccess.get());
+        Assert.assertEquals("callTimeout=" + configuredTimeout + "ms: non-timeout failures occurred",
+                0, otherFailure.get());
+        Assert.assertEquals("callTimeout=" + configuredTimeout + "ms: all calls should hit callTimeout",
+                concurrency, timeoutCount.get());
+
+        // Drain lingering server-side delayed responses so the next burst starts clean.
+        Thread.sleep(serverSettleMs());
+        return latencies;
+    }
+
+    private static long serverSettleMs() {
+        return 6500L;
+    }
+
+    private static long percentile(long[] sortedAsc, double p) {
+        if (sortedAsc.length == 0) {
+            return 0;
+        }
+        int idx = (int) Math.ceil((p / 100.0) * sortedAsc.length) - 1;
+        if (idx < 0) {
+            idx = 0;
+        }
+        if (idx >= sortedAsc.length) {
+            idx = sortedAsc.length - 1;
+        }
+        return sortedAsc[idx];
     }
 
     /**
