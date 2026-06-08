@@ -45,6 +45,7 @@ public class ClientTest {
                 new TeaPair("userAgent", "config.userAgent"),
                 new TeaPair("readTimeout", 3000),
                 new TeaPair("connectTimeout", 3000),
+                new TeaPair("callTimeout", 5000),
                 new TeaPair("httpProxy", "config.httpProxy"),
                 new TeaPair("httpsProxy", "config.httpsProxy"),
                 new TeaPair("noProxy", "config.noProxy"),
@@ -138,6 +139,7 @@ public class ClientTest {
         Assert.assertEquals("config.userAgent", client._userAgent);
         Assert.assertEquals(3000, (int) client._readTimeout);
         Assert.assertEquals(3000, (int) client._connectTimeout);
+        Assert.assertEquals(5000, (int) client._callTimeout);
         Assert.assertEquals("config.httpProxy", client._httpProxy);
         Assert.assertEquals("config.httpsProxy", client._httpsProxy);
         Assert.assertEquals("config.noProxy", client._noProxy);
@@ -1097,6 +1099,7 @@ public class ClientTest {
             Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
             Assert.assertEquals("error code", e.getCode());
             Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("null", e.getDetail());
             Assert.assertNull(e.getAccessDeniedDetail().get("test"));
         }
 
@@ -1111,6 +1114,7 @@ public class ClientTest {
             Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
             Assert.assertEquals("error code", e.getCode());
             Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("null", e.getDetail());
             Assert.assertNull(e.getAccessDeniedDetail().get("test"));
         }
 
@@ -1125,7 +1129,50 @@ public class ClientTest {
             Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
             Assert.assertEquals("error code", e.getCode());
             Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("null", e.getDetail());
             Assert.assertEquals(0L, (long) e.getAccessDeniedDetail().get("test"));
+        }
+
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"Detail\":\"error detail\", \"AccessDeniedDetail\":{}}";
+        stubFor(post(urlMatching("/test\\?.+"))
+                .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        try {
+            result = client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("error detail", e.getDetail());
+        }
+
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"Detail\":\"pascal detail\", \"detail\":\"camel detail\"}";
+        stubFor(post(urlMatching("/test\\?.+"))
+                .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        try {
+            result = client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("pascal detail", e.getDetail());
+        }
+
+        responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
+                ", \"Description\":\"error description\", \"detail\":\"camel detail\"}";
+        stubFor(post(urlMatching("/test\\?.+"))
+                .willReturn(aResponse().withStatus(400).withBody(responseBody.getBytes("UTF-8"))
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
+        try {
+            result = client.callApi(params, request, runtime);
+        } catch (TeaException e) {
+            Assert.assertEquals("code: 400, error message request id: A45EE076-334D-5012-9746-A8F828D20FD4", e.getMessage());
+            Assert.assertEquals("error code", e.getCode());
+            Assert.assertEquals(400, (int) e.getStatusCode());
+            Assert.assertEquals("camel detail", e.getDetail());
         }
 
     }

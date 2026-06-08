@@ -84,6 +84,15 @@ public class Config extends TeaModel {
     public Integer connectTimeout;
 
     /**
+     * <p>call timeout, the total timeout for the whole request including connect, write and read</p>
+     * 
+     * <strong>example:</strong>
+     * <p>10</p>
+     */
+    @NameInMap("callTimeout")
+    public Integer callTimeout;
+
+    /**
      * <p>http proxy</p>
      * 
      * <strong>example:</strong>
@@ -365,6 +374,14 @@ public class Config extends TeaModel {
     }
     public Integer getConnectTimeout() {
         return this.connectTimeout;
+    }
+
+    public Config setCallTimeout(Integer callTimeout) {
+        this.callTimeout = callTimeout;
+        return this;
+    }
+    public Integer getCallTimeout() {
+        return this.callTimeout;
     }
 
     public Config setHttpProxy(String httpProxy) {

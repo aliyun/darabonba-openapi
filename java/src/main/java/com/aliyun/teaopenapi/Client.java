@@ -31,6 +31,7 @@ public class Client {
     public String _suffix;
     public Integer _readTimeout;
     public Integer _connectTimeout;
+    public Integer _callTimeout;
     public String _httpProxy;
     public String _httpsProxy;
     public String _socks5Proxy;
@@ -109,6 +110,7 @@ public class Client {
         this._userAgent = config.userAgent;
         this._readTimeout = config.readTimeout;
         this._connectTimeout = config.connectTimeout;
+        this._callTimeout = config.callTimeout;
         this._httpProxy = config.httpProxy;
         this._httpsProxy = config.httpsProxy;
         this._noProxy = config.noProxy;
@@ -149,6 +151,7 @@ public class Client {
             new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
             new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
             new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("callTimeout", _callTimeout),
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
@@ -333,6 +336,7 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
+                        new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -417,6 +421,7 @@ public class Client {
             new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
             new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
             new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("callTimeout", _callTimeout),
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
@@ -587,6 +592,7 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + errorCode + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
+                        new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -671,6 +677,7 @@ public class Client {
             new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
             new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
             new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("callTimeout", _callTimeout),
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
@@ -842,6 +849,7 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + errorCode + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
+                        new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -919,6 +927,7 @@ public class Client {
             new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
             new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
             new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("callTimeout", _callTimeout),
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
@@ -1118,6 +1127,7 @@ public class Client {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
+                        new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
@@ -1197,6 +1207,7 @@ public class Client {
             new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
             new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
             new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
+            new TeaPair("callTimeout", _callTimeout),
             new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
             new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
             new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
