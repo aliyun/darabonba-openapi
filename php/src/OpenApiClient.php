@@ -9,7 +9,6 @@ use AlibabaCloud\Credentials\Credential;
 use Darabonba\GatewaySpi\Client;
 use Darabonba\OpenApi\Models\GlobalParameters;
 use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
-use AlibabaCloud\Dara\RetryPolicy\RetryCondition;
 use Darabonba\GatewaySpi\Models\AttributeMap;
 use Darabonba\OpenApi\Exceptions\ClientException;
 use AlibabaCloud\Credentials\Credential\Config;
@@ -272,13 +271,7 @@ class OpenApiClient
     $this->_cert = $config->cert;
     $this->_ca = $config->ca;
     $this->_disableHttp2 = $config->disableHttp2;
-    $this->_retryOptions = $config->retryOptions ?: new RetryOptions([
-      'retryable' => true,
-      'retryCondition' => [new RetryCondition([
-        'maxAttempts' => 3,
-        'errorCode' => ['Throttling', 'Throttling.User', 'Throttling.Api'],
-      ])],
-    ]);
+    $this->_retryOptions = $config->retryOptions;
     $this->_tlsMinVersion = $config->tlsMinVersion;
   }
 

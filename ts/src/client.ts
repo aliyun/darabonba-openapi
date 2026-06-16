@@ -114,13 +114,7 @@ export default class Client {
     this._cert = config.cert;
     this._ca = config.ca;
     this._disableHttp2 = config.disableHttp2;
-    this._retryOptions = config.retryOptions || {
-      retryable: true,
-      retryCondition: [{
-        maxAttempts: 3,
-        errorCode: ["Throttling", "Throttling.User", "Throttling.Api"],
-      }],
-    } as $dara.RetryOptions;
+    this._retryOptions = config.retryOptions;
     this._tlsMinVersion = config.tlsMinVersion;
   }
 

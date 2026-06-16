@@ -125,18 +125,7 @@ namespace AlibabaCloud.OpenApiClient
             this._cert = config.Cert;
             this._ca = config.Ca;
             this._disableHttp2 = config.DisableHttp2;
-            this._retryOptions = config.RetryOptions ?? new Darabonba.RetryPolicy.RetryOptions
-            {
-                Retryable = true,
-                RetryCondition = new List<Darabonba.RetryPolicy.RetryCondition>
-                {
-                    new Darabonba.RetryPolicy.RetryCondition
-                    {
-                        MaxAttempts = 3,
-                        ErrorCode = new List<string> { "Throttling", "Throttling.User", "Throttling.Api" },
-                    }
-                }
-            };
+            this._retryOptions = config.RetryOptions;
             this._tlsMinVersion = config.TlsMinVersion;
         }
 

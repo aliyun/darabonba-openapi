@@ -17,7 +17,7 @@ from alibabacloud_tea_openapi.utils import Utils
 from darabonba.core import DaraCore as DaraCore
 from darabonba.core import DaraCore
 from darabonba.exceptions import DaraException, UnretryableException
-from darabonba.policy.retry import RetryCondition, RetryOptions, RetryPolicyContext
+from darabonba.policy.retry import RetryOptions, RetryPolicyContext
 from darabonba.request import DaraRequest
 from darabonba.runtime import RuntimeOptions
 from darabonba.utils.bytes import Bytes as DaraBytes
@@ -121,16 +121,7 @@ class Client:
         self._cert = config.cert
         self._ca = config.ca
         self._disable_http_2 = config.disable_http_2
-        if DaraCore.is_null(config.retry_options):
-            self._retry_options = RetryOptions(
-                retryable=True,
-                retry_condition=[RetryCondition(
-                    max_attempts=3,
-                    error_code=['Throttling', 'Throttling.User', 'Throttling.Api']
-                )]
-            )
-        else:
-            self._retry_options = config.retry_options
+        self._retry_options = config.retry_options
         self._tls_min_version = config.tls_min_version
 
     """
