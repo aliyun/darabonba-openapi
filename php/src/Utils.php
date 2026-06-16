@@ -95,14 +95,11 @@ class Utils
    */
   public static function getThrottlingTimeLeft(array $headers)
   {
-    $rateLimitForUserApi = isset($headers["x-ratelimit-user-api"]) ? $headers["x-ratelimit-user-api"] : null;
-    $rateLimitForUser = isset($headers["x-ratelimit-user"]) ? $headers["x-ratelimit-user"] : null;
-
-    $timeLeftForUserApi = self::getTimeLeft($rateLimitForUserApi);
-    $timeLeftForUser = self::getTimeLeft($rateLimitForUser);
-
-    $maxValue = max($timeLeftForUserApi, $timeLeftForUser);
-    return $maxValue !== null ? $maxValue : 0;
+    $retryAfter = isset($headers['x-acs-retry-after']) ? $headers['x-acs-retry-after'] : null;
+    if (null === $retryAfter || !is_numeric($retryAfter)) {
+      return null;
+    }
+    return intval($retryAfter);
   }
 
 
@@ -162,6 +159,14 @@ class Utils
   static public function getNonce()
   {
     return md5(uniqid() . uniqid(md5(microtime(true)), true));
+  }
+
+  static public function applyRetryHeaders(&$headers, $retriesAttempted, $backoffDelay)
+  {
+    if ($retriesAttempted > 0) {
+      $headers['x-acs-retry-attempts'] = (string) $retriesAttempted;
+      $headers['x-acs-retry-delay'] = (string) $backoffDelay;
+    }
   }
 
   /**

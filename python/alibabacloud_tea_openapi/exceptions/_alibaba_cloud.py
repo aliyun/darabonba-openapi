@@ -16,12 +16,14 @@ class AlibabaCloudException(ResponseException):
         status_code: int = None,
         code: str = None,
         message: str = None,
+        detail: str = None,
         description: str = None,
         request_id: str = None,
     ):
         super().__init__(
             status_code = status_code,
             retry_after = retry_after,
+            detail = detail,
             description = description,
             data = data,
             access_denied_detail = access_denied_detail,
@@ -33,6 +35,7 @@ class AlibabaCloudException(ResponseException):
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.detail = detail
         self.description = description
         self.request_id = request_id
 

@@ -170,15 +170,25 @@ namespace AlibabaCloud.OpenApiClient
             return null;
         }
 
-        public static int GetThrottlingTimeLeft(Dictionary<string, string> headers)
+        public static void ApplyRetryHeaders(Dictionary<string, string> headers, int retriesAttempted, int backoffDelay)
         {
-            string rateLimitForUserApi = headers.ContainsKey("x-ratelimit-user-api") ? headers["x-ratelimit-user-api"] : null;
-            string rateLimitForUser = headers.ContainsKey("x-ratelimit-user") ? headers["x-ratelimit-user"] : null;
+            if (retriesAttempted <= 0 || headers == null)
+            {
+                return;
+            }
+            headers["x-acs-retry-attempts"] = retriesAttempted.ToString();
+            headers["x-acs-retry-delay"] = backoffDelay.ToString();
+        }
 
-            int timeLeftForUserApi = GetTimeLeft(rateLimitForUserApi);
-            int timeLeftForUser = GetTimeLeft(rateLimitForUser);
-
-            return Math.Max(timeLeftForUserApi, timeLeftForUser);
+        public static long? GetThrottlingTimeLeft(Dictionary<string, string> headers)
+        {
+            string retryAfter = headers.ContainsKey("x-acs-retry-after") ? headers["x-acs-retry-after"] : null;
+            long timeLeftValue;
+            if (!long.TryParse(retryAfter, out timeLeftValue))
+            {
+                return null;
+            }
+            return timeLeftValue;
         }
 
         internal static int GetTimeLeft(string rateLimit)

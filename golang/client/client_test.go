@@ -6,7 +6,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -22,6 +24,53 @@ import (
 
 type mockHandler struct {
 	content string
+}
+
+// throttlingMockHandler simulates quotas ListProductQuotas throttling with x-acs-retry-after.
+type throttlingMockHandler struct {
+	throttleCount int
+	retryAfterMS  int
+	requestCount  int
+	retryAttempts []string
+	retryDelays   []string
+}
+
+func (mock *throttlingMockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	mock.requestCount++
+	mock.retryAttempts = append(mock.retryAttempts, req.Header.Get("x-acs-retry-attempts"))
+	mock.retryDelays = append(mock.retryDelays, req.Header.Get("x-acs-retry-delay"))
+
+	if req.Header != nil {
+		nv := 0
+		for k, vv := range req.Header {
+			if k != "Content-Length" {
+				nv += len(vv)
+			}
+		}
+		sv := make([]string, nv)
+		for k, vv := range req.Header {
+			if k != "Content-Length" {
+				n := copy(sv, vv)
+				w.Header()[k] = sv[:n:n]
+				sv = sv[n:]
+			}
+		}
+	}
+	w.Header().Set("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")
+	body, _ := util.ReadAsString(req.Body)
+	w.Header().Set("raw-body", tea.StringValue(body))
+
+	if mock.requestCount <= mock.throttleCount {
+		w.Header().Set("x-acs-retry-after", strconv.Itoa(mock.retryAfterMS))
+		responseBody := "{\"Code\":\"Throttling\",\"Message\":\"Request was denied due to user flow control.\",\"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}"
+		w.WriteHeader(400)
+		w.Write([]byte(responseBody))
+		return
+	}
+
+	responseBody := "{\"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\",\"Quotas\":[]}"
+	w.WriteHeader(200)
+	w.Write([]byte(responseBody))
 }
 
 func (mock *mockHandler) handleSSE(w http.ResponseWriter, req *http.Request) {
@@ -967,7 +1016,7 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	headers, _err := util.AssertAsMap(result["headers"])
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"])
-	tea_util.AssertEqual(t, "extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
+	tea_util.AssertEqual(t, "Format=json&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true", headers["raw-query"])
 	str, _ := util.AssertAsString(headers["user-agent"])
 	has := strings.Contains(tea.StringValue(str), "TeaDSL/2 config.userAgent")
 	tea_util.AssertEqual(t, true, has)
@@ -1741,4 +1790,125 @@ func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 		tea_util.AssertEqual(t, "sse-test", tea.StringValue(event.Id))
 		tea_util.AssertEqual(t, "flow", tea.StringValue(event.Event))
 	}
+}
+
+func createThrottlingRetryOptions() *dara.RetryOptions {
+	return &dara.RetryOptions{
+		Retryable:   true,
+		MaxAttempts: 3,
+		RetryCondition: []*dara.RetryCondition{
+			{
+				MaxAttempts: 3,
+				ErrorCode:   []string{"Throttling", "Throttling.User", "Throttling.Api"},
+				MaxDelay:    60000,
+			},
+		},
+	}
+}
+
+func TestThrottlingBackoffRetry_ListProductQuotas(t *testing.T) {
+	handler := &throttlingMockHandler{
+		throttleCount: 2,
+		retryAfterMS:  1,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.RetryOptions = createThrottlingRetryOptions()
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+
+	body := map[string]interface{}{
+		"ProductCode": tea.String("Ecs"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	runtime := CreateRuntimeOptions()
+
+	start := time.Now()
+	result, _err := client.CallApi(params, request, runtime)
+	elapsed := time.Since(start)
+	tea_util.AssertNil(t, _err)
+
+	tea_util.AssertEqual(t, 3, handler.requestCount)
+	tea_util.AssertEqual(t, "", handler.retryAttempts[0])
+	tea_util.AssertEqual(t, "1", handler.retryAttempts[1])
+	tea_util.AssertEqual(t, "2", handler.retryAttempts[2])
+	tea_util.AssertEqual(t, "", handler.retryDelays[0])
+	tea_util.AssertEqual(t, "1", handler.retryDelays[1])
+	tea_util.AssertEqual(t, "1", handler.retryDelays[2])
+	if elapsed < 1800*time.Millisecond {
+		t.Fatalf("expected throttling backoff delay, elapsed %v", elapsed)
+	}
+
+	headers, _err := util.AssertAsMap(result["headers"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "ProductCode=Ecs", headers["raw-body"])
+	tea_util.AssertEqual(t, "ListProductQuotas", headers["x-acs-action"])
+	tea_util.AssertEqual(t, "2020-05-10", headers["x-acs-version"])
+	tea_util.AssertEqual(t, "200", result["statusCode"].(json.Number).String())
+
+	respBody, _err := util.AssertAsMap(result["body"])
+	tea_util.AssertNil(t, _err)
+	tea_util.AssertEqual(t, "A45EE076-334D-5012-9746-A8F828D20FD4", respBody["RequestId"])
+}
+
+func TestThrottlingBackoffRetry_ListProductQuotasExhausted(t *testing.T) {
+	handler := &throttlingMockHandler{
+		throttleCount: 3,
+		retryAfterMS:  1,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.RetryOptions = createThrottlingRetryOptions()
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	body := map[string]interface{}{
+		"ProductCode": tea.String("Ecs"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	runtime := CreateRuntimeOptions()
+
+	_, _err = client.CallApi(params, request, runtime)
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError, got %T", _err)
+	}
+	tea_util.AssertEqual(t, "Throttling", tea.StringValue(throttlingErr.Code))
+	tea_util.AssertEqual(t, 3, handler.requestCount)
 }

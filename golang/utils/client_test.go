@@ -229,39 +229,28 @@ func Test_SignatureMethod(t *testing.T) {
 
 func Test_GetThrottlingTimeLeft(t *testing.T) {
 	headers := map[string]*string{
-		"x-ratelimit-user-api": nil,
-		"x-ratelimit-user":     nil,
+		"x-acs-retry-after": nil,
 	}
 	timeLeft := GetThrottlingTimeLeft(headers)
 	utils.AssertNil(t, timeLeft)
 
 	headers = map[string]*string{
-		"x-ratelimit-user-api": nil,
-		"x-ratelimit-user":     dara.String("Limit:1,Remain:0,TimeLeft:2000,Reset:1234"),
+		"x-acs-retry-after": dara.String("2000"),
 	}
 	timeLeft = GetThrottlingTimeLeft(headers)
 	utils.AssertEqual(t, int64(2000), dara.Int64Value(timeLeft))
 
 	headers = map[string]*string{
-		"x-ratelimit-user-api": dara.String("Limit:1,Remain:0,TimeLeft:2000,Reset:1234"),
-		"x-ratelimit-user":     nil,
-	}
-	timeLeft = GetThrottlingTimeLeft(headers)
-	utils.AssertEqual(t, int64(2000), dara.Int64Value(timeLeft))
-
-	headers = map[string]*string{
-		"x-ratelimit-user-api": dara.String("Limit:1,Remain:0,TimeLeft:2000,Reset:1234"),
-		"x-ratelimit-user":     dara.String("Limit:1,Remain:0,TimeLeft:0,Reset:1234"),
-	}
-	timeLeft = GetThrottlingTimeLeft(headers)
-	utils.AssertEqual(t, int64(2000), dara.Int64Value(timeLeft))
-
-	headers = map[string]*string{
-		"x-ratelimit-user-api": dara.String("Limit:1,Remain:0,TimeLeft:0,Reset:1234"),
-		"x-ratelimit-user":     dara.String("Limit:1,Remain:0,TimeLeft:0,Reset:1234"),
+		"x-acs-retry-after": dara.String("0"),
 	}
 	timeLeft = GetThrottlingTimeLeft(headers)
 	utils.AssertEqual(t, int64(0), dara.Int64Value(timeLeft))
+
+	headers = map[string]*string{
+		"x-acs-retry-after": dara.String("invalid"),
+	}
+	timeLeft = GetThrottlingTimeLeft(headers)
+	utils.AssertNil(t, timeLeft)
 }
 
 func Test_GetNonce(t *testing.T) {

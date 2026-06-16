@@ -10,6 +10,8 @@ namespace AlibabaCloud.OpenApiClient.Exceptions
 {
     public class AlibabaCloudException : Darabonba.Exceptions.DaraResponseException
     {
+        public string Detail { get; set; }
+
         public string RequestId { get; set; }
 
     }

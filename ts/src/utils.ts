@@ -729,17 +729,13 @@ export default class Client {
    * @param the response headers
    * @return time left
    */
-  static getThrottlingTimeLeft(headers: {[key: string ]: string}): number { 
-    const rateLimitForUserApi = headers["x-ratelimit-user-api"];
-    const rateLimitForUser = headers["x-ratelimit-user"];
-    const timeLeftForUserApi = getTimeLeft(rateLimitForUserApi);
-    const timeLeftForUser = getTimeLeft(rateLimitForUser);
-
-    if (timeLeftForUserApi > timeLeftForUser) {
-        return timeLeftForUserApi;
-    } else {
-        return timeLeftForUser;
+  static getThrottlingTimeLeft(headers: {[key: string ]: string}): number | undefined { 
+    const retryAfter = headers["x-acs-retry-after"];
+    const timeLeftValue = parseInt(retryAfter, 10);
+    if (Number.isNaN(timeLeftValue)) {
+      return undefined;
     }
+    return timeLeftValue;
   }
 
   /**
@@ -757,6 +753,13 @@ export default class Client {
       const obj = crypto.createHash('sm3');
       obj.update(raw);
       return obj.digest();
+    }
+  }
+
+  static applyRetryHeaders(headers: { [key: string]: string }, retriesAttempted: number, backoffDelay: number): void {
+    if (retriesAttempted > 0) {
+      headers['x-acs-retry-attempts'] = String(retriesAttempted);
+      headers['x-acs-retry-delay'] = String(backoffDelay);
     }
   }
 
@@ -780,9 +783,9 @@ export default class Client {
     last = val;
 
     var uid = `${machine}${pid}${val}${counter}`;
-    var shasum = crypto.createHash('md5');
-    shasum.update(uid);
-    return shasum.digest('hex');
+    const hash = crypto.createHash('sha256');
+    hash.update(uid);
+    return hash.digest('hex');
   }
 
   /**
@@ -983,7 +986,7 @@ ${date}
    * @return authorization string
    */
   static getAuthorization(request: $tea.Request, signatureAlgorithm: string, payload: string, accessKey: string, accessKeySecret: string): string {
-    const canonicalURI = (request.pathname || "").replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+    const canonicalURI = (request.pathname || "").replace(/\+/g, "%20").replace(/\*/g, "%2A").replace(/%7E/g, "~");
     const method = request.method;
     const canonicalQueryString = getAuthorizationQueryString(request.query);
     const tuple = getAuthorizationHeaders(request.headers);
