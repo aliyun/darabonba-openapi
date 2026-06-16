@@ -156,11 +156,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -234,7 +234,7 @@ export default class Client {
           };
         }
 
-        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _retryDelay);
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
 
         if (!$dara.isNull(request.body)) {
           let m = request.body;
@@ -430,11 +430,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -487,7 +487,7 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
-        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _retryDelay);
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
         if (!$dara.isNull(request.body)) {
           request_.body = new $dara.BytesReadable(typeof request.body === "string" ? request.body : JSON.stringify(request.body));
           request_.headers["content-type"] = "application/json; charset=utf-8";
@@ -688,11 +688,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -745,7 +745,7 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
-        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _retryDelay);
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
         if (!$dara.isNull(request.body)) {
           let m = request.body;
           request_.body = new $dara.BytesReadable(OpenApiUtil.toForm(m));
@@ -945,11 +945,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -1017,7 +1017,7 @@ export default class Client {
 
         }
 
-        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _retryDelay);
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
 
         let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
         let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);
@@ -1245,11 +1245,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -1401,11 +1401,11 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      let _retryDelay = 0;
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        _retryDelay = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_retryDelay > 0) {
-          await $dara.sleep(_retryDelay);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
         }
       }
 
@@ -1473,7 +1473,7 @@ export default class Client {
 
         }
 
-        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _retryDelay);
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
 
         let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
         let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);

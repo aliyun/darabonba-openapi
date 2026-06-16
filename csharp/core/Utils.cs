@@ -191,34 +191,6 @@ namespace AlibabaCloud.OpenApiClient
             return timeLeftValue;
         }
 
-        internal static int GetTimeLeft(string rateLimit)
-        {
-            if (!string.IsNullOrEmpty(rateLimit))
-            {
-                string[] pairs = rateLimit.Split(',');
-
-                foreach (string pair in pairs)
-                {
-                    string[] kv = pair.Split(':');
-                    if (kv.Length == 2)
-                    {
-                        string key = kv[0].Trim();
-                        string value = kv[1].Trim();
-                        if (key == "TimeLeft")
-                        {
-                            int timeLeftValue;
-                            if (int.TryParse(value, out timeLeftValue))
-                            {
-                                return timeLeftValue;
-                            }
-                            return 0; // 返回0作为默认值，如果不能解析
-                        }
-                    }
-                }
-            }
-            return 0; // 返回0作为默认值，如果字符串为空或没有TimeLeft
-        }
-
         /// <term><b>Description:</b></term>
         /// <description>
         /// <para>Get throttling param</para>

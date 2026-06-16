@@ -324,11 +324,11 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      $_retryDelay = 0;
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
-        $_retryDelay = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_retryDelay > 0) {
-          Dara::sleep($_retryDelay);
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
         }
       }
 
@@ -390,7 +390,7 @@ class OpenApiClient
           ], $globalHeaders, $extendsHeaders, $request->headers, $headers);
         }
 
-        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_retryDelay);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
 
         if (!is_null($request->body)) {
           $m = $request->body;
@@ -592,11 +592,11 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      $_retryDelay = 0;
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
-        $_retryDelay = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_retryDelay > 0) {
-          Dara::sleep($_retryDelay);
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
         }
       }
 
@@ -644,7 +644,7 @@ class OpenApiClient
           'x-acs-action' => $action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
         ], $globalHeaders, $extendsHeaders, $request->headers);
-        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_retryDelay);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
         if (!is_null($request->body)) {
           $_request->body = json_encode($request->body, JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES);
           @$_request->headers['content-type'] = 'application/json; charset=utf-8';
@@ -848,11 +848,11 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      $_retryDelay = 0;
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
-        $_retryDelay = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_retryDelay > 0) {
-          Dara::sleep($_retryDelay);
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
         }
       }
 
@@ -900,7 +900,7 @@ class OpenApiClient
           'x-acs-action' => $action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
         ], $globalHeaders, $extendsHeaders, $request->headers);
-        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_retryDelay);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
         if (!is_null($request->body)) {
           $m = $request->body;
           $_request->body = Utils::toForm($m);
@@ -1097,11 +1097,11 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      $_retryDelay = 0;
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
-        $_retryDelay = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_retryDelay > 0) {
-          Dara::sleep($_retryDelay);
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
         }
       }
 
@@ -1156,7 +1156,7 @@ class OpenApiClient
           }
         }
 
-        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_retryDelay);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
 
         $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
         $hashedRequestPayload = Utils::hash(BytesUtil::from('', 'utf-8'), $signatureAlgorithm);
@@ -1384,11 +1384,11 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
-      $_retryDelay = 0;
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
-        $_retryDelay = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
-        if ($_retryDelay > 0) {
-          Dara::sleep($_retryDelay);
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
         }
       }
 

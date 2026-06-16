@@ -172,11 +172,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -224,7 +224,7 @@ class Client:
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers, headers)
 
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
 
                 if not DaraCore.is_null(request.body):
                     m = request.body
@@ -390,11 +390,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -442,7 +442,7 @@ class Client:
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers, headers)
 
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
 
                 if not DaraCore.is_null(request.body):
                     m = request.body
@@ -624,11 +624,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -663,7 +663,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     _request.body = DaraCore.to_json_string(request.body)
                     _request.headers["content-type"] = 'application/json; charset=utf-8'
@@ -830,11 +830,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -869,7 +869,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     _request.body = DaraCore.to_json_string(request.body)
                     _request.headers["content-type"] = 'application/json; charset=utf-8'
@@ -1051,11 +1051,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -1090,7 +1090,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     _request.body = Utils.to_form(m)
@@ -1257,11 +1257,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -1296,7 +1296,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     _request.body = Utils.to_form(m)
@@ -1471,11 +1471,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -1514,7 +1514,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -1707,11 +1707,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -1750,7 +1750,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -1958,11 +1958,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -2089,11 +2089,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -2219,11 +2219,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -2262,7 +2262,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -2379,11 +2379,11 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
-            _retry_delay = 0
+            _backoff_time = 0
             if _retries_attempted > 0:
-                _retry_delay = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
-                if _retry_delay > 0:
-                    DaraCore.sleep(_retry_delay)
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
             _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
@@ -2422,7 +2422,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
-                Utils.apply_retry_headers(_request.headers, _retry_attempts, _retry_delay)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
