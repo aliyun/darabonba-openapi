@@ -48,6 +48,13 @@ class UtilsTest extends TestCase
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
         $this->assertEquals(5, $timeLeft);
 
+        // Guzzle response headers are arrays
+        $headers = array(
+            'x-acs-retry-after' => array('5')
+        );
+        $timeLeft = Utils::getThrottlingTimeLeft($headers);
+        $this->assertEquals(5, $timeLeft);
+
         // Test with empty headers
         $headers = array();
         $timeLeft = Utils::getThrottlingTimeLeft($headers);

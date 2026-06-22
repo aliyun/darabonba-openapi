@@ -1,1 +1,1 @@
-{"throttleCount":3,"retryAfterMS":1000,"requestCount":0,"retryAttempts":[],"retryDelays":[]}
+{"throttleCount":2,"retryAfterMS":1,"requestCount":2,"retryAttempts":["","1"],"retryDelays":["","1"]}

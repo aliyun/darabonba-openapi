@@ -95,7 +95,13 @@ class Utils
    */
   public static function getThrottlingTimeLeft(array $headers)
   {
-    $retryAfter = isset($headers['x-acs-retry-after']) ? $headers['x-acs-retry-after'] : null;
+    if (!isset($headers['x-acs-retry-after'])) {
+      return null;
+    }
+    $retryAfter = $headers['x-acs-retry-after'];
+    if (is_array($retryAfter)) {
+      $retryAfter = $retryAfter[0];
+    }
     if (null === $retryAfter || !is_numeric($retryAfter)) {
       return null;
     }

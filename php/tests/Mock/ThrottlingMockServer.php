@@ -1,11 +1,19 @@
 <?php
 
 $stateFile = __DIR__ . '/throttling-mock-state.json';
-$server = stream_socket_server('tcp://0.0.0.0:8001', $errno, $errstr);
+$portFile = __DIR__ . '/throttling-mock-port.txt';
+
+@unlink($portFile);
+
+$server = stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
 
 if (!$server) {
     die("Error: $errstr ($errno)\n");
 }
+
+$address = stream_socket_get_name($server, false);
+$port = (int) substr(strrchr($address, ':'), 1);
+file_put_contents($portFile, (string) $port);
 
 function readState($stateFile)
 {
@@ -38,8 +46,41 @@ function writeState($stateFile, $state)
     file_put_contents($stateFile, json_encode($state));
 }
 
+function readHttpRequest($client)
+{
+    $request = '';
+    while (!feof($client)) {
+        $chunk = fread($client, 8192);
+        if ($chunk === false || $chunk === '') {
+            break;
+        }
+        $request .= $chunk;
+        $headerEnd = strpos($request, "\r\n\r\n");
+        if ($headerEnd === false) {
+            continue;
+        }
+        if (preg_match('/Content-Length:\s*(\d+)/i', $request, $matches)) {
+            $bodyLength = (int) $matches[1];
+            $bodyStart = $headerEnd + 4;
+            if (strlen($request) - $bodyStart >= $bodyLength) {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    return $request;
+}
+
 while ($client = @stream_socket_accept($server)) {
-    $request = fread($client, 65536);
+    stream_set_timeout($client, 5);
+    $request = readHttpRequest($client);
+    if ($request === '') {
+        fclose($client);
+        continue;
+    }
+
     list($headers, $body) = array_pad(explode("\r\n\r\n", $request, 2), 2, '');
     $headerLines = explode("\r\n", $headers);
     $requestLine = array_shift($headerLines);
@@ -60,7 +101,7 @@ while ($client = @stream_socket_accept($server)) {
     writeState($stateFile, $state);
 
     $throttleCount = isset($state['throttleCount']) ? (int)$state['throttleCount'] : 2;
-    $retryAfterMS = isset($state['retryAfterMS']) ? (int)$state['retryAfterMS'] : 1;
+    $retryAfterMS = isset($state['retryAfterMS']) ? (int)$state['retryAfterMS'] : 1000;
 
     if ($state['requestCount'] <= $throttleCount) {
         $responseBody = '{"Code":"Throttling","Message":"Request was denied due to user flow control.","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}';
