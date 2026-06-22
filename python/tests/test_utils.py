@@ -386,25 +386,22 @@ class TestUtils(unittest.TestCase):
         self.assertEqual('a%2Fb%2Fc%2F%20test', res)
 
     def test_signature_method(self):
-        pri_key = '-----BEGIN RSA PRIVATE KEY-----\nMIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAo' \
-                  'GBAKzSQmrnH0YnezZ98NK50WjMuci0hgGVcSthIZOTWMIy' \
-                  'SznY9Jj1hlvek7W0uYagtFHz03BHQnHAb5Xs0DZm0Sj9+5' \
-                  'r79GggwEzTJDYEsLyFwXM3ZOIxqxL4sRg94MHsa81M9NXG' \
-                  'HMyMvvffQTn1OBVLTVz5jgJ48foMn7j7r9kRAgMBAAECgY' \
-                  'EAnZppw3/ef2XF8Z3Mnv+iP0ZkLuqiQpN8TykXK7P1/7NJ' \
-                  '8wktlshhrSo/3jdf8axghVQsgHob2Ay8Nidugg4lsxILAU' \
-                  'BHvfQsQp1MAWvxslsVj+ddw01MQnt8kHmC/qhok+YuNqqA' \
-                  'GBcoD6cthRUjEri6hfs599EfPs2DcWW06qECQQDfNqUUhc' \
-                  'DQ/SQHRhfY9UIlaSEs2CVagDrSYFG1wyG+PXDSMes9ZRHs' \
-                  'vVVBmNGmtUTg/jioTU3yuPsis5s9ppbVAkEAxjTAQxv5lBB' \
-                  'm/ikMTzPShljxDZnXh6lKWG9gR1p5fKoQTzLyyhHzkBSFe' \
-                  '848sMm68HWCX2wgIpQLHj0GccYPTQJAduMKBeY/jpBlkiI' \
-                  '5LWtj8b0O2G2/Z3aI3ehDXQYzgLoEz0+bNbYRWAB32lpkv' \
-                  '+AocZW1455Y+ACichcrhiimiQJAW/6L5hoL4u8h/oFq1zAE' \
-                  'XJrXdyqaYLrwaM947mVN0dDVNQ0+pw9h7tO3iNkWTi+zdnv' \
-                  '0APociDASYPyOCyyUWQJACMNRM1/rboXuKfMmVjmmz0XhaD' \
-                  'UC/JkqSwIiaZi+47M21e9BTp1218NA6VaPgJJHeJr4sNOnY' \
-                  'sx+1cwXO5cuZg==\n-----END RSA PRIVATE KEY-----'
+        pri_key = (
+            "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKzSQmrnH0YnezZ9\n"
+            "8NK50WjMuci0hgGVcSthIZOTWMIySznY9Jj1hlvek7W0uYagtFHz03BHQnHAb5Xs\n"
+            "0DZm0Sj9+5r79GggwEzTJDYEsLyFwXM3ZOIxqxL4sRg94MHsa81M9NXGHMyMvvff\n"
+            "QTn1OBVLTVz5jgJ48foMn7j7r9kRAgMBAAECgYEAnZppw3/ef2XF8Z3Mnv+iP0Zk\n"
+            "LuqiQpN8TykXK7P1/7NJ8wktlshhrSo/3jdf8axghVQsgHob2Ay8Nidugg4lsxIL\n"
+            "AUBHvfQsQp1MAWvxslsVj+ddw01MQnt8kHmC/qhok+YuNqqAGBcoD6cthRUjEri6\n"
+            "hfs599EfPs2DcWW06qECQQDfNqUUhcDQ/SQHRhfY9UIlaSEs2CVagDrSYFG1wyG+\n"
+            "PXDSMes9ZRHsvVVBmNGmtUTg/jioTU3yuPsis5s9ppbVAkEAxjTAQxv5lBBm/ikM\n"
+            "TzPShljxDZnXh6lKWG9gR1p5fKoQTzLyyhHzkBSFe848sMm68HWCX2wgIpQLHj0G\n"
+            "ccYPTQJAduMKBeY/jpBlkiI5LWtj8b0O2G2/Z3aI3ehDXQYzgLoEz0+bNbYRWAB3\n"
+            "2lpkv+AocZW1455Y+ACichcrhiimiQJAW/6L5hoL4u8h/oFq1zAEXJrXdyqaYLrw\n"
+            "aM947mVN0dDVNQ0+pw9h7tO3iNkWTi+zdnv0APociDASYPyOCyyUWQJACMNRM1/r\n"
+            "boXuKfMmVjmmz0XhaDUC/JkqSwIiaZi+47M21e9BTp1218NA6VaPgJJHeJr4sNOn\n"
+            "Ysx+1cwXO5cuZg=="
+        )
         res = signature_method("secret", "source", "ACS3-HMAC-SM3")
         self.assertEqual(b'b9ff646822f41ef647c1416fa2b8408923828abc0464af6706e18db3e8553da8', binascii.b2a_hex(res))
 

@@ -40,10 +40,15 @@ def to_str(val):
 
 
 def rsa_sign(plaintext, secret):
-    if not secret.startswith(b'-----BEGIN RSA PRIVATE KEY-----'):
-        secret = b'-----BEGIN RSA PRIVATE KEY-----\n%s' % secret
-    if not secret.endswith(b'-----END RSA PRIVATE KEY-----'):
-        secret = b'%s\n-----END RSA PRIVATE KEY-----' % secret
+    if isinstance(secret, str):
+        secret = secret.encode('utf-8')
+    if not secret.startswith(b'-----BEGIN'):
+        secret = b'-----BEGIN PRIVATE KEY-----\n' + secret
+    if not secret.endswith(b'-----END PRIVATE KEY-----'):
+        secret = secret.rstrip() + b'\n-----END PRIVATE KEY-----'
+    # PKCS#8 payloads are often labeled as RSA PRIVATE KEY in other SDKs; cryptography requires matching headers.
+    secret = secret.replace(b'-----BEGIN RSA PRIVATE KEY-----', b'-----BEGIN PRIVATE KEY-----')
+    secret = secret.replace(b'-----END RSA PRIVATE KEY-----', b'-----END PRIVATE KEY-----')
 
     key = load_pem_private_key(secret, password=None)
     return key.sign(plaintext, padding.PKCS1v15(), hashes.SHA256())
