@@ -15,7 +15,6 @@ import Tea
 import threading
 import random
 import hashlib
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -46,7 +45,7 @@ def rsa_sign(plaintext, secret):
     if not secret.endswith(b'-----END RSA PRIVATE KEY-----'):
         secret = b'%s\n-----END RSA PRIVATE KEY-----' % secret
 
-    key = load_pem_private_key(secret, password=None, backend=default_backend())
+    key = load_pem_private_key(secret, password=None)
     return key.sign(plaintext, padding.PKCS1v15(), hashes.SHA256())
 
 

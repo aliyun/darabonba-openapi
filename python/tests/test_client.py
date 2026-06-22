@@ -2405,7 +2405,7 @@ class TestClient(unittest.TestCase):
         import time
         state = {
             'throttle_count': 2,
-            'retry_after_ms': 1,
+            'retry_after_ms': 1000,
             'request_count': 0,
             'retry_attempts': [],
             'retry_delays': [],
@@ -2417,6 +2417,10 @@ class TestClient(unittest.TestCase):
             state['retry_delays'].append(request.headers.get('x-acs-retry-delay', ''))
             headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
             headers['raw-body'] = request.body.decode('utf-8')
+            if request.headers.get('x-acs-action'):
+                headers['x-acs-action'] = request.headers.get('x-acs-action')
+            if request.headers.get('x-acs-version'):
+                headers['x-acs-version'] = request.headers.get('x-acs-version')
             if state['request_count'] <= state['throttle_count']:
                 headers['x-acs-retry-after'] = str(state['retry_after_ms'])
                 body = '{"Code":"Throttling","Message":"Request was denied due to user flow control.","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}'
@@ -2453,17 +2457,16 @@ class TestClient(unittest.TestCase):
         self.assertEqual('1', state['retry_attempts'][1])
         self.assertEqual('2', state['retry_attempts'][2])
         self.assertEqual('', state['retry_delays'][0])
-        self.assertEqual('1', state['retry_delays'][1])
-        self.assertEqual('1', state['retry_delays'][2])
+        self.assertEqual('1000', state['retry_delays'][1])
+        self.assertEqual('1000', state['retry_delays'][2])
         self.assertGreaterEqual(elapsed, 1.8)
 
     @httpretty.activate(allow_net_connect=False)
     def test_throttling_backoff_retry_list_product_quotas_exhausted(self):
-        from darabonba.exceptions import UnretryableException
         from alibabacloud_tea_openapi.exceptions import ThrottlingException
         state = {
             'throttle_count': 3,
-            'retry_after_ms': 1,
+            'retry_after_ms': 1000,
             'request_count': 0,
         }
 
@@ -2485,14 +2488,13 @@ class TestClient(unittest.TestCase):
         client = OpenApiClient(config)
         runtime = self.create_runtime_options()
 
-        with self.assertRaises(UnretryableException) as cm:
+        with self.assertRaises(ThrottlingException) as cm:
             client.call_api(
                 self.create_list_product_quotas_params(),
                 self.create_list_product_quotas_request(),
                 runtime
             )
-        self.assertIsInstance(cm.exception.context.exception, ThrottlingException)
-        self.assertEqual('Throttling', cm.exception.context.exception.code)
+        self.assertEqual('Throttling', cm.exception.code)
         self.assertEqual(3, state['request_count'])
     
     @httpretty.activate(allow_net_connect=False)

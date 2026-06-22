@@ -719,7 +719,7 @@ describe('$openapi', function () {
     let result = await client.callApi(params, request, runtime);
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
-    assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
+    assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true&Format=json");
     assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
@@ -1611,7 +1611,7 @@ describe('Throttling backoff retry', () => {
   let throttlingServer: http.Server;
   let throttlingPort = 0;
   let throttleCount = 2;
-  let retryAfterMS = 1;
+  let retryAfterMS = 1000;
   let requestCount = 0;
   let retryAttempts: string[] = [];
   let retryDelays: string[] = [];
@@ -1625,15 +1625,15 @@ describe('Throttling backoff retry', () => {
   }
 
   function createThrottlingRetryOptions(): $dara.RetryOptions {
-    return {
+    return new $dara.RetryOptions({
       retryable: true,
-      maxAttempts: 3,
-      retryCondition: [{
+      retryCondition: [new $dara.RetryCondition({
         maxAttempts: 3,
+        exception: [],
         errorCode: ['Throttling', 'Throttling.User', 'Throttling.Api'],
         maxDelay: 60000,
-      }],
-    };
+      })],
+    });
   }
 
   function createListProductQuotasParams(): $OpenApiUtil.Params {
@@ -1702,11 +1702,11 @@ describe('Throttling backoff retry', () => {
   });
 
   beforeEach(() => {
-    resetThrottlingState(2, 1);
+    resetThrottlingState(2, 1000);
   });
 
   it('should retry ListProductQuotas on throttling and succeed', async () => {
-    resetThrottlingState(2, 1);
+    resetThrottlingState(2, 1000);
     let config = createConfig();
     config.protocol = 'HTTP';
     config.endpoint = `127.0.0.1:${throttlingPort}`;
@@ -1732,13 +1732,13 @@ describe('Throttling backoff retry', () => {
     assert.strictEqual('1', retryAttempts[1]);
     assert.strictEqual('2', retryAttempts[2]);
     assert.strictEqual('', retryDelays[0]);
-    assert.strictEqual('1', retryDelays[1]);
-    assert.strictEqual('1', retryDelays[2]);
+    assert.strictEqual('1000', retryDelays[1]);
+    assert.strictEqual('1000', retryDelays[2]);
     assert.ok(elapsed >= 1800);
   });
 
   it('should exhaust throttling retry for ListProductQuotas', async () => {
-    resetThrottlingState(3, 1);
+    resetThrottlingState(3, 1000);
     let config = createConfig();
     config.protocol = 'HTTP';
     config.endpoint = `127.0.0.1:${throttlingPort}`;

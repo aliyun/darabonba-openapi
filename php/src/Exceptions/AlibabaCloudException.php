@@ -35,6 +35,9 @@ class AlibabaCloudException extends DaraException
 
   public function __construct($map)
   {
+    if (isset($map['code']) && !isset($map['errCode'])) {
+      $map['errCode'] = $map['code'];
+    }
     parent::__construct($map);
     $this->statusCode = $map['statusCode'];
     $this->code = $map['code'];

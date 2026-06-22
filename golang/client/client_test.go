@@ -171,6 +171,12 @@ func (mock *mockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func startMockHTTPServer(handler http.Handler) (*httptest.Server, string) {
+	server := httptest.NewServer(handler)
+	endpoint := strings.TrimPrefix(server.URL, "http://")
+	return server, endpoint
+}
+
 func TestConfig(t *testing.T) {
 	globalParameters := &GlobalParameters{
 		Headers: map[string]*string{
@@ -511,18 +517,13 @@ func CreateOpenApiRequest() (_result *OpenApiRequest) {
 func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9001",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9001")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -569,7 +570,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	config = CreateBearerTokenConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9001")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
@@ -589,7 +590,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	config = CreateAnonymousConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9001")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	_, _err = client.CallApi(params, request, runtime)
@@ -606,18 +607,13 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9002",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9002")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -673,18 +669,13 @@ func TestCallApiForRPCWithV2Sign_Anonymous_JSON(t *testing.T) {
 func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/test", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9003",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -747,7 +738,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	config = CreateBearerTokenConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
@@ -763,7 +754,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	config = CreateAnonymousConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	_, _err = client.CallApi(params, request, runtime)
@@ -786,7 +777,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	config = CreateBearerTokenConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
@@ -802,7 +793,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	config = CreateAnonymousConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	_, _err = client.CallApi(params, request, runtime)
@@ -815,18 +806,13 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/test", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9004",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9004")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -884,17 +870,12 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9005",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9005")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -958,7 +939,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	// bearer token
 	config = CreateBearerTokenConfig()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9005")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
@@ -973,7 +954,7 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 	// Anonymous error
 	config = CreateAnonymousConfig()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9005")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	_, _err = client.CallApi(params, request, runtime)
@@ -985,17 +966,12 @@ func TestCallApiForRPCWithV3Sign_AK_Form(t *testing.T) {
 func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9006",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9006")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1052,17 +1028,12 @@ func TestCallApiForRPCWithV3Sign_Anonymous_JSON(t *testing.T) {
 func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/test", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9007",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9007")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1126,7 +1097,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	// bearer token
 	config = CreateBearerTokenConfig()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9007")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	result, _err = client.CallApi(params, request, runtime)
@@ -1142,7 +1113,7 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 	config = CreateAnonymousConfig()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9003")
+	config.Endpoint = tea.String(endpoint)
 	client, _err = NewClient(config)
 	tea_util.AssertNil(t, _err)
 	_, _err = client.CallApi(params, request, runtime)
@@ -1154,17 +1125,12 @@ func TestCallApiForROAWithV3Sign_AK_Form(t *testing.T) {
 func TestCallApiForROAWithV3Sign_Anonymous_JSON(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/test", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9008",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9008")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1225,17 +1191,12 @@ func TestResponseBodyType(t *testing.T) {
 	mux.Handle("/testError", &mockHandler{content: "error"})
 	mux.Handle("/testError1", &mockHandler{content: "error1"})
 	mux.Handle("/testError2", &mockHandler{content: "error2"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9009",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9009")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1358,17 +1319,12 @@ func TestResponseBodyType(t *testing.T) {
 func TestRequestBodyType(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/test", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9010",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9010")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	// formData
@@ -1440,18 +1396,13 @@ func TestRequestBodyType(t *testing.T) {
 func TestResponseBodyTypeRPC(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "string"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9011",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9011")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1490,18 +1441,13 @@ func TestResponseBodyTypeROA(t *testing.T) {
 	mux.Handle("/testError", &mockHandler{content: "error"})
 	mux.Handle("/testError1", &mockHandler{content: "error1"})
 	mux.Handle("/testError2", &mockHandler{content: "error2"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9012",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9012")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1624,13 +1570,8 @@ func TestRetryWithError(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", &mockHandler{content: "serverError"})
 	mux.Handle("/test", &mockHandler{content: "serverError"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9013",
-		WriteTimeout: time.Second * 4,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	runtime.Autoretry = tea.Bool(true)
@@ -1640,7 +1581,7 @@ func TestRetryWithError(t *testing.T) {
 
 	config.Protocol = tea.String("HTTP")
 	config.SignatureAlgorithm = tea.String("v2")
-	config.Endpoint = tea.String("127.0.0.1:9013")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()
@@ -1737,17 +1678,12 @@ func TestRetryWithError(t *testing.T) {
 func TestCallSSeApiWithV3Sign_AK_Form(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/sse", &mockHandler{content: "json"})
-	var server *http.Server
-	server = &http.Server{
-		Addr:         ":9014",
-		WriteTimeout: time.Second * 60,
-		Handler:      mux,
-	}
-	go server.ListenAndServe()
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
 	config := CreateConfig()
 	runtime := CreateRuntimeOptions()
 	config.Protocol = tea.String("HTTP")
-	config.Endpoint = tea.String("127.0.0.1:9014")
+	config.Endpoint = tea.String(endpoint)
 	client, _err := NewClient(config)
 	tea_util.AssertNil(t, _err)
 	request := CreateOpenApiRequest()

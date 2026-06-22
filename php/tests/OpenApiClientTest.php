@@ -59,7 +59,7 @@ class OpenApiClientTest extends TestCase
         }
     }
 
-    private static function resetThrottlingMockState($throttleCount, $retryAfterMS = 1)
+    private static function resetThrottlingMockState($throttleCount, $retryAfterMS = 1000)
     {
         $stateFile = __DIR__ . '/Mock/throttling-mock-state.json';
         file_put_contents($stateFile, json_encode([
@@ -612,7 +612,7 @@ class OpenApiClientTest extends TestCase
     public function testThrottlingBackoffRetryListProductQuotas()
     {
         self::ensureThrottlingMockServer();
-        self::resetThrottlingMockState(2, 1);
+        self::resetThrottlingMockState(2, 1000);
 
         $config = self::createConfig();
         $config->protocol = 'HTTP';
@@ -641,15 +641,15 @@ class OpenApiClientTest extends TestCase
         $this->assertEquals('1', $state['retryAttempts'][1]);
         $this->assertEquals('2', $state['retryAttempts'][2]);
         $this->assertEquals('', $state['retryDelays'][0]);
-        $this->assertEquals('1', $state['retryDelays'][1]);
-        $this->assertEquals('1', $state['retryDelays'][2]);
+        $this->assertEquals('1000', $state['retryDelays'][1]);
+        $this->assertEquals('1000', $state['retryDelays'][2]);
         $this->assertGreaterThanOrEqual(1800, $elapsed);
     }
 
     public function testThrottlingBackoffRetryListProductQuotasExhausted()
     {
         self::ensureThrottlingMockServer();
-        self::resetThrottlingMockState(3, 1);
+        self::resetThrottlingMockState(3, 1000);
 
         $config = self::createConfig();
         $config->protocol = 'HTTP';
