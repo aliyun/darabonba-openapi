@@ -11,6 +11,7 @@ import OpenApi, * as $OpenApi from "../src/client";
 import OpenApiUtil, * as $OpenApiUtil from '../src/utils';
 import Credential, * as $Credential from '@alicloud/credentials';
 import * as $dara from '@darabonba/typescript';
+import * as $_error from '../src/exceptions/error';
 import POP, * as $POP from '@alicloud/gateway-pop';
 
 const server = http.createServer((req, res) => {
@@ -718,7 +719,7 @@ describe('$openapi', function () {
     let result = await client.callApi(params, request, runtime);
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "{\"key1\":\"value\",\"key2\":1,\"key3\":true}");
-    assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true");
+    assert.strictEqual(headers["raw-query"], "global-query=global-value&key1=value&key2=1&key3=true&Format=json");
     assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["x-acs-version"], "2022-06-01");
     assert.strictEqual(headers["x-acs-action"], "TestAPI");
@@ -1604,4 +1605,158 @@ describe('$openapi', function () {
 
   });
 
+});
+
+describe('Throttling backoff retry', () => {
+  let throttlingServer: http.Server;
+  let throttlingPort = 0;
+  let throttleCount = 2;
+  let retryAfterMS = 1000;
+  let requestCount = 0;
+  let retryAttempts: string[] = [];
+  let retryDelays: string[] = [];
+
+  function resetThrottlingState(throttle: number, retryAfter: number) {
+    throttleCount = throttle;
+    retryAfterMS = retryAfter;
+    requestCount = 0;
+    retryAttempts = [];
+    retryDelays = [];
+  }
+
+  function createThrottlingRetryOptions(): $dara.RetryOptions {
+    return new $dara.RetryOptions({
+      retryable: true,
+      retryCondition: [new $dara.RetryCondition({
+        maxAttempts: 3,
+        exception: [],
+        errorCode: ['Throttling', 'Throttling.User', 'Throttling.Api'],
+        maxDelay: 60000,
+      })],
+    });
+  }
+
+  function createListProductQuotasParams(): $OpenApiUtil.Params {
+    return new $OpenApiUtil.Params({
+      action: 'ListProductQuotas',
+      version: '2020-05-10',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    });
+  }
+
+  function createListProductQuotasRequest(): $OpenApiUtil.OpenApiRequest {
+    return new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap({
+        ProductCode: 'Ecs',
+      }),
+    });
+  }
+
+  before((done) => {
+    throttlingServer = http.createServer((req, res) => {
+      let data = '';
+      req.on('data', (chunk) => {
+        data += chunk;
+      });
+      req.on('end', () => {
+        requestCount++;
+        retryAttempts.push(<string>req.headers['x-acs-retry-attempts'] || '');
+        retryDelays.push(<string>req.headers['x-acs-retry-delay'] || '');
+
+        const headers: {[key: string]: string} = {};
+        Object.keys(req.headers).forEach((key) => {
+          if (key !== 'content-length') {
+            headers[key] = <string>req.headers[key];
+          }
+        });
+        headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4';
+        headers['raw-body'] = data;
+
+        if (requestCount <= throttleCount) {
+          headers['x-acs-retry-after'] = `${retryAfterMS}`;
+          const responseBody = '{"Code":"Throttling","Message":"Request was denied due to user flow control.","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}';
+          res.writeHead(400, headers);
+          res.end(responseBody);
+          return;
+        }
+
+        const responseBody = '{"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4","Quotas":[]}';
+        res.writeHead(200, headers);
+        res.end(responseBody);
+      });
+    });
+    throttlingServer.listen(0, () => {
+      throttlingPort = (throttlingServer.address() as AddressInfo).port;
+      done();
+    });
+  });
+
+  after((done) => {
+    throttlingServer.close(done);
+  });
+
+  beforeEach(() => {
+    resetThrottlingState(2, 1000);
+  });
+
+  it('should retry ListProductQuotas on throttling and succeed', async () => {
+    resetThrottlingState(2, 1000);
+    let config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.retryOptions = createThrottlingRetryOptions();
+    let client = new OpenApi(config);
+    let runtime = createRuntimeOptions();
+
+    const start = Date.now();
+    let result = await client.callApi(
+      createListProductQuotasParams(),
+      createListProductQuotasRequest(),
+      runtime
+    );
+    const elapsed = Date.now() - start;
+
+    assert.strictEqual(200, result['statusCode']);
+    assert.strictEqual('ProductCode=Ecs', result['headers']['raw-body']);
+    assert.strictEqual('ListProductQuotas', result['headers']['x-acs-action']);
+    assert.strictEqual('2020-05-10', result['headers']['x-acs-version']);
+    assert.strictEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result['body']['RequestId']);
+    assert.strictEqual(3, requestCount);
+    assert.strictEqual('', retryAttempts[0]);
+    assert.strictEqual('1', retryAttempts[1]);
+    assert.strictEqual('2', retryAttempts[2]);
+    assert.strictEqual('', retryDelays[0]);
+    assert.strictEqual('1000', retryDelays[1]);
+    assert.strictEqual('1000', retryDelays[2]);
+    assert.ok(elapsed >= 1800);
+  });
+
+  it('should exhaust throttling retry for ListProductQuotas', async () => {
+    resetThrottlingState(3, 1000);
+    let config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.retryOptions = createThrottlingRetryOptions();
+    let client = new OpenApi(config);
+    let runtime = createRuntimeOptions();
+
+    try {
+      await client.callApi(
+        createListProductQuotasParams(),
+        createListProductQuotasRequest(),
+        runtime
+      );
+      assert.fail('expected throttling retry to be exhausted');
+    } catch (error) {
+      assert.ok(error instanceof $_error.ThrottlingError || error.message.includes('Throttling'));
+    }
+
+    assert.strictEqual(3, requestCount);
+  });
 });

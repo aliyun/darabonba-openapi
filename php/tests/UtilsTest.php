@@ -41,10 +41,16 @@ class UtilsTest extends TestCase
      */
     public function testGetThrottlingTimeLeft()
     {
-        // Test with both headers
+        // Test with retry-after header
         $headers = array(
-            'x-ratelimit-user-api' => 'Remaining:10,TimeLeft:5',
-            'x-ratelimit-user' => 'Remaining:20,TimeLeft:3'
+            'x-acs-retry-after' => '5'
+        );
+        $timeLeft = Utils::getThrottlingTimeLeft($headers);
+        $this->assertEquals(5, $timeLeft);
+
+        // Guzzle response headers are arrays
+        $headers = array(
+            'x-acs-retry-after' => array('5')
         );
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
         $this->assertEquals(5, $timeLeft);
@@ -52,17 +58,17 @@ class UtilsTest extends TestCase
         // Test with empty headers
         $headers = array();
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
-        $this->assertEquals(0, $timeLeft);
+        $this->assertNull($timeLeft);
 
-        // Test with only one header
-        $headers = array('x-ratelimit-user' => 'TimeLeft:10');
+        // Test with zero retry-after
+        $headers = array('x-acs-retry-after' => '0');
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
-        $this->assertEquals(10, $timeLeft);
+        $this->assertEquals(0, $timeLeft);
 
         // Test with invalid value
-        $headers = array('x-ratelimit-user-api' => 'Invalid');
+        $headers = array('x-acs-retry-after' => 'Invalid');
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
-        $this->assertEquals(0, $timeLeft);
+        $this->assertNull($timeLeft);
     }
 
     /**

@@ -6,6 +6,7 @@ export class AlibabaCloudError extends $dara.ResponseError {
   statusCode?: number;
   code: string;
   message: string;
+  detail?: string;
   description?: string;
   requestId?: string;
 
@@ -15,6 +16,7 @@ export class AlibabaCloudError extends $dara.ResponseError {
     Object.setPrototypeOf(this, AlibabaCloudError.prototype);
     this.statusCode = map.statusCode;
     this.code = map.code;
+    this.detail = map.detail;
     this.description = map.description;
     this.requestId = map.requestId;
   }

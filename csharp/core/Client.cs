@@ -194,9 +194,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         Thread.Sleep(backoffTime);
@@ -285,6 +286,7 @@ namespace AlibabaCloud.OpenApiClient
                             headers
                         );
                     }
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
@@ -354,13 +356,14 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
                         object requestId = Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         object code = Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -374,6 +377,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -387,6 +391,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -535,9 +540,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         await Task.Delay(backoffTime);
@@ -626,6 +632,7 @@ namespace AlibabaCloud.OpenApiClient
                             headers
                         );
                     }
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
@@ -695,13 +702,14 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
                         object requestId = Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         object code = Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -715,6 +723,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -728,6 +737,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -879,9 +889,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         Thread.Sleep(backoffTime);
@@ -939,6 +950,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.JSONUtils.SerializeObject(request.Body));
@@ -1016,13 +1028,14 @@ namespace AlibabaCloud.OpenApiClient
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         requestId = (string)Darabonba.Core.GetDefaultValue(requestId, err.Get("requestid"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -1036,6 +1049,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -1049,6 +1063,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -1200,9 +1215,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         await Task.Delay(backoffTime);
@@ -1260,6 +1276,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(Darabonba.Utils.JSONUtils.SerializeObject(request.Body));
@@ -1337,13 +1354,14 @@ namespace AlibabaCloud.OpenApiClient
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         requestId = (string)Darabonba.Core.GetDefaultValue(requestId, err.Get("requestid"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -1357,6 +1375,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -1370,6 +1389,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -1521,9 +1541,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         Thread.Sleep(backoffTime);
@@ -1581,6 +1602,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
@@ -1658,13 +1680,14 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -1678,6 +1701,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -1691,6 +1715,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -1842,9 +1867,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         await Task.Delay(backoffTime);
@@ -1902,6 +1928,7 @@ namespace AlibabaCloud.OpenApiClient
                         extendsHeaders,
                         request.Headers
                     );
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     if (!request.Body.IsNull())
                     {
                         Dictionary<string, object> m = (Dictionary<string, object>)(request.Body);
@@ -1979,13 +2006,14 @@ namespace AlibabaCloud.OpenApiClient
                         Dictionary<string, object> err = (Dictionary<string, object>)(_res);
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -1999,6 +2027,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -2012,6 +2041,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -2160,9 +2190,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         Thread.Sleep(backoffTime);
@@ -2237,6 +2268,7 @@ namespace AlibabaCloud.OpenApiClient
                             );
                         }
                     }
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     string signatureAlgorithm = (string)Darabonba.Core.GetDefaultValue(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
                     if (!request.Stream.IsNull())
@@ -2321,6 +2353,13 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
+                    else
+                    {
+                        if (params_.Style == "RPC")
+                        {
+                            request_.Query["Format"] = "json";
+                        }
+                    }
                     _lastRequest = request_;
                     Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
                     _lastResponse = response_;
@@ -2341,13 +2380,14 @@ namespace AlibabaCloud.OpenApiClient
                         }
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -2361,6 +2401,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -2374,6 +2415,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -2524,9 +2566,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         await Task.Delay(backoffTime);
@@ -2601,6 +2644,7 @@ namespace AlibabaCloud.OpenApiClient
                             );
                         }
                     }
+                    Utils.ApplyRetryHeaders(request_.Headers, _retriesAttempted, backoffTime);
                     string signatureAlgorithm = (string)Darabonba.Core.GetDefaultValue(_signatureAlgorithm, "ACS3-HMAC-SHA256");
                     byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
                     if (!request.Stream.IsNull())
@@ -2685,6 +2729,13 @@ namespace AlibabaCloud.OpenApiClient
                             request_.Headers["Authorization"] = Utils.GetAuthorization(request_, signatureAlgorithm, Darabonba.Utils.BytesUtils.ToHex(hashedRequestPayload), accessKeyId, accessKeySecret);
                         }
                     }
+                    else
+                    {
+                        if (params_.Style == "RPC")
+                        {
+                            request_.Query["Format"] = "json";
+                        }
+                    }
                     _lastRequest = request_;
                     Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
                     _lastResponse = response_;
@@ -2705,13 +2756,14 @@ namespace AlibabaCloud.OpenApiClient
                         }
                         string requestId = (string)Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"));
                         string code = (string)Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"));
-                        if (("" + code == "Throttling") || ("" + code == "Throttling.User") || ("" + code == "Throttling.Api"))
+                        if (("" + code).Contains("Throttling"))
                         {
                             throw new ThrottlingException
                             {
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 RetryAfter = Utils.GetThrottlingTimeLeft(response_.Headers),
                                 Data = err,
@@ -2725,6 +2777,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 AccessDeniedDetail = GetAccessDeniedDetail(err),
@@ -2738,6 +2791,7 @@ namespace AlibabaCloud.OpenApiClient
                                 StatusCode = response_.StatusCode,
                                 Code = "" + code,
                                 Message = "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + requestId,
+                                Detail = "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail")),
                                 Description = "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description")),
                                 Data = err,
                                 RequestId = "" + requestId,
@@ -2889,9 +2943,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         Thread.Sleep(backoffTime);
@@ -3096,9 +3151,10 @@ namespace AlibabaCloud.OpenApiClient
             };
             while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
             {
+                int backoffTime = 0;
                 if (_retriesAttempted > 0)
                 {
-                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
                     if (backoffTime > 0)
                     {
                         await Task.Delay(backoffTime);
@@ -3414,6 +3470,7 @@ namespace AlibabaCloud.OpenApiClient
                     {"code", "" + Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"))},
                     {"message", "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"))},
                     {"data", err},
+                    {"detail", "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail"))},
                     {"description", "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description"))},
                     {"accessDeniedDetail", Darabonba.Core.GetDefaultValue(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                 });

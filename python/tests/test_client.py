@@ -1293,7 +1293,9 @@ class TestClient(unittest.TestCase):
         )
 
         def request_callback(url, **request):
-            assert 'http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True' == str(url)
+            assert re.match(
+                r'http://test\.aliyuncs\.com/\?Format=json&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+                str(url))
             assert 'sdk' == request['headers'].get('for-test')
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -1312,7 +1314,8 @@ class TestClient(unittest.TestCase):
                 content_type)
 
         responseHeaders = {'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4'}
-        m.post('http://test.aliyuncs.com/?extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+        m.post(re.compile(
+            r'http://test\.aliyuncs\.com/\?Format=json&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True'),
                body=responseBody,
                status=200,
                headers=responseHeaders,
@@ -2367,6 +2370,135 @@ class TestClient(unittest.TestCase):
             self.assertEqual(data, event.data)
             self.assertEqual("sse-test", event.id)
             self.assertEqual("flow", event.event)
+
+    def create_throttling_retry_options(self):
+        from darabonba.policy.retry import RetryCondition, RetryOptions
+        return RetryOptions(
+            retryable=True,
+            max_attempts=3,
+            retry_condition=[RetryCondition(
+                max_attempts=3,
+                error_code=['Throttling', 'Throttling.User', 'Throttling.Api'],
+                max_delay=60000,
+            )]
+        )
+
+    def create_list_product_quotas_params(self):
+        return open_api_models.Params(
+            action='ListProductQuotas',
+            version='2020-05-10',
+            protocol='HTTPS',
+            pathname='/',
+            method='POST',
+            auth_type='AK',
+            style='RPC',
+            req_body_type='formData',
+            body_type='json'
+        )
+
+    def create_list_product_quotas_request(self):
+        return open_api_models.OpenApiRequest(
+            body=UtilClient.parse_to_map({
+                'ProductCode': 'Ecs',
+            })
+        )
+
+    @httpretty.activate(allow_net_connect=False)
+    def test_throttling_backoff_retry_list_product_quotas(self):
+        import time
+        state = {
+            'throttle_count': 2,
+            'retry_after_ms': 1000,
+            'request_count': 0,
+            'retry_attempts': [],
+            'retry_delays': [],
+        }
+
+        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            state['request_count'] += 1
+            state['retry_attempts'].append(request.headers.get('x-acs-retry-attempts', ''))
+            state['retry_delays'].append(request.headers.get('x-acs-retry-delay', ''))
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            headers['raw-body'] = request.body.decode('utf-8')
+            if request.headers.get('x-acs-action'):
+                headers['x-acs-action'] = request.headers.get('x-acs-action')
+            if request.headers.get('x-acs-version'):
+                headers['x-acs-version'] = request.headers.get('x-acs-version')
+            if state['request_count'] <= state['throttle_count']:
+                headers['x-acs-retry-after'] = str(state['retry_after_ms'])
+                body = '{"Code":"Throttling","Message":"Request was denied due to user flow control.","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}'
+                return [400, headers, body]
+            body = '{"RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4","Quotas":[]}'
+            return [200, headers, body]
+
+        httpretty.register_uri(
+            httpretty.POST, 'http://quotas.aliyuncs.com/',
+            body=request_callback)
+
+        config = self.create_config()
+        config.protocol = 'HTTP'
+        config.endpoint = 'quotas.aliyuncs.com'
+        config.retry_options = self.create_throttling_retry_options()
+        client = OpenApiClient(config)
+        runtime = self.create_runtime_options()
+
+        start = time.time()
+        result = client.call_api(
+            self.create_list_product_quotas_params(),
+            self.create_list_product_quotas_request(),
+            runtime
+        )
+        elapsed = time.time() - start
+
+        self.assertEqual(200, result.get('statusCode'))
+        self.assertEqual('ProductCode=Ecs', result.get('headers').get('raw-body'))
+        self.assertEqual('ListProductQuotas', result.get('headers').get('x-acs-action'))
+        self.assertEqual('2020-05-10', result.get('headers').get('x-acs-version'))
+        self.assertEqual('A45EE076-334D-5012-9746-A8F828D20FD4', result.get('body').get('RequestId'))
+        self.assertEqual(3, state['request_count'])
+        self.assertEqual('', state['retry_attempts'][0])
+        self.assertEqual('1', state['retry_attempts'][1])
+        self.assertEqual('2', state['retry_attempts'][2])
+        self.assertEqual('', state['retry_delays'][0])
+        self.assertEqual('1000', state['retry_delays'][1])
+        self.assertEqual('1000', state['retry_delays'][2])
+        self.assertGreaterEqual(elapsed, 1.8)
+
+    @httpretty.activate(allow_net_connect=False)
+    def test_throttling_backoff_retry_list_product_quotas_exhausted(self):
+        from alibabacloud_tea_openapi.exceptions import ThrottlingException
+        state = {
+            'throttle_count': 3,
+            'retry_after_ms': 1000,
+            'request_count': 0,
+        }
+
+        def request_callback(request: HTTPrettyRequest, uri: str, headers: dict):
+            state['request_count'] += 1
+            headers['x-acs-request-id'] = 'A45EE076-334D-5012-9746-A8F828D20FD4'
+            headers['x-acs-retry-after'] = str(state['retry_after_ms'])
+            body = '{"Code":"Throttling","Message":"Request was denied due to user flow control.","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}'
+            return [400, headers, body]
+
+        httpretty.register_uri(
+            httpretty.POST, 'http://quotas.aliyuncs.com/',
+            body=request_callback)
+
+        config = self.create_config()
+        config.protocol = 'HTTP'
+        config.endpoint = 'quotas.aliyuncs.com'
+        config.retry_options = self.create_throttling_retry_options()
+        client = OpenApiClient(config)
+        runtime = self.create_runtime_options()
+
+        with self.assertRaises(ThrottlingException) as cm:
+            client.call_api(
+                self.create_list_product_quotas_params(),
+                self.create_list_product_quotas_request(),
+                runtime
+            )
+        self.assertEqual('Throttling', cm.exception.code)
+        self.assertEqual(3, state['request_count'])
     
     @httpretty.activate(allow_net_connect=False)
     async def test_sse_api_call_async(self):

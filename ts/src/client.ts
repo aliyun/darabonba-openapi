@@ -156,13 +156,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -232,6 +234,8 @@ export default class Client {
           };
         }
 
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
+
         if (!$dara.isNull(request.body)) {
           let m = request.body;
           let tmp = OpenApiUtil.query(m);
@@ -294,11 +298,12 @@ export default class Client {
           let err = _res;
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+          if (`${code}`.includes("Throttling")) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
               data: err,
@@ -309,6 +314,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
@@ -319,6 +325,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               requestId: `${requestId}`,
@@ -423,13 +430,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -478,6 +487,7 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
         if (!$dara.isNull(request.body)) {
           request_.body = new $dara.BytesReadable(typeof request.body === "string" ? request.body : JSON.stringify(request.body));
           request_.headers["content-type"] = "application/json; charset=utf-8";
@@ -546,11 +556,12 @@ export default class Client {
           let requestId = err["RequestId"] || err["requestId"];
           requestId = requestId || err["requestid"];
           let code = err["Code"] || err["code"];
-          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+          if (`${code}`.includes("Throttling")) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
               data: err,
@@ -561,6 +572,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
@@ -571,6 +583,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               requestId: `${requestId}`,
@@ -675,13 +688,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -730,6 +745,7 @@ export default class Client {
           ...extendsHeaders,
           ...request.headers,
         };
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
         if (!$dara.isNull(request.body)) {
           let m = request.body;
           request_.body = new $dara.BytesReadable(OpenApiUtil.toForm(m));
@@ -798,11 +814,12 @@ export default class Client {
           let err = _res;
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+          if (`${code}`.includes("Throttling")) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
               data: err,
@@ -813,6 +830,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
@@ -823,6 +841,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               requestId: `${requestId}`,
@@ -926,13 +945,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -995,6 +1016,8 @@ export default class Client {
           }
 
         }
+
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
 
         let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
         let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);
@@ -1065,6 +1088,10 @@ export default class Client {
             request_.headers["Authorization"] = OpenApiUtil.getAuthorization(request_, signatureAlgorithm, hashedRequestPayload.toString("hex"), accessKeyId, accessKeySecret);
           }
 
+        } else {
+          if (params.style == "RPC") {
+            request_.query["Format"] = "json";
+          }
         }
 
         _lastRequest = request_;
@@ -1084,11 +1111,12 @@ export default class Client {
 
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if ((`${code}` == "Throttling") || (`${code}` == "Throttling.User") || (`${code}` == "Throttling.Api")) {
+          if (`${code}`.includes("Throttling")) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
               data: err,
@@ -1099,6 +1127,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               accessDeniedDetail: this.getAccessDeniedDetail(err),
@@ -1109,6 +1138,7 @@ export default class Client {
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
+              detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
               data: err,
               requestId: `${requestId}`,
@@ -1215,13 +1245,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -1369,13 +1401,15 @@ export default class Client {
       retriesAttempted: _retriesAttempted,
     });
     while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      let _backoffTime = 0;
       if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
         if (_backoffTime > 0) {
           await $dara.sleep(_backoffTime);
         }
       }
 
+      const _retryAttempts = _retriesAttempted;
       _retriesAttempted = _retriesAttempted + 1;
       try {
         let request_ = new $dara.Request();
@@ -1438,6 +1472,8 @@ export default class Client {
           }
 
         }
+
+        OpenApiUtil.applyRetryHeaders(request_.headers, _retryAttempts, _backoffTime);
 
         let signatureAlgorithm = this._signatureAlgorithm || "ACS3-HMAC-SHA256";
         let hashedRequestPayload = OpenApiUtil.hash(Buffer.from("", "utf-8"), signatureAlgorithm);
@@ -1517,6 +1553,7 @@ export default class Client {
             code: `${err["Code"] || err["code"]}`,
             message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${err["RequestId"] || err["requestId"]}`,
             data: err,
+            detail: `${err["Detail"] || err["detail"]}`,
             description: `${err["Description"] || err["description"]}`,
             accessDeniedDetail: err["AccessDeniedDetail"] || err["accessDeniedDetail"],
           });

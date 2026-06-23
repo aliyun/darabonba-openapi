@@ -62,6 +62,7 @@ exception AlibabaCloud extends $ResponseError {
   statusCode?: number(description='HTTP Status Code'),
   code?: string(description="Error Code"),
   message?: string(description="Error Message"),
+  detail?: string(description="Error Detail"),
   description?: string(description="Error Description"),
   requestId?: string(description="Request ID"),
 }
@@ -272,11 +273,12 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     var err = $object(_res);
     var requestId = $default(err.RequestId, err.requestId);
     var code = $default(err.Code, err.code);
-    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+    if (`${code}`.contains('Throttling')) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
         data = err,
@@ -287,6 +289,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
@@ -297,6 +300,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         requestId = `${requestId}`,
@@ -480,11 +484,12 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     var requestId = $string($default(err.RequestId, err.requestId));
     requestId = $string($default(requestId, err.requestid));
     var code = $string($default(err.Code, err.code));
-    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+    if (`${code}`.contains('Throttling')) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
         data = err,
@@ -495,6 +500,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
@@ -505,6 +511,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         requestId = `${requestId}`,
@@ -686,11 +693,12 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     var err = $object(_res);
     var requestId = $string($default(err.RequestId, err.requestId));
     var code = $string($default(err.Code, err.code));
-    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+    if (`${code}`.contains('Throttling')) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
         data = err,
@@ -701,6 +709,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
@@ -711,6 +720,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         requestId = `${requestId}`,
@@ -932,6 +942,10 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
       }
       __request.headers.Authorization = OpenApiUtil.getAuthorization(__request, signatureAlgorithm, hashedRequestPayload.toHex(), accessKeyId, accessKeySecret);
     }
+  } else {
+    if (params.style == 'RPC') {
+      __request.query.Format = 'json';
+    }
   }
 } returns {
   if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
@@ -946,11 +960,12 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
     }
     var requestId = $string($default(err.RequestId, err.requestId));
     var code = $string($default(err.Code, err.code));
-    if ((`${code}` == 'Throttling') || (`${code}` == 'Throttling.User') || (`${code}` == 'Throttling.Api')) {
+    if (`${code}`.contains('Throttling')) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
         data = err,
@@ -961,6 +976,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         accessDeniedDetail = getAccessDeniedDetail(err),
@@ -971,6 +987,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
+        detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
         data = err,
         requestId = `${requestId}`,
@@ -1301,6 +1318,7 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
     throw {
       code = `${$default(err.Code, err.code)}`,
       message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${$default(err.RequestId, err.requestId)}`,
+      detail = `${$default(err.Detail, err.detail)}`,
       data = err,
       description = `${$default(err.Description, err.description)}`,
       accessDeniedDetail = $default(err.AccessDeniedDetail, err.accessDeniedDetail),

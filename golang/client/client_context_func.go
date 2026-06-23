@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -143,6 +144,7 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 				request.Headers,
 				headers)
 		}
+		openapiutil.ApplyRetryHeaders(request_.Headers, retryPolicyContext.RetriesAttempted, _backoffDelayTime)
 
 		if !dara.IsNil(request.Body) {
 			m := dara.ToMap(request.Body)
@@ -347,6 +349,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 		}, globalHeaders,
 			extendsHeaders,
 			request.Headers)
+		openapiutil.ApplyRetryHeaders(request_.Headers, retryPolicyContext.RetriesAttempted, _backoffDelayTime)
 		if !dara.IsNil(request.Body) {
 			request_.Body = dara.ToReader(dara.Stringify(request.Body))
 			request_.Headers["content-type"] = dara.String("application/json; charset=utf-8")
@@ -547,6 +550,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 		}, globalHeaders,
 			extendsHeaders,
 			request.Headers)
+		openapiutil.ApplyRetryHeaders(request_.Headers, retryPolicyContext.RetriesAttempted, _backoffDelayTime)
 		if !dara.IsNil(request.Body) {
 			m := dara.ToMap(request.Body)
 			request_.Body = dara.ToReader(openapiutil.ToForm(m))
@@ -823,6 +827,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 			}
 
 		}
+		openapiutil.ApplyRetryHeaders(request_.Headers, retryPolicyContext.RetriesAttempted, _backoffDelayTime)
 
 		signatureAlgorithm := dara.ToString(dara.Default(dara.StringValue(client.SignatureAlgorithm), "ACS3-HMAC-SHA256"))
 		hashedRequestPayload := openapiutil.Hash(dara.BytesFromString("", "utf-8"), dara.String(signatureAlgorithm))
@@ -921,6 +926,10 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 				request_.Headers["Authorization"] = openapiutil.GetAuthorization(request_, dara.String(signatureAlgorithm), dara.String(hex.EncodeToString(hashedRequestPayload)), dara.String(accessKeyId), dara.String(accessKeySecret))
 			}
 
+		} else {
+			if dara.StringValue(params.Style) == "RPC" {
+				request_.Query["Format"] = dara.String("json")
+			}
 		}
 
 		if isWebSocket {
@@ -1311,6 +1320,7 @@ func (client *Client) CallSSEApiWithCtx(ctx context.Context, params *openapiutil
 			}
 
 		}
+		openapiutil.ApplyRetryHeaders(request_.Headers, retryPolicyContext.RetriesAttempted, _backoffDelayTime)
 
 		signatureAlgorithm := dara.ToString(dara.Default(dara.StringValue(client.SignatureAlgorithm), "ACS3-HMAC-SHA256"))
 		hashedRequestPayload := openapiutil.Hash(dara.BytesFromString("", "utf-8"), dara.String(signatureAlgorithm))
@@ -1487,11 +1497,12 @@ func doRPCRequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 		err := dara.ToMap(_res)
 		requestId := dara.Default(err["RequestId"], err["requestId"])
 		code := dara.Default(err["Code"], err["code"])
-		if (dara.ToString(code) == "Throttling") || (dara.ToString(code) == "Throttling.User") || (dara.ToString(code) == "Throttling.Api") {
+		if strings.Contains(dara.ToString(code), "Throttling") {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(dara.ToString(code)),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + dara.ToString(requestId)),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
 				Data:        err,
@@ -1503,6 +1514,7 @@ func doRPCRequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 				StatusCode:         response_.StatusCode,
 				Code:               dara.String(dara.ToString(code)),
 				Message:            dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + dara.ToString(requestId)),
+				Detail:             dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description:        dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:               err,
 				AccessDeniedDetail: client.GetAccessDeniedDetail(err),
@@ -1514,6 +1526,7 @@ func doRPCRequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(dara.ToString(code)),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + dara.ToString(requestId)),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:        err,
 				RequestId:   dara.String(dara.ToString(requestId)),
@@ -1614,11 +1627,12 @@ func doROARequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		requestId = dara.ToString(dara.Default(requestId, err["requestid"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if (code == "Throttling") || (code == "Throttling.User") || (code == "Throttling.Api") {
+		if strings.Contains(code, "Throttling") {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
 				Data:        err,
@@ -1630,6 +1644,7 @@ func doROARequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 				StatusCode:         response_.StatusCode,
 				Code:               dara.String(code),
 				Message:            dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:             dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description:        dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:               err,
 				AccessDeniedDetail: client.GetAccessDeniedDetail(err),
@@ -1641,6 +1656,7 @@ func doROARequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:        err,
 				RequestId:   dara.String(requestId),
@@ -1740,11 +1756,12 @@ func doROAFormRequestWithCtx_opResponse(response_ *dara.Response, client *Client
 		err := dara.ToMap(_res)
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if (code == "Throttling") || (code == "Throttling.User") || (code == "Throttling.Api") {
+		if strings.Contains(code, "Throttling") {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
 				Data:        err,
@@ -1756,6 +1773,7 @@ func doROAFormRequestWithCtx_opResponse(response_ *dara.Response, client *Client
 				StatusCode:         response_.StatusCode,
 				Code:               dara.String(code),
 				Message:            dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:             dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description:        dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:               err,
 				AccessDeniedDetail: client.GetAccessDeniedDetail(err),
@@ -1767,6 +1785,7 @@ func doROAFormRequestWithCtx_opResponse(response_ *dara.Response, client *Client
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:        err,
 				RequestId:   dara.String(requestId),
@@ -1870,11 +1889,12 @@ func doRequestWithCtx_opResponse(response_ *dara.Response, client *Client, param
 
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if (code == "Throttling") || (code == "Throttling.User") || (code == "Throttling.Api") {
+		if strings.Contains(code, "Throttling") {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
 				Data:        err,
@@ -1886,6 +1906,7 @@ func doRequestWithCtx_opResponse(response_ *dara.Response, client *Client, param
 				StatusCode:         response_.StatusCode,
 				Code:               dara.String(code),
 				Message:            dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:             dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description:        dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:               err,
 				AccessDeniedDetail: client.GetAccessDeniedDetail(err),
@@ -1897,6 +1918,7 @@ func doRequestWithCtx_opResponse(response_ *dara.Response, client *Client, param
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
+				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
 				Data:        err,
 				RequestId:   dara.String(requestId),
@@ -2011,6 +2033,7 @@ func callSSEApiWithCtx_opResponse(ctx context.Context, _yield chan *SSEResponse,
 			"code":               dara.ToString(dara.Default(err["Code"], err["code"])),
 			"message":            "code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + dara.ToString(dara.Default(err["RequestId"], err["requestId"])),
 			"data":               err,
+			"detail":             dara.ToString(dara.Default(err["Detail"], err["detail"])),
 			"description":        dara.ToString(dara.Default(err["Description"], err["description"])),
 			"accessDeniedDetail": dara.Default(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 		})

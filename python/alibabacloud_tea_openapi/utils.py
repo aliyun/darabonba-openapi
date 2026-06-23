@@ -15,7 +15,6 @@ import Tea
 import threading
 import random
 import hashlib
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -41,12 +40,17 @@ def to_str(val):
 
 
 def rsa_sign(plaintext, secret):
-    if not secret.startswith(b'-----BEGIN RSA PRIVATE KEY-----'):
-        secret = b'-----BEGIN RSA PRIVATE KEY-----\n%s' % secret
-    if not secret.endswith(b'-----END RSA PRIVATE KEY-----'):
-        secret = b'%s\n-----END RSA PRIVATE KEY-----' % secret
+    if isinstance(secret, str):
+        secret = secret.encode('utf-8')
+    if not secret.startswith(b'-----BEGIN'):
+        secret = b'-----BEGIN PRIVATE KEY-----\n' + secret
+    if not secret.endswith(b'-----END PRIVATE KEY-----'):
+        secret = secret.rstrip() + b'\n-----END PRIVATE KEY-----'
+    # PKCS#8 payloads are often labeled as RSA PRIVATE KEY in other SDKs; cryptography requires matching headers.
+    secret = secret.replace(b'-----BEGIN RSA PRIVATE KEY-----', b'-----BEGIN PRIVATE KEY-----')
+    secret = secret.replace(b'-----END RSA PRIVATE KEY-----', b'-----END PRIVATE KEY-----')
 
-    key = load_pem_private_key(secret, password=None, backend=default_backend())
+    key = load_pem_private_key(secret, password=None)
     return key.sign(plaintext, padding.PKCS1v15(), hashes.SHA256())
 
 
@@ -469,6 +473,12 @@ class Utils(object):
         return md5.hexdigest()
 
     @staticmethod
+    def apply_retry_headers(headers, retries_attempted, backoff_delay):
+        if retries_attempted > 0:
+            headers['x-acs-retry-attempts'] = str(retries_attempted)
+            headers['x-acs-retry-delay'] = str(backoff_delay)
+
+    @staticmethod
     def get_date_utcstring() -> str:
         """
         Get an UTC format string by current date, e.g. 'Thu, 06 Feb 2020 07:32:54 GMT'
@@ -555,19 +565,11 @@ class Utils(object):
     
     @staticmethod
     def get_throttling_time_left(headers: Dict[str, str]) -> int:
-        """
-        Get throttling time left based on the response headers
-        
-        @param headers: The response headers
-        @return: Remaining time in milliseconds before the throttle is lifted
-        """
-        rate_limit_user_api = headers.get("x-ratelimit-user-api")
-        rate_limit_user = headers.get("x-ratelimit-user")
-
-        time_left_user_api = Utils._get_time_left(rate_limit_user_api)
-        time_left_user = Utils._get_time_left(rate_limit_user)
-
-        return max(time_left_user_api, time_left_user)
+        retry_after = headers.get('x-acs-retry-after')
+        try:
+            return int(retry_after)
+        except (TypeError, ValueError):
+            return None
 
     @staticmethod
     def _get_time_left(rate_limit: str) -> int:

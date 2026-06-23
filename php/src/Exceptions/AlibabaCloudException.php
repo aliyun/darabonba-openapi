@@ -23,6 +23,10 @@ class AlibabaCloudException extends DaraException
   /**
    * @var string
    */
+  public $detail;
+  /**
+   * @var string
+   */
   public $description;
   /**
    * @var string
@@ -31,10 +35,14 @@ class AlibabaCloudException extends DaraException
 
   public function __construct($map)
   {
+    if (isset($map['code']) && !isset($map['errCode'])) {
+      $map['errCode'] = $map['code'];
+    }
     parent::__construct($map);
     $this->statusCode = $map['statusCode'];
     $this->code = $map['code'];
     $this->message = $map['message'];
+    $this->detail = isset($map['detail']) ? $map['detail'] : null;
     $this->description = $map['description'];
     $this->requestId = $map['requestId'];
   }
@@ -45,6 +53,13 @@ class AlibabaCloudException extends DaraException
   public function getStatusCode()
   {
     return $this->statusCode;
+  }
+  /**
+   * @return string
+   */
+  public function getDetail()
+  {
+    return $this->detail;
   }
   /**
    * @return string

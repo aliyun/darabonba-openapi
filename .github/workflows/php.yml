@@ -49,7 +49,15 @@ jobs:
           ${{ runner.os }}-php-${{ matrix.php-versions }}-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
+      run: |
+        if php -r 'exit(version_compare(PHP_VERSION, "7.2.0", "<") ? 0 : 1);'; then
+          composer require --dev phpunit/phpunit:^5.7.27 --no-update
+        elif php -r 'exit(version_compare(PHP_VERSION, "7.3.0", "<") ? 0 : 1);'; then
+          composer require --dev phpunit/phpunit:^8.5.28 --no-update
+        else
+          composer require --dev phpunit/phpunit:^9.6.19 --no-update
+        fi
+        composer update --prefer-dist --no-progress --no-interaction
 
     - name: Run syntax check
       run: find src tests -name "*.php" -exec php -l {} \;
@@ -74,7 +82,9 @@ jobs:
         tools: composer:v2, phpstan
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
+      run: |
+        composer require --dev phpunit/phpunit:^9.6.19 --no-update
+        composer update --prefer-dist --no-progress --no-interaction
 
     - name: Run PHPStan
       run: |
@@ -101,7 +111,9 @@ jobs:
         coverage: xdebug
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
+      run: |
+        composer require --dev phpunit/phpunit:^9.6.19 --no-update
+        composer update --prefer-dist --no-progress --no-interaction
 
     - name: Run tests with coverage
       run: vendor/bin/phpunit --coverage-clover=coverage.xml

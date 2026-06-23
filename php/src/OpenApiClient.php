@@ -324,6 +324,7 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
         $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
         if ($_backoffTime > 0) {
@@ -331,6 +332,7 @@ class OpenApiClient
         }
       }
 
+      $_retryAttempts = $_retriesAttempted;
       $_retriesAttempted++;
       try {
         $_request = new Request();
@@ -387,6 +389,8 @@ class OpenApiClient
             'user-agent' => Utils::getUserAgent($this->_userAgent),
           ], $globalHeaders, $extendsHeaders, $request->headers, $headers);
         }
+
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
 
         if (!is_null($request->body)) {
           $m = $request->body;
@@ -446,11 +450,12 @@ class OpenApiClient
           $err = $_res;
           $requestId = (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . (string)$code . '' == 'Throttling') || ('' . (string)$code . '' == 'Throttling.User') || ('' . (string)$code . '' == 'Throttling.Api')) {
+          if (false !== strpos('' . (string)$code . '', 'Throttling')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
@@ -461,6 +466,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
@@ -471,6 +477,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . (string)$requestId . '',
@@ -585,6 +592,7 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
         $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
         if ($_backoffTime > 0) {
@@ -592,6 +600,7 @@ class OpenApiClient
         }
       }
 
+      $_retryAttempts = $_retriesAttempted;
       $_retriesAttempted++;
       try {
         $_request = new Request();
@@ -635,6 +644,7 @@ class OpenApiClient
           'x-acs-action' => $action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
         ], $globalHeaders, $extendsHeaders, $request->headers);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
         if (!is_null($request->body)) {
           $_request->body = json_encode($request->body, JSON_UNESCAPED_UNICODE + JSON_UNESCAPED_SLASHES);
           @$_request->headers['content-type'] = 'application/json; charset=utf-8';
@@ -696,11 +706,12 @@ class OpenApiClient
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $requestId = '' . ($requestId ? $requestId : @$err['requestid']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
+          if (false !== strpos('' . $code . '', 'Throttling')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
@@ -711,6 +722,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
@@ -721,6 +733,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -835,6 +848,7 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
         $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
         if ($_backoffTime > 0) {
@@ -842,6 +856,7 @@ class OpenApiClient
         }
       }
 
+      $_retryAttempts = $_retriesAttempted;
       $_retriesAttempted++;
       try {
         $_request = new Request();
@@ -885,6 +900,7 @@ class OpenApiClient
           'x-acs-action' => $action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
         ], $globalHeaders, $extendsHeaders, $request->headers);
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
         if (!is_null($request->body)) {
           $m = $request->body;
           $_request->body = Utils::toForm($m);
@@ -946,11 +962,12 @@ class OpenApiClient
           $err = $_res;
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
+          if (false !== strpos('' . $code . '', 'Throttling')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
@@ -961,6 +978,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
@@ -971,6 +989,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -1078,6 +1097,7 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
         $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
         if ($_backoffTime > 0) {
@@ -1085,6 +1105,7 @@ class OpenApiClient
         }
       }
 
+      $_retryAttempts = $_retriesAttempted;
       $_retriesAttempted++;
       try {
         $_request = new Request();
@@ -1134,6 +1155,8 @@ class OpenApiClient
             $_request->headers = Dara::merge([], $_request->headers, $headers);
           }
         }
+
+        Utils::applyRetryHeaders($_request->headers, $_retryAttempts, $_backoffTime);
 
         $signatureAlgorithm = '' . ($this->_signatureAlgorithm ? $this->_signatureAlgorithm : 'ACS3-HMAC-SHA256');
         $hashedRequestPayload = Utils::hash(BytesUtil::from('', 'utf-8'), $signatureAlgorithm);
@@ -1200,6 +1223,10 @@ class OpenApiClient
 
             @$_request->headers['Authorization'] = Utils::getAuthorization($_request, $signatureAlgorithm, bin2hex(BytesUtil::toString($hashedRequestPayload)), $accessKeyId, $accessKeySecret);
           }
+        } else {
+          if ($params->style == 'RPC') {
+            @$_request->query['Format'] = 'json';
+          }
         }
 
         $_lastRequest = $_request;
@@ -1219,11 +1246,12 @@ class OpenApiClient
 
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (('' . $code . '' == 'Throttling') || ('' . $code . '' == 'Throttling.User') || ('' . $code . '' == 'Throttling.Api')) {
+          if (false !== strpos('' . $code . '', 'Throttling')) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
               'data' => $err,
@@ -1234,6 +1262,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'accessDeniedDetail' => $this->getAccessDeniedDetail($err),
@@ -1244,6 +1273,7 @@ class OpenApiClient
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
+              'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
               'data' => $err,
               'requestId' => '' . $requestId . '',
@@ -1354,6 +1384,7 @@ class OpenApiClient
       'retriesAttempted' => $_retriesAttempted,
     ]);
     while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      $_backoffTime = 0;
       if ($_retriesAttempted > 0) {
         $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
         if ($_backoffTime > 0) {
@@ -1361,6 +1392,7 @@ class OpenApiClient
         }
       }
 
+      $_retryAttempts = $_retriesAttempted;
       $_retriesAttempted++;
       try {
         $_request = new Request();
@@ -1619,6 +1651,7 @@ class OpenApiClient
         'code' => '' . (string) (@$err['Code'] ? @$err['Code'] : @$err['code']) . '',
         'message' => 'code: ' . (string) $_response->statusCode . ', ' . (string) (@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string) (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']) . '',
         'data' => $err,
+        'detail' => '' . (string) (@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
         'description' => '' . (string) (@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
         'accessDeniedDetail' => (@$err['AccessDeniedDetail'] ? @$err['AccessDeniedDetail'] : @$err['accessDeniedDetail']),
       ]);

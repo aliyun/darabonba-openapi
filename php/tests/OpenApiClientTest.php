@@ -11,7 +11,9 @@ use Darabonba\OpenApi\Models\GlobalParameters;
 use AlibabaCloud\Dara\Models\RuntimeOptions;
 use AlibabaCloud\Dara\Models\ExtendsParameters;
 use Darabonba\OpenApi\Models\OpenApiRequest;
+use Darabonba\OpenApi\Exceptions\ThrottlingException;
 use AlibabaCloud\Credentials\Credential;
+use AlibabaCloud\Dara\Exception\DaraUnableRetryException;
 use AlibabaCloud\Dara\RetryPolicy\RetryCondition;
 use PHPUnit\Framework\TestCase;
 use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
@@ -29,6 +31,163 @@ class OpenApiClientTest extends TestCase
     private $pid = 0;
     private static $serverStarted = false;
     private static $serverPid = 0;
+    private static $throttlingServerStarted = false;
+    private static $throttlingServerProcess = null;
+    private static $throttlingServerPort = 0;
+
+    /**
+     * Ensure throttling mock server is running on a dynamic local port.
+     */
+    private static function ensureThrottlingMockServer()
+    {
+        if (self::$throttlingServerStarted && self::isThrottlingMockServerReady()) {
+            return;
+        }
+
+        self::stopThrottlingMockServer();
+
+        $server = __DIR__ . '/Mock/ThrottlingMockServer.php';
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['file', '/dev/null', 'w'],
+            2 => ['file', '/dev/null', 'w'],
+        ];
+        $process = proc_open('php ' . escapeshellarg($server), $descriptors, $pipes);
+        if (!is_resource($process)) {
+            throw new \RuntimeException('Failed to start throttling mock server process');
+        }
+        fclose($pipes[0]);
+        self::$throttlingServerProcess = $process;
+
+        $deadline = microtime(true) + 10;
+        while (microtime(true) < $deadline) {
+            if (self::isThrottlingMockServerReady()) {
+                self::$throttlingServerStarted = true;
+                register_shutdown_function(array(__CLASS__, 'stopThrottlingMockServer'));
+                return;
+            }
+            usleep(100000);
+        }
+
+        self::stopThrottlingMockServer();
+        throw new \RuntimeException('Failed to start throttling mock server');
+    }
+
+    private static function isThrottlingMockServerReady()
+    {
+        $portFile = __DIR__ . '/Mock/throttling-mock-port.txt';
+        if (!file_exists($portFile)) {
+            return false;
+        }
+
+        $port = (int) trim((string) file_get_contents($portFile));
+        if ($port <= 0) {
+            return false;
+        }
+
+        $connection = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
+        if ($connection === false) {
+            return false;
+        }
+
+        fclose($connection);
+        self::$throttlingServerPort = $port;
+        return true;
+    }
+
+    private static function getThrottlingEndpoint()
+    {
+        self::ensureThrottlingMockServer();
+        return '127.0.0.1:' . self::$throttlingServerPort;
+    }
+
+    private static function getResponseHeader($headers, $name)
+    {
+        $key = strtolower($name);
+        if (!isset($headers[$key])) {
+            return null;
+        }
+
+        $value = $headers[$key];
+        if (is_array($value)) {
+            return $value[0];
+        }
+
+        return $value;
+    }
+
+    public static function stopThrottlingMockServer()
+    {
+        if (is_resource(self::$throttlingServerProcess)) {
+            @proc_terminate(self::$throttlingServerProcess);
+            @proc_close(self::$throttlingServerProcess);
+            self::$throttlingServerProcess = null;
+        }
+
+        $portFile = __DIR__ . '/Mock/throttling-mock-port.txt';
+        if (file_exists($portFile)) {
+            @unlink($portFile);
+        }
+
+        self::$throttlingServerStarted = false;
+        self::$throttlingServerPort = 0;
+    }
+
+    private static function resetThrottlingMockState($throttleCount, $retryAfterMS = 1)
+    {
+        $stateFile = __DIR__ . '/Mock/throttling-mock-state.json';
+        file_put_contents($stateFile, json_encode([
+            'throttleCount' => $throttleCount,
+            'retryAfterMS' => $retryAfterMS,
+            'requestCount' => 0,
+            'retryAttempts' => [],
+            'retryDelays' => [],
+        ]));
+    }
+
+    private static function readThrottlingMockState()
+    {
+        $stateFile = __DIR__ . '/Mock/throttling-mock-state.json';
+        return json_decode(file_get_contents($stateFile), true);
+    }
+
+    private static function createThrottlingRetryOptions()
+    {
+        return new RetryOptions([
+            'retryable' => true,
+            'maxAttempts' => 3,
+            'retryCondition' => [new RetryCondition([
+                'maxAttempts' => 3,
+                'errorCode' => ['Throttling', 'Throttling.User', 'Throttling.Api'],
+                'maxDelay' => 60000,
+            ])],
+        ]);
+    }
+
+    private static function createListProductQuotasParams()
+    {
+        return new Params([
+            'action' => 'ListProductQuotas',
+            'version' => '2020-05-10',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'RPC',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]);
+    }
+
+    private static function createListProductQuotasRequest()
+    {
+        return new OpenApiRequest([
+            'body' => Utils::parseToMap([
+                'ProductCode' => 'Ecs',
+            ]),
+        ]);
+    }
+
 
     /**
      * Ensure Mock Server is running (PHP 5.6-8.1 compatible)
@@ -522,5 +681,79 @@ class OpenApiClientTest extends TestCase
         ];
         $this->assertCount(5, $events);
         $this->assertEquals($expectedEvents, $events);
+    }
+
+    public function testThrottlingBackoffRetryListProductQuotas()
+    {
+        self::ensureThrottlingMockServer();
+        self::resetThrottlingMockState(2, 1);
+
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->endpoint = self::getThrottlingEndpoint();
+        $config->retryOptions = self::createThrottlingRetryOptions();
+        $client = new OpenApiClient($config);
+        $runtime = self::createRuntimeOptions();
+
+        $start = microtime(true);
+        $response = $client->callApi(
+            self::createListProductQuotasParams(),
+            self::createListProductQuotasRequest(),
+            $runtime
+        );
+        $elapsed = (microtime(true) - $start) * 1000;
+
+        $this->assertEquals(200, $response['statusCode']);
+        $headers = $response['headers'];
+        $this->assertEquals('ProductCode=Ecs', self::getResponseHeader($headers, 'raw-body'));
+        $this->assertEquals('ListProductQuotas', self::getResponseHeader($headers, 'x-acs-action'));
+        $this->assertEquals('2020-05-10', self::getResponseHeader($headers, 'x-acs-version'));
+        $this->assertEquals('A45EE076-334D-5012-9746-A8F828D20FD4', $response['body']['RequestId']);
+
+        $state = self::readThrottlingMockState();
+        $this->assertEquals(3, $state['requestCount']);
+        $this->assertEquals('', $state['retryAttempts'][0]);
+        $this->assertEquals('1', $state['retryAttempts'][1]);
+        $this->assertEquals('2', $state['retryAttempts'][2]);
+        $this->assertEquals('', $state['retryDelays'][0]);
+        $this->assertEquals('1', $state['retryDelays'][1]);
+        $this->assertEquals('1', $state['retryDelays'][2]);
+        $this->assertGreaterThanOrEqual(1800, $elapsed);
+    }
+
+    public function testThrottlingBackoffRetryListProductQuotasExhausted()
+    {
+        self::ensureThrottlingMockServer();
+        self::resetThrottlingMockState(2, 1);
+
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->endpoint = self::getThrottlingEndpoint();
+        $config->retryOptions = new RetryOptions([
+            'retryable' => true,
+            'maxAttempts' => 2,
+            'retryCondition' => [new RetryCondition([
+                'maxAttempts' => 2,
+                'errorCode' => ['Throttling', 'Throttling.User', 'Throttling.Api'],
+                'maxDelay' => 60000,
+            ])],
+        ]);
+        $client = new OpenApiClient($config);
+        $runtime = self::createRuntimeOptions();
+
+        try {
+            $client->callApi(
+                self::createListProductQuotasParams(),
+                self::createListProductQuotasRequest(),
+                $runtime
+            );
+            $this->fail('Expected throttling retry to be exhausted');
+        } catch (DaraUnableRetryException $e) {
+            $this->assertInstanceOf(ThrottlingException::class, $e->getLastException());
+            $this->assertEquals('Throttling', $e->getLastException()->code);
+        }
+
+        $state = self::readThrottlingMockState();
+        $this->assertEquals(2, $state['requestCount']);
     }
 }

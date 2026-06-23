@@ -172,10 +172,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -222,6 +224,8 @@ class Client:
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers, headers)
 
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
+
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     tmp = Utils.query(m)
@@ -267,11 +271,12 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -282,6 +287,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -292,6 +298,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -383,10 +390,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -433,6 +442,8 @@ class Client:
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers, headers)
 
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
+
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     tmp = Utils.query(m)
@@ -478,11 +489,12 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -493,6 +505,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -503,6 +516,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -610,10 +624,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -647,6 +663,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     _request.body = DaraCore.to_json_string(request.body)
                     _request.headers["content-type"] = 'application/json; charset=utf-8'
@@ -693,11 +710,12 @@ class Client:
                     request_id = err.get("RequestId") or err.get("requestId")
                     request_id = request_id or err.get("requestid")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -708,6 +726,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -718,6 +737,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -810,10 +830,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -847,6 +869,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     _request.body = DaraCore.to_json_string(request.body)
                     _request.headers["content-type"] = 'application/json; charset=utf-8'
@@ -893,11 +916,12 @@ class Client:
                     request_id = err.get("RequestId") or err.get("requestId")
                     request_id = request_id or err.get("requestid")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -908,6 +932,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -918,6 +943,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -1025,10 +1051,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -1062,6 +1090,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     _request.body = Utils.to_form(m)
@@ -1108,11 +1137,12 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -1123,6 +1153,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -1133,6 +1164,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -1225,10 +1257,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -1262,6 +1296,7 @@ class Client:
                     'x-acs-action': action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
                 }, global_headers, extends_headers, request.headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 if not DaraCore.is_null(request.body):
                     m = request.body
                     _request.body = Utils.to_form(m)
@@ -1308,11 +1343,12 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -1323,6 +1359,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -1333,6 +1370,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -1433,10 +1471,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -1474,6 +1514,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -1531,6 +1572,10 @@ class Client:
                             _request.headers["x-acs-security-token"] = security_token
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
+                else:
+                    if params.style == 'RPC':
+                        _request.query["Format"] = 'json'
+
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
                 _last_response = _response
@@ -1546,11 +1591,12 @@ class Client:
 
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -1561,6 +1607,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -1571,6 +1618,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -1659,10 +1707,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -1700,6 +1750,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -1757,6 +1808,10 @@ class Client:
                             _request.headers["x-acs-security-token"] = security_token
                         _request.headers["Authorization"] = Utils.get_authorization(_request, signature_algorithm, hashed_request_payload.hex(), access_key_id, access_key_secret)
 
+                else:
+                    if params.style == 'RPC':
+                        _request.query["Format"] = 'json'
+
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)
                 _last_response = _response
@@ -1772,11 +1827,12 @@ class Client:
 
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if (f'{code}' == 'Throttling') or (f'{code}' == 'Throttling.User') or (f'{code}' == 'Throttling.Api'):
+                    if 'Throttling' in f'{code}':
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             retry_after = Utils.get_throttling_time_left(_response.headers),
                             data = err,
@@ -1787,6 +1843,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             access_denied_detail = self.get_access_denied_detail(err),
@@ -1797,6 +1854,7 @@ class Client:
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
+                            detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
                             data = err,
                             request_id = f'{request_id}'
@@ -1900,10 +1958,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -2029,10 +2089,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -2157,10 +2219,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -2198,6 +2262,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -2263,6 +2328,7 @@ class Client:
                         'code': f'{err.get("Code") or err.get("code")}',
                         'message': f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {err.get("RequestId") or err.get("requestId")}',
                         'data': err,
+                        'detail': f'{err.get("Detail") or err.get("detail")}',
                         'description': f'{err.get("Description") or err.get("description")}',
                         'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
                     })
@@ -2313,10 +2379,12 @@ class Client:
             retries_attempted= _retries_attempted
         )
         while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            _backoff_time = 0
             if _retries_attempted > 0:
                 _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
                 if _backoff_time > 0:
                     DaraCore.sleep(_backoff_time)
+            _retry_attempts = _retries_attempted
             _retries_attempted = _retries_attempted + 1
             try:
                 _request = DaraRequest()
@@ -2354,6 +2422,7 @@ class Client:
                     headers = self.get_rpc_headers()
                     if not DaraCore.is_null(headers):
                         _request.headers = DaraCore.merge({}, _request.headers, headers)
+                Utils.apply_retry_headers(_request.headers, _retry_attempts, _backoff_time)
                 signature_algorithm = self._signature_algorithm or 'ACS3-HMAC-SHA256'
                 hashed_request_payload = Utils.hash(DaraBytes.from_('', 'utf-8'), signature_algorithm)
                 if not DaraCore.is_null(request.stream):
@@ -2419,6 +2488,7 @@ class Client:
                         'code': f'{err.get("Code") or err.get("code")}',
                         'message': f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {err.get("RequestId") or err.get("requestId")}',
                         'data': err,
+                        'detail': f'{err.get("Detail") or err.get("detail")}',
                         'description': f'{err.get("Description") or err.get("description")}',
                         'accessDeniedDetail': err.get("AccessDeniedDetail") or err.get("accessDeniedDetail")
                     })

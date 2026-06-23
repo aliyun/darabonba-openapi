@@ -13,8 +13,9 @@ class ThrottlingException extends AlibabaCloudException
 
   public function __construct($map)
   {
+    $map['name'] = 'ThrottlingException';
     parent::__construct($map);
-    $this->retryAfter = $map['retryAfter'];
+    $this->retryAfter = isset($map['retryAfter']) ? $map['retryAfter'] : null;
   }
 
   /**
