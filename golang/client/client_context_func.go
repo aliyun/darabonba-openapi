@@ -955,7 +955,7 @@ func (client *Client) DoRequestWithCtx(ctx context.Context, params *openapiutil.
 
 			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response_)
 			streamHandler.Client = wsClientObj
-			_result["websocketClient"] = wsClientObj
+			_result["webSocketClient"] = wsClientObj
 
 		} else {
 			response_, _err := dara.DoRequestWithCtx(ctx, request_, _runtime)
