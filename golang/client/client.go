@@ -1087,7 +1087,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 
 			wsClientObj := websocketutils.NewWebSocketClient(wsClient, response_)
 			streamHandler.Client = wsClientObj
-			_result["websocketClient"] = wsClientObj
+			_result["webSocketClient"] = wsClientObj
 		} else {
 			response_, _err := dara.DoRequest(request_, _runtime)
 			if _err != nil {
