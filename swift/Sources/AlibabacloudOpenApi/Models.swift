@@ -375,8 +375,8 @@ public class OpenApiRequest : Tea.TeaModel {
         if let value = dict["query"] as? [String: String] {
             self.query = value
         }
-        if let value = dict["body"] as? Any {
-            self.body = value
+        if dict.keys.contains("body") {
+            self.body = dict["body"] as! Any
         }
         if let value = dict["stream"] as? InputStream {
             self.stream = value

@@ -33,6 +33,9 @@ let package = Package(
                         .product(name: "AlibabacloudGatewaySPI", package: "alibabacloud-gateway-spi"),
                         .product(name: "DarabonbaXML", package: "tea-xml")
                     ]),
+            .testTarget(
+                    name: "AlibabacloudOpenApiTests",
+                    dependencies: ["AlibabacloudOpenApi"]),
         ],
         swiftLanguageVersions: [.v5]
 )
