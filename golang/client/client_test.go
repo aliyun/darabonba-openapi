@@ -1743,9 +1743,10 @@ func createThrottlingRetryOptions() *dara.RetryOptions {
 }
 
 func TestThrottlingBackoffRetry_ListProductQuotas(t *testing.T) {
+	const retryAfterMS = 100
 	handler := &throttlingMockHandler{
 		throttleCount: 2,
-		retryAfterMS:  1,
+		retryAfterMS:  retryAfterMS,
 	}
 	server := httptest.NewServer(handler)
 	defer server.Close()
@@ -1786,10 +1787,15 @@ func TestThrottlingBackoffRetry_ListProductQuotas(t *testing.T) {
 	tea_util.AssertEqual(t, "1", handler.retryAttempts[1])
 	tea_util.AssertEqual(t, "2", handler.retryAttempts[2])
 	tea_util.AssertEqual(t, "", handler.retryDelays[0])
-	tea_util.AssertEqual(t, "1", handler.retryDelays[1])
-	tea_util.AssertEqual(t, "1", handler.retryDelays[2])
-	if elapsed < 1800*time.Millisecond {
-		t.Fatalf("expected throttling backoff delay, elapsed %v", elapsed)
+	tea_util.AssertEqual(t, "100", handler.retryDelays[1])
+	tea_util.AssertEqual(t, "100", handler.retryDelays[2])
+	// 期望 sleep 单位为毫秒：2 次重试 * 100ms ≈ 200ms。
+	// 下限 150ms 容忍调度抖动；上限 5s 防御回归（若 Sleep 又被误当成秒，则会 ≈200s）。
+	if elapsed < 150*time.Millisecond {
+		t.Fatalf("expected throttling backoff delay >= 150ms, elapsed %v", elapsed)
+	}
+	if elapsed > 5*time.Second {
+		t.Fatalf("throttling backoff suspiciously slow, elapsed %v (sleep unit regression?)", elapsed)
 	}
 
 	headers, _err := util.AssertAsMap(result["headers"])
