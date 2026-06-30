@@ -25,7 +25,9 @@ jobs:
           - os: macos-latest
             compiler: gcc
         include:
-          # Windows 使用 MSVC
+          # Windows 使用 MSVC（覆盖 VS 2022 和最新版）
+          - os: windows-2022
+            compiler: msvc
           - os: windows-latest
             compiler: msvc
     
@@ -117,7 +119,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% -Dgtest_force_shared_crt=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
+        cmake -B build -A x64 -DCMAKE_TOOLCHAIN_FILE=%CMAKE_TOOLCHAIN_FILE% -Dgtest_force_shared_crt=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
 
     - name: Configure CMake (macOS)
       if: runner.os == 'macOS'
