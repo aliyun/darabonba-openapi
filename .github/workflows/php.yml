@@ -57,6 +57,13 @@ jobs:
         else
           composer require --dev phpunit/phpunit:^9.6.19 --no-update
         fi
+        # guzzlehttp/psr7 >= 2.7 tightened Uri::validateHost() and now rejects
+        # "host:port" strings that alibabacloud/darabonba (Request.php:82) still
+        # feeds into Uri::withHost(), breaking every test that points at a local
+        # mock server (e.g. 127.0.0.1:8000). Pin to <2.7 here while keeping
+        # composer.json untouched. PHP 5.6/7.0/7.1 fall back to psr7 ^1.9 since
+        # psr7 v2 requires PHP >=7.2.5.
+        composer require 'guzzlehttp/psr7:^1.9 || >=2.0,<2.7' --no-update
         composer update --prefer-dist --no-progress --no-interaction
 
     - name: Run syntax check
@@ -113,6 +120,9 @@ jobs:
     - name: Install dependencies
       run: |
         composer require --dev phpunit/phpunit:^9.6.19 --no-update
+        # See test job for rationale; pin psr7 < 2.7 at workflow level so tests
+        # that target 127.0.0.1:<port> mock servers keep working.
+        composer require 'guzzlehttp/psr7:^1.9 || >=2.0,<2.7' --no-update
         composer update --prefer-dist --no-progress --no-interaction
 
     - name: Run tests with coverage
