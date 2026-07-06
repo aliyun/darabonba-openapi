@@ -398,6 +398,7 @@ export class Params extends $tea.Model {
   bodyType: string;
   reqBodyType: string;
   style?: string;
+  websocketSubProtocol?: string;
   static names(): { [key: string]: string } {
     return {
       action: 'action',
@@ -409,6 +410,7 @@ export class Params extends $tea.Model {
       bodyType: 'bodyType',
       reqBodyType: 'reqBodyType',
       style: 'style',
+      websocketSubProtocol: 'websocketSubProtocol',
     };
   }
 
@@ -423,6 +425,7 @@ export class Params extends $tea.Model {
       bodyType: 'string',
       reqBodyType: 'string',
       style: 'string',
+      websocketSubProtocol: 'string',
     };
   }
 
