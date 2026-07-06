@@ -44,6 +44,12 @@ class Params extends Model
    * @var string
    */
   public $style;
+
+  /**
+   * @var string
+   */
+  public $websocketSubProtocol;
+
   protected $_name = [
     'action' => 'action',
     'version' => 'version',
@@ -54,6 +60,7 @@ class Params extends Model
     'bodyType' => 'bodyType',
     'reqBodyType' => 'reqBodyType',
     'style' => 'style',
+    'websocketSubProtocol' => 'websocketSubProtocol',
   ];
 
   public function validate()
@@ -108,6 +115,10 @@ class Params extends Model
       $res['style'] = $this->style;
     }
 
+    if (null !== $this->websocketSubProtocol) {
+      $res['websocketSubProtocol'] = $this->websocketSubProtocol;
+    }
+
     return $res;
   }
 
@@ -153,6 +164,10 @@ class Params extends Model
 
     if (isset($map['style'])) {
       $model->style = $map['style'];
+    }
+
+    if (isset($map['websocketSubProtocol'])) {
+      $model->websocketSubProtocol = $map['websocketSubProtocol'];
     }
 
     return $model;
