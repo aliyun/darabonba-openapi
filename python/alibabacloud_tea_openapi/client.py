@@ -1516,7 +1516,6 @@ class Client:
                 'webSocketWriteTimeout': get_web_socket_write_timeout(runtime),
                 'webSocketHandshakeTimeout': get_web_socket_handshake_timeout(runtime),
                 'webSocketHandler': ws_handler,
-                'websocketSubProtocol': params.websocket_sub_protocol,
             })
         _last_request = None
         _last_response = None
@@ -1634,7 +1633,7 @@ class Client:
                 if is_websocket:
                     stream_handler = websocket_utils.StreamHandler(
                         ws_handler,
-                        params.websocket_sub_protocol or '',
+                        websocket_sub_protocol,
                     )
                     _runtime['webSocketHandler'] = stream_handler
                     ws_client, response_ = new_websocket_client_and_connect(_request, _runtime)

@@ -47,8 +47,9 @@ export class StreamHandler extends $dara.AbstractWebSocketHandler {
         await this.processGeneralMessage(session, message);
         break;
       default:
-        await this.userHandler.handleRawMessage(session, message);
-        break;
+        throw new Error(
+          `unsupported websocketSubProtocol: '${this.subProtocol}', must be 'awap' or 'general'`,
+        );
     }
   }
 
@@ -57,9 +58,11 @@ export class StreamHandler extends $dara.AbstractWebSocketHandler {
 
     if (awapMsg.type === 'RECONNECT') {
       if (this.client) {
-        this.client.reconnectGracefully().catch(() => {
-          // ignore reconnect errors
-        });
+        try {
+          await this.client.reconnectGracefully();
+        } catch (err) {
+          await this.userHandler.handleError(session, err as Error);
+        }
       }
       return;
     }
@@ -70,25 +73,32 @@ export class StreamHandler extends $dara.AbstractWebSocketHandler {
     }
 
     const awapHandler = this.userHandler as AwapWebSocketHandler;
-    if (typeof awapHandler.handleAwapMessage === 'function') {
-      try {
-        await awapHandler.handleAwapMessage(session, awapMsg);
-      } catch (err) {
-        if (err === AwapErrUseRawMessage) {
-          await awapHandler.handleRawMessage(session, message);
-        } else {
-          await awapHandler.handleError(session, err as Error);
-        }
+    if (typeof awapHandler.handleAwapMessage !== 'function') {
+      await this.userHandler.handleError(
+        session,
+        new Error('WebSocketHandler must implement handleAwapMessage for awap sub-protocol'),
+      );
+      return;
+    }
+
+    try {
+      await awapHandler.handleAwapMessage(session, awapMsg);
+    } catch (err) {
+      if (err === AwapErrUseRawMessage) {
+        await awapHandler.handleRawMessage(session, message);
+      } else {
+        await awapHandler.handleError(session, err as Error);
       }
-    } else {
-      await this.userHandler.handleRawMessage(session, message);
     }
   }
 
   private async processGeneralMessage(session: $dara.WebSocketSessionInfo, message: $dara.WebSocketMessage): Promise<void> {
     const generalHandler = this.userHandler as GeneralWebSocketHandler;
     if (typeof generalHandler.handleGeneralMessage !== 'function') {
-      await this.userHandler.handleRawMessage(session, message);
+      await this.userHandler.handleError(
+        session,
+        new Error('WebSocketHandler must implement handleGeneralMessage for general sub-protocol'),
+      );
       return;
     }
 

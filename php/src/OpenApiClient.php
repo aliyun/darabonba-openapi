@@ -1133,7 +1133,6 @@ class OpenApiClient
       $_runtime['webSocketWriteTimeout'] = $runtime->webSocketWriteTimeout;
       $_runtime['webSocketHandshakeTimeout'] = $runtime->webSocketHandshakeTimeout;
       $_runtime['webSocketHandler'] = $wsHandler;
-      $_runtime['websocketSubProtocol'] = $params->websocketSubProtocol;
     }
 
     $_retriesAttempted = 0;

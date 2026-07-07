@@ -37,7 +37,10 @@ class StreamHandler(AbstractWebSocketHandler):
         elif sub_protocol == SubProtocolGeneral:
             self._process_general_message(session, message)
         else:
-            self.user_handler.handle_raw_message(session, message)
+            raise ValueError(
+                f"unsupported websocketSubProtocol: {self.sub_protocol!r}, "
+                "must be 'awap' or 'general'"
+            )
 
     def _process_awap_message(self, session: WebSocketSessionInfo, message: WebSocketMessage) -> None:
         awap_msg = parse_awap_message(message)
@@ -46,28 +49,39 @@ class StreamHandler(AbstractWebSocketHandler):
             if self.client is not None:
                 try:
                     self.client.reconnect_gracefully()
-                except Exception:
-                    pass
+                except Exception as err:
+                    self.user_handler.handle_error(session, err)
             return
 
         ack_id = (awap_msg.get('headers') or {}).get('ack-id', '')
         if ack_id and self.client and self.client.complete_request(ack_id, awap_msg):
             return
 
-        if hasattr(self.user_handler, 'handle_awap_message'):
-            try:
-                self.user_handler.handle_awap_message(session, awap_msg)
-            except Exception as err:
-                if err is AWAP_ERR_USE_RAW_MESSAGE:
-                    self.user_handler.handle_raw_message(session, message)
-                else:
-                    self.user_handler.handle_error(session, err)
-        else:
-            self.user_handler.handle_raw_message(session, message)
+        if not hasattr(self.user_handler, 'handle_awap_message'):
+            self.user_handler.handle_error(
+                session,
+                ValueError(
+                    'WebSocketHandler must implement handle_awap_message for awap sub-protocol'
+                ),
+            )
+            return
+
+        try:
+            self.user_handler.handle_awap_message(session, awap_msg)
+        except Exception as err:
+            if err is AWAP_ERR_USE_RAW_MESSAGE:
+                self.user_handler.handle_raw_message(session, message)
+            else:
+                self.user_handler.handle_error(session, err)
 
     def _process_general_message(self, session: WebSocketSessionInfo, message: WebSocketMessage) -> None:
         if not hasattr(self.user_handler, 'handle_general_message'):
-            self.user_handler.handle_raw_message(session, message)
+            self.user_handler.handle_error(
+                session,
+                ValueError(
+                    'WebSocketHandler must implement handle_general_message for general sub-protocol'
+                ),
+            )
             return
 
         general_msg = parse_general_message(message)

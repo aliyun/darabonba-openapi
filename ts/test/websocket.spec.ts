@@ -128,6 +128,73 @@ describe('websocketUtils', function () {
     await $dara.sleep(20);
     assert.strictEqual(gracefulCalled, true);
   });
+
+  it('should reject unknown sub protocol', async function () {
+    const handler = new websocketUtils.StreamHandler(new MockWebSocketHandler(), 'invalid');
+    await assert.rejects(
+      () => handler.handleRawMessage(
+        {
+          sessionID: 's1',
+          requestID: '',
+          connectedAt: new Date(),
+          remoteAddr: '',
+          localAddr: '',
+          attributes: {},
+        },
+        {
+          type: $dara.WebSocketMessageType.Text,
+          payload: Buffer.from('{}'),
+          headers: {},
+          timestamp: new Date(),
+        },
+      ),
+      /unsupported websocketSubProtocol/,
+    );
+  });
+
+  it('should call handleError when reconnect fails', async function () {
+    const errors: Error[] = [];
+    class ErrorHandler extends MockWebSocketHandler {
+      async handleError(_session: $dara.WebSocketSessionInfo, err: Error): Promise<void> {
+        errors.push(err);
+      }
+    }
+
+    const mockWsClient = {
+      reconnectGracefully: async () => {
+        throw new Error('reconnect failed');
+      },
+    };
+    const wsClient = new websocketUtils.WebSocketClient(
+      mockWsClient as any,
+      new $dara.Response(<any>{ statusCode: 101, headers: {} }),
+    );
+    const handler = new websocketUtils.StreamHandler(new ErrorHandler(), websocketUtils.SubProtocolAWAP);
+    handler.client = wsClient;
+
+    const awapText = websocketUtils.buildAwapMessageText(
+      websocketUtils.newAwapMessage({}, websocketUtils.withType('RECONNECT')),
+    );
+    await handler.handleRawMessage(
+      {
+        sessionID: 's1',
+        requestID: '',
+        connectedAt: new Date(),
+        remoteAddr: '',
+        localAddr: '',
+        attributes: {},
+      },
+      {
+        type: $dara.WebSocketMessageType.Text,
+        payload: Buffer.from(awapText),
+        headers: {},
+        timestamp: new Date(),
+      },
+    );
+
+    assert.strictEqual(errors.length, 1);
+    assert.ok(/reconnect failed/.test(errors[0].message));
+  });
 });
 
 describe('Client.doRequest websocket', function () {

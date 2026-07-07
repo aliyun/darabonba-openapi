@@ -149,6 +149,78 @@ class TestWebSocketUtils(unittest.TestCase):
         time.sleep(0.05)
         self.assertEqual([True], graceful_called)
 
+    def test_reject_unknown_sub_protocol(self):
+        handler = websocket_utils.StreamHandler(
+            MockWebSocketHandler(),
+            'invalid',
+        )
+        session = __import__('darabonba.websocket', fromlist=['WebSocketSessionInfo']).WebSocketSessionInfo('s1')
+        message = WebSocketMessage(
+            type=WebSocketMessageType.Text,
+            payload=b'{}',
+            headers={},
+        )
+        with self.assertRaisesRegex(ValueError, "unsupported websocketSubProtocol"):
+            handler.handle_raw_message(session, message)
+
+    def test_reconnect_failure_calls_handle_error(self):
+        errors = []
+
+        class ErrorHandler(MockWebSocketHandler):
+            def handle_error(self, session, err):
+                errors.append(err)
+
+        class FailingWsClient:
+            def reconnect_gracefully(self):
+                raise RuntimeError('reconnect failed')
+
+        from darabonba.response import DaraResponse
+
+        ws_client = websocket_utils.WebSocketClient(FailingWsClient(), DaraResponse())
+        handler = websocket_utils.StreamHandler(ErrorHandler(), websocket_utils.SubProtocolAWAP)
+        handler.client = ws_client
+
+        awap_text = websocket_utils.build_awap_message_text(
+            websocket_utils.new_awap_message({}, websocket_utils.with_type('RECONNECT')),
+        )
+        session = __import__('darabonba.websocket', fromlist=['WebSocketSessionInfo']).WebSocketSessionInfo('s1')
+        handler.handle_raw_message(
+            session,
+            WebSocketMessage(
+                type=WebSocketMessageType.Text,
+                payload=awap_text.encode('utf-8'),
+                headers={},
+            ),
+        )
+        self.assertEqual(1, len(errors))
+        self.assertIn('reconnect failed', str(errors[0]))
+
+    def test_awap_handler_must_implement_handle_awap_message(self):
+        errors = []
+
+        class RawOnlyHandler(MockWebSocketHandler):
+            def handle_error(self, session, err):
+                errors.append(err)
+
+        handler = websocket_utils.StreamHandler(
+            RawOnlyHandler(),
+            websocket_utils.SubProtocolAWAP,
+        )
+        awap_text = websocket_utils.build_awap_message_text(
+            websocket_utils.new_awap_message({'x': 1}, websocket_utils.with_type('UpstreamTextEvent')),
+        )
+        session = __import__('darabonba.websocket', fromlist=['WebSocketSessionInfo']).WebSocketSessionInfo('s1')
+        handler.handle_raw_message(
+            session,
+            WebSocketMessage(
+                type=WebSocketMessageType.Text,
+                payload=awap_text.encode('utf-8'),
+                headers={},
+            ),
+        )
+        self.assertEqual(1, len(errors))
+        self.assertIn('handle_awap_message', str(errors[0]))
+
 
 class TestClientDoRequestWebSocket(unittest.TestCase):
     def _create_client(self):

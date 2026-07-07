@@ -55,7 +55,9 @@ class Handler implements \AlibabaCloud\Dara\WebSocketHandler
             return $this->processGeneralMessage($session, $message);
         }
 
-        return $this->userHandler->handleRawMessage($session, $message);
+        throw new \InvalidArgumentException(
+            "unsupported websocketSubProtocol: '{$this->subProtocol}', must be 'awap' or 'general'"
+        );
     }
 
     private function processAwapMessage($session, $message)
@@ -68,7 +70,11 @@ class Handler implements \AlibabaCloud\Dara\WebSocketHandler
 
         if ($awapMsg->type === 'RECONNECT') {
             if ($this->client !== null) {
-                $this->client->reconnectGracefullyAsync();
+                try {
+                    $this->client->reconnectGracefully();
+                } catch (\Exception $e) {
+                    $this->userHandler->handleError($session, $e);
+                }
             }
 
             return;
@@ -79,29 +85,43 @@ class Handler implements \AlibabaCloud\Dara\WebSocketHandler
             return;
         }
 
-        if ($this->userHandler instanceof AwapWebSocketHandler) {
-            try {
-                $this->userHandler->handleAwapMessage($session, $awapMsg);
-            } catch (\RuntimeException $e) {
-                if ($e->getMessage() === 'use HandleRawMessage') {
-                    try {
-                        $this->userHandler->handleRawMessage($session, $message);
-                    } catch (\Exception $rawErr) {
-                        $this->userHandler->handleError($session, $rawErr);
-                    }
-                } else {
-                    $this->userHandler->handleError($session, $e);
+        if (!($this->userHandler instanceof AwapWebSocketHandler)) {
+            $this->userHandler->handleError(
+                $session,
+                new \InvalidArgumentException(
+                    'WebSocketHandler must implement handleAwapMessage for awap sub-protocol'
+                )
+            );
+
+            return;
+        }
+
+        try {
+            $this->userHandler->handleAwapMessage($session, $awapMsg);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'use HandleRawMessage') {
+                try {
+                    $this->userHandler->handleRawMessage($session, $message);
+                } catch (\Exception $rawErr) {
+                    $this->userHandler->handleError($session, $rawErr);
                 }
+            } else {
+                $this->userHandler->handleError($session, $e);
             }
-        } else {
-            $this->userHandler->handleRawMessage($session, $message);
         }
     }
 
     private function processGeneralMessage($session, $message)
     {
         if (!($this->userHandler instanceof GeneralWebSocketHandler)) {
-            return $this->userHandler->handleRawMessage($session, $message);
+            $this->userHandler->handleError(
+                $session,
+                new \InvalidArgumentException(
+                    'WebSocketHandler must implement handleGeneralMessage for general sub-protocol'
+                )
+            );
+
+            return;
         }
 
         try {

@@ -927,9 +927,10 @@ export default class Client {
     const protocol = `${this._protocol || params.protocol || ''}`.toLowerCase();
     let isWebSocket = protocol === 'ws' || protocol === 'wss';
     let wsHandler: $dara.WebSocketHandler | undefined;
+    let websocketSubProtocol = '';
 
     if (isWebSocket) {
-      const websocketSubProtocol = params.websocketSubProtocol || '';
+      websocketSubProtocol = params.websocketSubProtocol || '';
       if (!websocketSubProtocol) {
         throw new Error('websocketSubProtocol is required: please set it in params.websocketSubProtocol');
       }
@@ -973,7 +974,6 @@ export default class Client {
         webSocketWriteTimeout: $dara.getWebSocketWriteTimeout(runtime),
         webSocketHandshakeTimeout: $dara.getWebSocketHandshakeTimeout(runtime),
         webSocketHandler: wsHandler,
-        websocketSubProtocol: params.websocketSubProtocol,
       };
     }
 
@@ -1136,7 +1136,7 @@ export default class Client {
         if (isWebSocket) {
           const streamHandler = new websocketUtils.StreamHandler(
             wsHandler!,
-            params.websocketSubProtocol || '',
+            websocketSubProtocol,
           );
           const wsRuntime = $dara.cast({
             ..._runtime,
