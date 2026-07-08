@@ -14,6 +14,8 @@ import * as $_model from './models/model';
 export * from './models/model';
 import * as websocketUtils from './websocketUtils';
 export * as websocketUtils from './websocketUtils';
+export * as WebSocketUtils from './websocketUtils';
+export * as $WebSocketUtils from './websocketUtils';
 
 export default class Client {
   _endpoint: string;

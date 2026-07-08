@@ -149,6 +149,10 @@ export class WebSocketClient {
   }
 }
 
+export function createWebSocketClient(client: any): WebSocketClient | null {
+  return WebSocketClient.createWebSocketClient(client);
+}
+
 export function newWebSocketClient(wsClient: $dara.DefaultWebSocketClient, response: $dara.Response): WebSocketClient {
   return new WebSocketClient(wsClient, response);
 }
