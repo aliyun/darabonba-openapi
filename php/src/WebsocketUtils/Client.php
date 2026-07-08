@@ -47,6 +47,13 @@ class Client
         }
     }
 
+    public function pump($timeoutMs = 100)
+    {
+        if ($this->wsClient !== null) {
+            return $this->wsClient->pump($timeoutMs);
+        }
+    }
+
     public function reconnect()
     {
         if ($this->wsClient !== null) {
