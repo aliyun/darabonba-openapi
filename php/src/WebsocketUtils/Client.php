@@ -174,7 +174,11 @@ class Client
 
                 return $response;
             }
-            usleep(10000);
+            if (method_exists($this->wsClient, 'pump')) {
+                $this->wsClient->pump(50);
+            } else {
+                usleep(10000);
+            }
         }
         unset($this->pendingRequests[$ackID]);
         throw new \RuntimeException('request timeout after ' . $timeoutMs . 'ms waiting for response to message ID: ' . $ackID);
