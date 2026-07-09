@@ -9,7 +9,7 @@ from .awap import (
     with_id,
     with_type,
 )
-from .client import WebSocketClient, new_websocket_client
+from .client import Client, WebSocketClient, new_websocket_client
 from .general import (
     GeneralWebSocketHandler,
     general_message_to_json,
@@ -30,6 +30,7 @@ __all__ = [
     'with_header',
     'with_id',
     'with_type',
+    'Client',
     'WebSocketClient',
     'new_websocket_client',
     'GeneralWebSocketHandler',

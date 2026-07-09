@@ -1,5 +1,6 @@
 import time
 import unittest
+import unittest.mock
 
 from darabonba.runtime import RuntimeOptions
 from darabonba.websocket import AbstractWebSocketHandler, WebSocketMessage, WebSocketMessageType
@@ -288,6 +289,22 @@ class TestClientDoRequestWebSocket(unittest.TestCase):
                 OpenApiRequest(),
                 RuntimeOptions(web_socket_handler=MockWebSocketHandler()),
             )
+
+    def test_codegen_exports(self):
+        from alibabacloud_tea_openapi import websocket_utils_models
+        from alibabacloud_tea_openapi.websocket_utils import Client as WebSocketUtilsClient
+
+        self.assertIs(websocket_utils_models.WebSocketClient, websocket_utils.WebSocketClient)
+        self.assertTrue(issubclass(WebSocketUtilsClient, websocket_utils.WebSocketClient))
+        self.assertIsNone(WebSocketUtilsClient.create_web_socket_client(None))
+        ws_client = websocket_utils.WebSocketClient(
+            unittest.mock.MagicMock(),
+            __import__('darabonba.response', fromlist=['DaraResponse']).DaraResponse(),
+        )
+        self.assertIs(
+            ws_client,
+            WebSocketUtilsClient.create_web_socket_client(ws_client),
+        )
 
 
 if __name__ == '__main__':

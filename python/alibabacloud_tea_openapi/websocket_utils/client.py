@@ -152,6 +152,12 @@ class WebSocketClient:
         self.ws_client.send_binary(data)
 
 
+class Client(WebSocketClient):
+    @staticmethod
+    def create_web_socket_client(client: Any) -> Optional['Client']:
+        return WebSocketClient.create_websocket_client(client)
+
+
 def new_websocket_client(
     ws_client: DefaultWebSocketClient,
     response: DaraResponse,
