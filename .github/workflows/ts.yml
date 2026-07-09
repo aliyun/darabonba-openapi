@@ -27,7 +27,13 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install
+    - name: Install dependencies
+      run: |
+        git clone --depth 1 -b feature/aone-83973983-websocket https://github.com/aliyun/tea-typescript.git /tmp/tea-typescript
+        cd /tmp/tea-typescript && npm install && npm run build
+        cd $GITHUB_WORKSPACE/ts
+        npm pkg set dependencies.@darabonba/typescript="file:/tmp/tea-typescript"
+        npm install
     - run: npm run test-cov
     - uses: codecov/codecov-action@v4
       with:
