@@ -12,6 +12,10 @@ import * as $_error from './exceptions/error';
 export * from './exceptions/error';
 import * as $_model from './models/model';
 export * from './models/model';
+import * as websocketUtils from './websocketUtils';
+export * as websocketUtils from './websocketUtils';
+export * as WebSocketUtils from './websocketUtils';
+export * as $WebSocketUtils from './websocketUtils';
 
 export default class Client {
   _endpoint: string;
@@ -922,6 +926,28 @@ export default class Client {
    * @returns the response
    */
   async doRequest(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
+    const protocol = `${this._protocol || params.protocol || ''}`.toLowerCase();
+    let isWebSocket = protocol === 'ws' || protocol === 'wss';
+    let wsHandler: $dara.WebSocketHandler | undefined;
+    let websocketSubProtocol = '';
+
+    if (isWebSocket) {
+      websocketSubProtocol = params.websocketSubProtocol || '';
+      if (!websocketSubProtocol) {
+        throw new Error('websocketSubProtocol is required: please set it in params.websocketSubProtocol');
+      }
+      if (websocketSubProtocol !== websocketUtils.SubProtocolAWAP && websocketSubProtocol !== websocketUtils.SubProtocolGeneral) {
+        throw new Error(`websocketSubProtocol must be 'awap' or 'general', got: ${websocketSubProtocol}`);
+      }
+
+      request.headers = request.headers || {};
+      request.headers['sec-websocket-protocol'] = websocketSubProtocol;
+      wsHandler = $dara.getWebSocketHandler(runtime);
+      if (!wsHandler) {
+        throw new Error('WebSocketHandler is required: please set it in runtime.WebSocketHandler');
+      }
+    }
+
     let _runtime: { [key: string]: any } = {
       key: runtime.key || this._key,
       cert: runtime.cert || this._cert,
@@ -937,6 +963,20 @@ export default class Client {
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
+    };
+
+    if (isWebSocket) {
+      _runtime = {
+        ..._runtime,
+        webSocketPingInterval: $dara.getWebSocketPingInterval(runtime),
+        webSocketPongTimeout: $dara.getWebSocketPongTimeout(runtime),
+        webSocketEnableReconnect: $dara.getWebSocketEnableReconnect(runtime),
+        webSocketReconnectInterval: $dara.getWebSocketReconnectInterval(runtime),
+        webSocketMaxReconnectTimes: $dara.getWebSocketMaxReconnectTimes(runtime),
+        webSocketWriteTimeout: $dara.getWebSocketWriteTimeout(runtime),
+        webSocketHandshakeTimeout: $dara.getWebSocketHandshakeTimeout(runtime),
+        webSocketHandler: wsHandler,
+      };
     }
 
     let _retriesAttempted = 0;
@@ -1095,6 +1135,23 @@ export default class Client {
         }
 
         _lastRequest = request_;
+        if (isWebSocket) {
+          const streamHandler = new websocketUtils.StreamHandler(
+            wsHandler!,
+            websocketSubProtocol,
+          );
+          const wsRuntime = $dara.cast({
+            ..._runtime,
+            webSocketHandler: streamHandler,
+          }, new $dara.RuntimeOptions({}));
+          const { client: wsClient, response: response_ } = await $dara.newWebSocketClientAndConnect(request_, wsRuntime);
+          const wsClientObj = websocketUtils.newWebSocketClient(wsClient, response_);
+          streamHandler.client = wsClientObj;
+          return {
+            webSocketClient: wsClientObj,
+          };
+        }
+
         let response_ = await $dara.doAction(request_, _runtime);
         _lastResponse = response_;
 

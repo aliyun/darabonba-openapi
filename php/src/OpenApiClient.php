@@ -31,6 +31,9 @@ use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
 use Darabonba\GatewaySpi\Models\InterceptorContext\response;
 use Darabonba\OpenApi\Models\SSEResponse;
+use Darabonba\OpenApi\WebsocketUtils\Handler as WebSocketStreamHandler;
+use Darabonba\OpenApi\WebsocketUtils\Client as WebSocketClientWrapper;
+use AlibabaCloud\Dara\WebSocketUtil;
 
 /**
  * @remarks
@@ -1073,6 +1076,38 @@ class OpenApiClient
    */
   public function doRequest($params, $request, $runtime)
   {
+    $protocol = strtolower('' . $params->protocol);
+    $isWebSocket = ($protocol === 'ws' || $protocol === 'wss');
+    $wsHandler = null;
+    if ($isWebSocket) {
+      $websocketSubProtocol = '' . ($params->websocketSubProtocol ? $params->websocketSubProtocol : '');
+      if ($websocketSubProtocol === '') {
+        throw new ClientException([
+          'code' => 'MissingWebSocketSubProtocol',
+          'message' => 'websocketSubProtocol is required: please set it in params.websocketSubProtocol',
+        ]);
+      }
+      if ($websocketSubProtocol !== WebSocketStreamHandler::SUB_PROTOCOL_AWAP && $websocketSubProtocol !== WebSocketStreamHandler::SUB_PROTOCOL_GENERAL) {
+        throw new ClientException([
+          'code' => 'InvalidWebSocketSubProtocol',
+          'message' => "websocketSubProtocol must be 'awap' or 'general', got: " . $websocketSubProtocol,
+        ]);
+      }
+      if ($request->headers === null) {
+        $request->headers = [];
+      }
+      $request->headers['sec-websocket-protocol'] = $websocketSubProtocol;
+      if (!is_null($runtime->webSocketHandler)) {
+        $wsHandler = $runtime->webSocketHandler;
+      }
+      if ($wsHandler === null) {
+        throw new ClientException([
+          'code' => 'MissingWebSocketHandler',
+          'message' => 'WebSocketHandler is required: please set it in runtime.webSocketHandler',
+        ]);
+      }
+    }
+
     $_runtime = [
       'key' => '' . ($runtime->key ? $runtime->key : $this->_key),
       'cert' => '' . ($runtime->cert ? $runtime->cert : $this->_cert),
@@ -1089,6 +1124,16 @@ class OpenApiClient
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
     ];
+    if ($isWebSocket) {
+      $_runtime['webSocketPingInterval'] = $runtime->webSocketPingInterval;
+      $_runtime['webSocketPongTimeout'] = $runtime->webSocketPongTimeout;
+      $_runtime['webSocketEnableReconnect'] = $runtime->webSocketEnableReconnect;
+      $_runtime['webSocketReconnectInterval'] = $runtime->webSocketReconnectInterval;
+      $_runtime['webSocketMaxReconnectTimes'] = $runtime->webSocketMaxReconnectTimes;
+      $_runtime['webSocketWriteTimeout'] = $runtime->webSocketWriteTimeout;
+      $_runtime['webSocketHandshakeTimeout'] = $runtime->webSocketHandshakeTimeout;
+      $_runtime['webSocketHandler'] = $wsHandler;
+    }
 
     $_retriesAttempted = 0;
     $_lastRequest = null;
@@ -1230,6 +1275,17 @@ class OpenApiClient
         }
 
         $_lastRequest = $_request;
+        if ($isWebSocket) {
+          $streamHandler = new WebSocketStreamHandler($wsHandler, $params->websocketSubProtocol);
+          $_runtime['webSocketHandler'] = $streamHandler;
+          list($wsClient, $_response) = WebSocketUtil::newWebSocketClientAndConnect($_request, $_runtime);
+          $wsClientObj = new WebSocketClientWrapper($wsClient, $_response);
+          $streamHandler->client = $wsClientObj;
+          return [
+            'webSocketClient' => $wsClientObj,
+          ];
+        }
+
         $_response = Dara::send($_request, $_runtime);
         $_lastResponse = $_response;
 

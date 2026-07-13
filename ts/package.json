@@ -15,8 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/mocha": "^5.2.7",
-    "mocha": "^6.2.0",
     "@types/node": "^12.12.26",
+    "mocha": "^6.2.0",
     "nyc": "^14.1.1",
     "source-map-support": "^0.5.16",
     "ts-node": "^8.6.2",
@@ -26,7 +26,7 @@
     "@alicloud/credentials": "^2.4.2",
     "@alicloud/gateway-pop": "0.0.6",
     "@alicloud/gateway-spi": "^0.0.8",
-    "@darabonba/typescript": "^1.0.2"
+    "@darabonba/typescript": "^1.0.5"
   },
   "files": [
     "dist",

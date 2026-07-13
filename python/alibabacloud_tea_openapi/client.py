@@ -24,6 +24,17 @@ from darabonba.utils.bytes import Bytes as DaraBytes
 from darabonba.utils.form import Form as DaraForm
 from darabonba.utils.stream import Stream as DaraStream
 from darabonba.utils.xml import XML as DaraXML
+from darabonba.websocket import (
+    get_web_socket_enable_reconnect,
+    get_web_socket_handshake_timeout,
+    get_web_socket_max_reconnect_times,
+    get_web_socket_ping_interval,
+    get_web_socket_pong_timeout,
+    get_web_socket_reconnect_interval,
+    get_web_socket_write_timeout,
+    new_websocket_client_and_connect,
+)
+from alibabacloud_tea_openapi import websocket_utils
 
 """
  * @remarks
@@ -1448,6 +1459,37 @@ class Client:
         request: open_api_util_models.OpenApiRequest,
         runtime: RuntimeOptions,
     ) -> dict:
+        protocol = f'{self._protocol or params.protocol or ""}'.lower()
+        is_websocket = protocol in ('ws', 'wss')
+        ws_handler = None
+        if is_websocket:
+            websocket_sub_protocol = params.websocket_sub_protocol or ''
+            if not websocket_sub_protocol:
+                raise main_exceptions.ClientException(
+                    code='MissingWebSocketSubProtocol',
+                    message='websocketSubProtocol is required: please set it in params.websocketSubProtocol',
+                )
+            if websocket_sub_protocol not in (
+                websocket_utils.SubProtocolAWAP,
+                websocket_utils.SubProtocolGeneral,
+            ):
+                raise main_exceptions.ClientException(
+                    code='InvalidWebSocketSubProtocol',
+                    message=(
+                        "websocketSubProtocol must be 'awap' or 'general', "
+                        f'got: {websocket_sub_protocol}'
+                    ),
+                )
+            if request.headers is None:
+                request.headers = {}
+            request.headers['sec-websocket-protocol'] = websocket_sub_protocol
+            ws_handler = runtime.web_socket_handler
+            if ws_handler is None:
+                raise main_exceptions.ClientException(
+                    code='MissingWebSocketHandler',
+                    message='WebSocketHandler is required: please set it in runtime.webSocketHandler',
+                )
+
         _runtime = {
             'key': runtime.key or self._key,
             'cert': runtime.cert or self._cert,
@@ -1464,6 +1506,17 @@ class Client:
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
         }
+        if is_websocket:
+            _runtime.update({
+                'webSocketPingInterval': get_web_socket_ping_interval(runtime),
+                'webSocketPongTimeout': get_web_socket_pong_timeout(runtime),
+                'webSocketEnableReconnect': get_web_socket_enable_reconnect(runtime),
+                'webSocketReconnectInterval': get_web_socket_reconnect_interval(runtime),
+                'webSocketMaxReconnectTimes': get_web_socket_max_reconnect_times(runtime),
+                'webSocketWriteTimeout': get_web_socket_write_timeout(runtime),
+                'webSocketHandshakeTimeout': get_web_socket_handshake_timeout(runtime),
+                'webSocketHandler': ws_handler,
+            })
         _last_request = None
         _last_response = None
         _retries_attempted = 0
@@ -1577,6 +1630,19 @@ class Client:
                         _request.query["Format"] = 'json'
 
                 _last_request = _request
+                if is_websocket:
+                    stream_handler = websocket_utils.StreamHandler(
+                        ws_handler,
+                        websocket_sub_protocol,
+                    )
+                    _runtime['webSocketHandler'] = stream_handler
+                    ws_client, response_ = new_websocket_client_and_connect(_request, _runtime)
+                    ws_client_obj = websocket_utils.new_websocket_client(ws_client, response_)
+                    stream_handler.client = ws_client_obj
+                    return {
+                        'webSocketClient': ws_client_obj,
+                    }
+
                 _response = DaraCore.do_action(_request, _runtime)
                 _last_response = _response
                 if (_response.status_code >= 400) and (_response.status_code < 600):

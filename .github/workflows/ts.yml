@@ -27,6 +27,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+    # @darabonba/typescript@^1.0.5 on npm includes WebSocket client.
     - run: npm install
     - run: npm run test-cov
     - uses: codecov/codecov-action@v4

@@ -398,6 +398,7 @@ export class Params extends $tea.Model {
   bodyType: string;
   reqBodyType: string;
   style?: string;
+  websocketSubProtocol?: string;
   static names(): { [key: string]: string } {
     return {
       action: 'action',
@@ -409,6 +410,7 @@ export class Params extends $tea.Model {
       bodyType: 'bodyType',
       reqBodyType: 'reqBodyType',
       style: 'style',
+      websocketSubProtocol: 'websocketSubProtocol',
     };
   }
 
@@ -423,6 +425,7 @@ export class Params extends $tea.Model {
       bodyType: 'string',
       reqBodyType: 'string',
       style: 'string',
+      websocketSubProtocol: 'string',
     };
   }
 
@@ -1055,11 +1058,11 @@ ${date}
       return result;
     }
 
-    // Handle $tea.Model
-    if (input instanceof $tea.Model) {
+    // Handle $tea.Model (also accept @darabonba/typescript Model when packages diverge in CI)
+    if (input instanceof $tea.Model || input instanceof $dara.Model) {
       // Modify the original Model object's fields
       for (const [key, value] of Object.entries(input)) {
-        if (value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value) && !(value instanceof $tea.Model)) {
+        if (value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value) && !(value instanceof $tea.Model) && !(value instanceof $dara.Model)) {
           // This is a plain object (dictionary), apply flat style to keys
           const flatMap: { [key: string]: any } = {};
           for (const [nestedKey, nestedValue] of Object.entries(value)) {

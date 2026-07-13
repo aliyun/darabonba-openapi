@@ -16,6 +16,7 @@ class Params(DaraModel):
         body_type: str = None,
         req_body_type: str = None,
         style: str = None,
+        websocket_sub_protocol: str = None,
     ):
         self.action = action
         self.version = version
@@ -26,6 +27,7 @@ class Params(DaraModel):
         self.body_type = body_type
         self.req_body_type = req_body_type
         self.style = style
+        self.websocket_sub_protocol = websocket_sub_protocol
 
     def validate(self):
         self.validate_required(self.action, 'action')
@@ -61,6 +63,8 @@ class Params(DaraModel):
             result['reqBodyType'] = self.req_body_type
         if self.style is not None:
             result['style'] = self.style
+        if self.websocket_sub_protocol is not None:
+            result['websocketSubProtocol'] = self.websocket_sub_protocol
         return result
 
     def from_map(self, m: dict = None):
@@ -83,5 +87,7 @@ class Params(DaraModel):
             self.req_body_type = m.get('reqBodyType')
         if m.get('style') is not None:
             self.style = m.get('style')
+        if m.get('websocketSubProtocol') is not None:
+            self.websocket_sub_protocol = m.get('websocketSubProtocol')
         return self
 

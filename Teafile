@@ -58,7 +58,8 @@
     "package": "Darabonba.OpenApi",
     "clientName": "OpenApiClient",
     "exports": {
-      "OpenApiUtil": "Utils"
+      "OpenApiUtil": "Utils",
+      "WebSocketUtils": "Client"
     },
     "packageInfo": {
       "name": "alibabacloud/openapi-core",
@@ -79,7 +80,8 @@
       "require": ["cryptography>=3.0.0, <45.0.0", "alibabacloud_tea_util>=0.3.13, <1.0.0"]
     },
     "exports": {
-      "OpenApiUtil": "Utils"
+      "OpenApiUtil": "Utils",
+      "WebSocketUtils": "Client"
     }
   },
   "python2": {
