@@ -29,8 +29,8 @@ jobs:
       # aioresponses >= 0.7.7 uses PEP 585 (collections.abc.Mapping[str, str])
       # at class-body scope, which only works on Python 3.9+. Pin to 0.7.6
       # on 3.7/3.8 to keep the import path working; keep >=0.7.8 elsewhere.
-      # WebSocket support lives in tea-python PR branch until darabonba-core is published.
-      run: pip install 'cryptography>=3.0.0, <49.0.0' urllib3==1.26.20 coverage pytest 'alibabacloud_credentials>=1.0.0' alibabacloud_gateway_spi==0.0.3 httpretty alibabacloud_gateway_pop==0.0.7 'aioresponses==0.7.6; python_version < "3.9"' 'aioresponses>=0.7.8; python_version >= "3.9"' 'aiohttp>=3.7.0,<3.14' websocket-client 'git+https://github.com/aliyun/tea-python.git@feature/aone-83973983-websocket#egg=darabonba-core'
+      # darabonba-core>=1.0.8 includes WebSocket client (PyPI).
+      run: pip install 'cryptography>=3.0.0, <49.0.0' urllib3==1.26.20 'darabonba-core>=1.0.8' coverage pytest 'alibabacloud_credentials>=1.0.0' alibabacloud_gateway_spi==0.0.3 httpretty alibabacloud_gateway_pop==0.0.7 'aioresponses==0.7.6; python_version < "3.9"' 'aioresponses>=0.7.8; python_version >= "3.9"' 'aiohttp>=3.7.0,<3.14'
     - name: Test with unittest
       run: |
         coverage run --source="./alibabacloud_tea_openapi" -m pytest tests/test_*

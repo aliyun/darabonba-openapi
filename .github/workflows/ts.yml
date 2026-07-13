@@ -27,13 +27,8 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
-      run: |
-        git clone --depth 1 -b feature/aone-83973983-websocket https://github.com/aliyun/tea-typescript.git /tmp/tea-typescript
-        cd /tmp/tea-typescript && npm install && npm run build
-        cd $GITHUB_WORKSPACE/ts
-        node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); pkg.dependencies['@darabonba/typescript']='file:/tmp/tea-typescript'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-        npm install
+    # @darabonba/typescript@^1.0.5 on npm includes WebSocket client.
+    - run: npm install
     - run: npm run test-cov
     - uses: codecov/codecov-action@v4
       with:

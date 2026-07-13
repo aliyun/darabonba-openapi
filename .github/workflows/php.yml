@@ -77,11 +77,9 @@ jobs:
         # the repo stays untouched.
         jq '.config.policy.advisories.block = false' composer.json > composer.json.tmp \
           && mv composer.json.tmp composer.json
-        # WebSocket support lives in darabonba PHP core PR branch until Packagist publish.
-        composer config repositories.darabonba-php vcs https://github.com/alibabacloud-sdk-php/darabonba
-        composer require alibabacloud/darabonba:dev-feature/aone-83973983-websocket --no-update
-        # darabonba declares minimum-stability dev; on PHP 5.6/7.0/7.1 that can resolve
-        # guzzle 6.5.x-dev instead of 6.5.8 and break SSE streaming in callSSEApi.
+        # alibabacloud/darabonba>=1.0.5 on Packagist includes WebSocket client.
+        # Pin guzzle/psr7 for mock-server host:port compatibility (see master CI notes).
+        # On PHP 5.6/7.0/7.1 pin stable guzzle 6.5.8 to avoid resolving 6.5.x-dev.
         if php -r 'exit(version_compare(PHP_VERSION, "7.2.0", "<") ? 0 : 1);'; then
           composer require \
             'guzzlehttp/psr7:1.9.1' \
@@ -123,8 +121,6 @@ jobs:
         composer require --dev phpunit/phpunit:^9.6.19 --no-update
         jq '.config.policy.advisories.block = false' composer.json > composer.json.tmp \
           && mv composer.json.tmp composer.json
-        composer config repositories.darabonba-php vcs https://github.com/alibabacloud-sdk-php/darabonba
-        composer require alibabacloud/darabonba:dev-feature/aone-83973983-websocket --no-update
         composer require \
           'guzzlehttp/psr7:^1.9 || >=2.0,<2.7' \
           'guzzlehttp/guzzle:^6.3 || >=7.0,<7.9' \
@@ -164,9 +160,6 @@ jobs:
         # the advisory install block ephemerally with jq too — see test job.
         jq '.config.policy.advisories.block = false' composer.json > composer.json.tmp \
           && mv composer.json.tmp composer.json
-        # WebSocket support lives in darabonba PHP core PR branch until Packagist publish.
-        composer config repositories.darabonba-php vcs https://github.com/alibabacloud-sdk-php/darabonba
-        composer require alibabacloud/darabonba:dev-feature/aone-83973983-websocket --no-update
         composer require \
           'guzzlehttp/psr7:^1.9 || >=2.0,<2.7' \
           'guzzlehttp/guzzle:^6.3 || >=7.0,<7.9' \
