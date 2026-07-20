@@ -16,7 +16,7 @@ using Aliyun.Credentials.Models;
 
 namespace AlibabaCloud.OpenApiClient
 {
-    public partial class Client 
+    public class Client 
     {
         protected string _endpoint;
         protected string _regionId;
