@@ -273,14 +273,15 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
     var err = $object(_res);
     var requestId = $default(err.RequestId, err.requestId);
     var code = $default(err.Code, err.code);
-    if (`${code}`.contains('Throttling')) {
+    var retryAfter = OpenApiUtil.getThrottlingTimeLeft(__response.headers);
+    if (!$isNull(retryAfter)) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
-        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        retryAfter = retryAfter,
         data = err,
         requestId = `${requestId}`,
       };
@@ -484,14 +485,15 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
     var requestId = $string($default(err.RequestId, err.requestId));
     requestId = $string($default(requestId, err.requestid));
     var code = $string($default(err.Code, err.code));
-    if (`${code}`.contains('Throttling')) {
+    var retryAfter = OpenApiUtil.getThrottlingTimeLeft(__response.headers);
+    if (!$isNull(retryAfter)) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
-        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        retryAfter = retryAfter,
         data = err,
         requestId = `${requestId}`,
       };
@@ -693,14 +695,15 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
     var err = $object(_res);
     var requestId = $string($default(err.RequestId, err.requestId));
     var code = $string($default(err.Code, err.code));
-    if (`${code}`.contains('Throttling')) {
+    var retryAfter = OpenApiUtil.getThrottlingTimeLeft(__response.headers);
+    if (!$isNull(retryAfter)) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
-        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        retryAfter = retryAfter,
         data = err,
         requestId = `${requestId}`,
       };
@@ -960,14 +963,15 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
     }
     var requestId = $string($default(err.RequestId, err.requestId));
     var code = $string($default(err.Code, err.code));
-    if (`${code}`.contains('Throttling')) {
+    var retryAfter = OpenApiUtil.getThrottlingTimeLeft(__response.headers);
+    if (!$isNull(retryAfter)) {
       throw new Throttling{
         statusCode = __response.statusCode,
         code = `${code}`,
         message = `code: ${__response.statusCode}, ${$default(err.Message, err.message)} request id: ${requestId}`,
         detail = `${$default(err.Detail, err.detail)}`,
         description = `${$default(err.Description, err.description)}`,
-        retryAfter =  OpenApiUtil.getThrottlingTimeLeft(__response.headers),
+        retryAfter = retryAfter,
         data = err,
         requestId = `${requestId}`,
       };

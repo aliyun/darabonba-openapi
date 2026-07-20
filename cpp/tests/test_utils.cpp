@@ -30,34 +30,28 @@ TEST(UtilsTest, GetEndpoint) {
 // Test GetThrottlingTimeLeft
 TEST(UtilsTest, GetThrottlingTimeLeft) {
   map<string, string> headers1;
-  headers1["x-ratelimit-user-api"] = "";
-  headers1["x-ratelimit-user"] = "";
   int64_t timeLeft1 = Utils::getThrottlingTimeLeft(headers1);
-  EXPECT_EQ(0, timeLeft1);
+  EXPECT_EQ(-1, timeLeft1);
 
   map<string, string> headers2;
-  headers2["x-ratelimit-user-api"] = "";
-  headers2["x-ratelimit-user"] = "Limit:1,Remain:0,TimeLeft:2000,Reset:1234";
+  headers2["x-acs-retry-after"] = "2000";
   int64_t timeLeft2 = Utils::getThrottlingTimeLeft(headers2);
   EXPECT_EQ(2000, timeLeft2);
 
   map<string, string> headers3;
-  headers3["x-ratelimit-user-api"] = "Limit:1,Remain:0,TimeLeft:2000,Reset:1234";
-  headers3["x-ratelimit-user"] = "";
+  headers3["x-acs-retry-after"] = "0";
   int64_t timeLeft3 = Utils::getThrottlingTimeLeft(headers3);
-  EXPECT_EQ(2000, timeLeft3);
+  EXPECT_EQ(0, timeLeft3);
 
   map<string, string> headers4;
-  headers4["x-ratelimit-user-api"] = "Limit:1,Remain:0,TimeLeft:2000,Reset:1234";
-  headers4["x-ratelimit-user"] = "Limit:1,Remain:0,TimeLeft:0,Reset:1234";
+  headers4["x-acs-retry-after"] = "invalid";
   int64_t timeLeft4 = Utils::getThrottlingTimeLeft(headers4);
-  EXPECT_EQ(2000, timeLeft4);
+  EXPECT_EQ(-1, timeLeft4);
 
   map<string, string> headers5;
-  headers5["x-ratelimit-user-api"] = "Limit:1,Remain:0,TimeLeft:0,Reset:1234";
-  headers5["x-ratelimit-user"] = "Limit:1,Remain:0,TimeLeft:0,Reset:1234";
+  headers5["x-acs-retry-after"] = "";
   int64_t timeLeft5 = Utils::getThrottlingTimeLeft(headers5);
-  EXPECT_EQ(0, timeLeft5);
+  EXPECT_EQ(-1, timeLeft5);
 }
 
 // Test Hash

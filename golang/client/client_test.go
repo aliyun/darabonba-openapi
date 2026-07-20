@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -70,6 +71,29 @@ func (mock *throttlingMockHandler) ServeHTTP(w http.ResponseWriter, req *http.Re
 
 	responseBody := "{\"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\",\"Quotas\":[]}"
 	w.WriteHeader(200)
+	w.Write([]byte(responseBody))
+}
+
+// errorCode is optional; when empty defaults to Throttling.
+type retryAfterOnlyMockHandler struct {
+	errorCode    string
+	retryAfterMS int
+	withHeader   bool
+	requestCount int
+}
+
+func (mock *retryAfterOnlyMockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	mock.requestCount++
+	w.Header().Set("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")
+	if mock.withHeader {
+		w.Header().Set("x-acs-retry-after", strconv.Itoa(mock.retryAfterMS))
+	}
+	code := mock.errorCode
+	if code == "" {
+		code = "Throttling"
+	}
+	responseBody := fmt.Sprintf(`{"Code":"%s","Message":"denied","RequestId":"A45EE076-334D-5012-9746-A8F828D20FD4"}`, code)
+	w.WriteHeader(400)
 	w.Write([]byte(responseBody))
 }
 
@@ -1853,4 +1877,298 @@ func TestThrottlingBackoffRetry_ListProductQuotasExhausted(t *testing.T) {
 	}
 	tea_util.AssertEqual(t, "Throttling", tea.StringValue(throttlingErr.Code))
 	tea_util.AssertEqual(t, 3, handler.requestCount)
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_NotByErrorCode(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "ServiceUnavailable",
+		retryAfterMS: 250,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApi(params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError for x-acs-retry-after, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, "ServiceUnavailable", tea.StringValue(throttlingErr.Code))
+	tea_util.AssertEqual(t, int64(250), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_DoRPCRequestV2(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "ServiceUnavailable",
+		retryAfterMS: 180,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.SignatureAlgorithm = tea.String("v2")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApi(params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoRPCRequest, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, "ServiceUnavailable", tea.StringValue(throttlingErr.Code))
+	tea_util.AssertEqual(t, int64(180), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_WithCtx(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "TooManyRequests",
+		retryAfterMS: 90,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via CallApiWithCtx, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, "TooManyRequests", tea.StringValue(throttlingErr.Code))
+	tea_util.AssertEqual(t, int64(90), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_DoRPCWithCtxV2(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "ServiceUnavailable",
+		retryAfterMS: 70,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.SignatureAlgorithm = tea.String("v2")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoRPCRequestWithCtx, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, int64(70), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_DoROARequest(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "ServiceUnavailable",
+		retryAfterMS: 60,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.SignatureAlgorithm = tea.String("v2")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("GetFoo"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/foo"),
+		Method:      tea.String("GET"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{}
+	_, _err = client.CallApi(params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoROARequest, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, int64(60), tea.Int64Value(throttlingErr.RetryAfter))
+
+	_, _err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok = _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoROARequestWithCtx, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, int64(60), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestThrottlingDetectedByRetryAfterHeader_DoROAForm(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:    "ServiceUnavailable",
+		retryAfterMS: 55,
+		withHeader:   true,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	config.SignatureAlgorithm = tea.String("v2")
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("PostFoo"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/foo"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApi(params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok := _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoROARequestWithForm, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, int64(55), tea.Int64Value(throttlingErr.RetryAfter))
+
+	_, _err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	throttlingErr, ok = _err.(*ThrottlingError)
+	if !ok {
+		t.Fatalf("expected ThrottlingError via DoROAFormRequestWithCtx, got %T: %v", _err, _err)
+	}
+	tea_util.AssertEqual(t, int64(55), tea.Int64Value(throttlingErr.RetryAfter))
+}
+
+func TestNoThrottlingWithoutRetryAfterHeader(t *testing.T) {
+	handler := &retryAfterOnlyMockHandler{
+		errorCode:  "Throttling",
+		withHeader: false,
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	config := CreateConfig()
+	config.Protocol = tea.String("HTTP")
+	config.Endpoint = tea.String(strings.TrimPrefix(server.URL, "http://"))
+	client, _err := NewClient(config)
+	tea_util.AssertNil(t, _err)
+	client.DisableSDKError = tea.Bool(true)
+
+	params := &Params{
+		Action:      tea.String("ListProductQuotas"),
+		Version:     tea.String("2020-05-10"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/"),
+		Method:      tea.String("POST"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("RPC"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+	request := &OpenApiRequest{
+		Body: openapiutil.ParseToMap(map[string]interface{}{"ProductCode": tea.String("Ecs")}),
+	}
+	_, _err = client.CallApi(params, request, CreateRuntimeOptions())
+	tea_util.AssertNotNil(t, _err)
+	if _, ok := _err.(*ThrottlingError); ok {
+		t.Fatalf("did not expect ThrottlingError without x-acs-retry-after, got %T", _err)
+	}
+	if _, ok := _err.(*ClientError); !ok {
+		t.Fatalf("expected ClientError without x-acs-retry-after, got %T", _err)
+	}
 }

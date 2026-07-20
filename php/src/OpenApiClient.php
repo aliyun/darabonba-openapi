@@ -453,14 +453,15 @@ class OpenApiClient
           $err = $_res;
           $requestId = (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (false !== strpos('' . (string)$code . '', 'Throttling')) {
+          $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
+          if (!Dara::isNull($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . (string)$code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . (string)$requestId . '',
               'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
-              'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'retryAfter' => $retryAfter,
               'data' => $err,
               'requestId' => '' . (string)$requestId . '',
             ]);
@@ -709,14 +710,15 @@ class OpenApiClient
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $requestId = '' . ($requestId ? $requestId : @$err['requestid']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (false !== strpos('' . $code . '', 'Throttling')) {
+          $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
+          if (!Dara::isNull($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
-              'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'retryAfter' => $retryAfter,
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
@@ -965,14 +967,15 @@ class OpenApiClient
           $err = $_res;
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (false !== strpos('' . $code . '', 'Throttling')) {
+          $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
+          if (!Dara::isNull($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
-              'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'retryAfter' => $retryAfter,
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);
@@ -1302,14 +1305,15 @@ class OpenApiClient
 
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
-          if (false !== strpos('' . $code . '', 'Throttling')) {
+          $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
+          if (!Dara::isNull($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
               'message' => 'code: ' . (string)$_response->statusCode . ', ' . (string)(@$err['Message'] ? @$err['Message'] : @$err['message']) . ' request id: ' . $requestId . '',
               'detail' => '' . (string)(@$err['Detail'] ? @$err['Detail'] : @$err['detail']) . '',
               'description' => '' . (string)(@$err['Description'] ? @$err['Description'] : @$err['description']) . '',
-              'retryAfter' => Utils::getThrottlingTimeLeft($_response->headers),
+              'retryAfter' => $retryAfter,
               'data' => $err,
               'requestId' => '' . $requestId . '',
             ]);

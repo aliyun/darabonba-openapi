@@ -197,21 +197,15 @@ string Utils::getEndpoint(const string &endpoint, const bool &serverUse, const s
  * @return time left
  */
 int64_t Utils::getThrottlingTimeLeft(const map<string, string> &headers) {
-  auto it1 = headers.find("x-ratelimit-user-api");
-  auto it2 = headers.find("x-ratelimit-user");
-  
-  int64_t timeLeft1 = 0;
-  int64_t timeLeft2 = 0;
-  
-  if (it1 != headers.end()) {
-    timeLeft1 = getTimeLeft(it1->second);
+  auto it = headers.find("x-acs-retry-after");
+  if (it == headers.end() || it->second.empty()) {
+    return -1;
   }
-  
-  if (it2 != headers.end()) {
-    timeLeft2 = getTimeLeft(it2->second);
+  try {
+    return stoll(it->second);
+  } catch (...) {
+    return -1;
   }
-  
-  return max(timeLeft1, timeLeft2);
 }
 
 /**

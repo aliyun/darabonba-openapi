@@ -239,13 +239,14 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
         json err = json(_res);
         Darabonba::Json requestId = Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json()));
         Darabonba::Json code = Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json()));
-        if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
+        int64_t retryAfter = Utils::Utils::getThrottlingTimeLeft(response_->getHeaders());
+        if (retryAfter >= 0) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
             {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
             {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
-            {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
+            {"retryAfter" , retryAfter},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -474,13 +475,14 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
         string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
         requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(requestId, err.value("requestid", Darabonba::Json())));
         string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
-        if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
+        int64_t retryAfter = Utils::Utils::getThrottlingTimeLeft(response_->getHeaders());
+        if (retryAfter >= 0) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
             {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
             {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
-            {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
+            {"retryAfter" , retryAfter},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -709,13 +711,14 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
         json err = json(_res);
         string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
         string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
-        if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
+        int64_t retryAfter = Utils::Utils::getThrottlingTimeLeft(response_->getHeaders());
+        if (retryAfter >= 0) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
             {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
             {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
-            {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
+            {"retryAfter" , retryAfter},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
@@ -969,13 +972,14 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
 
         string requestId = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("RequestId", Darabonba::Json()), err.value("requestId", Darabonba::Json())));
         string code = Darabonba::Convert::stringVal(Darabonba::defaultVal(err.value("Code", Darabonba::Json()), err.value("code", Darabonba::Json())));
-        if ((DARA_STRING_TEMPLATE("" , code) == "Throttling") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.User") || (DARA_STRING_TEMPLATE("" , code) == "Throttling.Api")) {
+        int64_t retryAfter = Utils::Utils::getThrottlingTimeLeft(response_->getHeaders());
+        if (retryAfter >= 0) {
           throw ThrottlingException(json({
             {"statusCode" , response_->getStatusCode()},
             {"code" , DARA_STRING_TEMPLATE("" , code)},
             {"message" , DARA_STRING_TEMPLATE("code: " , response_->getStatusCode() , ", " , Darabonba::defaultVal(err.value("Message", Darabonba::Json()), err.value("message", Darabonba::Json())) , " request id: " , requestId)},
             {"description" , DARA_STRING_TEMPLATE("" , Darabonba::defaultVal(err.value("Description", Darabonba::Json()), err.value("description", Darabonba::Json())))},
-            {"retryAfter" , Utils::Utils::getThrottlingTimeLeft(response_->getHeaders())},
+            {"retryAfter" , retryAfter},
             {"data" , err},
             {"requestId" , DARA_STRING_TEMPLATE("" , requestId)}
           }));
