@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
     <RootNamespace>AlibabaCloud.OpenApiClient</RootNamespace>
     <OutputType>Library</OutputType>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>AlibabaCloud.OpenApiClient</AssemblyName>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <LangVersion>5</LangVersion>
     <Authors>Alibaba Cloud</Authors>
     <Description>Alibaba Cloud OpenApi SDK Library for .NET</Description>
@@ -18,6 +18,10 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.1'">
+    <DefineConstants>NETSTANDARD2_1</DefineConstants>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <DefineConstants>NET45</DefineConstants>
@@ -42,6 +46,6 @@
     </PackageReference>
     <PackageReference Include="Aliyun.Credentials" Version="1.5.2"/>
     <PackageReference Include="AlibabaCloud.GatewaySpi" Version="0.0.3"/>
-    <PackageReference Include="Darabonba" Version="1.0.1"/>
+    <PackageReference Include="Darabonba" Version="1.0.3"/>
   </ItemGroup>
 </Project>
