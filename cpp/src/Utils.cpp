@@ -75,45 +75,6 @@ static void flattenMap(const json &obj, map<string, string> &result, const strin
   }
 }
 
-// Helper function to get time left from rate limit header
-static int64_t getTimeLeft(const string &rateLimit) {
-  if (rateLimit.empty()) {
-    return 0;
-  }
-
-  vector<string> pairs;
-  size_t start = 0;
-  size_t end = rateLimit.find(',');
-  while (end != string::npos) {
-    pairs.push_back(rateLimit.substr(start, end - start));
-    start = end + 1;
-    end = rateLimit.find(',', start);
-  }
-  pairs.push_back(rateLimit.substr(start));
-
-  for (const auto &pair : pairs) {
-    size_t colonPos = pair.find(':');
-    if (colonPos != string::npos) {
-      string key = pair.substr(0, colonPos);
-      string value = pair.substr(colonPos + 1);
-      // Trim whitespace
-      key.erase(0, key.find_first_not_of(" \t\n\r"));
-      key.erase(key.find_last_not_of(" \t\n\r") + 1);
-      value.erase(0, value.find_first_not_of(" \t\n\r"));
-      value.erase(value.find_last_not_of(" \t\n\r") + 1);
-
-      if (key == "TimeLeft") {
-        try {
-          return stoll(value);
-        } catch (...) {
-          return 0;
-        }
-      }
-    }
-  }
-  return 0;
-}
-
 // Helper function to filter out Stream types from JSON
 static json exceptStream(const json &obj) {
   if (obj.is_array()) {

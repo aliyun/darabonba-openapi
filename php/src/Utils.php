@@ -115,28 +115,6 @@ class Utils
   }
 
 
-  private static function getTimeLeft($rateLimit)
-  {
-    if ($rateLimit) {
-      $pairs = explode(',', $rateLimit);
-      foreach ($pairs as $pair) {
-        $kv = explode(':', $pair);
-        if (count($kv) === 2) {
-          $key = trim($kv[0]);
-          $value = trim($kv[1]);
-          if ($key === 'TimeLeft') {
-            $timeLeftValue = intval($value);
-            if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
-              return null;
-            }
-            return $timeLeftValue;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
   /**
    * @remarks
    * Hash the raw data with signatureAlgorithm

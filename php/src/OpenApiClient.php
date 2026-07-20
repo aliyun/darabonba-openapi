@@ -454,7 +454,7 @@ class OpenApiClient
           $requestId = (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = (@$err['Code'] ? @$err['Code'] : @$err['code']);
           $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
-          if (!Dara::isNull($retryAfter)) {
+          if (!is_null($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . (string)$code . '',
@@ -711,7 +711,7 @@ class OpenApiClient
           $requestId = '' . ($requestId ? $requestId : @$err['requestid']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
-          if (!Dara::isNull($retryAfter)) {
+          if (!is_null($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
@@ -968,7 +968,7 @@ class OpenApiClient
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
-          if (!Dara::isNull($retryAfter)) {
+          if (!is_null($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
@@ -1306,7 +1306,7 @@ class OpenApiClient
           $requestId = '' . (@$err['RequestId'] ? @$err['RequestId'] : @$err['requestId']);
           $code = '' . (@$err['Code'] ? @$err['Code'] : @$err['code']);
           $retryAfter = Utils::getThrottlingTimeLeft($_response->headers);
-          if (!Dara::isNull($retryAfter)) {
+          if (!is_null($retryAfter)) {
             throw new ThrottlingException([
               'statusCode' => $_response->statusCode,
               'code' => '' . $code . '',
