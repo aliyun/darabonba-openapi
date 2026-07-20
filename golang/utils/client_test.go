@@ -244,7 +244,19 @@ func Test_GetThrottlingTimeLeft(t *testing.T) {
 		"x-acs-retry-after": dara.String("0"),
 	}
 	timeLeft = GetThrottlingTimeLeft(headers)
-	utils.AssertEqual(t, int64(0), dara.Int64Value(timeLeft))
+	utils.AssertNil(t, timeLeft)
+
+	headers = map[string]*string{
+		"x-acs-retry-after": dara.String(""),
+	}
+	timeLeft = GetThrottlingTimeLeft(headers)
+	utils.AssertNil(t, timeLeft)
+
+	headers = map[string]*string{
+		"x-acs-retry-after": dara.String("-1"),
+	}
+	timeLeft = GetThrottlingTimeLeft(headers)
+	utils.AssertNil(t, timeLeft)
 
 	headers = map[string]*string{
 		"x-acs-retry-after": dara.String("invalid"),

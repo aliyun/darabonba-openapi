@@ -129,8 +129,13 @@ func Convert(body interface{}, content interface{}) {
 // @return time left
 func GetThrottlingTimeLeft(headers map[string]*string) (_result *int64) {
 	timeLeft := dara.StringValue(headers["x-acs-retry-after"])
+	if timeLeft == "" {
+		return nil
+	}
 	timeLeftValue, err := strconv.ParseInt(timeLeft, 10, 64)
-	if err != nil {
+	// Only a positive wait time is valid; missing/empty/invalid/<=0 → nil
+	// so callers' IsNil check won't treat 0 as a usable backoff.
+	if err != nil || timeLeftValue <= 0 {
 		return nil
 	}
 	return dara.Int64(timeLeftValue)

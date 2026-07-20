@@ -734,8 +734,13 @@ export default class Client {
    */
   static getThrottlingTimeLeft(headers: {[key: string ]: string}): number | undefined { 
     const retryAfter = headers["x-acs-retry-after"];
+    if (retryAfter === undefined || retryAfter === null || retryAfter === "") {
+      return undefined;
+    }
     const timeLeftValue = parseInt(retryAfter, 10);
-    if (Number.isNaN(timeLeftValue)) {
+    // Only a positive wait time is valid; missing/empty/invalid/<=0 → undefined
+    // so callers' !$isNull(retryAfter) won't treat 0 as a usable backoff.
+    if (Number.isNaN(timeLeftValue) || timeLeftValue <= 0) {
       return undefined;
     }
     return timeLeftValue;

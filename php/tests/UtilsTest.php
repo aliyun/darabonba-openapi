@@ -60,10 +60,18 @@ class UtilsTest extends TestCase
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
         $this->assertNull($timeLeft);
 
-        // Test with zero retry-after
+        // Zero / empty / negative are not usable backoff values
         $headers = array('x-acs-retry-after' => '0');
         $timeLeft = Utils::getThrottlingTimeLeft($headers);
-        $this->assertEquals(0, $timeLeft);
+        $this->assertNull($timeLeft);
+
+        $headers = array('x-acs-retry-after' => '');
+        $timeLeft = Utils::getThrottlingTimeLeft($headers);
+        $this->assertNull($timeLeft);
+
+        $headers = array('x-acs-retry-after' => '-1');
+        $timeLeft = Utils::getThrottlingTimeLeft($headers);
+        $this->assertNull($timeLeft);
 
         // Test with invalid value
         $headers = array('x-acs-retry-after' => 'Invalid');

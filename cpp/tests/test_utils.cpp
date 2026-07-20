@@ -41,7 +41,7 @@ TEST(UtilsTest, GetThrottlingTimeLeft) {
   map<string, string> headers3;
   headers3["x-acs-retry-after"] = "0";
   int64_t timeLeft3 = Utils::getThrottlingTimeLeft(headers3);
-  EXPECT_EQ(0, timeLeft3);
+  EXPECT_EQ(-1, timeLeft3);
 
   map<string, string> headers4;
   headers4["x-acs-retry-after"] = "invalid";
@@ -52,6 +52,11 @@ TEST(UtilsTest, GetThrottlingTimeLeft) {
   headers5["x-acs-retry-after"] = "";
   int64_t timeLeft5 = Utils::getThrottlingTimeLeft(headers5);
   EXPECT_EQ(-1, timeLeft5);
+
+  map<string, string> headers6;
+  headers6["x-acs-retry-after"] = "-5";
+  int64_t timeLeft6 = Utils::getThrottlingTimeLeft(headers6);
+  EXPECT_EQ(-1, timeLeft6);
 }
 
 // Test Hash

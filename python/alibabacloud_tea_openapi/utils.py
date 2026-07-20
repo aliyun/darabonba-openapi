@@ -566,10 +566,17 @@ class Utils(object):
     @staticmethod
     def get_throttling_time_left(headers: Dict[str, str]) -> int:
         retry_after = headers.get('x-acs-retry-after')
+        if retry_after is None or retry_after == '':
+            return None
         try:
-            return int(retry_after)
+            time_left = int(retry_after)
         except (TypeError, ValueError):
             return None
+        # Only a positive wait time is valid; missing/empty/invalid/<=0 → None
+        # so callers' is_null check won't treat 0 as a usable backoff.
+        if time_left <= 0:
+            return None
+        return time_left
 
     @staticmethod
     def _get_time_left(rate_limit: str) -> int:

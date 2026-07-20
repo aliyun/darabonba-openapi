@@ -202,7 +202,13 @@ int64_t Utils::getThrottlingTimeLeft(const map<string, string> &headers) {
     return -1;
   }
   try {
-    return stoll(it->second);
+    int64_t timeLeft = stoll(it->second);
+    // Only a positive wait time is valid; missing/empty/invalid/<=0 → -1
+    // so callers' >= 0 check won't treat 0 as a usable backoff.
+    if (timeLeft <= 0) {
+      return -1;
+    }
+    return timeLeft;
   } catch (...) {
     return -1;
   }

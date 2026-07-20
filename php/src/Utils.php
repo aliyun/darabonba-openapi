@@ -102,10 +102,16 @@ class Utils
     if (is_array($retryAfter)) {
       $retryAfter = $retryAfter[0];
     }
-    if (null === $retryAfter || !is_numeric($retryAfter)) {
+    if (null === $retryAfter || '' === $retryAfter || !is_numeric($retryAfter)) {
       return null;
     }
-    return intval($retryAfter);
+    $timeLeft = intval($retryAfter);
+    // Only a positive wait time is valid; missing/empty/invalid/<=0 → null
+    // so callers' isNull check won't treat 0 as a usable backoff.
+    if ($timeLeft <= 0) {
+      return null;
+    }
+    return $timeLeft;
   }
 
 
