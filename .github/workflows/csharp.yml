@@ -20,6 +20,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # Darabonba 1.0.3 (DoSSEActionAsync / ReadAsSSEAsync) is not on nuget.org yet.
+    # Pack from tea-csharp until that release is published, then this checkout+pack can be removed.
+    - name: Checkout tea-csharp for Darabonba 1.0.3
+      uses: actions/checkout@v4
+      with:
+        repository: aliyun/tea-csharp
+        ref: cc2f9a844ea526cd47744e52418b864d7968f53a
+        path: _deps/tea-csharp
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -33,8 +42,17 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
+    - name: Pack local Darabonba
+      working-directory: ${{ github.workspace }}
+      run: |
+        mkdir -p csharp/local-nuget
+        dotnet pack _deps/tea-csharp/Darabonba/Darabonba.csproj -c Release -o csharp/local-nuget
+
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        dotnet restore \
+          --source "${{ github.workspace }}/csharp/local-nuget" \
+          --source https://api.nuget.org/v3/index.json
 
     - name: Run tests
       run: dotnet test -f net8.0 --no-restore --verbosity normal
