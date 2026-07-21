@@ -3652,15 +3652,17 @@ namespace AlibabaCloud.OpenApiClient
             if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
             {
                 Dictionary<string, object> err = new Dictionary<string, object>(){};
-                if (!response_.Headers.Get("content-type").IsNull() && response_.Headers.Get("content-type") == "text/xml;charset=utf-8")
+                // HttpClient normalizes Content-Type to "text/xml; charset=utf-8" (space after ;).
+                string contentType = "" + response_.Headers.Get("content-type");
+                if (!response_.Headers.Get("content-type").IsNull() && contentType.Replace(" ", "") == "text/xml;charset=utf-8")
                 {
-                    string _str = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                    string _str = await Darabonba.Utils.StreamUtils.ReadAsStringAsync(response_.Body).ConfigureAwait(false);
                     Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(_str, null);
                     err = (Dictionary<string, object>)(respMap.Get("Error"));
                 }
                 else
                 {
-                    object _res = Darabonba.Utils.StreamUtils.ReadAsJSON(response_.Body);
+                    object _res = await Darabonba.Utils.StreamUtils.ReadAsJSONAsync(response_.Body).ConfigureAwait(false);
                     err = (Dictionary<string, object>)(_res);
                 }
                 err["statusCode"] = response_.StatusCode;

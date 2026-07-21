@@ -26,7 +26,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-csharp
-        ref: cc2f9a844ea526cd47744e52418b864d7968f53a
+        ref: 646f307f6e4848ef8bf6d7c3e3f17b88e04864cc
         path: _deps/tea-csharp
 
     - name: Setup .NET

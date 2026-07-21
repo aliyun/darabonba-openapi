@@ -559,12 +559,13 @@ namespace OpenApiClientUnitTests
                     BodyType = "json"
                 };
 
-                await Assert.ThrowsAnyAsync<Exception>(async () =>
+                var ex = await Assert.ThrowsAsync<Darabonba.Exceptions.DaraException>(async () =>
                 {
                     await foreach (var _ in client.CallAsyncSSEApi(parameters, request, runtime))
                     {
                     }
                 });
+                Assert.Contains("sse failed", ex.Message);
             }
         }
 #endif
