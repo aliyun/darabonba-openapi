@@ -539,7 +539,8 @@ namespace OpenApiClientUnitTests
             using (var server = new MockHttpServer())
             {
                 server.SseErrorMode = true;
-                server.SseErrorContentType = "text/xml;charset=utf-8";
+                // Match HttpClient-normalized Content-Type (space after ';').
+                server.SseErrorContentType = "text/xml; charset=utf-8";
                 var config = TestFixtures.CreateConfig();
                 config.Protocol = "HTTP";
                 config.Endpoint = server.Endpoint;
