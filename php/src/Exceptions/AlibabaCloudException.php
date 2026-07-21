@@ -35,8 +35,14 @@ class AlibabaCloudException extends DaraException
 
   public function __construct($map)
   {
+    // Dara::shouldRetry / getBackoffDelay match on getErrCode()/getName(),
+    // while OpenAPI exceptions store the business error code in `code`.
+    // Sync code → errCode so throttling (and other) retry conditions can hit.
     if (isset($map['code']) && !isset($map['errCode'])) {
       $map['errCode'] = $map['code'];
+    }
+    if (!isset($map['name'])) {
+      $map['name'] = 'AlibabaCloudException';
     }
     parent::__construct($map);
     $this->statusCode = $map['statusCode'];
