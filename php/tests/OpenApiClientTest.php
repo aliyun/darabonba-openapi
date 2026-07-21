@@ -104,16 +104,18 @@ class OpenApiClientTest extends TestCase
     private static function getResponseHeader($headers, $name)
     {
         $key = strtolower($name);
-        if (!isset($headers[$key])) {
-            return null;
+        foreach ($headers as $headerName => $value) {
+            if (strtolower($headerName) !== $key) {
+                continue;
+            }
+            if (is_array($value)) {
+                return $value[0];
+            }
+
+            return $value;
         }
 
-        $value = $headers[$key];
-        if (is_array($value)) {
-            return $value[0];
-        }
-
-        return $value;
+        return null;
     }
 
     public static function stopThrottlingMockServer()
@@ -194,19 +196,40 @@ class OpenApiClientTest extends TestCase
      */
     private static function ensureMockServer()
     {
-        if (self::$serverStarted) {
+        if (self::$serverStarted && self::isMockServerReady()) {
             return;
         }
+
+        self::stopMockServer();
+
         // 启动 Mock 服务器
         $server = __DIR__ . '/Mock/MockServer.php';
         $command = "php " . escapeshellarg($server) . " > /dev/null 2>&1 & echo $!";
         $output = shell_exec($command);
         self::$serverPid = (int)trim($output);
-        self::$serverStarted = true;
-        // 等待服务器启动并验证
-        sleep(2); // 增加等待时间确保服务器完全启动
-        // 注册关闭钩子
-        register_shutdown_function(array(__CLASS__, 'stopMockServer'));
+
+        $deadline = microtime(true) + 10;
+        while (microtime(true) < $deadline) {
+            if (self::isMockServerReady()) {
+                self::$serverStarted = true;
+                register_shutdown_function(array(__CLASS__, 'stopMockServer'));
+                return;
+            }
+            usleep(100000);
+        }
+
+        self::stopMockServer();
+        throw new \RuntimeException('Failed to start mock server on 127.0.0.1:8000');
+    }
+
+    private static function isMockServerReady()
+    {
+        $connection = @fsockopen('127.0.0.1', 8000, $errno, $errstr, 0.2);
+        if ($connection === false) {
+            return false;
+        }
+        fclose($connection);
+        return true;
     }
 
     /**
@@ -214,10 +237,11 @@ class OpenApiClientTest extends TestCase
      */
     public static function stopMockServer()
     {
-        if (self::$serverStarted && self::$serverPid > 0) {
-            shell_exec('kill ' . self::$serverPid);
-            self::$serverStarted = false;
+        if (self::$serverPid > 0) {
+            shell_exec('kill ' . self::$serverPid . ' 2>/dev/null');
+            self::$serverPid = 0;
         }
+        self::$serverStarted = false;
     }
 
     /**
@@ -629,9 +653,6 @@ class OpenApiClientTest extends TestCase
     {
         self::ensureMockServer();
 
-        // 额外等待确保 Mock 服务器完全启动 (for CI environments)
-        usleep(500000); // 0.5秒
-
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
         $config->protocol = "HTTP";
@@ -659,15 +680,15 @@ class OpenApiClientTest extends TestCase
         foreach ($response as $event) {
             $this->assertEquals(200, $event->statusCode);
             $headers = $event->headers;
-            $this->assertEquals('text/event-stream;charset=UTF-8', $headers['Content-Type'][0]);
-            $this->assertEquals('sdk', $headers['for-test'][0]);
-            $userAgentArray = explode(' ', $headers['user-agent'][0]);
+            $this->assertEquals('text/event-stream;charset=UTF-8', self::getResponseHeader($headers, 'Content-Type'));
+            $this->assertEquals('sdk', self::getResponseHeader($headers, 'for-test'));
+            $userAgentArray = explode(' ', self::getResponseHeader($headers, 'user-agent'));
             $this->assertEquals('config.userAgent', end($userAgentArray));
-            $this->assertEquals('global-value', $headers['global-key'][0]);
-            $this->assertEquals('extends-value', $headers['extends-key'][0]);
-            $this->assertNotEmpty($headers['x-acs-signature-nonce'][0]);
-            $this->assertNotEmpty($headers['x-acs-date'][0]);
-            $this->assertEquals('application/json', $headers['accept'][0]);
+            $this->assertEquals('global-value', self::getResponseHeader($headers, 'global-key'));
+            $this->assertEquals('extends-value', self::getResponseHeader($headers, 'extends-key'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-signature-nonce'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-date'));
+            $this->assertEquals('application/json', self::getResponseHeader($headers, 'accept'));
             $event = $event->event->toArray();
             // var_dump($event);
             $events[] = json_decode($event['data'], true);

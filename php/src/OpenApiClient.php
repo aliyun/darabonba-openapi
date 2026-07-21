@@ -1726,6 +1726,8 @@ class OpenApiClient
         'event' => $event,
       ]);
     }
+    // Generator completes without explicit return (PHP 5.6 compatible)
+    return;
   }
 
   /**
