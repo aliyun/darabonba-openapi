@@ -48,26 +48,18 @@ while ($client = @stream_socket_accept($server)) {
         }
         $responseHeaders .= "\r\n";
         fwrite($client, $responseHeaders);
-        // 刷新缓冲区，确保头部被立刻发送
-        flush();
+        // fflush the socket (flush() only clears PHP's output buffer)
+        fflush($client);
 
-        // 模拟发送事件流
+        // 模拟发送事件流 — keep inter-event delay small so CI readTimeout
+        // (esp. PHP 5.6 + Guzzle 6) does not flake mid-stream.
         $count = 0;
         while ($count < 5) {
             $data = [
                 "count" => $count
             ];
-            $sseData = "id: sse-test\n";
-            $sseData .= "event: flow\n";
-            $sseData .= "data: " . json_encode($data) . "\n";
-            $sseData .= "retry: 3000\n\n"; // 重试时间可选
-            fwrite($client, $sseData);
-
-            // 再次刷新缓冲区，以确保数据被发送
-            flush();
-
-            // 等待100毫秒
-            usleep(100000);
+            send_sse($client, 'sse-test', 'flow', $data, 3000);
+            usleep(10000);
             $count++;
         }
         fclose($client);

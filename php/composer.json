@@ -29,7 +29,7 @@
     "fixer": "php-cs-fixer fix ./",
     "test": "phpunit",
     "test:unit": "phpunit tests/UtilsTest.php",
-    "test:all": "phpunit --testdox"
+    "test:all": "phpunit --testdox --verbose"
   },
   "config": {
     "sort-packages": true,
