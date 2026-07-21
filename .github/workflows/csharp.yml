@@ -38,7 +38,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        # Include tea-csharp pin: Darabonba stays 1.0.3 while bits change across pins.
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}-tea-646f307f6e4848ef8bf6d7c3e3f17b88e04864cc
         restore-keys: |
           ${{ runner.os }}-nuget-
 
@@ -46,6 +47,9 @@ jobs:
       working-directory: ${{ github.workspace }}
       run: |
         mkdir -p csharp/local-nuget
+        # Evict cached Darabonba 1.0.3 from older tea-csharp pins (same version, different bits).
+        # Otherwise restore keeps the stale global package and skips the freshly packed nupkg.
+        rm -rf "${HOME}/.nuget/packages/darabonba"
         dotnet pack _deps/tea-csharp/Darabonba/Darabonba.csproj -c Release -o csharp/local-nuget
 
     - name: Restore dependencies

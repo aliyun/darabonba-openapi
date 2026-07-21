@@ -3652,9 +3652,9 @@ namespace AlibabaCloud.OpenApiClient
             if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
             {
                 Dictionary<string, object> err = new Dictionary<string, object>(){};
-                // HttpClient normalizes Content-Type to "text/xml; charset=utf-8" (space after ;).
-                string contentType = "" + response_.Headers.Get("content-type");
-                if (!response_.Headers.Get("content-type").IsNull() && contentType.Replace(" ", "") == "text/xml;charset=utf-8")
+                // HttpClient may emit "text/xml; charset=utf-8" (space) and charset case varies.
+                string contentType = ("" + response_.Headers.Get("content-type")).Replace(" ", "").ToLowerInvariant();
+                if (!response_.Headers.Get("content-type").IsNull() && contentType == "text/xml;charset=utf-8")
                 {
                     string _str = await Darabonba.Utils.StreamUtils.ReadAsStringAsync(response_.Body).ConfigureAwait(false);
                     Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(_str, null);
