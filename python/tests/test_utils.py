@@ -525,3 +525,12 @@ class TestUtils(unittest.TestCase):
         flat_model_list = Client.map_to_flat_style(model_list)
         self.assertEqual("test2", flat_model_list[0].requestId)
         self.assertEqual("value2", flat_model_list[0].dic["#4#key2"])
+
+    def test_get_throttling_time_left(self):
+        self.assertEqual(2000, Client.get_throttling_time_left({'x-acs-retry-after': '2000'}))
+        self.assertIsNone(Client.get_throttling_time_left({'x-acs-retry-after': '0'}))
+        self.assertIsNone(Client.get_throttling_time_left({'x-acs-retry-after': ''}))
+        self.assertIsNone(Client.get_throttling_time_left({'x-acs-retry-after': '-1'}))
+        self.assertIsNone(Client.get_throttling_time_left({'x-acs-retry-after': 'invalid'}))
+        self.assertIsNone(Client.get_throttling_time_left({}))
+

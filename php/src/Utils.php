@@ -102,34 +102,18 @@ class Utils
     if (is_array($retryAfter)) {
       $retryAfter = $retryAfter[0];
     }
-    if (null === $retryAfter || !is_numeric($retryAfter)) {
+    if (null === $retryAfter || '' === $retryAfter || !is_numeric($retryAfter)) {
       return null;
     }
-    return intval($retryAfter);
-  }
-
-
-  private static function getTimeLeft($rateLimit)
-  {
-    if ($rateLimit) {
-      $pairs = explode(',', $rateLimit);
-      foreach ($pairs as $pair) {
-        $kv = explode(':', $pair);
-        if (count($kv) === 2) {
-          $key = trim($kv[0]);
-          $value = trim($kv[1]);
-          if ($key === 'TimeLeft') {
-            $timeLeftValue = intval($value);
-            if ($timeLeftValue === 0 && $value !== "0") { // 确认不是 "0"
-              return null;
-            }
-            return $timeLeftValue;
-          }
-        }
-      }
+    $timeLeft = intval($retryAfter);
+    // Only a positive wait time is valid; missing/empty/invalid/<=0 → null
+    // so callers' isNull check won't treat 0 as a usable backoff.
+    if ($timeLeft <= 0) {
+      return null;
     }
-    return null;
+    return $timeLeft;
   }
+
 
   /**
    * @remarks

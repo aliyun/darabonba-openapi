@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -1497,18 +1496,20 @@ func doRPCRequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 		err := dara.ToMap(_res)
 		requestId := dara.Default(err["RequestId"], err["requestId"])
 		code := dara.Default(err["Code"], err["code"])
-		if strings.Contains(dara.ToString(code), "Throttling") {
+		retryAfter := openapiutil.GetThrottlingTimeLeft(response_.Headers)
+		if !dara.IsNil(retryAfter) {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(dara.ToString(code)),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + dara.ToString(requestId)),
 				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
-				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
+				RetryAfter:  retryAfter,
 				Data:        err,
 				RequestId:   dara.String(dara.ToString(requestId)),
 			}
 			return _result, _err
+
 		} else if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 500) {
 			_err = &ClientError{
 				StatusCode:         response_.StatusCode,
@@ -1627,18 +1628,20 @@ func doROARequestWithCtx_opResponse(response_ *dara.Response, client *Client, bo
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		requestId = dara.ToString(dara.Default(requestId, err["requestid"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if strings.Contains(code, "Throttling") {
+		retryAfter := openapiutil.GetThrottlingTimeLeft(response_.Headers)
+		if !dara.IsNil(retryAfter) {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
 				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
-				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
+				RetryAfter:  retryAfter,
 				Data:        err,
 				RequestId:   dara.String(requestId),
 			}
 			return _result, _err
+
 		} else if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 500) {
 			_err = &ClientError{
 				StatusCode:         response_.StatusCode,
@@ -1756,18 +1759,20 @@ func doROAFormRequestWithCtx_opResponse(response_ *dara.Response, client *Client
 		err := dara.ToMap(_res)
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if strings.Contains(code, "Throttling") {
+		retryAfter := openapiutil.GetThrottlingTimeLeft(response_.Headers)
+		if !dara.IsNil(retryAfter) {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
 				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
-				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
+				RetryAfter:  retryAfter,
 				Data:        err,
 				RequestId:   dara.String(requestId),
 			}
 			return _result, _err
+
 		} else if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 500) {
 			_err = &ClientError{
 				StatusCode:         response_.StatusCode,
@@ -1889,18 +1894,20 @@ func doRequestWithCtx_opResponse(response_ *dara.Response, client *Client, param
 
 		requestId := dara.ToString(dara.Default(err["RequestId"], err["requestId"]))
 		code := dara.ToString(dara.Default(err["Code"], err["code"]))
-		if strings.Contains(code, "Throttling") {
+		retryAfter := openapiutil.GetThrottlingTimeLeft(response_.Headers)
+		if !dara.IsNil(retryAfter) {
 			_err = &ThrottlingError{
 				StatusCode:  response_.StatusCode,
 				Code:        dara.String(code),
 				Message:     dara.String("code: " + dara.ToString(dara.IntValue(response_.StatusCode)) + ", " + dara.ToString(dara.Default(err["Message"], err["message"])) + " request id: " + requestId),
 				Detail:      dara.String(dara.ToString(dara.Default(err["Detail"], err["detail"]))),
 				Description: dara.String(dara.ToString(dara.Default(err["Description"], err["description"]))),
-				RetryAfter:  openapiutil.GetThrottlingTimeLeft(response_.Headers),
+				RetryAfter:  retryAfter,
 				Data:        err,
 				RequestId:   dara.String(requestId),
 			}
 			return _result, _err
+
 		} else if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 500) {
 			_err = &ClientError{
 				StatusCode:         response_.StatusCode,

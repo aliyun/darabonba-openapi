@@ -690,4 +690,13 @@ describe('Tea Util', function () {
     assert.strictEqual(flatModelList[0].requestId, 'test2');
     assert.strictEqual(flatModelList[0].dict['#4#key2'], 'value2');
   });
+
+  it('getThrottlingTimeLeft should only return positive wait times', function () {
+    assert.strictEqual(Client.getThrottlingTimeLeft({ 'x-acs-retry-after': '2000' }), 2000);
+    assert.strictEqual(Client.getThrottlingTimeLeft({ 'x-acs-retry-after': '0' }), undefined);
+    assert.strictEqual(Client.getThrottlingTimeLeft({ 'x-acs-retry-after': '' }), undefined);
+    assert.strictEqual(Client.getThrottlingTimeLeft({ 'x-acs-retry-after': '-1' }), undefined);
+    assert.strictEqual(Client.getThrottlingTimeLeft({ 'x-acs-retry-after': 'invalid' }), undefined);
+    assert.strictEqual(Client.getThrottlingTimeLeft({}), undefined);
+  });
 });

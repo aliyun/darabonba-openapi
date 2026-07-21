@@ -183,8 +183,14 @@ namespace AlibabaCloud.OpenApiClient
         public static long? GetThrottlingTimeLeft(Dictionary<string, string> headers)
         {
             string retryAfter = headers.ContainsKey("x-acs-retry-after") ? headers["x-acs-retry-after"] : null;
+            if (string.IsNullOrEmpty(retryAfter))
+            {
+                return null;
+            }
             long timeLeftValue;
-            if (!long.TryParse(retryAfter, out timeLeftValue))
+            // Only a positive wait time is valid; missing/empty/invalid/<=0 → null
+            // so callers' null check won't treat 0 as a usable backoff.
+            if (!long.TryParse(retryAfter, out timeLeftValue) || timeLeftValue <= 0)
             {
                 return null;
             }

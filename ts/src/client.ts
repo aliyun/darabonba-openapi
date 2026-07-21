@@ -302,14 +302,15 @@ export default class Client {
           let err = _res;
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if (`${code}`.includes("Throttling")) {
+          let retryAfter = OpenApiUtil.getThrottlingTimeLeft(response_.headers);
+          if (!$dara.isNull(retryAfter)) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
-              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              retryAfter: retryAfter,
               data: err,
               requestId: `${requestId}`,
             });
@@ -560,14 +561,15 @@ export default class Client {
           let requestId = err["RequestId"] || err["requestId"];
           requestId = requestId || err["requestid"];
           let code = err["Code"] || err["code"];
-          if (`${code}`.includes("Throttling")) {
+          let retryAfter = OpenApiUtil.getThrottlingTimeLeft(response_.headers);
+          if (!$dara.isNull(retryAfter)) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
-              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              retryAfter: retryAfter,
               data: err,
               requestId: `${requestId}`,
             });
@@ -818,14 +820,15 @@ export default class Client {
           let err = _res;
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if (`${code}`.includes("Throttling")) {
+          let retryAfter = OpenApiUtil.getThrottlingTimeLeft(response_.headers);
+          if (!$dara.isNull(retryAfter)) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
-              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              retryAfter: retryAfter,
               data: err,
               requestId: `${requestId}`,
             });
@@ -1168,14 +1171,15 @@ export default class Client {
 
           let requestId = err["RequestId"] || err["requestId"];
           let code = err["Code"] || err["code"];
-          if (`${code}`.includes("Throttling")) {
+          let retryAfter = OpenApiUtil.getThrottlingTimeLeft(response_.headers);
+          if (!$dara.isNull(retryAfter)) {
             throw new $_error.ThrottlingError({
               statusCode: response_.statusCode,
               code: `${code}`,
               message: `code: ${response_.statusCode}, ${err["Message"] || err["message"]} request id: ${requestId}`,
               detail: `${err["Detail"] || err["detail"]}`,
               description: `${err["Description"] || err["description"]}`,
-              retryAfter: OpenApiUtil.getThrottlingTimeLeft(response_.headers),
+              retryAfter: retryAfter,
               data: err,
               requestId: `${requestId}`,
             });

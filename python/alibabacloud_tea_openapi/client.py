@@ -282,14 +282,15 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -500,14 +501,15 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -721,14 +723,15 @@ class Client:
                     request_id = err.get("RequestId") or err.get("requestId")
                     request_id = request_id or err.get("requestid")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -927,14 +930,15 @@ class Client:
                     request_id = err.get("RequestId") or err.get("requestId")
                     request_id = request_id or err.get("requestid")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -1148,14 +1152,15 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -1354,14 +1359,15 @@ class Client:
                     err = _res
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -1657,14 +1663,15 @@ class Client:
 
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
@@ -1893,14 +1900,15 @@ class Client:
 
                     request_id = err.get("RequestId") or err.get("requestId")
                     code = err.get("Code") or err.get("code")
-                    if 'Throttling' in f'{code}':
+                    retry_after = Utils.get_throttling_time_left(_response.headers)
+                    if not DaraCore.is_null(retry_after):
                         raise main_exceptions.ThrottlingException(
                             status_code = _response.status_code,
                             code = f'{code}',
                             message = f'code: {_response.status_code}, {err.get("Message") or err.get("message")} request id: {request_id}',
                             detail = f'{err.get("Detail") or err.get("detail")}',
                             description = f'{err.get("Description") or err.get("description")}',
-                            retry_after = Utils.get_throttling_time_left(_response.headers),
+                            retry_after = retry_after,
                             data = err,
                             request_id = f'{request_id}'
                         )
