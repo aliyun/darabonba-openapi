@@ -9,6 +9,7 @@ class ServerException extends AlibabaCloudException
 
   public function __construct($map)
   {
+    $map['name'] = 'ServerException';
     parent::__construct($map);
   }
 }
