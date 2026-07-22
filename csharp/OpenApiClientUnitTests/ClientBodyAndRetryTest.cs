@@ -401,6 +401,8 @@ namespace OpenApiClientUnitTests
                 config.Endpoint = server.Endpoint;
                 var runtime = TestFixtures.CreateRuntimeOptions();
                 var client = new TestClient(config);
+                // Cover RPC debug-header merge path (same as CallSSEApi).
+                client.SetRpcHeaders(new Dictionary<string, string> { { "x-acs-rpc-debug", "1" } });
                 var request = new OpenApiRequest
                 {
                     Body = new Dictionary<string, object> { { "k", "v" } }
@@ -534,13 +536,15 @@ namespace OpenApiClientUnitTests
         }
 
         [Fact]
-        public async Task TestCallAsyncSSEApi_ErrorXml()
+        public async Task TestCallAsyncSSEApi_ErrorXml_FallsThroughLikeCallSSEApi()
         {
             using (var server = new MockHttpServer())
             {
                 server.SseErrorMode = true;
-                // Match HttpClient-normalized Content-Type (space after ';').
-                server.SseErrorContentType = "text/xml; charset=utf-8";
+                // Same Content-Type string CallSSEApi checks. Via HttpClient, Content-Type stays on
+                // Content.Headers and is not on Response.Headers, so XML branch is unreachable —
+                // body is parsed as JSON (compat with pre-v2 / sync CallSSEApi).
+                server.SseErrorContentType = "text/xml;charset=utf-8";
                 var config = TestFixtures.CreateConfig();
                 config.Protocol = "HTTP";
                 config.Endpoint = server.Endpoint;
@@ -560,13 +564,13 @@ namespace OpenApiClientUnitTests
                     BodyType = "json"
                 };
 
-                var ex = await Assert.ThrowsAsync<Darabonba.Exceptions.DaraException>(async () =>
+                // XML body on JSON path → parse failure (not XML Error → DaraException).
+                await Assert.ThrowsAnyAsync<Exception>(async () =>
                 {
                     await foreach (var _ in client.CallAsyncSSEApi(parameters, request, runtime))
                     {
                     }
                 });
-                Assert.Contains("sse failed", ex.Message);
             }
         }
 #endif

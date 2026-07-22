@@ -26,7 +26,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-csharp
-        ref: 646f307f6e4848ef8bf6d7c3e3f17b88e04864cc
+        # master tip with DoSSEActionAsync (#146); no Content.Headers merge (#148 closed for compat).
+        ref: 3008d31e275f67ab41bb8aee45c71a5698889ee7
         path: _deps/tea-csharp
 
     - name: Setup .NET
@@ -39,7 +40,7 @@ jobs:
       with:
         path: ~/.nuget/packages
         # Include tea-csharp pin: Darabonba stays 1.0.3 while bits change across pins.
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}-tea-646f307f6e4848ef8bf6d7c3e3f17b88e04864cc
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}-tea-3008d31e275f67ab41bb8aee45c71a5698889ee7
         restore-keys: |
           ${{ runner.os }}-nuget-
 
