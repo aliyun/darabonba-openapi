@@ -210,12 +210,13 @@ class OpenApiClientTest extends TestCase
 
     /**
      * Ensure Mock Server is running and accepting connections (PHP 5.6+).
-     * Uses proc_open + readiness probe so CI (esp. PHP 5.6) does not race
-     * the first SSE request against a half-started listener on :8000.
+     * Startup readiness uses GET /health (not a bare TCP connect). After start,
+     * only check the process is still running — empty TCP probes race the
+     * single-threaded accept loop and flake SSE on PHP 5.6/7.0.
      */
     private static function ensureMockServer()
     {
-        if (self::$serverStarted && self::isMockServerReady()) {
+        if (self::$serverStarted && self::isMockServerProcessRunning()) {
             return;
         }
 
@@ -250,14 +251,39 @@ class OpenApiClientTest extends TestCase
         throw new \RuntimeException('Failed to start mock server on 127.0.0.1:' . self::$mockServerPort);
     }
 
+    private static function isMockServerProcessRunning()
+    {
+        if (!is_resource(self::$serverProcess)) {
+            return false;
+        }
+        $status = proc_get_status(self::$serverProcess);
+        return is_array($status) && !empty($status['running']);
+    }
+
     private static function isMockServerReady()
     {
-        $connection = @fsockopen('127.0.0.1', self::$mockServerPort, $errno, $errstr, 0.2);
+        $connection = @fsockopen('127.0.0.1', self::$mockServerPort, $errno, $errstr, 0.5);
         if ($connection === false) {
             return false;
         }
+
+        $payload = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+        fwrite($connection, $payload);
+        stream_set_timeout($connection, 1);
+        $response = '';
+        while (!feof($connection)) {
+            $chunk = fgets($connection, 512);
+            if ($chunk === false) {
+                break;
+            }
+            $response .= $chunk;
+            if (strlen($response) > 1024) {
+                break;
+            }
+        }
         fclose($connection);
-        return true;
+
+        return strpos($response, '200') !== false;
     }
 
     private static function getMockEndpoint()
