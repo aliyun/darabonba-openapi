@@ -20,16 +20,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Darabonba 1.0.3 (DoSSEActionAsync / ReadAsSSEAsync) is not on nuget.org yet.
-    # Pack from tea-csharp until that release is published, then this checkout+pack can be removed.
-    - name: Checkout tea-csharp for Darabonba 1.0.3
-      uses: actions/checkout@v4
-      with:
-        repository: aliyun/tea-csharp
-        # master tip with DoSSEActionAsync (#146); no Content.Headers merge (#148 closed for compat).
-        ref: 3008d31e275f67ab41bb8aee45c71a5698889ee7
-        path: _deps/tea-csharp
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -39,25 +29,12 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        # Include tea-csharp pin: Darabonba stays 1.0.3 while bits change across pins.
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}-tea-3008d31e275f67ab41bb8aee45c71a5698889ee7
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
 
-    - name: Pack local Darabonba
-      working-directory: ${{ github.workspace }}
-      run: |
-        mkdir -p csharp/local-nuget
-        # Evict cached Darabonba 1.0.3 from older tea-csharp pins (same version, different bits).
-        # Otherwise restore keeps the stale global package and skips the freshly packed nupkg.
-        rm -rf "${HOME}/.nuget/packages/darabonba"
-        dotnet pack _deps/tea-csharp/Darabonba/Darabonba.csproj -c Release -o csharp/local-nuget
-
     - name: Restore dependencies
-      run: |
-        dotnet restore \
-          --source "${{ github.workspace }}/csharp/local-nuget" \
-          --source https://api.nuget.org/v3/index.json
+      run: dotnet restore
 
     - name: Run tests
       run: dotnet test -f net8.0 --no-restore --verbosity normal
