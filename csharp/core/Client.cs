@@ -3582,7 +3582,7 @@ namespace AlibabaCloud.OpenApiClient
             byte[] hashedRequestPayload = Utils.Hash(Darabonba.Utils.BytesUtils.From("", "utf-8"), signatureAlgorithm);
             if (!request.Stream.IsNull())
             {
-                byte[] tmp = Darabonba.Utils.StreamUtils.ReadAsBytes(request.Stream);
+                byte[] tmp = await Darabonba.Utils.StreamUtils.ReadAsBytesAsync(request.Stream).ConfigureAwait(false);
                 hashedRequestPayload = Utils.Hash(tmp, signatureAlgorithm);
                 request_.Body = Darabonba.Utils.StreamUtils.BytesReadable(tmp);
                 request_.Headers["content-type"] = "application/octet-stream";
