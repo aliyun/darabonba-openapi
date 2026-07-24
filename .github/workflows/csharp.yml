@@ -33,8 +33,28 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-nuget-
 
+    # CallAsyncSSEApi on netstandard2.0 needs Darabonba with DARA_ASYNC_ENUMERABLES_API
+    # (Microsoft.Bcl.AsyncInterfaces). Until that tea release is on nuget.org, pack from the
+    # companion tea-csharp branch (same Aone #84494462).
+    - name: Pack local Darabonba (async enumerables)
+      working-directory: ${{ github.workspace }}
+      run: |
+        set -euo pipefail
+        TEA_REF="${TEA_CSHARP_REF:-feature/aone-84494462-async-enumerables-api}"
+        git clone --depth 1 -b "$TEA_REF" https://github.com/aliyun/tea-csharp.git /tmp/tea-csharp
+        mkdir -p /tmp/local-nuget
+        dotnet pack /tmp/tea-csharp/Darabonba/Darabonba.csproj -c Release -o /tmp/local-nuget
+        # Prefer local nupkg over nuget.org for this restore
+        rm -rf ~/.nuget/packages/darabonba/1.0.2 || true
+
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        dotnet restore -s /tmp/local-nuget -s https://api.nuget.org/v3/index.json
+
+    - name: Build openapi netstandard2.0
+      working-directory: csharp/core
+      run: |
+        dotnet build -c Release -f netstandard2.0 --no-restore
 
     - name: Run tests
       run: dotnet test -f net8.0 --no-restore --verbosity normal

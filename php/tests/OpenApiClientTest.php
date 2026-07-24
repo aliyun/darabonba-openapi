@@ -30,7 +30,9 @@ class OpenApiClientTest extends TestCase
      */
     private $pid = 0;
     private static $serverStarted = false;
+    private static $serverProcess = null;
     private static $serverPid = 0;
+    private static $mockServerPort = 8000;
     private static $throttlingServerStarted = false;
     private static $throttlingServerProcess = null;
     private static $throttlingServerPort = 0;
@@ -103,12 +105,29 @@ class OpenApiClientTest extends TestCase
 
     private static function getResponseHeader($headers, $name)
     {
-        $key = strtolower($name);
-        if (!isset($headers[$key])) {
+        if (!is_array($headers)) {
             return null;
         }
 
-        $value = $headers[$key];
+        $key = strtolower($name);
+        $value = null;
+        if (isset($headers[$key])) {
+            $value = $headers[$key];
+        } elseif (isset($headers[$name])) {
+            $value = $headers[$name];
+        } else {
+            foreach ($headers as $headerName => $headerValue) {
+                if (strtolower($headerName) === $key) {
+                    $value = $headerValue;
+                    break;
+                }
+            }
+        }
+
+        if ($value === null) {
+            return null;
+        }
+
         if (is_array($value)) {
             return $value[0];
         }
@@ -190,23 +209,87 @@ class OpenApiClientTest extends TestCase
 
 
     /**
-     * Ensure Mock Server is running (PHP 5.6-8.1 compatible)
+     * Ensure Mock Server is running and accepting connections (PHP 5.6+).
+     * Startup readiness uses GET /health (not a bare TCP connect). After start,
+     * only check the process is still running — empty TCP probes race the
+     * single-threaded accept loop and flake SSE on PHP 5.6/7.0.
      */
     private static function ensureMockServer()
     {
-        if (self::$serverStarted) {
+        if (self::$serverStarted && self::isMockServerProcessRunning()) {
             return;
         }
-        // 启动 Mock 服务器
+
+        self::stopMockServer();
+
         $server = __DIR__ . '/Mock/MockServer.php';
-        $command = "php " . escapeshellarg($server) . " > /dev/null 2>&1 & echo $!";
-        $output = shell_exec($command);
-        self::$serverPid = (int)trim($output);
-        self::$serverStarted = true;
-        // 等待服务器启动并验证
-        sleep(2); // 增加等待时间确保服务器完全启动
-        // 注册关闭钩子
-        register_shutdown_function(array(__CLASS__, 'stopMockServer'));
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['file', '/dev/null', 'w'],
+            2 => ['file', '/dev/null', 'w'],
+        ];
+        $process = proc_open('php ' . escapeshellarg($server), $descriptors, $pipes);
+        if (!is_resource($process)) {
+            throw new \RuntimeException('Failed to start mock server process');
+        }
+        fclose($pipes[0]);
+        self::$serverProcess = $process;
+        $status = proc_get_status($process);
+        self::$serverPid = isset($status['pid']) ? (int) $status['pid'] : 0;
+
+        $deadline = microtime(true) + 10;
+        while (microtime(true) < $deadline) {
+            if (self::isMockServerReady()) {
+                self::$serverStarted = true;
+                register_shutdown_function(array(__CLASS__, 'stopMockServer'));
+                return;
+            }
+            usleep(100000);
+        }
+
+        self::stopMockServer();
+        throw new \RuntimeException('Failed to start mock server on 127.0.0.1:' . self::$mockServerPort);
+    }
+
+    private static function isMockServerProcessRunning()
+    {
+        if (!is_resource(self::$serverProcess)) {
+            return false;
+        }
+        $status = proc_get_status(self::$serverProcess);
+        return is_array($status) && !empty($status['running']);
+    }
+
+    private static function isMockServerReady()
+    {
+        $connection = @fsockopen('127.0.0.1', self::$mockServerPort, $errno, $errstr, 0.5);
+        if ($connection === false) {
+            return false;
+        }
+
+        $payload = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+        fwrite($connection, $payload);
+        stream_set_timeout($connection, 1);
+        $response = '';
+        while (!feof($connection)) {
+            $chunk = fgets($connection, 512);
+            if ($chunk === false) {
+                break;
+            }
+            $response .= $chunk;
+            if (strlen($response) > 1024) {
+                break;
+            }
+        }
+        fclose($connection);
+
+        return strpos($response, '200') !== false;
+    }
+
+    private static function getMockEndpoint()
+    {
+        self::ensureMockServer();
+        return '127.0.0.1:' . self::$mockServerPort;
     }
 
     /**
@@ -214,10 +297,16 @@ class OpenApiClientTest extends TestCase
      */
     public static function stopMockServer()
     {
-        if (self::$serverStarted && self::$serverPid > 0) {
-            shell_exec('kill ' . self::$serverPid);
-            self::$serverStarted = false;
+        if (is_resource(self::$serverProcess)) {
+            @proc_terminate(self::$serverProcess);
+            @proc_close(self::$serverProcess);
+            self::$serverProcess = null;
+        } elseif (self::$serverPid > 0) {
+            @shell_exec('kill ' . self::$serverPid . ' 2>/dev/null');
         }
+
+        self::$serverPid = 0;
+        self::$serverStarted = false;
     }
 
     /**
@@ -629,13 +718,12 @@ class OpenApiClientTest extends TestCase
     {
         self::ensureMockServer();
 
-        // 额外等待确保 Mock 服务器完全启动 (for CI environments)
-        usleep(500000); // 0.5秒
-
         $config = self::createConfig();
         $runtime = self::createRuntimeOptions();
+        // SSE streams 5 events; give the client enough time on slow CI (PHP 5.6).
+        $runtime->readTimeout = 15000;
         $config->protocol = "HTTP";
-        $config->endpoint = "127.0.0.1:8000";
+        $config->endpoint = self::getMockEndpoint();
         $client = new OpenApiClient($config);
         $request = self::createOpenApiRequest();
         $params = new Params([
@@ -659,15 +747,15 @@ class OpenApiClientTest extends TestCase
         foreach ($response as $event) {
             $this->assertEquals(200, $event->statusCode);
             $headers = $event->headers;
-            $this->assertEquals('text/event-stream;charset=UTF-8', $headers['Content-Type'][0]);
-            $this->assertEquals('sdk', $headers['for-test'][0]);
-            $userAgentArray = explode(' ', $headers['user-agent'][0]);
+            $this->assertEquals('text/event-stream;charset=UTF-8', self::getResponseHeader($headers, 'Content-Type'));
+            $this->assertEquals('sdk', self::getResponseHeader($headers, 'for-test'));
+            $userAgentArray = explode(' ', self::getResponseHeader($headers, 'user-agent'));
             $this->assertEquals('config.userAgent', end($userAgentArray));
-            $this->assertEquals('global-value', $headers['global-key'][0]);
-            $this->assertEquals('extends-value', $headers['extends-key'][0]);
-            $this->assertNotEmpty($headers['x-acs-signature-nonce'][0]);
-            $this->assertNotEmpty($headers['x-acs-date'][0]);
-            $this->assertEquals('application/json', $headers['accept'][0]);
+            $this->assertEquals('global-value', self::getResponseHeader($headers, 'global-key'));
+            $this->assertEquals('extends-value', self::getResponseHeader($headers, 'extends-key'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-signature-nonce'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-date'));
+            $this->assertEquals('application/json', self::getResponseHeader($headers, 'accept'));
             $event = $event->event->toArray();
             // var_dump($event);
             $events[] = json_decode($event['data'], true);
