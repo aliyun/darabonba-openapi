@@ -350,7 +350,7 @@ namespace OpenApiClientUnitTests
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER || NET5_0_OR_GREATER
+#if DARA_ASYNC_ENUMERABLES_API
         [Fact]
         public async Task TestCallAsyncSSEApiWithV3Sign_AK_Form()
         {

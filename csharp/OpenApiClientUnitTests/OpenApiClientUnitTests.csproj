@@ -8,6 +8,10 @@
     <RootNamespace>OpenApiClientUnitTests</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) != '.NETFramework'">
+    <DefineConstants>$(DefineConstants);DARA_ASYNC_ENUMERABLES_API</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="**/obj/**" />
     <None Remove="**/obj/**" />
