@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
@@ -1420,7 +1421,7 @@ func (client *Client) ExecuteSSEWithCtx(ctx context.Context, params *openapiutil
 		events := make(chan *dara.SSEEvent, 1)
 		sseBody, _ok := dara.ToReader(interceptorContext.Response.DeserializedBody).(io.ReadCloser)
 		if !_ok {
-			sseBody = io.NopCloser(dara.ToReader(interceptorContext.Response.DeserializedBody))
+			sseBody = ioutil.NopCloser(dara.ToReader(interceptorContext.Response.DeserializedBody))
 		}
 		dara.ReadAsSSE(sseBody, events, _yieldErr)
 		for event := range events {

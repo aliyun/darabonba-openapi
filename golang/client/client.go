@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -1552,7 +1553,7 @@ func (client *Client) ExecuteSSE(params *openapiutil.Params, request *openapiuti
 		events := make(chan *dara.SSEEvent, 1)
 		sseBody, _ok := dara.ToReader(interceptorContext.Response.DeserializedBody).(io.ReadCloser)
 		if !_ok {
-			sseBody = io.NopCloser(dara.ToReader(interceptorContext.Response.DeserializedBody))
+			sseBody = ioutil.NopCloser(dara.ToReader(interceptorContext.Response.DeserializedBody))
 		}
 		dara.ReadAsSSE(sseBody, events, _yieldErr)
 		for event := range events {
