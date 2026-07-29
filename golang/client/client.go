@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -1346,6 +1347,238 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 		_resultErr = dara.TeaSDKError(_resultErr)
 	}
 	return _result, _resultErr
+}
+
+// Description:
+//
+// SSE streaming variant of execute(), for self-built-gateway products (e.g. SLS).
+//
+// Runs the same full SPI pipeline as execute() (modifyConfiguration / modifyRequest /
+//
+// modifyResponse); with bodyType='sse' the gateway passes the raw stream through in
+//
+// deserializedBody, which is then consumed with readAsSSE and yielded as SSEResponse
+//
+// events.
+func (client *Client) ExecuteSSE(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions, _yield chan *SSEResponse, _yieldErr chan error) {
+	defer close(_yield)
+	defer close(_yieldErr)
+	_runtime := dara.NewRuntimeObject(map[string]interface{}{
+		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
+		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
+		"ca":             dara.ToString(dara.Default(dara.StringValue(runtime.Ca), dara.StringValue(client.Ca))),
+		"readTimeout":    dara.ForceInt(dara.Default(dara.IntValue(runtime.ReadTimeout), dara.IntValue(client.ReadTimeout))),
+		"connectTimeout": dara.ForceInt(dara.Default(dara.IntValue(runtime.ConnectTimeout), dara.IntValue(client.ConnectTimeout))),
+		"httpProxy":      dara.ToString(dara.Default(dara.StringValue(runtime.HttpProxy), dara.StringValue(client.HttpProxy))),
+		"httpsProxy":     dara.ToString(dara.Default(dara.StringValue(runtime.HttpsProxy), dara.StringValue(client.HttpsProxy))),
+		"noProxy":        dara.ToString(dara.Default(dara.StringValue(runtime.NoProxy), dara.StringValue(client.NoProxy))),
+		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
+		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
+		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"retryOptions":   client.RetryOptions,
+		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
+	})
+
+	var retryPolicyContext *dara.RetryPolicyContext
+	var request_ *dara.Request
+	var response_ *dara.Response
+	var _resultErr error
+	retriesAttempted := int(0)
+	retryPolicyContext = &dara.RetryPolicyContext{
+		RetriesAttempted: retriesAttempted,
+	}
+
+	for dara.ShouldRetry(_runtime.RetryOptions, retryPolicyContext) {
+		_resultErr = nil
+		_backoffDelayTime := dara.GetBackoffDelay(_runtime.RetryOptions, retryPolicyContext)
+		dara.Sleep(_backoffDelayTime)
+
+		request_ = dara.NewRequest()
+		headers, _err := client.GetRpcHeaders()
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		globalQueries := make(map[string]*string)
+		globalHeaders := make(map[string]*string)
+		if !dara.IsNil(client.GlobalParameters) {
+			globalParams := client.GlobalParameters
+			if !dara.IsNil(globalParams.Queries) {
+				globalQueries = globalParams.Queries
+			}
+
+			if !dara.IsNil(globalParams.Headers) {
+				globalHeaders = globalParams.Headers
+			}
+
+		}
+
+		extendsHeaders := make(map[string]*string)
+		extendsQueries := make(map[string]*string)
+		if !dara.IsNil(runtime.ExtendsParameters) {
+			extendsParameters := runtime.ExtendsParameters
+			if !dara.IsNil(extendsParameters.Headers) {
+				extendsHeaders = extendsParameters.Headers
+			}
+
+			if !dara.IsNil(extendsParameters.Queries) {
+				extendsQueries = extendsParameters.Queries
+			}
+
+		}
+
+		requestContext := &spi.InterceptorContextRequest{
+			Headers: dara.Merge(globalHeaders,
+				extendsHeaders,
+				request.Headers,
+				headers),
+			Query: dara.Merge(globalQueries,
+				extendsQueries,
+				request.Query),
+			Body:               request.Body,
+			Stream:             request.Stream,
+			HostMap:            request.HostMap,
+			Pathname:           params.Pathname,
+			ProductId:          client.ProductId,
+			Action:             params.Action,
+			Version:            params.Version,
+			Protocol:           dara.String(dara.ToString(dara.Default(dara.StringValue(client.Protocol), dara.StringValue(params.Protocol)))),
+			Method:             dara.String(dara.ToString(dara.Default(dara.StringValue(client.Method), dara.StringValue(params.Method)))),
+			AuthType:           params.AuthType,
+			BodyType:           params.BodyType,
+			ReqBodyType:        params.ReqBodyType,
+			Style:              params.Style,
+			Credential:         client.Credential,
+			SignatureVersion:   client.SignatureVersion,
+			SignatureAlgorithm: client.SignatureAlgorithm,
+			UserAgent:          openapiutil.GetUserAgent(client.UserAgent),
+		}
+		configurationContext := &spi.InterceptorContextConfiguration{
+			RegionId:     client.RegionId,
+			Endpoint:     dara.String(dara.ToString(dara.Default(dara.StringValue(request.EndpointOverride), dara.StringValue(client.Endpoint)))),
+			EndpointRule: client.EndpointRule,
+			EndpointMap:  client.EndpointMap,
+			EndpointType: client.EndpointType,
+			Network:      client.Network,
+			Suffix:       client.Suffix,
+		}
+		interceptorContext := &spi.InterceptorContext{
+			Request:       requestContext,
+			Configuration: configurationContext,
+		}
+		attributeMap := &spi.AttributeMap{}
+		if !dara.IsNil(client.AttributeMap) {
+			attributeMap = client.AttributeMap
+		}
+
+		// 1. spi.modifyConfiguration (endpoint/region)
+		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		// 2. spi.modifyRequest (self-built-gateway signing)
+		_err = client.Spi.ModifyRequest(interceptorContext, attributeMap)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		request_.Protocol = interceptorContext.Request.Protocol
+		request_.Method = interceptorContext.Request.Method
+		request_.Pathname = interceptorContext.Request.Pathname
+		request_.Query = interceptorContext.Request.Query
+		request_.Body = interceptorContext.Request.Stream
+		request_.Headers = interceptorContext.Request.Headers
+		response_, _err = dara.DoRequest(request_, _runtime)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		responseContext := &spi.InterceptorContextResponse{
+			StatusCode: response_.StatusCode,
+			Headers:    response_.Headers,
+			Body:       response_.Body,
+		}
+		interceptorContext.Response = responseContext
+		// 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+		// The self-built gateway maps 4xx/5xx errors and, for bodyType='sse', passes the
+		// raw stream through in deserializedBody.
+		_err = client.Spi.ModifyResponse(interceptorContext, attributeMap)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		events := make(chan *dara.SSEEvent, 1)
+		sseBody, _ok := dara.ToReader(interceptorContext.Response.DeserializedBody).(io.ReadCloser)
+		if !_ok {
+			sseBody = io.NopCloser(dara.ToReader(interceptorContext.Response.DeserializedBody))
+		}
+		dara.ReadAsSSE(sseBody, events, _yieldErr)
+		for event := range events {
+			_yield <- &SSEResponse{
+				StatusCode: interceptorContext.Response.StatusCode,
+				Headers:    interceptorContext.Response.Headers,
+				Event:      event,
+			}
+		}
+		_err = <-_yieldErr
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{
+				RetriesAttempted: retriesAttempted,
+				HttpRequest:      request_,
+				HttpResponse:     response_,
+				Exception:        _err,
+			}
+			_resultErr = _err
+			continue
+		}
+
+		return
+	}
+	_yieldErr <- _resultErr
+	return
 }
 
 func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions, _yield chan *SSEResponse, _yieldErr chan error) {
