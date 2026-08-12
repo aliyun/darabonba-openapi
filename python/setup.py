@@ -42,7 +42,8 @@ REQUIRES = [
     "alibabacloud_gateway_spi>=0.0.2, <1.0.0",
     "cryptography>=3.0.0, <46.0.0; python_version<'3.8'",
     "cryptography>=3.0.0, <48.0.0; python_version=='3.8'",
-    "cryptography>=3.0.0, <49.0.0; python_version>='3.9'",
+    # Allow cryptography 50.0.0+ for CVE-2026-69247 (requires Python >=3.9).
+    "cryptography>=3.0.0, <51.0.0; python_version>='3.9'",
     "alibabacloud_tea_util>=0.3.13, <1.0.0"
 ]
 
