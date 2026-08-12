@@ -1438,6 +1438,9 @@ function setGatewayClient(spi: SPI)throws : void {
 /**
  * set RPC header for debug
  * @param headers headers for debug, this header can be used only once.
+ * NOTE(golang): SetRpcHeaders/GetRpcHeaders must be mutex-protected in golang/client
+ * (see Client.rpcHeadersMu). Regenerating Go from this Tea file needs that sync re-applied;
+ * otherwise concurrent CallApi/DoRequest races on @headers under go test -race.
  */
 function setRpcHeaders(headers: map[string] string)throws : void {
   @headers = headers;
@@ -1445,6 +1448,7 @@ function setRpcHeaders(headers: map[string] string)throws : void {
 
 /**
  * get RPC header for debug
+ * Consumes one-shot debug headers (clears @headers). Golang implementation uses a mutex.
  */
 function getRpcHeaders() throws : map[string] string {
   var headers: map[string] string = @headers;
