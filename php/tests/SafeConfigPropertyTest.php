@@ -119,11 +119,12 @@ class SafeConfigPropertyTest extends TestCase
         $this->assertNull($config->endpoint);
 
         // Enter ParameterMissing branch. ClientException ctor may warn on missing
-        // statusCode under PHPUnit convertWarningsToExceptions; catch Throwable.
+        // statusCode under PHPUnit convertWarningsToExceptions. catch Exception
+        // (PHP 5.6 has no Throwable).
         $entered = false;
         try {
             $client->checkConfig($config);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             $entered = true;
         }
         $this->assertTrue($entered);

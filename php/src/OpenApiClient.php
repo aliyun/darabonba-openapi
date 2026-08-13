@@ -222,6 +222,8 @@ class OpenApiClient
       ]);
     }
 
+    // PHP 8+ : non-OpenApi Config (e.g. Credential\Config) lacks these fields.
+    // property_exists avoids Undefined property notices. Re-apply after codegen.
     $accessKeyId = property_exists($config, 'accessKeyId') ? $config->accessKeyId : null;
     $accessKeySecret = property_exists($config, 'accessKeySecret') ? $config->accessKeySecret : null;
     $securityToken = property_exists($config, 'securityToken') ? $config->securityToken : null;
