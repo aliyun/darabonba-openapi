@@ -1,3 +1,6 @@
+### 2026-08-12 Version 0.4.6
+* Raise cryptography upper bound to `<51.0.0` on Python >=3.9 so `cryptography` 50.0.0 (CVE-2026-69247) can be installed.
+
 ### 2024-09-23 Version 0.3.12
 * Solve the inconsistency of credentials refresh in all methods.
 
