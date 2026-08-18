@@ -15,7 +15,9 @@ let package = Package(
         ],
         dependencies: [
             // Dependencies declare other packages that this package depends on.
-            .package(url: "https://github.com/aliyun/tea-swift.git", from: "1.0.3"),
+            // Temporary: pin tea-swift feature commit until #18 is merged and tagged;
+            // then switch back to from: "1.0.x" (getBackoffDelay / ReuqestError.name).
+            .package(url: "https://github.com/aliyun/tea-swift.git", revision: "22e9360c903bbc4470608b9584c72c29a3b620bb"),
             .package(url: "https://github.com/alibabacloud-sdk-swift/tea-utils", from: "1.0.7"),
             .package(url: "https://github.com/aliyun/credentials-swift", from: "1.0.2"),
             .package(url: "https://github.com/alibabacloud-sdk-swift/openapi-util", from: "1.0.1"),
