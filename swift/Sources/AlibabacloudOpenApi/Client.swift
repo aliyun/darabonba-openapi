@@ -71,7 +71,7 @@ open class Client {
 
     public init(_ config: Config) throws {
         if (TeaUtils.Client.isUnset(config)) {
-            throw Tea.ReuqestError([
+            throw ClientException([
                 "code": "ParameterMissing",
                 "message": "'config' can not be unset"
             ])
@@ -161,7 +161,7 @@ open class Client {
         var _retryTimes: Int32 = 0
         while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffDelay(_runtime["backoff"], _retryTimes, _lastException)
                 if (_backoffTime > 0) {
                     Tea.TeaCore.sleep(_backoffTime)
                 }
@@ -226,7 +226,7 @@ open class Client {
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
                     if (TeaUtils.Client.isUnset(self._credential)) {
-                        throw Tea.ReuqestError([
+                        throw ClientException([
                             "code": "InvalidCredentials",
                             "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ])
@@ -257,19 +257,7 @@ open class Client {
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
-                if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
-                    var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
-                    var requestId: Any = Client.defaultAny(err["RequestId"], err["requestId"])
-                    err["statusCode"] = _response.statusCode
-                    throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
-                    ])
-                }
+                try throwIfError(_response)
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
@@ -320,7 +308,7 @@ open class Client {
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
-                    _lastException = error as! Tea.RetryableError
+                    _lastException = (error as? Tea.TeaError)
                     continue
                 }
                 throw error
@@ -363,7 +351,7 @@ open class Client {
         var _retryTimes: Int32 = 0
         while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffDelay(_runtime["backoff"], _retryTimes, _lastException)
                 if (_backoffTime > 0) {
                     Tea.TeaCore.sleep(_backoffTime)
                 }
@@ -417,7 +405,7 @@ open class Client {
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
                     if (TeaUtils.Client.isUnset(self._credential)) {
-                        throw Tea.ReuqestError([
+                        throw ClientException([
                             "code": "InvalidCredentials",
                             "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ])
@@ -447,20 +435,7 @@ open class Client {
                         "headers": _response.headers
                     ]
                 }
-                if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
-                    var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
-                    var requestId: Any = Client.defaultAny(err["RequestId"], err["requestId"])
-                    requestId = Client.defaultAny(requestId, err["requestid"])
-                    err["statusCode"] = _response.statusCode
-                    throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(requestId)",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
-                    ])
-                }
+                try throwIfError(_response)
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
@@ -511,7 +486,7 @@ open class Client {
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
-                    _lastException = error as! Tea.RetryableError
+                    _lastException = (error as? Tea.TeaError)
                     continue
                 }
                 throw error
@@ -554,7 +529,7 @@ open class Client {
         var _retryTimes: Int32 = 0
         while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffDelay(_runtime["backoff"], _retryTimes, _lastException)
                 if (_backoffTime > 0) {
                     Tea.TeaCore.sleep(_backoffTime)
                 }
@@ -609,7 +584,7 @@ open class Client {
                 }
                 if (!TeaUtils.Client.equalString(authType, "Anonymous")) {
                     if (TeaUtils.Client.isUnset(self._credential)) {
-                        throw Tea.ReuqestError([
+                        throw ClientException([
                             "code": "InvalidCredentials",
                             "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ])
@@ -639,18 +614,7 @@ open class Client {
                         "headers": _response.headers
                     ]
                 }
-                if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
-                    var err: [String: Any] = try TeaUtils.Client.assertAsMap(_res)
-                    err["statusCode"] = _response.statusCode
-                    throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
-                    ])
-                }
+                try throwIfError(_response)
                 if (TeaUtils.Client.equalString(bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
@@ -701,7 +665,7 @@ open class Client {
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
-                    _lastException = error as! Tea.RetryableError
+                    _lastException = (error as? Tea.TeaError)
                     continue
                 }
                 throw error
@@ -745,7 +709,7 @@ open class Client {
         var _retryTimes: Int32 = 0
         while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffDelay(_runtime["backoff"], _retryTimes, _lastException)
                 if (_backoffTime > 0) {
                     Tea.TeaCore.sleep(_backoffTime)
                 }
@@ -827,7 +791,7 @@ open class Client {
                 _request.headers["x-acs-content-sha256"] = hashedRequestPayload as! String;
                 if (!TeaUtils.Client.equalString(params.authType, "Anonymous")) {
                     if (TeaUtils.Client.isUnset(self._credential)) {
-                        throw Tea.ReuqestError([
+                        throw ClientException([
                             "code": "InvalidCredentials",
                             "message": "Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details."
                         ])
@@ -856,26 +820,7 @@ open class Client {
                 }
                 _lastRequest = _request
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
-                if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    var err: [String: Any] = [:]
-                    if (!TeaUtils.Client.isUnset(_response.headers["content-type"]) && TeaUtils.Client.equalString(_response.headers["content-type"], "text/xml;charset=utf-8")) {
-                        var _str: String = try await TeaUtils.Client.readAsString(_response.body)
-                        var respMap: [String: Any] = DarabonbaXML.Client.parseXml(_str, nil)
-                        err = try TeaUtils.Client.assertAsMap(respMap["Error"])
-                    }
-                    else {
-                        var _res: Any = try await TeaUtils.Client.readAsJSON(_response.body)
-                        err = try TeaUtils.Client.assertAsMap(_res)
-                    }
-                    err["statusCode"] = _response.statusCode
-                    throw Tea.ReuqestError([
-                        "code": Client.defaultAny(err["Code"], err["code"]),
-                        "message": "code: \(_response.statusCode), \(Client.defaultAny(err["Message"], err["message"])) request id: \(Client.defaultAny(err["RequestId"], err["requestId"]))",
-                        "data": err,
-                        "description": Client.defaultAny(err["Description"], err["description"]),
-                        "accessDeniedDetail": Client.defaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"])
-                    ])
-                }
+                try throwIfError(_response)
                 if (TeaUtils.Client.equalString(params.bodyType, "binary")) {
                     var resp: [String: Any] = [
                         "body": _response.body,
@@ -928,7 +873,7 @@ open class Client {
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
-                    _lastException = error as! Tea.RetryableError
+                    _lastException = (error as? Tea.TeaError)
                     continue
                 }
                 throw error
@@ -973,7 +918,7 @@ open class Client {
         var _retryTimes: Int32 = 0
         while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffDelay(_runtime["backoff"], _retryTimes, _lastException)
                 if (_backoffTime > 0) {
                     Tea.TeaCore.sleep(_backoffTime)
                 }
@@ -1064,7 +1009,7 @@ open class Client {
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
-                    _lastException = error as! Tea.RetryableError
+                    _lastException = (error as? Tea.TeaError)
                     continue
                 }
                 throw error
@@ -1076,7 +1021,7 @@ open class Client {
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func callApi(_ params: Params, _ request: OpenApiRequest, _ runtime: TeaUtils.RuntimeOptions) async throws -> [String: Any] {
         if (TeaUtils.Client.isUnset(params)) {
-            throw Tea.ReuqestError([
+            throw ClientException([
                 "code": "ParameterMissing",
                 "message": "'params' can not be unset"
             ])
@@ -1159,7 +1104,7 @@ open class Client {
 
     public func checkConfig(_ config: Config) throws -> Void {
         if (TeaUtils.Client.empty(self._endpointRule) && TeaUtils.Client.empty(config.endpoint)) {
-            throw Tea.ReuqestError([
+            throw ClientException([
                 "code": "ParameterMissing",
                 "message": "'config.endpoint' can not be empty"
             ])
@@ -1178,5 +1123,139 @@ open class Client {
         var headers: [String: String] = self._headers ?? [:]
         self._headers = nil
         return headers as! [String: String]
+    }
+
+    public func getAccessDeniedDetail(_ err: [String: Any]?) -> [String: Any]? {
+        guard let err = err else {
+            return nil
+        }
+        if let detail = err["AccessDeniedDetail"] as? [String: Any] {
+            return detail
+        }
+        if let detail = err["accessDeniedDetail"] as? [String: Any] {
+            return detail
+        }
+        return nil
+    }
+
+    public static func headerValue(_ headers: [String: String], _ name: String) -> String? {
+        if let value = headers[name] {
+            return value
+        }
+        let lower = name.lowercased()
+        for (key, value) in headers {
+            if key.lowercased() == lower {
+                return value
+            }
+        }
+        return nil
+    }
+
+    public static func contentType(_ headers: [String: String]) -> String {
+        let raw = headerValue(headers, "content-type") ?? ""
+        return raw.split(separator: ";").first?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+    }
+
+    public static func looksLikeXML(_ mime: String) -> Bool {
+        return mime.contains("xml")
+    }
+
+    public static func getThrottlingTimeLeft(_ headers: [String: String]?) -> Int64? {
+        guard let headers = headers else {
+            return nil
+        }
+        guard let raw = headerValue(headers, "x-acs-retry-after") ?? headerValue(headers, "retry-after") else {
+            return nil
+        }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = Int64(trimmed), value > 0 else {
+            return nil
+        }
+        return value
+    }
+
+    public static func parseErrorMap(statusCode: Int32, headers: [String: String], body: Data?) -> [String: Any] {
+        let raw = String(data: body ?? Data(), encoding: .utf8) ?? ""
+        let mime = contentType(headers)
+        if looksLikeXML(mime) && !raw.isEmpty {
+            let respMap = DarabonbaXML.Client.parseXml(raw, nil)
+            if let err = respMap["Error"] as? [String: Any] {
+                var copy = err
+                copy["rawBody"] = raw
+                return copy
+            }
+            if let err = respMap["error"] as? [String: Any] {
+                var copy = err
+                copy["rawBody"] = raw
+                return copy
+            }
+            if !respMap.isEmpty {
+                var copy = respMap
+                copy["rawBody"] = raw
+                return copy
+            }
+        }
+        if let data = raw.data(using: .utf8),
+           let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return obj
+        }
+        return [
+            "code": "FailedToParseResponse",
+            "message": raw,
+            "statusCode": Int(statusCode),
+            "rawBody": raw
+        ]
+    }
+
+    public static func stringify(_ any: Any?) -> String {
+        if any == nil || any is NSNull {
+            return ""
+        }
+        if let s = any as? String {
+            return s
+        }
+        return "\(any!)"
+    }
+
+    public static func makeOpenApiError(statusCode: Int32, headers: [String: String], err: [String: Any]) -> Tea.ReuqestError {
+        let status = Int(statusCode)
+        let requestId = stringify(err["RequestId"] ?? err["requestId"])
+        let code = stringify(err["Code"] ?? err["code"])
+        let serverMessage = stringify(err["Message"] ?? err["message"])
+        let description = stringify(err["Description"] ?? err["description"])
+        let detail = stringify(err["Detail"] ?? err["detail"])
+        var data = err
+        data["statusCode"] = status
+        let retryAfter = getThrottlingTimeLeft(headers)
+        var map: [String: Any] = [
+            "statusCode": status,
+            "code": code,
+            "message": "code: \(status), \(serverMessage) request id: \(requestId)",
+            "description": description,
+            "detail": detail,
+            "data": data,
+            "requestId": requestId
+        ]
+        if let accessDenied = err["AccessDeniedDetail"] ?? err["accessDeniedDetail"] {
+            map["accessDeniedDetail"] = accessDenied
+        }
+        let throttlingCode = code.lowercased().contains("throttling") || status == 429
+        if retryAfter != nil || throttlingCode {
+            if let retryAfter = retryAfter {
+                map["retryAfter"] = Int(retryAfter)
+            }
+            return ThrottlingException(map)
+        }
+        if status >= 400 && status < 500 {
+            return ClientException(map)
+        }
+        return ServerException(map)
+    }
+
+    public func throwIfError(_ response: Tea.TeaResponse) throws {
+        if TeaUtils.Client.is4xx(response.statusCode) || TeaUtils.Client.is5xx(response.statusCode) {
+            let err = Client.parseErrorMap(statusCode: response.statusCode, headers: response.headers, body: response.body)
+            throw Client.makeOpenApiError(statusCode: response.statusCode, headers: response.headers, err: err)
+        }
     }
 }
