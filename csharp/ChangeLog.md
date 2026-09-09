@@ -1,3 +1,9 @@
+### 2026-09-09 Version 0.2.2
+
+- Add StringifyMapValue and MapToFlatStyle utilities.
+- Support error details and improve throttling retries and detection.
+- Update the user agent and core version.
+
 ### 2025-12-30 Version 0.2.1
 
 - Support call sse api.
