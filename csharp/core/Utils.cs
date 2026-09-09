@@ -26,6 +26,21 @@ namespace AlibabaCloud.OpenApiClient
     /// </description>
     public class Utils 
     {
+        public static Dictionary<string, string> StringifyMapValue(Dictionary<string, object> map)
+        {
+            if (map == null)
+            {
+                return null;
+            }
+
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            foreach (var entry in map)
+            {
+                result.Add(entry.Key, entry.Value.ToSafeString());
+            }
+            return result;
+        }
+
         internal static readonly string SEPARATOR = "&";
         internal static readonly string PEM_BEGIN = "-----BEGIN RSA PRIVATE KEY-----\n";
         internal static readonly string PEM_END = "\n-----END RSA PRIVATE KEY-----";
