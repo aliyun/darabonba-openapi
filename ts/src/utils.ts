@@ -15,6 +15,10 @@ const PEM_BEGIN = "-----BEGIN PRIVATE KEY-----\n";
 const PEM_END = "\n-----END PRIVATE KEY-----";
 const DEFAULT_USER_AGENT = `AlibabaCloud (${os.platform()}; ${os.arch()}) Node.js/${process.version} Core/1.0.1 TeaDSL/2`;
 
+// Persist across getNonce() calls (previous impl reset counter/last every call).
+let nonceCounter = 0;
+let nonceLast: number | undefined;
+
 
 export class GlobalParameters extends $tea.Model {
   headers?: { [key: string]: string };
@@ -561,6 +565,11 @@ function getAuthorizationHeaders(header: { [key: string]: string }): {} {
   return { canonicalheaders, hsKeys };
 }
 
+/**
+ * Percent-encode for POP/ACS signature (RFC 3986).
+ * encodeURIComponent leaves ! ' ( ) * unescaped; we map those explicitly.
+ * Not an XSS sanitizer — CodeQL js/incomplete-sanitization is a false positive here.
+ */
 function encode(str: string) {
   var result = encodeURIComponent(str);
 
@@ -772,25 +781,22 @@ export default class Client {
   }
 
   /**
-   * Generate a nonce string
+   * Generate a nonce string using cryptographically secure randomness.
    * @return the nonce string
    */
   static getNonce(): string {
-    let counter = 0;
-    let last;
     const machine = os.hostname();
     const pid = process.pid;
-
-    var val = Math.floor(Math.random() * 1000000000000);
-    if (val === last) {
-      counter++;
+    // crypto.randomBytes — not Math.random (CodeQL js/insecure-randomness)
+    const val = parseInt(crypto.randomBytes(6).toString('hex'), 16);
+    if (val === nonceLast) {
+      nonceCounter++;
     } else {
-      counter = 0;
+      nonceCounter = 0;
     }
+    nonceLast = val;
 
-    last = val;
-
-    var uid = `${machine}${pid}${val}${counter}`;
+    const uid = `${machine}${pid}${val}${nonceCounter}`;
     const hash = crypto.createHash('sha256');
     hash.update(uid);
     return hash.digest('hex');
@@ -994,6 +1000,7 @@ ${date}
    * @return authorization string
    */
   static getAuthorization(request: $tea.Request, signatureAlgorithm: string, payload: string, accessKey: string, accessKeySecret: string): string {
+    // ACS3 CanonicalURI adjustments per protocol (not string sanitization).
     const canonicalURI = (request.pathname || "").replace(/\+/g, "%20").replace(/\*/g, "%2A").replace(/%7E/g, "~");
     const method = request.method;
     const canonicalQueryString = getAuthorizationQueryString(request.query);
