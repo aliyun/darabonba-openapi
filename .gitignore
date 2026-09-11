@@ -15,6 +15,7 @@ ts/package-lock.json
 **/csharp/**/bin/
 **/csharp/**/obj/
 **/csharp/**/.vs/
+**/csharp/local-nuget/
 
 .idea/
 target/

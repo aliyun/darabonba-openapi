@@ -113,7 +113,8 @@ namespace OpenApiClientUnitTests
                 {
                     new RetryCondition
                     {
-                        MaxAttempts = 2,
+                        // Darabonba >=1.0.2 uses RetriesAttempted >= MaxAttempts (total attempts).
+                        MaxAttempts = 3,
                         ErrorCode = new List<string> { "Throttling", "Throttling.User", "Throttling.Api" },
                         MaxDelayTimeMillis = 60000
                     }

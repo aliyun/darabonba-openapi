@@ -1,6 +1,6 @@
 <?php
 
-$server = stream_socket_server("tcp://0.0.0.0:8000", $errno, $errstr);
+$server = @stream_socket_server("tcp://127.0.0.1:8000", $errno, $errstr);
 
 if (!$server) {
     die("Error: $errstr ($errno)");
@@ -11,33 +11,91 @@ function send_sse($client, $id, $event, $data, $retry = 3000)
     $sseData = "id: $id\n";
     $sseData .= "event: $event\n";
     $sseData .= "data: " . json_encode($data) . "\n";
-    $sseData .= "retry: $retry\n\n";  // The retry comment is optional and should follow client's needs
+    $sseData .= "retry: $retry\n\n";
 
     fwrite($client, $sseData);
     fflush($client);
 }
 
-while ($client = @stream_socket_accept($server)) {
-    // 读取请求
-    $request = fread($client, 1024);
-    list($headers, $body) = explode("\r\n\r\n", $request, 2);
-    // 简单解析请求头
+function read_http_request($client)
+{
+    stream_set_timeout($client, 2);
+    $request = '';
+    while (!feof($client)) {
+        $chunk = fread($client, 1024);
+        if ($chunk === false || $chunk === '') {
+            break;
+        }
+        $request .= $chunk;
+        if (strpos($request, "\r\n\r\n") !== false) {
+            break;
+        }
+        // Guard against oversized / stalled probes.
+        if (strlen($request) > 8192) {
+            break;
+        }
+        $meta = stream_get_meta_data($client);
+        if (!empty($meta['timed_out'])) {
+            break;
+        }
+    }
+    return $request;
+}
+
+while (true) {
+    $client = @stream_socket_accept($server, 1);
+    if ($client === false) {
+        // Accept timeout — keep listening for later PHPUnit cases.
+        continue;
+    }
+
+    $request = read_http_request($client);
+    if ($request === '' || $request === false) {
+        fclose($client);
+        continue;
+    }
+
+    $parts = explode("\r\n\r\n", $request, 2);
+    $headers = $parts[0];
+    $body = isset($parts[1]) ? $parts[1] : '';
+
     $headerLines = explode("\r\n", $headers);
     $requestLine = array_shift($headerLines);
+    if (!is_string($requestLine) || $requestLine === '') {
+        fclose($client);
+        continue;
+    }
+
     preg_match('/\btimeout:\s*true\b/i', $headers, $timeoutMatch);
     preg_match('/\b(bodytype):[ ]*([\w\d]+)\b/i', $headers, $bodyTypeMatch);
     $bodyType = isset($bodyTypeMatch[2]) ? $bodyTypeMatch[2] : null;
-    preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1.1/', $requestLine, $matches);
+    preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1\.[01]/i', $requestLine, $matches);
+    if (count($matches) < 3) {
+        fwrite($client, "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
+        fclose($client);
+        continue;
+    }
     $method = $matches[1];
     $path = $matches[2];
 
+    // Non-destructive readiness probe used by PHPUnit before first request.
+    if ($path === '/health') {
+        fwrite($client, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK");
+        fclose($client);
+        continue;
+    }
 
     $headerAssoc = [];
-
     foreach ($headerLines as $header) {
-        list($name, $value) = explode(": ", $header, 2);
-        $headerAssoc[strtolower($name)] = $value;
+        if (strpos($header, ':') === false) {
+            continue;
+        }
+        $headerParts = explode(':', $header, 2);
+        $name = strtolower(trim($headerParts[0]));
+        $value = isset($headerParts[1]) ? trim($headerParts[1]) : '';
+        $headerAssoc[$name] = $value;
     }
+
     if (substr($path, 0, 4) === '/sse') {
         $responseHeaders = "HTTP/1.1 200 OK\r\n" .
             "Content-Type: text/event-stream;charset=UTF-8\r\n" .
@@ -48,52 +106,24 @@ while ($client = @stream_socket_accept($server)) {
         }
         $responseHeaders .= "\r\n";
         fwrite($client, $responseHeaders);
-        // 刷新缓冲区，确保头部被立刻发送
-        flush();
+        fflush($client);
 
-        // 模拟发送事件流
-        $count = 0;
-        while ($count < 5) {
-            $data = [
-                "count" => $count
-            ];
-            $sseData = "id: sse-test\n";
-            $sseData .= "event: flow\n";
-            $sseData .= "data: " . json_encode($data) . "\n";
-            $sseData .= "retry: 3000\n\n"; // 重试时间可选
-            fwrite($client, $sseData);
-
-            // 再次刷新缓冲区，以确保数据被发送
-            flush();
-
-            // 等待100毫秒
-            usleep(100000);
-            $count++;
+        // Send all SSE events immediately — inter-event sleep caused flakes on
+        // PHP 5.6/7.0 + Guzzle 6 (stream readTimeout / partial event frames).
+        for ($count = 0; $count < 5; $count++) {
+            send_sse($client, 'sse-test', 'flow', array('count' => $count), 3000);
         }
         fclose($client);
         continue;
     }
 
     if ($timeoutMatch) {
-        // 模拟超时
         sleep(5);
         $responseHeaders = "HTTP/1.1 500 Internal Server Error\r\n" .
             "Content-Type: text/plain\r\n" .
             "Connection: close\r\n\r\n";
         fwrite($client, $responseHeaders . "Server Timeout");
     } else {
-        $headerAssoc = [];
-        foreach ($headerLines as $headerLine) {
-            list($key, $value) = explode(': ', $headerLine, 2);
-            $headerAssoc[strtolower($key)] = trim($value);
-        }
-
-        // 获取路径和请求方法
-        preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1.1/', $requestLine, $matches);
-        $method = $matches[1];
-        $path = $matches[2];
-
-        // 构建响应头
         $responseHeaders = "HTTP/1.1 200 OK\r\n" .
             "Connection: close\r\n" .
             "Content-Type: application/json\r\n" .
@@ -102,7 +132,6 @@ while ($client = @stream_socket_accept($server)) {
             "pathname: $path\r\n" .
             "raw-body: $body\r\n";
 
-        // 构建响应体
         $responseBody = "";
 
         echo $bodyType . "\n";

@@ -28,6 +28,9 @@ namespace OpenApiClientUnitTests.Mock
         public List<string> RetryAttempts { get; } = new List<string>();
         public List<string> RetryDelays { get; } = new List<string>();
 
+        public bool SseErrorMode { get; set; }
+        public string SseErrorContentType { get; set; } = "application/json";
+
         public MockHttpServer()
         {
             var tcpListener = new TcpListener(IPAddress.Loopback, 0);
@@ -79,6 +82,11 @@ namespace OpenApiClientUnitTests.Mock
 
             if (req.Url.AbsolutePath.Equals("/sse", StringComparison.OrdinalIgnoreCase))
             {
+                if (SseErrorMode)
+                {
+                    HandleSseError(res);
+                    return;
+                }
                 HandleSse(res);
                 return;
             }
@@ -150,6 +158,27 @@ namespace OpenApiClientUnitTests.Mock
 
             string successBody = "{\"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\",\"Quotas\":[]}";
             WriteResponse(res, 200, successBody);
+        }
+
+        private void HandleSseError(HttpListenerResponse res)
+        {
+            string body;
+            string contentType = SseErrorContentType ?? "application/json";
+            if (contentType.IndexOf("xml", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                body = "<Error><Code>SSE.Error</Code><Message>sse failed</Message><RequestId>A45EE076-334D-5012-9746-A8F828D20FD4</RequestId></Error>";
+            }
+            else
+            {
+                body = "{\"Code\":\"SSE.Error\", \"Message\":\"sse failed\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+            }
+            var bytes = Encoding.UTF8.GetBytes(body);
+            res.StatusCode = 400;
+            res.ContentType = contentType;
+            res.Headers["content-type"] = contentType;
+            res.ContentLength64 = bytes.Length;
+            res.OutputStream.Write(bytes, 0, bytes.Length);
+            res.OutputStream.Close();
         }
 
         private static void HandleSse(HttpListenerResponse res)

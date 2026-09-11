@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using AlibabaCloud.OpenApiClient.Models;
 using Darabonba.Models;
@@ -348,6 +349,231 @@ namespace OpenApiClientUnitTests
                 }
             }
         }
+
+#if DARA_ASYNC_ENUMERABLES_API
+        [Fact]
+        public async Task TestCallAsyncSSEApiWithV3Sign_AK_Form()
+        {
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                var request = TestFixtures.CreateOpenApiRequest();
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "GET",
+                    AuthType = "AK",
+                    Style = "ROA",
+                    ReqBodyType = "formData",
+                    BodyType = "json"
+                };
+
+                var events = new List<SSEResponse>();
+                await foreach (var resp in client.CallAsyncSSEApi(parameters, request, runtime))
+                {
+                    events.Add(resp);
+                }
+
+                Assert.Equal(5, events.Count);
+                for (int i = 0; i < events.Count; i++)
+                {
+                    Assert.Equal("{\"count\": " + i + "}", events[i].Event.Data);
+                    Assert.Equal("sse-test", events[i].Event.Id);
+                    Assert.Equal("flow", events[i].Event.Event);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task TestCallAsyncSSEApi_JsonBody_And_RpcStyle()
+        {
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                // Cover RPC debug-header merge path (same as CallSSEApi).
+                client.SetRpcHeaders(new Dictionary<string, string> { { "x-acs-rpc-debug", "1" } });
+                var request = new OpenApiRequest
+                {
+                    Body = new Dictionary<string, object> { { "k", "v" } }
+                };
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "POST",
+                    AuthType = "AK",
+                    Style = "RPC",
+                    ReqBodyType = "json",
+                    BodyType = "json"
+                };
+
+                var events = new List<SSEResponse>();
+                await foreach (var resp in client.CallAsyncSSEApi(parameters, request, runtime))
+                {
+                    events.Add(resp);
+                }
+                Assert.Equal(5, events.Count);
+            }
+        }
+
+        [Fact]
+        public async Task TestCallAsyncSSEApi_ByteBody_Anonymous()
+        {
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                var request = new OpenApiRequest
+                {
+                    Body = Encoding.UTF8.GetBytes("raw-bytes")
+                };
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "POST",
+                    AuthType = "Anonymous",
+                    Style = "ROA",
+                    ReqBodyType = "byte",
+                    BodyType = "byte"
+                };
+
+                var events = new List<SSEResponse>();
+                await foreach (var resp in client.CallAsyncSSEApi(parameters, request, runtime))
+                {
+                    events.Add(resp);
+                }
+                Assert.Equal(5, events.Count);
+            }
+        }
+
+        [Fact]
+        public async Task TestCallAsyncSSEApi_StreamBody_Bearer()
+        {
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateBearerTokenConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                var request = new OpenApiRequest
+                {
+                    Stream = new MemoryStream(Encoding.UTF8.GetBytes("stream-body"))
+                };
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "POST",
+                    AuthType = "AK",
+                    Style = "ROA",
+                    ReqBodyType = "json",
+                    BodyType = "json"
+                };
+
+                var events = new List<SSEResponse>();
+                await foreach (var resp in client.CallAsyncSSEApi(parameters, request, runtime))
+                {
+                    events.Add(resp);
+                }
+                Assert.Equal(5, events.Count);
+            }
+        }
+
+        [Fact]
+        public async Task TestCallAsyncSSEApi_ErrorJson()
+        {
+            using (var server = new MockHttpServer())
+            {
+                server.SseErrorMode = true;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                var request = TestFixtures.CreateOpenApiRequest();
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "GET",
+                    AuthType = "AK",
+                    Style = "ROA",
+                    ReqBodyType = "formData",
+                    BodyType = "json"
+                };
+
+                await Assert.ThrowsAsync<Darabonba.Exceptions.DaraException>(async () =>
+                {
+                    await foreach (var _ in client.CallAsyncSSEApi(parameters, request, runtime))
+                    {
+                    }
+                });
+            }
+        }
+
+        [Fact]
+        public async Task TestCallAsyncSSEApi_ErrorXml_FallsThroughLikeCallSSEApi()
+        {
+            using (var server = new MockHttpServer())
+            {
+                server.SseErrorMode = true;
+                // Same Content-Type string CallSSEApi checks. Via HttpClient, Content-Type stays on
+                // Content.Headers and is not on Response.Headers, so XML branch is unreachable —
+                // body is parsed as JSON (compat with pre-v2 / sync CallSSEApi).
+                server.SseErrorContentType = "text/xml;charset=utf-8";
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var client = new TestClient(config);
+                var request = TestFixtures.CreateOpenApiRequest();
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "GET",
+                    AuthType = "AK",
+                    Style = "ROA",
+                    ReqBodyType = "formData",
+                    BodyType = "json"
+                };
+
+                // XML body on JSON path → parse failure (not XML Error → DaraException).
+                await Assert.ThrowsAnyAsync<Exception>(async () =>
+                {
+                    await foreach (var _ in client.CallAsyncSSEApi(parameters, request, runtime))
+                    {
+                    }
+                });
+            }
+        }
+#endif
 
         [Fact]
         public void TestThrottlingBackoffRetry_ListProductQuotas()
