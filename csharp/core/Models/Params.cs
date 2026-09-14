@@ -6,7 +6,7 @@ using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
-    public class Params : Model {
+    public class Params : Model  {
         [NameInMap("action")]
         [Validation(Required=true)]
         public string Action { get; set; }
@@ -55,7 +55,7 @@ namespace AlibabaCloud.OpenApiClient.Models
             return copy;
         }
 
-        public Dictionary<string, object> ToMap(bool noStream = false)
+        public override Dictionary<string, object> ToMapCore(bool noStream = false)
         {
             var map = new Dictionary<string, object>();
             if (Action != null)
@@ -106,57 +106,60 @@ namespace AlibabaCloud.OpenApiClient.Models
             return map;
         }
 
-        public static Params FromMap(Dictionary<string, object> map)
+        public Dictionary<string, object> ToMap(bool noStream = false)
         {
+            return ToMapCore(noStream);
+        }
+
+        public new static Params FromMap(IDictionary map)
+        {
+            if (map == null)
+            {
+                return null;
+            }
             var model = new Params();
-            if (map.ContainsKey("action"))
+            if (map.Contains("action"))
             {
                 model.Action = (string)map["action"];
             }
-
-            if (map.ContainsKey("version"))
+            if (map.Contains("version"))
             {
                 model.Version = (string)map["version"];
             }
-
-            if (map.ContainsKey("protocol"))
+            if (map.Contains("protocol"))
             {
                 model.Protocol = (string)map["protocol"];
             }
-
-            if (map.ContainsKey("pathname"))
+            if (map.Contains("pathname"))
             {
                 model.Pathname = (string)map["pathname"];
             }
-
-            if (map.ContainsKey("method"))
+            if (map.Contains("method"))
             {
                 model.Method = (string)map["method"];
             }
-
-            if (map.ContainsKey("authType"))
+            if (map.Contains("authType"))
             {
                 model.AuthType = (string)map["authType"];
             }
-
-            if (map.ContainsKey("bodyType"))
+            if (map.Contains("bodyType"))
             {
                 model.BodyType = (string)map["bodyType"];
             }
-
-            if (map.ContainsKey("reqBodyType"))
+            if (map.Contains("reqBodyType"))
             {
                 model.ReqBodyType = (string)map["reqBodyType"];
             }
-
-            if (map.ContainsKey("style"))
+            if (map.Contains("style"))
             {
                 model.Style = (string)map["style"];
             }
-
             return model;
         }
+
+        public static Params FromMap(Dictionary<string, object> map)
+        {
+            return FromMap((IDictionary)map);
+        }
     }
-
 }
-

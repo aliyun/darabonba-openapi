@@ -6,7 +6,7 @@ using Darabonba;
 
 namespace AlibabaCloud.OpenApiClient.Models
 {
-    public class OpenApiRequest : Model {
+    public class OpenApiRequest : Model  {
         [NameInMap("headers")]
         [Validation(Required=false)]
         public Dictionary<string, string> Headers { get; set; }
@@ -43,13 +43,13 @@ namespace AlibabaCloud.OpenApiClient.Models
             return copy;
         }
 
-        public Dictionary<string, object> ToMap(bool noStream = false)
+        public override Dictionary<string, object> ToMapCore(bool noStream = false)
         {
             var map = new Dictionary<string, object>();
             if (Headers != null)
             {
                 var dict = new Dictionary<string, string>();
-                foreach (var item1 in Headers) 
+                foreach (var item1 in Headers)
                 {
                     dict[item1.Key] = item1.Value;
                 }
@@ -59,7 +59,7 @@ namespace AlibabaCloud.OpenApiClient.Models
             if (Query != null)
             {
                 var dict = new Dictionary<string, string>();
-                foreach (var item1 in Query) 
+                foreach (var item1 in Query)
                 {
                     dict[item1.Key] = item1.Value;
                 }
@@ -79,7 +79,7 @@ namespace AlibabaCloud.OpenApiClient.Models
             if (HostMap != null)
             {
                 var dict = new Dictionary<string, string>();
-                foreach (var item1 in HostMap) 
+                foreach (var item1 in HostMap)
                 {
                     dict[item1.Key] = item1.Value;
                 }
@@ -94,69 +94,75 @@ namespace AlibabaCloud.OpenApiClient.Models
             return map;
         }
 
-        public static OpenApiRequest FromMap(Dictionary<string, object> map)
+        public Dictionary<string, object> ToMap(bool noStream = false)
         {
+            return ToMapCore(noStream);
+        }
+
+        public new static OpenApiRequest FromMap(IDictionary map)
+        {
+            if (map == null)
+            {
+                return null;
+            }
             var model = new OpenApiRequest();
-            if (map.ContainsKey("headers"))
+            if (map.Contains("headers"))
             {
-                var dict = map["headers"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
+                Dictionary<string, string> value0 = null;
+                if (map["headers"] != null)
                 {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
+                    value0 = new Dictionary<string, string>();
+                    foreach (DictionaryEntry item0 in (IDictionary)map["headers"])
                     {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
+                        value0.Add((string)item0.Key, (string)item0.Value);
                     }
-                    model.Headers = modelMap1;
                 }
+                model.Headers = value0;
             }
-
-            if (map.ContainsKey("query"))
+            if (map.Contains("query"))
             {
-                var dict = map["query"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
+                Dictionary<string, string> value0 = null;
+                if (map["query"] != null)
                 {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
+                    value0 = new Dictionary<string, string>();
+                    foreach (DictionaryEntry item0 in (IDictionary)map["query"])
                     {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
+                        value0.Add((string)item0.Key, (string)item0.Value);
                     }
-                    model.Query = modelMap1;
                 }
+                model.Query = value0;
             }
-
-            if (map.ContainsKey("body"))
+            if (map.Contains("body"))
             {
                 model.Body = (object)map["body"];
             }
-
-            if (map.ContainsKey("stream"))
+            if (map.Contains("stream"))
             {
                 model.Stream = (Stream)map["stream"];
             }
-
-            if (map.ContainsKey("hostMap"))
+            if (map.Contains("hostMap"))
             {
-                var dict = map["hostMap"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
+                Dictionary<string, string> value0 = null;
+                if (map["hostMap"] != null)
                 {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
+                    value0 = new Dictionary<string, string>();
+                    foreach (DictionaryEntry item0 in (IDictionary)map["hostMap"])
                     {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
+                        value0.Add((string)item0.Key, (string)item0.Value);
                     }
-                    model.HostMap = modelMap1;
                 }
+                model.HostMap = value0;
             }
-
-            if (map.ContainsKey("endpointOverride"))
+            if (map.Contains("endpointOverride"))
             {
                 model.EndpointOverride = (string)map["endpointOverride"];
             }
-
             return model;
         }
+
+        public static OpenApiRequest FromMap(Dictionary<string, object> map)
+        {
+            return FromMap((IDictionary)map);
+        }
     }
-
 }
-

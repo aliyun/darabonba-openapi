@@ -10,7 +10,7 @@ namespace AlibabaCloud.OpenApiClient.Models
     /// <description>
     /// <para>This is for OpenApi Util</para>
     /// </description>
-    public class GlobalParameters : Model {
+    public class GlobalParameters : Model  {
         [NameInMap("headers")]
         [Validation(Required=false)]
         public Dictionary<string, string> Headers { get; set; }
@@ -31,13 +31,13 @@ namespace AlibabaCloud.OpenApiClient.Models
             return copy;
         }
 
-        public Dictionary<string, object> ToMap(bool noStream = false)
+        public override Dictionary<string, object> ToMapCore(bool noStream = false)
         {
             var map = new Dictionary<string, object>();
             if (Headers != null)
             {
                 var dict = new Dictionary<string, string>();
-                foreach (var item1 in Headers) 
+                foreach (var item1 in Headers)
                 {
                     dict[item1.Key] = item1.Value;
                 }
@@ -47,7 +47,7 @@ namespace AlibabaCloud.OpenApiClient.Models
             if (Queries != null)
             {
                 var dict = new Dictionary<string, string>();
-                foreach (var item1 in Queries) 
+                foreach (var item1 in Queries)
                 {
                     dict[item1.Key] = item1.Value;
                 }
@@ -57,40 +57,50 @@ namespace AlibabaCloud.OpenApiClient.Models
             return map;
         }
 
-        public static GlobalParameters FromMap(Dictionary<string, object> map)
+        public Dictionary<string, object> ToMap(bool noStream = false)
         {
+            return ToMapCore(noStream);
+        }
+
+        public new static GlobalParameters FromMap(IDictionary map)
+        {
+            if (map == null)
+            {
+                return null;
+            }
             var model = new GlobalParameters();
-            if (map.ContainsKey("headers"))
+            if (map.Contains("headers"))
             {
-                var dict = map["headers"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
+                Dictionary<string, string> value0 = null;
+                if (map["headers"] != null)
                 {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
+                    value0 = new Dictionary<string, string>();
+                    foreach (DictionaryEntry item0 in (IDictionary)map["headers"])
                     {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
+                        value0.Add((string)item0.Key, (string)item0.Value);
                     }
-                    model.Headers = modelMap1;
                 }
+                model.Headers = value0;
             }
-
-            if (map.ContainsKey("queries"))
+            if (map.Contains("queries"))
             {
-                var dict = map["queries"] as Dictionary<string, string>;
-                if (dict != null && dict.Count > 0)
+                Dictionary<string, string> value0 = null;
+                if (map["queries"] != null)
                 {
-                    var modelMap1 = new Dictionary<string, string>();
-                    foreach (KeyValuePair<string, string> entry1 in dict)
+                    value0 = new Dictionary<string, string>();
+                    foreach (DictionaryEntry item0 in (IDictionary)map["queries"])
                     {
-                        modelMap1[entry1.Key] = (string)entry1.Value;
+                        value0.Add((string)item0.Key, (string)item0.Value);
                     }
-                    model.Queries = modelMap1;
                 }
+                model.Queries = value0;
             }
-
             return model;
         }
+
+        public static GlobalParameters FromMap(Dictionary<string, object> map)
+        {
+            return FromMap((IDictionary)map);
+        }
     }
-
 }
-
