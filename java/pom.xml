@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.aliyun</groupId>
   <artifactId>tea-openapi</artifactId>
-  <version>0.3.15</version>
+  <version>0.3.16</version>
   <packaging>jar</packaging>
   <name>tea-openapi</name>
   <description>
@@ -66,6 +66,17 @@
       <groupId>com.aliyun</groupId>
       <artifactId>openapiutil</artifactId>
       <version>0.2.2</version>
+    </dependency>
+    <!-- Force safe transitive versions until openapiutil/tea-util patched releases are published -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>1.84</version>
+    </dependency>
+    <dependency>
+      <groupId>net.minidev</groupId>
+      <artifactId>json-smart</artifactId>
+      <version>2.5.2</version>
     </dependency>
     <dependency>
       <groupId>com.aliyun</groupId>
