@@ -1480,7 +1480,27 @@ public class ClientTest {
         config.endpoint = "localhost:" + wireMock.port();
         client = new Client(config);
         client._productId = "test";
-        client.setGatewayClient(new com.aliyun.gateway.pop.Client());
+        // Use a minimal SPI stub instead of gateway-pop to avoid pulling bcprov-jdk15on into SCA.
+        client.setGatewayClient(new com.aliyun.gateway.spi.Client() {
+            @Override
+            public void modifyConfiguration(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                            com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+            }
+
+            @Override
+            public void modifyRequest(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                      com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+                if (context.request.headers == null) {
+                    context.request.headers = new java.util.HashMap<String, String>();
+                }
+                context.request.headers.put("host", context.configuration.endpoint);
+            }
+
+            @Override
+            public void modifyResponse(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                       com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+            }
+        });
         params = Params.build(TeaConverter.buildMap(
                 new TeaPair("action", "TestAPI"),
                 new TeaPair("version", "2022-06-01"),
