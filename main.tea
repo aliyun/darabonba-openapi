@@ -1195,6 +1195,138 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   disableHttp2 = $boolean($default(@disableHttp2, false))
 }
 
+/**
+ * SSE streaming variant of execute(), for self-built-gateway products (e.g. SLS).
+ * Runs the same full SPI pipeline as execute() (modifyConfiguration / modifyRequest /
+ * modifyResponse); with bodyType='sse' the gateway passes the raw stream through in
+ * deserializedBody, which is then consumed with readAsSSE and yielded as SSEResponse
+ * events.
+ */
+@sse(true)
+@context('executeSSEWithCtx')
+api executeSSE(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {
+  var headers = getRpcHeaders();
+  var globalQueries : map[string]string = {};
+  var globalHeaders : map[string]string = {};
+  if (!$isNull(@globalParameters)) {
+    var globalParams = @globalParameters;
+    if (!$isNull(globalParams.queries)) {
+      globalQueries = globalParams.queries;
+    }
+    if (!$isNull(globalParams.headers)) {
+      globalHeaders = globalParams.headers;
+    }
+  }
+  var extendsHeaders : map[string]string = {};
+  var extendsQueries : map[string]string = {};
+  if (!$isNull(runtime.extendsParameters)) {
+    var extendsParameters = runtime.extendsParameters;
+    if (!$isNull(extendsParameters.headers)) {
+      extendsHeaders = extendsParameters.headers;
+    }
+    if (!$isNull(extendsParameters.queries)) {
+      extendsQueries = extendsParameters.queries;
+    }
+  }
+  var requestContext = new SPI.InterceptorContext.request{
+    headers = {
+      ...globalHeaders,
+      ...extendsHeaders,
+      ...request.headers,
+      ...headers
+    },
+    query = {
+      ...globalQueries,
+      ...extendsQueries,
+      ...request.query,
+    },
+    body = request.body,
+    stream = request.stream,
+    hostMap = request.hostMap,
+    pathname = params.pathname,
+    productId = @productId,
+    action = params.action,
+    version = params.version,
+    protocol = $string($default(@protocol, params.protocol)),
+    method = $string($default(@method, params.method)),
+    authType = params.authType,
+    bodyType = params.bodyType,
+    reqBodyType = params.reqBodyType,
+    style = params.style,
+    credential = @credential,
+    signatureVersion = @signatureVersion,
+    signatureAlgorithm = @signatureAlgorithm,
+    userAgent = OpenApiUtil.getUserAgent(@userAgent)
+  };
+  var configurationContext = new SPI.InterceptorContext.configuration{
+    regionId = @regionId,
+    endpoint = $string($default(request.endpointOverride, @endpoint)),
+    endpointRule = @endpointRule,
+    endpointMap = @endpointMap,
+    endpointType = @endpointType,
+    network = @network,
+    suffix = @suffix
+  };
+  var interceptorContext = new SPI.InterceptorContext{
+    request = requestContext,
+    configuration = configurationContext
+  };
+  var attributeMap = new SPI.AttributeMap{};
+  if (!$isNull(@attributeMap)) {
+    attributeMap = @attributeMap;
+  }
+
+  // 1. spi.modifyConfiguration (endpoint/region)
+  @spi.modifyConfiguration(interceptorContext, attributeMap);
+  // 2. spi.modifyRequest (self-built-gateway signing)
+  @spi.modifyRequest(interceptorContext, attributeMap);
+
+  __request.protocol = interceptorContext.request.protocol;
+  __request.method = interceptorContext.request.method;
+  __request.pathname = interceptorContext.request.pathname;
+  __request.query = interceptorContext.request.query;
+  __request.body = interceptorContext.request.stream;
+  __request.headers = interceptorContext.request.headers;
+
+} returns {
+  var responseContext = new SPI.InterceptorContext.response{
+    statusCode = __response.statusCode,
+    headers = __response.headers,
+    body = __response.body
+  };
+  interceptorContext.response = responseContext;
+
+  // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+  // The self-built gateway maps 4xx/5xx errors and, for bodyType='sse', passes the
+  // raw stream through in deserializedBody.
+  @spi.modifyResponse(interceptorContext, attributeMap);
+
+  var events = $Stream.readAsSSE($readable(interceptorContext.response.deserializedBody));
+  for(var event : events) {
+    yield new SSEResponse{
+      statusCode = interceptorContext.response.statusCode,
+      headers = interceptorContext.response.headers,
+      event = event,
+    };
+  }
+  return null;
+} runtime {
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  retryOptions = @retryOptions,
+  ignoreSSL = runtime.ignoreSSL,
+  tlsMinVersion = @tlsMinVersion
+}
+
 @sse(true)
 @context('callSSEApiWithCtx')
 api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, runtime: $RuntimeOptions): asyncIterator[SSEResponse] {

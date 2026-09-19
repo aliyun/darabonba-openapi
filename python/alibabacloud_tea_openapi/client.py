@@ -2133,6 +2133,268 @@ class Client:
                 continue
         raise UnretryableException(_context)
 
+    def execute_sse(
+        self,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
+    ) -> Generator[main_models.SSEResponse, None, None]:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                headers = self.get_rpc_headers()
+                global_queries = {}
+                global_headers = {}
+                if not DaraCore.is_null(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not DaraCore.is_null(global_params.queries):
+                        global_queries = global_params.queries
+                    if not DaraCore.is_null(global_params.headers):
+                        global_headers = global_params.headers
+                extends_headers = {}
+                extends_queries = {}
+                if not DaraCore.is_null(runtime.extends_parameters):
+                    extends_parameters = runtime.extends_parameters
+                    if not DaraCore.is_null(extends_parameters.headers):
+                        extends_headers = extends_parameters.headers
+                    if not DaraCore.is_null(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
+                request_context = spi_models.InterceptorContextRequest(
+                    headers = DaraCore.merge({}, global_headers, extends_headers, request.headers, headers),
+                    query = DaraCore.merge({}, global_queries, extends_queries, request.query),
+                    body = request.body,
+                    stream = request.stream,
+                    host_map = request.host_map,
+                    pathname = params.pathname,
+                    product_id = self._product_id,
+                    action = params.action,
+                    version = params.version,
+                    protocol = self._protocol or params.protocol,
+                    method = self._method or params.method,
+                    auth_type = params.auth_type,
+                    body_type = params.body_type,
+                    req_body_type = params.req_body_type,
+                    style = params.style,
+                    credential = self._credential,
+                    signature_version = self._signature_version,
+                    signature_algorithm = self._signature_algorithm,
+                    user_agent = Utils.get_user_agent(self._user_agent)
+                )
+                configuration_context = spi_models.InterceptorContextConfiguration(
+                    region_id = self._region_id,
+                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint_rule = self._endpoint_rule,
+                    endpoint_map = self._endpoint_map,
+                    endpoint_type = self._endpoint_type,
+                    network = self._network,
+                    suffix = self._suffix
+                )
+                interceptor_context = spi_models.InterceptorContext(
+                    request = request_context,
+                    configuration = configuration_context
+                )
+                attribute_map = spi_models.AttributeMap()
+                if not DaraCore.is_null(self._attribute_map):
+                    attribute_map = self._attribute_map
+                # 1. spi.modifyConfiguration (endpoint/region)
+                self._spi.modify_configuration(interceptor_context, attribute_map)
+                # 2. spi.modifyRequest (self-built-gateway signing)
+                self._spi.modify_request(interceptor_context, attribute_map)
+                _request.protocol = interceptor_context.request.protocol
+                _request.method = interceptor_context.request.method
+                _request.pathname = interceptor_context.request.pathname
+                _request.query = interceptor_context.request.query
+                _request.body = interceptor_context.request.stream
+                _request.headers = interceptor_context.request.headers
+                _last_request = _request
+                _response = DaraCore.do_sse_action(_request, _runtime)
+                _last_response = _response
+                response_context = spi_models.InterceptorContextResponse(
+                    status_code = _response.status_code,
+                    headers = _response.headers,
+                    body = _response.body
+                )
+                interceptor_context.response = response_context
+                # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                # The self-built gateway maps 4xx/5xx errors and, for bodyType='sse', passes the
+                # raw stream through in deserializedBody.
+                self._spi.modify_response(interceptor_context, attribute_map)
+                events = DaraStream.read_as_sse(DaraStream.to_readable(interceptor_context.response.deserialized_body))
+                for event in events:
+                    yield  main_models.SSEResponse(
+                        status_code = interceptor_context.response.status_code,
+                        headers = interceptor_context.response.headers,
+                        event = event
+                    )
+                return
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    async def execute_sse_async(
+        self,
+        params: open_api_util_models.Params,
+        request: open_api_util_models.OpenApiRequest,
+        runtime: RuntimeOptions,
+    ) -> AsyncGenerator[main_models.SSEResponse, None, None]:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': runtime.ignore_ssl,
+            'tlsMinVersion': self._tls_min_version,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                headers = self.get_rpc_headers()
+                global_queries = {}
+                global_headers = {}
+                if not DaraCore.is_null(self._global_parameters):
+                    global_params = self._global_parameters
+                    if not DaraCore.is_null(global_params.queries):
+                        global_queries = global_params.queries
+                    if not DaraCore.is_null(global_params.headers):
+                        global_headers = global_params.headers
+                extends_headers = {}
+                extends_queries = {}
+                if not DaraCore.is_null(runtime.extends_parameters):
+                    extends_parameters = runtime.extends_parameters
+                    if not DaraCore.is_null(extends_parameters.headers):
+                        extends_headers = extends_parameters.headers
+                    if not DaraCore.is_null(extends_parameters.queries):
+                        extends_queries = extends_parameters.queries
+                request_context = spi_models.InterceptorContextRequest(
+                    headers = DaraCore.merge({}, global_headers, extends_headers, request.headers, headers),
+                    query = DaraCore.merge({}, global_queries, extends_queries, request.query),
+                    body = request.body,
+                    stream = request.stream,
+                    host_map = request.host_map,
+                    pathname = params.pathname,
+                    product_id = self._product_id,
+                    action = params.action,
+                    version = params.version,
+                    protocol = self._protocol or params.protocol,
+                    method = self._method or params.method,
+                    auth_type = params.auth_type,
+                    body_type = params.body_type,
+                    req_body_type = params.req_body_type,
+                    style = params.style,
+                    credential = self._credential,
+                    signature_version = self._signature_version,
+                    signature_algorithm = self._signature_algorithm,
+                    user_agent = Utils.get_user_agent(self._user_agent)
+                )
+                configuration_context = spi_models.InterceptorContextConfiguration(
+                    region_id = self._region_id,
+                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint_rule = self._endpoint_rule,
+                    endpoint_map = self._endpoint_map,
+                    endpoint_type = self._endpoint_type,
+                    network = self._network,
+                    suffix = self._suffix
+                )
+                interceptor_context = spi_models.InterceptorContext(
+                    request = request_context,
+                    configuration = configuration_context
+                )
+                attribute_map = spi_models.AttributeMap()
+                if not DaraCore.is_null(self._attribute_map):
+                    attribute_map = self._attribute_map
+                # 1. spi.modifyConfiguration (endpoint/region)
+                await self._spi.modify_configuration_async(interceptor_context, attribute_map)
+                # 2. spi.modifyRequest (self-built-gateway signing)
+                await self._spi.modify_request_async(interceptor_context, attribute_map)
+                _request.protocol = interceptor_context.request.protocol
+                _request.method = interceptor_context.request.method
+                _request.pathname = interceptor_context.request.pathname
+                _request.query = interceptor_context.request.query
+                _request.body = interceptor_context.request.stream
+                _request.headers = interceptor_context.request.headers
+                _last_request = _request
+                _response = await DaraCore.async_do_sse_action(_request, _runtime)
+                _last_response = _response
+                response_context = spi_models.InterceptorContextResponse(
+                    status_code = _response.status_code,
+                    headers = _response.headers,
+                    body = _response.body
+                )
+                interceptor_context.response = response_context
+                # 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+                # The self-built gateway maps 4xx/5xx errors and, for bodyType='sse', passes the
+                # raw stream through in deserializedBody.
+                await self._spi.modify_response_async(interceptor_context, attribute_map)
+                events = DaraStream.read_as_sse_async(DaraStream.to_readable(interceptor_context.response.deserialized_body))
+                async for event in events:
+                    yield  main_models.SSEResponse(
+                        status_code = interceptor_context.response.status_code,
+                        headers = interceptor_context.response.headers,
+                        event = event
+                    )
+                return
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
     async def execute_async(
         self,
         params: open_api_util_models.Params,

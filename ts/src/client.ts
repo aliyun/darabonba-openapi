@@ -1,4 +1,5 @@
 // This file is auto-generated, don't edit it
+import { Readable } from 'stream';
 import * as $dara from '@darabonba/typescript';
 import OpenApiUtil, * as $OpenApiUtil from './utils';
 import Credential, * as $Credential from '@alicloud/credentials';
@@ -1424,6 +1425,173 @@ export default class Client {
           body: interceptorContext.response.deserializedBody,
         };
         return resp;
+      } catch (ex) {
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
+      }
+    }
+
+    throw $dara.newUnretryableError(_context);
+  }
+
+  /**
+   * @remarks
+   * SSE streaming variant of execute(), for self-built-gateway products (e.g. SLS).
+   * Runs the same full SPI pipeline as execute() (modifyConfiguration / modifyRequest /
+   * modifyResponse); with bodyType='sse' the gateway passes the raw stream through in
+   * deserializedBody, which is then consumed with readAsSSE and yielded as SSEResponse
+   * events.
+   */
+  async *executeSSE(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): AsyncGenerator<$_model.SSEResponse, any, unknown> {
+    let _runtime: { [key: string]: any } = {
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      retryOptions: this._retryOptions,
+      ignoreSSL: runtime.ignoreSSL,
+      tlsMinVersion: this._tlsMinVersion,
+    }
+
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
+        }
+      }
+
+      _retriesAttempted = _retriesAttempted + 1;
+      try {
+        let request_ = new $dara.Request();
+        let headers = this.getRpcHeaders();
+        let globalQueries : {[key: string ]: string} = { };
+        let globalHeaders : {[key: string ]: string} = { };
+        if (!$dara.isNull(this._globalParameters)) {
+          let globalParams = this._globalParameters;
+          if (!$dara.isNull(globalParams.queries)) {
+            globalQueries = globalParams.queries;
+          }
+
+          if (!$dara.isNull(globalParams.headers)) {
+            globalHeaders = globalParams.headers;
+          }
+
+        }
+
+        let extendsHeaders : {[key: string ]: string} = { };
+        let extendsQueries : {[key: string ]: string} = { };
+        if (!$dara.isNull(runtime.extendsParameters)) {
+          let extendsParameters = runtime.extendsParameters;
+          if (!$dara.isNull(extendsParameters.headers)) {
+            extendsHeaders = extendsParameters.headers;
+          }
+
+          if (!$dara.isNull(extendsParameters.queries)) {
+            extendsQueries = extendsParameters.queries;
+          }
+
+        }
+
+        let requestContext = new $SPI.InterceptorContextRequest({
+          headers: {
+            ...globalHeaders,
+            ...extendsHeaders,
+            ...request.headers,
+            ...headers,
+          },
+          query: {
+            ...globalQueries,
+            ...extendsQueries,
+            ...request.query,
+          },
+          body: request.body,
+          stream: request.stream,
+          hostMap: request.hostMap,
+          pathname: params.pathname,
+          productId: this._productId,
+          action: params.action,
+          version: params.version,
+          protocol: this._protocol || params.protocol,
+          method: this._method || params.method,
+          authType: params.authType,
+          bodyType: params.bodyType,
+          reqBodyType: params.reqBodyType,
+          style: params.style,
+          credential: this._credential,
+          signatureVersion: this._signatureVersion,
+          signatureAlgorithm: this._signatureAlgorithm,
+          userAgent: OpenApiUtil.getUserAgent(this._userAgent),
+        });
+        let configurationContext = new $SPI.InterceptorContextConfiguration({
+          regionId: this._regionId,
+          endpoint: request.endpointOverride || this._endpoint,
+          endpointRule: this._endpointRule,
+          endpointMap: this._endpointMap,
+          endpointType: this._endpointType,
+          network: this._network,
+          suffix: this._suffix,
+        });
+        let interceptorContext = new $SPI.InterceptorContext({
+          request: requestContext,
+          configuration: configurationContext,
+        });
+        let attributeMap = new $SPI.AttributeMap({ });
+        if (!$dara.isNull(this._attributeMap)) {
+          attributeMap = this._attributeMap;
+        }
+
+        // 1. spi.modifyConfiguration (endpoint/region)
+        await this._spi.modifyConfiguration(interceptorContext, attributeMap);
+        // 2. spi.modifyRequest (self-built-gateway signing)
+        await this._spi.modifyRequest(interceptorContext, attributeMap);
+        request_.protocol = interceptorContext.request.protocol;
+        request_.method = interceptorContext.request.method;
+        request_.pathname = interceptorContext.request.pathname;
+        request_.query = interceptorContext.request.query;
+        request_.body = interceptorContext.request.stream;
+        request_.headers = interceptorContext.request.headers;
+        _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
+        _lastResponse = response_;
+
+        let responseContext = new $SPI.InterceptorContextResponse({
+          statusCode: response_.statusCode,
+          headers: response_.headers,
+          body: response_.body,
+        });
+        interceptorContext.response = responseContext;
+        // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
+        // The self-built gateway maps 4xx/5xx errors and, for bodyType='sse', passes the
+        // raw stream through in deserializedBody.
+        await this._spi.modifyResponse(interceptorContext, attributeMap);
+        let events = await $dara.Stream.readAsSSE(interceptorContext.response.deserializedBody instanceof Readable ? interceptorContext.response.deserializedBody : Readable.from(interceptorContext.response.deserializedBody));
+
+        for await (let event of events) {
+          yield new $_model.SSEResponse({
+            statusCode: interceptorContext.response.statusCode,
+            headers: interceptorContext.response.headers,
+            event: event,
+          });
+        }
+        return null;
       } catch (ex) {
         _context = new $dara.RetryPolicyContext({
           retriesAttempted : _retriesAttempted,
