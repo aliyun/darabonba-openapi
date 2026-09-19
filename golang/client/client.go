@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	spi "github.com/alibabacloud-go/alibabacloud-gateway-spi/client"
 	models "github.com/alibabacloud-go/darabonba-openapi/v2/models"
@@ -47,6 +48,7 @@ type Client struct {
 	SignatureVersion     *string
 	SignatureAlgorithm   *string
 	Headers              map[string]*string
+	rpcHeadersMu         sync.Mutex // protects Headers in Set/GetRpcHeaders (concurrent CallApi)
 	Spi                  spi.ClientInterface
 	GlobalParameters     *openapiutil.GlobalParameters
 	Key                  *string
@@ -1747,16 +1749,23 @@ func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {
 //
 // @param headers - headers for debug, this header can be used only once.
 func (client *Client) SetRpcHeaders(headers map[string]*string) (_err error) {
+	client.rpcHeadersMu.Lock()
 	client.Headers = headers
+	client.rpcHeadersMu.Unlock()
 	return _err
 }
 
 // Description:
 //
 // get RPC header for debug
+//
+// Concurrent CallApi/DoRequest on the same Client all invoke this method; the mutex
+// avoids data races on Headers (including concurrent nil writes when unset).
 func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
+	client.rpcHeadersMu.Lock()
 	headers := client.Headers
 	client.Headers = nil
+	client.rpcHeadersMu.Unlock()
 	_result = headers
 	return _result, _err
 }
