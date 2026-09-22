@@ -8,6 +8,7 @@ import com.aliyun.tea.TeaModel;
 import com.aliyun.tea.TeaPair;
 import com.aliyun.tea.TeaRequest;
 import com.aliyun.tea.TeaResponse;
+import com.aliyun.tea.TeaRetryableException;
 import com.aliyun.tea.TeaUnretryableException;
 import com.aliyun.tea.interceptor.InterceptorChain;
 import com.aliyun.tea.interceptor.RequestInterceptor;
@@ -177,7 +178,7 @@ public class Client {
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                int backoffTime = resolveBackoffTime(runtime_.get("backoff"), _retryTimes, _lastException);
                 if (backoffTime > 0) {
                     Tea.sleep(backoffTime);
                 }
@@ -333,14 +334,14 @@ public class Client {
                     java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(_res);
                     Object requestId = Client.defaultAny(err.get("RequestId"), err.get("requestId"));
                     err.put("statusCode", response_.statusCode);
-                    throw new TeaException(TeaConverter.buildMap(
+                    throwHttpError(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + requestId + ""),
                         new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
-                    ));
+                    ), response_, runtime);
                 }
 
                 if (com.aliyun.teautil.Common.equalString(bodyType, "binary")) {
@@ -394,7 +395,7 @@ public class Client {
                 throw e;
             }
         }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
+        throw retriesExhausted(_lastRequest, _lastException);
     }
 
     /**
@@ -447,7 +448,7 @@ public class Client {
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                int backoffTime = resolveBackoffTime(runtime_.get("backoff"), _retryTimes, _lastException);
                 if (backoffTime > 0) {
                     Tea.sleep(backoffTime);
                 }
@@ -589,14 +590,14 @@ public class Client {
                     Object errorMessage = Client.defaultAny(err.get("Message"), err.get("message"));
                     errorMessage = Client.defaultAny(errorMessage, err.get("error_description"));
                     err.put("statusCode", response_.statusCode);
-                    throw new TeaException(TeaConverter.buildMap(
+                    throwHttpError(TeaConverter.buildMap(
                         new TeaPair("code", "" + errorCode + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
                         new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
-                    ));
+                    ), response_, runtime);
                 }
 
                 if (com.aliyun.teautil.Common.equalString(bodyType, "binary")) {
@@ -650,7 +651,7 @@ public class Client {
                 throw e;
             }
         }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
+        throw retriesExhausted(_lastRequest, _lastException);
     }
 
     /**
@@ -703,7 +704,7 @@ public class Client {
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                int backoffTime = resolveBackoffTime(runtime_.get("backoff"), _retryTimes, _lastException);
                 if (backoffTime > 0) {
                     Tea.sleep(backoffTime);
                 }
@@ -846,14 +847,14 @@ public class Client {
                     Object errorMessage = Client.defaultAny(err.get("Message"), err.get("message"));
                     errorMessage = Client.defaultAny(errorMessage, err.get("error_description"));
                     err.put("statusCode", response_.statusCode);
-                    throw new TeaException(TeaConverter.buildMap(
+                    throwHttpError(TeaConverter.buildMap(
                         new TeaPair("code", "" + errorCode + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + errorMessage + " request id: " + requestId + ""),
                         new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
-                    ));
+                    ), response_, runtime);
                 }
 
                 if (com.aliyun.teautil.Common.equalString(bodyType, "binary")) {
@@ -907,7 +908,7 @@ public class Client {
                 throw e;
             }
         }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
+        throw retriesExhausted(_lastRequest, _lastException);
     }
 
     /**
@@ -953,7 +954,7 @@ public class Client {
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                int backoffTime = resolveBackoffTime(runtime_.get("backoff"), _retryTimes, _lastException);
                 if (backoffTime > 0) {
                     Tea.sleep(backoffTime);
                 }
@@ -1124,14 +1125,14 @@ public class Client {
                     }
 
                     err.put("statusCode", response_.statusCode);
-                    throw new TeaException(TeaConverter.buildMap(
+                    throwHttpError(TeaConverter.buildMap(
                         new TeaPair("code", "" + Client.defaultAny(err.get("Code"), err.get("code")) + ""),
                         new TeaPair("message", "code: " + response_.statusCode + ", " + Client.defaultAny(err.get("Message"), err.get("message")) + " request id: " + Client.defaultAny(err.get("RequestId"), err.get("requestId")) + ""),
                         new TeaPair("detail", "" + Client.defaultAny(err.get("Detail"), err.get("detail")) + ""),
                         new TeaPair("data", err),
                         new TeaPair("description", "" + Client.defaultAny(err.get("Description"), err.get("description")) + ""),
                         new TeaPair("accessDeniedDetail", Client.defaultAny(err.get("AccessDeniedDetail"), err.get("accessDeniedDetail")))
-                    ));
+                    ), response_, runtime);
                 }
 
                 if (com.aliyun.teautil.Common.equalString(params.bodyType, "binary")) {
@@ -1187,7 +1188,7 @@ public class Client {
                 throw e;
             }
         }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
+        throw retriesExhausted(_lastRequest, _lastException);
     }
 
     /**
@@ -1234,7 +1235,7 @@ public class Client {
         int _retryTimes = 0;
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
             if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
+                int backoffTime = resolveBackoffTime(runtime_.get("backoff"), _retryTimes, _lastException);
                 if (backoffTime > 0) {
                     Tea.sleep(backoffTime);
                 }
@@ -1353,7 +1354,7 @@ public class Client {
                 throw e;
             }
         }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
+        throw retriesExhausted(_lastRequest, _lastException);
     }
 
     public void addRuntimeOptionsInterceptor(RuntimeOptionsInterceptor interceptor) {
@@ -1533,5 +1534,112 @@ public class Client {
         java.util.Map<String, String> headers = _headers;
         this._headers = null;
         return headers;
+    }
+
+    /**
+     * Parse {@code x-acs-retry-after} (milliseconds). Missing, empty, invalid or {@code <= 0} → null.
+     */
+    static Long getThrottlingTimeLeft(java.util.Map<String, String> headers) {
+        if (headers == null || headers.isEmpty()) {
+            return null;
+        }
+        String raw = null;
+        for (java.util.Map.Entry<String, String> entry : headers.entrySet()) {
+            if (entry.getKey() != null && "x-acs-retry-after".equalsIgnoreCase(entry.getKey())) {
+                raw = entry.getValue();
+                break;
+            }
+        }
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        try {
+            long value = Long.parseLong(trimmed);
+            if (value <= 0) {
+                return null;
+            }
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    static Long extractRetryAfter(Exception e) {
+        if (!(e instanceof TeaException)) {
+            return null;
+        }
+        java.util.Map<String, Object> data = ((TeaException) e).getData();
+        if (data == null || data.get("retryAfter") == null) {
+            return null;
+        }
+        try {
+            long value = Long.parseLong(String.valueOf(data.get("retryAfter")));
+            if (value <= 0) {
+                return null;
+            }
+            return Long.valueOf(value);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    static boolean isAutoretryEnabled(com.aliyun.teautil.models.RuntimeOptions runtime) {
+        return runtime != null && Boolean.TRUE.equals(runtime.autoretry);
+    }
+
+    /**
+     * HTTP 4xx/5xx: retry only when autoretry is on and {@code x-acs-retry-after} is a positive wait.
+     * Default (autoretry off / no header) still throws {@link TeaException}.
+     */
+    static void throwHttpError(java.util.Map<String, Object> exceptionMap, TeaResponse response,
+                               com.aliyun.teautil.models.RuntimeOptions runtime) {
+        Long retryAfter = getThrottlingTimeLeft(response == null ? null : response.headers);
+        TeaException exception;
+        if (isAutoretryEnabled(runtime) && retryAfter != null) {
+            exception = new TeaRetryableException(exceptionMap);
+        } else {
+            exception = new TeaException(exceptionMap);
+        }
+        if (retryAfter != null) {
+            java.util.Map<String, Object> data = exception.getData();
+            if (data == null) {
+                data = new java.util.HashMap<String, Object>();
+                exception.setData(data);
+            }
+            data.put("retryAfter", retryAfter);
+        }
+        throw exception;
+    }
+
+    /**
+     * Prefer server {@code x-acs-retry-after} (ms); otherwise existing RuntimeOptions backoff.
+     */
+    static int resolveBackoffTime(Object backoff, int retryTimes, Exception lastException) {
+        Long retryAfter = extractRetryAfter(lastException);
+        if (retryAfter != null) {
+            if (retryAfter.longValue() > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            }
+            return retryAfter.intValue();
+        }
+        return Tea.getBackoffTime(backoff, retryTimes);
+    }
+
+    /**
+     * Throttling retries exhaust as {@link TeaException} so existing catch blocks still work.
+     * Network {@link TeaRetryableException} without retryAfter still becomes {@link TeaUnretryableException}.
+     */
+    static RuntimeException retriesExhausted(TeaRequest lastRequest, Exception lastException) {
+        if (lastException instanceof TeaException && extractRetryAfter(lastException) != null) {
+            return (TeaException) lastException;
+        }
+        if (lastException == null) {
+            return new TeaUnretryableException(lastRequest);
+        }
+        return new TeaUnretryableException(lastRequest, lastException);
     }
 }
