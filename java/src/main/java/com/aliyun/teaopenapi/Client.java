@@ -1539,7 +1539,7 @@ public class Client {
     /**
      * Parse {@code x-acs-retry-after} (milliseconds). Missing, empty, invalid or {@code <= 0} → null.
      */
-    static Long getThrottlingTimeLeft(java.util.Map<String, String> headers) {
+    private static Long getThrottlingTimeLeft(java.util.Map<String, String> headers) {
         if (headers == null || headers.isEmpty()) {
             return null;
         }
@@ -1568,7 +1568,7 @@ public class Client {
         }
     }
 
-    static Long extractRetryAfter(Exception e) {
+    private static Long extractRetryAfter(Exception e) {
         if (!(e instanceof TeaException)) {
             return null;
         }
@@ -1587,7 +1587,7 @@ public class Client {
         }
     }
 
-    static boolean isAutoretryEnabled(com.aliyun.teautil.models.RuntimeOptions runtime) {
+    private static boolean isAutoretryEnabled(com.aliyun.teautil.models.RuntimeOptions runtime) {
         return runtime != null && Boolean.TRUE.equals(runtime.autoretry);
     }
 
@@ -1595,7 +1595,7 @@ public class Client {
      * HTTP 4xx/5xx: retry only when autoretry is on and {@code x-acs-retry-after} is a positive wait.
      * Default (autoretry off / no header) still throws {@link TeaException}.
      */
-    static void throwHttpError(java.util.Map<String, Object> exceptionMap, TeaResponse response,
+    private static void throwHttpError(java.util.Map<String, Object> exceptionMap, TeaResponse response,
                                com.aliyun.teautil.models.RuntimeOptions runtime) {
         Long retryAfter = getThrottlingTimeLeft(response == null ? null : response.headers);
         TeaException exception;
@@ -1618,7 +1618,7 @@ public class Client {
     /**
      * Prefer server {@code x-acs-retry-after} (ms); otherwise existing RuntimeOptions backoff.
      */
-    static int resolveBackoffTime(Object backoff, int retryTimes, Exception lastException) {
+    private static int resolveBackoffTime(Object backoff, int retryTimes, Exception lastException) {
         Long retryAfter = extractRetryAfter(lastException);
         if (retryAfter != null) {
             if (retryAfter.longValue() > Integer.MAX_VALUE) {
@@ -1633,7 +1633,7 @@ public class Client {
      * Throttling retries exhaust as {@link TeaException} so existing catch blocks still work.
      * Network {@link TeaRetryableException} without retryAfter still becomes {@link TeaUnretryableException}.
      */
-    static RuntimeException retriesExhausted(TeaRequest lastRequest, Exception lastException) {
+    private static RuntimeException retriesExhausted(TeaRequest lastRequest, Exception lastException) {
         if (lastException instanceof TeaException && extractRetryAfter(lastException) != null) {
             return (TeaException) lastException;
         }
