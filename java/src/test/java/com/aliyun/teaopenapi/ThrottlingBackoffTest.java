@@ -1,19 +1,28 @@
 package com.aliyun.teaopenapi;
 
+import com.aliyun.tea.Tea;
 import com.aliyun.tea.TeaConverter;
 import com.aliyun.tea.TeaException;
 import com.aliyun.tea.TeaPair;
 import com.aliyun.tea.TeaRetryableException;
 import com.aliyun.tea.TeaUnretryableException;
 import com.aliyun.teaopenapi.models.Config;
+import com.aliyun.teaopenapi.models.OpenApiRequest;
 import com.aliyun.teaopenapi.models.Params;
 import com.aliyun.teautil.models.RuntimeOptions;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -33,7 +42,7 @@ public class ThrottlingBackoffTest {
         stubThrottlingThenOk("80", "x-acs-retry-after");
         RuntimeOptions runtime = retryRuntime();
         long start = System.currentTimeMillis();
-        Map<String, ?> result = newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
+        Map<String, ?> result = newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
         long elapsed = System.currentTimeMillis() - start;
         Assert.assertEquals(200, result.get("statusCode"));
         Assert.assertEquals(2, findAll(postRequestedFor(anyUrl())).size());
@@ -44,7 +53,7 @@ public class ThrottlingBackoffTest {
     public void testCallApiFollowsDifferentRetryAfter() throws Exception {
         stubThrottlingThenOk("150", "x-acs-retry-after");
         long start = System.currentTimeMillis();
-        Map<String, ?> result = newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
+        Map<String, ?> result = newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
         long elapsed = System.currentTimeMillis() - start;
         Assert.assertEquals(200, result.get("statusCode"));
         Assert.assertEquals(2, findAll(postRequestedFor(anyUrl())).size());
@@ -54,7 +63,7 @@ public class ThrottlingBackoffTest {
     @Test
     public void testCallApiHeaderNameIsCaseInsensitive() throws Exception {
         stubThrottlingThenOk("80", "X-ACS-Retry-After");
-        Map<String, ?> result = newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
+        Map<String, ?> result = newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
         Assert.assertEquals(200, result.get("statusCode"));
         Assert.assertEquals(2, findAll(postRequestedFor(anyUrl())).size());
     }
@@ -65,12 +74,10 @@ public class ThrottlingBackoffTest {
         RuntimeOptions runtime = retryRuntime();
         runtime.autoretry = false;
         try {
-            newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
+            newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
             Assert.fail("expected TeaException");
-        } catch (TeaRetryableException e) {
-            Assert.fail("must not retry when autoretry is false");
         } catch (TeaException e) {
-            Assert.assertEquals("Throttling", e.getCode());
+            assertCompatibleHttpError(e, "Throttling");
         }
         Assert.assertEquals(1, findAll(postRequestedFor(anyUrl())).size());
     }
@@ -80,12 +87,10 @@ public class ThrottlingBackoffTest {
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(400)
                 .withBody("{\"Code\":\"InvalidParameter\",\"Message\":\"bad\",\"RequestId\":\"mock\"}")));
         try {
-            newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
+            newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
             Assert.fail("expected TeaException");
-        } catch (TeaRetryableException e) {
-            Assert.fail("business 4xx must not become retryable");
         } catch (TeaException e) {
-            Assert.assertEquals("InvalidParameter", e.getCode());
+            assertCompatibleHttpError(e, "InvalidParameter");
         }
         Assert.assertEquals(1, findAll(postRequestedFor(anyUrl())).size());
     }
@@ -102,39 +107,98 @@ public class ThrottlingBackoffTest {
     }
 
     @Test
-    public void testCallApiExhaustedThrowsTeaException() throws Exception {
+    public void testCallApiExhaustedThrowsPlainTeaException() throws Exception {
         stubAlwaysThrottling("50");
         RuntimeOptions runtime = retryRuntime();
         runtime.maxAttempts = 1;
         try {
-            newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
+            newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), runtime);
             Assert.fail("expected TeaException");
         } catch (TeaUnretryableException e) {
             Assert.fail("throttling exhaust must not wrap as TeaUnretryableException");
         } catch (TeaException e) {
-            Assert.assertEquals("Throttling", e.getCode());
-            Assert.assertEquals(50L, Long.parseLong(String.valueOf(e.getData().get("retryAfter"))));
+            assertCompatibleHttpError(e, "Throttling");
         }
         Assert.assertEquals(2, findAll(postRequestedFor(anyUrl())).size());
+    }
+
+    @Test
+    public void testDoRequestReplaysByteArrayStreamBody() throws Exception {
+        stubThrottlingThenOk("50", "x-acs-retry-after");
+        byte[] payload = "payload1".getBytes("UTF-8");
+        OpenApiRequest request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("stream", new ByteArrayInputStream(payload))
+        ));
+        Map<String, ?> result = newAcs3Client().callApi(rpcParams(), request, retryRuntime());
+        Assert.assertEquals(200, result.get("statusCode"));
+        assertRequestBodies(payload, payload);
+    }
+
+    @Test
+    public void testDoRequestReplaysFileInputStreamBody() throws Exception {
+        stubThrottlingThenOk("50", "x-acs-retry-after");
+        File temp = File.createTempFile("tea-openapi-stream-", ".bin");
+        temp.deleteOnExit();
+        byte[] payload = "file-payload".getBytes(Charset.forName("UTF-8"));
+        FileOutputStream out = new FileOutputStream(temp);
+        try {
+            out.write(payload);
+        } finally {
+            out.close();
+        }
+        FileInputStream stream = new FileInputStream(temp);
+        try {
+            OpenApiRequest request = OpenApiRequest.build(TeaConverter.buildMap(
+                    new TeaPair("stream", stream)
+            ));
+            Map<String, ?> result = newAcs3Client().callApi(rpcParams(), request, retryRuntime());
+            Assert.assertEquals(200, result.get("statusCode"));
+            assertRequestBodies(payload, payload);
+        } finally {
+            stream.close();
+        }
     }
 
     private void assertNoRetryForHeader(String retryAfter) throws Exception {
         stubAlwaysThrottling(retryAfter);
         try {
-            newClient().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
+            newV2Client().callApi(rpcParams(), ClientTest.createOpenApiRequest(), retryRuntime());
             Assert.fail("expected TeaException for retry-after=" + retryAfter);
-        } catch (TeaRetryableException e) {
-            Assert.fail("non-positive/invalid retry-after must not be retryable: " + retryAfter);
         } catch (TeaException e) {
-            Assert.assertEquals("Throttling", e.getCode());
+            assertCompatibleHttpError(e, "Throttling");
         }
         Assert.assertEquals("retry-after=" + retryAfter, 1, findAll(postRequestedFor(anyUrl())).size());
     }
 
-    private Client newClient() throws Exception {
+    private static void assertCompatibleHttpError(TeaException e, String code) {
+        Assert.assertEquals(TeaException.class, e.getClass());
+        Assert.assertFalse("HTTP error must not be Tea.isRetryable after it leaves Client", Tea.isRetryable(e));
+        Assert.assertFalse(e instanceof TeaRetryableException);
+        Assert.assertEquals(code, e.getCode());
+        Map<String, Object> data = e.getData();
+        if (data != null) {
+            Assert.assertFalse("must not add retryAfter to exception data", data.containsKey("retryAfter"));
+        }
+    }
+
+    private static void assertRequestBodies(byte[] first, byte[] second) {
+        List<LoggedRequest> requests = findAll(postRequestedFor(anyUrl()));
+        Assert.assertEquals(2, requests.size());
+        Assert.assertArrayEquals(first, requests.get(0).getBody());
+        Assert.assertArrayEquals(second, requests.get(1).getBody());
+    }
+
+    private Client newV2Client() throws Exception {
         Config config = ClientTest.createConfig();
         config.protocol = "HTTP";
         config.signatureAlgorithm = "v2";
+        config.endpoint = "localhost:" + wireMock.port();
+        return new Client(config);
+    }
+
+    private Client newAcs3Client() throws Exception {
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
         config.endpoint = "localhost:" + wireMock.port();
         return new Client(config);
     }
