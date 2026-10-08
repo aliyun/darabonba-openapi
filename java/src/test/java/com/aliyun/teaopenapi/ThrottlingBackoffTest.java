@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -157,6 +158,86 @@ public class ThrottlingBackoffTest {
         } finally {
             stream.close();
         }
+    }
+
+    @Test
+    public void testExecuteReplaysStreamOnRetry() throws Exception {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
+        byte[] payload = "spi-payload".getBytes("UTF-8");
+        final List<Object> streams = new ArrayList<Object>();
+        final List<byte[]> bodies = new ArrayList<byte[]>();
+        Client client = newSpiClient(streams, bodies, 1);
+        OpenApiRequest request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("stream", new ByteArrayInputStream(payload))
+        ));
+        RuntimeOptions runtime = retryRuntime();
+        runtime.backoffPolicy = "no";
+        client.execute(spiParams(), request, runtime);
+        Assert.assertEquals(2, bodies.size());
+        Assert.assertArrayEquals(payload, bodies.get(0));
+        Assert.assertArrayEquals(payload, bodies.get(1));
+    }
+
+    @Test
+    public void testExecutePassesOriginalStreamWhenAutoretryOff() throws Exception {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
+        final List<Object> streams = new ArrayList<Object>();
+        final List<byte[]> bodies = new ArrayList<byte[]>();
+        Client client = newSpiClient(streams, bodies, 0);
+        ByteArrayInputStream original = new ByteArrayInputStream("raw".getBytes("UTF-8"));
+        OpenApiRequest request = OpenApiRequest.build(TeaConverter.buildMap(
+                new TeaPair("stream", original)
+        ));
+        RuntimeOptions runtime = retryRuntime();
+        runtime.autoretry = false;
+        client.execute(spiParams(), request, runtime);
+        Assert.assertEquals(1, streams.size());
+        Assert.assertSame(original, streams.get(0));
+    }
+
+    private Client newSpiClient(final List<Object> streams, final List<byte[]> bodies, final int networkFailures) throws Exception {
+        Client client = newV2Client();
+        client._productId = "test";
+        client.setGatewayClient(new com.aliyun.gateway.spi.Client() {
+            @Override
+            public void modifyConfiguration(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                            com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+            }
+
+            @Override
+            public void modifyRequest(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                      com.aliyun.gateway.spi.models.AttributeMap attributeMap) throws Exception {
+                streams.add(context.request.stream);
+                bodies.add(com.aliyun.teautil.Common.readAsBytes(context.request.stream));
+                if (streams.size() <= networkFailures) {
+                    throw new TeaRetryableException(new java.net.SocketTimeoutException("mock"));
+                }
+                if (context.request.headers == null) {
+                    context.request.headers = new java.util.HashMap<String, String>();
+                }
+                context.request.headers.put("host", context.configuration.endpoint);
+            }
+
+            @Override
+            public void modifyResponse(com.aliyun.gateway.spi.models.InterceptorContext context,
+                                       com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+            }
+        });
+        return client;
+    }
+
+    private static Params spiParams() throws Exception {
+        return Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTP"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "binary"),
+                new TeaPair("bodyType", "json")
+        ));
     }
 
     private void assertNoRetryForHeader(String retryAfter) throws Exception {

@@ -1275,7 +1275,8 @@ public class Client {
         long _now = System.currentTimeMillis();
         int _retryTimes = 0;
         byte[] replayableRequestStream = null;
-        if (!com.aliyun.teautil.Common.isUnset(request.stream)) {
+        // Without autoretry there is a single attempt: hand the original stream to the SPI unbuffered.
+        if (isAutoretryEnabled(runtime) && !com.aliyun.teautil.Common.isUnset(request.stream)) {
             replayableRequestStream = com.aliyun.teautil.Common.readAsBytes(request.stream);
         }
         while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
