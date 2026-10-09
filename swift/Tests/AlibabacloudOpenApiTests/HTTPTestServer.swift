@@ -5,7 +5,7 @@ import Glibc
 import Darwin
 #endif
 
-// ponytail: one GET per test; add body framing only if upload tests need it.
+// one GET per test; add body framing only if upload tests need it.
 // A nil body echoes the received request.
 final class HTTPTestServer {
     let port: Int
