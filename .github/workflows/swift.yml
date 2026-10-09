@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: e4119d3cc2e6279eac10a49a9e541fe605572112
+        ref: 51b0c3a5e7151cc6a1cd2b789d89b7e077cf2608
         path: .swift-ci/tea-swift
         persist-credentials: false
 
@@ -65,9 +65,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: e4119d3cc2e6279eac10a49a9e541fe605572112
+        ref: 51b0c3a5e7151cc6a1cd2b789d89b7e077cf2608
         path: .swift-ci/tea-swift
         persist-credentials: false
+    - name: Install Python for Swift 5.7 dependency preparation
+      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296 && startsWith(matrix.swift, '5.7.')
+      run: apt-get update && apt-get install -y --no-install-recommends python3
     - name: Prepare Swift integration dependencies
       if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
       run: python3 "$GITHUB_WORKSPACE/.swift-ci/tea-swift/.github/scripts/prepare-swift-dependencies.py" "$GITHUB_WORKSPACE/swift"
