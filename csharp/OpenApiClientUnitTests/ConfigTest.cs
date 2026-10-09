@@ -120,7 +120,6 @@ namespace OpenApiClientUnitTests
                 Cert = "config.cert",
                 Ca = "config.ca",
                 DisableHttp2 = true,
-                Ipv4Only = true,
                 Network = "config.network",
                 Suffix = "config.suffix",
                 EndpointType = "public"
@@ -153,9 +152,6 @@ namespace OpenApiClientUnitTests
             Assert.Equal("config.cert", client.Cert);
             Assert.Equal("config.ca", client.Ca);
             Assert.Equal(true, client.DisableHttp2);
-            Assert.Equal(true, client.Ipv4Only);
-            Assert.Equal(true, Darabonba.ModelExtensions.ToMap(config)["ipv4Only"]);
-            Assert.Equal(true, Darabonba.Model.ToObject<Config>(Darabonba.ModelExtensions.ToMap(config)).Ipv4Only);
 
             Assert.Throws<ClientException>(() => new TestClient(null));
             var emptyConfig = new Config();
