@@ -50,6 +50,7 @@ export default class Client {
   _disableHttp2: boolean;
   _retryOptions: $dara.RetryOptions;
   _tlsMinVersion: string;
+  _ipv4Only: boolean;
   _attributeMap: $SPI.AttributeMap;
 
   /**
@@ -120,6 +121,7 @@ export default class Client {
     this._disableHttp2 = config.disableHttp2;
     this._retryOptions = config.retryOptions;
     this._tlsMinVersion = config.tlsMinVersion;
+    this._ipv4Only = config.ipv4Only;
   }
 
   /**
@@ -149,6 +151,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -424,6 +427,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -683,6 +687,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -963,6 +968,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -1294,6 +1300,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -1451,6 +1458,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: runtime.ipv4Only || this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,

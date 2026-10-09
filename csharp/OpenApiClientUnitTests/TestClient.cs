@@ -40,5 +40,6 @@ namespace OpenApiClientUnitTests
         public string Cert => _cert;
         public string Ca => _ca;
         public bool? DisableHttp2 => _disableHttp2;
+        public bool? Ipv4Only => _ipv4Only;
     }
 }

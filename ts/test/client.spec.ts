@@ -244,8 +244,11 @@ describe('$openapi', function () {
       globalParameters: globalParameters,
       key: "config.key",
       cert: "config.cert",
-      ca: "config.ca"
+      ca: "config.ca",
+      ipv4Only: true,
     });
+    assert.strictEqual(config.toMap()['ipv4Only'], true);
+    assert.strictEqual(new $OpenApiUtil.Config(config.toMap()).ipv4Only, true);
     let creConfig = new $Credential.Config({
       accessKeyId: "accessKeyId",
       accessKeySecret: "accessKeySecret",
@@ -334,6 +337,63 @@ describe('$openapi', function () {
     assert.strictEqual(client._key, 'config.key');
     assert.strictEqual(client._cert, 'config.cert');
     assert.strictEqual(client._ca, 'config.ca');
+    assert.strictEqual(client._ipv4Only, true);
+  });
+
+  it("ipv4Only should be passed to runtime", async function () {
+    let port = (server.address() as AddressInfo).port;
+    let cases = [
+      { signatureAlgorithm: "v2", style: "RPC", reqBodyType: "formData" },
+      { signatureAlgorithm: "v2", style: "ROA", reqBodyType: "json" },
+      { signatureAlgorithm: "v2", style: "ROA", reqBodyType: "formData" },
+      { signatureAlgorithm: "ACS3-HMAC-SHA256", style: "RPC", reqBodyType: "formData" },
+    ];
+    let settings = [
+      { config: true, runtime: undefined },
+      { config: undefined, runtime: true },
+      { config: false, runtime: true },
+    ];
+    for (let c of cases) {
+      let params = new $OpenApiUtil.Params({
+        action: "TestAPI",
+        version: "2022-06-01",
+        protocol: "HTTP",
+        pathname: "/",
+        method: "POST",
+        authType: "AK",
+        style: c.style,
+        reqBodyType: c.reqBodyType,
+        bodyType: "json",
+      });
+      for (let s of settings) {
+        let config = createConfig();
+        config.protocol = "HTTP";
+        config.signatureAlgorithm = c.signatureAlgorithm;
+        config.endpoint = `[::1]:${port}`;
+        config.ipv4Only = s.config;
+        let client = new OpenApi(config);
+        let runtime = createRuntimeOptions();
+        runtime.ipv4Only = s.runtime;
+        await assert.rejects(client.callApi(params, createOpenApiRequest(), runtime), /ipv4Only is enabled/);
+      }
+      let dualStackConfig = createConfig();
+      dualStackConfig.protocol = "HTTP";
+      dualStackConfig.signatureAlgorithm = c.signatureAlgorithm;
+      dualStackConfig.endpoint = `[::1]:${port}`;
+      try {
+        await new OpenApi(dualStackConfig).callApi(params, createOpenApiRequest(), createRuntimeOptions());
+      } catch (err) {
+        assert.ok(!/ipv4Only is enabled/.test(err.message));
+      }
+      let config = createConfig();
+      config.protocol = "HTTP";
+      config.signatureAlgorithm = c.signatureAlgorithm;
+      config.endpoint = `127.0.0.1:${port}`;
+      config.ipv4Only = true;
+      let client = new OpenApi(config);
+      let result = await client.callApi(params, createOpenApiRequest(), createRuntimeOptions());
+      assert.strictEqual(result.statusCode, 200);
+    }
   });
 
   it("call api for RPC With V2Sign AK Form should ok", async function () {
