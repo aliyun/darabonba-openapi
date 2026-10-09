@@ -21,7 +21,22 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Check out Swift integration dependencies
+      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
+      uses: actions/checkout@v4
+      with:
+        repository: aliyun/tea-swift
+        ref: 71901ca834f3bf40b01bb1320197dad0bfab1be6
+        path: .swift-ci/tea-swift
+        persist-credentials: false
+
+    - name: Prepare Swift integration dependencies
+      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
+      run: python3 "$GITHUB_WORKSPACE/.swift-ci/tea-swift/.github/scripts/prepare-swift-dependencies.py" "$GITHUB_WORKSPACE/swift"
 
     - name: Swift version
       run: swift --version
@@ -43,6 +58,19 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: Check out Swift integration dependencies
+      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
+      uses: actions/checkout@v4
+      with:
+        repository: aliyun/tea-swift
+        ref: 71901ca834f3bf40b01bb1320197dad0bfab1be6
+        path: .swift-ci/tea-swift
+        persist-credentials: false
+    - name: Prepare Swift integration dependencies
+      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
+      run: python3 "$GITHUB_WORKSPACE/.swift-ci/tea-swift/.github/scripts/prepare-swift-dependencies.py" "$GITHUB_WORKSPACE/swift"
     - name: Swift version
       run: swift --version
     - name: Test
