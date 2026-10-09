@@ -26,6 +26,7 @@
     "@alicloud/credentials": "^2.4.2",
     "@alicloud/gateway-pop": "0.0.6",
     "@alicloud/gateway-spi": "^0.0.8",
+    "@alicloud/tea-typescript": "^1.8.0",
     "@darabonba/typescript": "^1.0.5"
   },
   "files": [
