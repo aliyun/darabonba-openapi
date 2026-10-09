@@ -28,6 +28,17 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
+    # TEMP: install the unreleased ipv4Only commits of tea (aliyun/tea-java#255) and tea-util (aliyun/tea-util#378)
+    # over the released versions; remove this step and bump the dependencies before merging.
+    - name: Install unreleased tea / tea-util
+      run: |
+        git clone -q https://github.com/aliyun/tea-java.git "$RUNNER_TEMP/tea-java"
+        git -C "$RUNNER_TEMP/tea-java" checkout -q 0b1e75b6bfa2dde10bcdb22450d008c39b177925
+        git clone -q https://github.com/aliyun/tea-util.git "$RUNNER_TEMP/tea-util"
+        git -C "$RUNNER_TEMP/tea-util" checkout -q fa7febe30429371c0ccf203624b392e11ab6e4f6
+        OPTS="-q -B install -DskipTests -Dgpg.skip -Djacoco.skip=true -Dmaven.javadoc.skip=true"
+        mvn $OPTS -f "$RUNNER_TEMP/tea-java/pom.xml"
+        mvn $OPTS -f "$RUNNER_TEMP/tea-util/java/pom.xml"
     - name: Test
       run: mvn test -B
     - uses: codecov/codecov-action@v4
