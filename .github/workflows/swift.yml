@@ -31,3 +31,19 @@ jobs:
 
     - name: Test
       run: swift test
+
+  linux:
+    name: Linux Swift ${{ matrix.swift }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["5.10", "6.1"]
+    container: swift:${{ matrix.swift }}-jammy
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    - name: Swift version
+      run: swift --version
+    - name: Test
+      run: swift test
