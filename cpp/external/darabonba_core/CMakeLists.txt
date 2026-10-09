@@ -9,7 +9,7 @@ else()
   FetchContent_Declare(
     _darabonba_core
     GIT_REPOSITORY https://github.com/aliyun/tea-cpp.git
-    GIT_TAG master
+    GIT_TAG c3464343d0f59641054939eb54e797f5749778ff
     CMAKE_ARGS
       -DENABLE_UNIT_TESTS:BOOL="0")
 

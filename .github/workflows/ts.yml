@@ -29,6 +29,15 @@ jobs:
         node-version: ${{ matrix.node-version }}
     # @darabonba/typescript@^1.0.5 on npm includes WebSocket client.
     - run: npm install
+    # TEMP: overlay @darabonba/typescript with the unreleased ipv4Only commit (aliyun/tea-typescript#78);
+    # remove this step and bump the dependency before merging.
+    - name: Use unreleased @darabonba/typescript
+      run: |
+        git clone -q https://github.com/aliyun/tea-typescript.git "$RUNNER_TEMP/tea-typescript"
+        git -C "$RUNNER_TEMP/tea-typescript" checkout -q f443aa3bfa464317ef5bf16d6e2db214811608aa
+        (cd "$RUNNER_TEMP/tea-typescript" && npm install && npx tsc)
+        rm -rf node_modules/@darabonba/typescript/dist
+        cp -R "$RUNNER_TEMP/tea-typescript/dist" node_modules/@darabonba/typescript/dist
     - run: npm run test-cov
     - uses: codecov/codecov-action@v4
       with:
