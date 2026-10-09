@@ -46,6 +46,7 @@ class Config(DaraModel):
         disable_http_2: bool = None,
         retry_options: RetryOptions = None,
         tls_min_version: str = None,
+        ipv4_only: bool = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -111,6 +112,8 @@ class Config(DaraModel):
         self.retry_options = retry_options
         # TLS Minimum Version
         self.tls_min_version = tls_min_version
+        # only use IPv4 to connect to the endpoint, AAAA records are ignored
+        self.ipv4_only = ipv4_only
 
     def validate(self):
         if self.global_parameters:
@@ -188,6 +191,8 @@ class Config(DaraModel):
 
         if self.tls_min_version is not None:
             result['tlsMinVersion'] = self.tls_min_version
+        if self.ipv4_only is not None:
+            result['ipv4Only'] = self.ipv4_only
         return result
 
     def from_map(self, m: dict = None):
@@ -260,5 +265,7 @@ class Config(DaraModel):
 
         if m.get('tlsMinVersion') is not None:
             self.tls_min_version = m.get('tlsMinVersion')
+        if m.get('ipv4Only') is not None:
+            self.ipv4_only = m.get('ipv4Only')
         return self
 

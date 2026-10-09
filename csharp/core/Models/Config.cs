@@ -317,5 +317,15 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public string TlsMinVersion { get; set; }
 
+        /// <summary>
+        /// <para>only use IPv4 to connect to the endpoint, AAAA records are ignored</para>
+        /// 
+        /// <b>Example:</b>
+        /// <para>false</para>
+        /// </summary>
+        [NameInMap("ipv4Only")]
+        [Validation(Required=false)]
+        public bool? Ipv4Only { get; set; }
+
     }
 }

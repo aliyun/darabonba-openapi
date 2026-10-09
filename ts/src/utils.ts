@@ -275,6 +275,14 @@ export class Config extends $tea.Model {
    * retry options
    */
   retryOptions?: $dara.RetryOptions;
+  /**
+   * @remarks
+   * only use IPv4 to connect to the endpoint, AAAA records are ignored
+   * 
+   * @example
+   * false
+   */
+  ipv4Only?: boolean;
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'accessKeyId',
@@ -309,6 +317,7 @@ export class Config extends $tea.Model {
       disableHttp2: 'disableHttp2',
       tlsMinVersion: 'tlsMinVersion',
       retryOptions: 'retryOptions',
+      ipv4Only: 'ipv4Only',
     };
   }
 
@@ -346,6 +355,7 @@ export class Config extends $tea.Model {
       disableHttp2: 'boolean',
       tlsMinVersion: 'string',
       retryOptions: $dara.RetryOptions,
+      ipv4Only: 'boolean',
     };
   }
 

@@ -50,6 +50,7 @@ type @ca = string
 type @disableHttp2 = boolean
 type @retryOptions = $RetryOptions
 type @tlsMinVersion = string
+type @ipv4Only = boolean
 type @attributeMap = SPI.AttributeMap
 
 model SSEResponse {
@@ -142,6 +143,7 @@ init(config: OpenApiUtil.Config) {
   @disableHttp2 = config.disableHttp2;
   @retryOptions = config.retryOptions;
   @tlsMinVersion = config.tlsMinVersion;
+  @ipv4Only = config.ipv4Only;
 }
 
 /**
@@ -362,6 +364,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion
@@ -574,6 +577,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion
@@ -784,6 +788,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion
@@ -1054,6 +1059,7 @@ api doRequest(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, r
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion
@@ -1189,6 +1195,7 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion,
@@ -1349,6 +1356,7 @@ api callSSEApi(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, 
   socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
   socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
   maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = $boolean($default(runtime.ipv4Only, @ipv4Only)),
   retryOptions = @retryOptions,
   ignoreSSL = runtime.ignoreSSL,
   tlsMinVersion = @tlsMinVersion

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -16,6 +17,7 @@ import (
 
 	pop "github.com/alibabacloud-go/alibabacloud-gateway-pop/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
+	websocketutils "github.com/alibabacloud-go/darabonba-openapi/v2/websocketUtils"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/tea"
@@ -260,6 +262,8 @@ func TestConfig(t *testing.T) {
 	config.SetCa("config.ca")
 	config.SetOpenPlatformEndpoint("openPlatform.aliyuncs.com")
 	config.SetDisableHttp2(true)
+	config.SetIpv4Only(true)
+	tea_util.AssertEqual(t, true, tea.BoolValue(config.GetIpv4Only()))
 
 	creConfig := &credential.Config{
 		AccessKeyId:     tea.String("accessKeyId"),
@@ -377,6 +381,7 @@ func TestConfig(t *testing.T) {
 	tea_util.AssertEqual(t, "config.cert", tea.StringValue(client.Cert))
 	tea_util.AssertEqual(t, "config.ca", tea.StringValue(client.Ca))
 	tea_util.AssertEqual(t, true, tea.BoolValue(client.DisableHttp2))
+	tea_util.AssertEqual(t, true, tea.BoolValue(client.Ipv4Only))
 
 	globalParameters.SetHeaders(map[string]*string{
 		"global-key": tea.String("test"),
@@ -2170,5 +2175,193 @@ func TestNoThrottlingWithoutRetryAfterHeader(t *testing.T) {
 	}
 	if _, ok := _err.(*ClientError); !ok {
 		t.Fatalf("expected ClientError without x-acs-retry-after, got %T", _err)
+	}
+}
+
+// ipv4OnlyProbeHttpClient records whether the transport built by dara restricts dialing to IPv4.
+type ipv4OnlyProbeHttpClient struct {
+	ipv4Only []bool
+}
+
+func (c *ipv4OnlyProbeHttpClient) Call(request *http.Request, transport *http.Transport) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, err := transport.DialContext(ctx, "tcp", "[::1]:1")
+	if conn != nil {
+		conn.Close()
+	}
+	c.ipv4Only = append(c.ipv4Only, err != nil && strings.Contains(err.Error(), "tcp4"))
+	return (&http.Client{Transport: transport}).Do(request)
+}
+
+func TestIpv4OnlyRuntime(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/", &mockHandler{content: "json"})
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
+
+	newParams := func(style, reqBodyType string) *Params {
+		return &Params{
+			Action:      tea.String("TestAPI"),
+			Version:     tea.String("2022-06-01"),
+			Protocol:    tea.String("HTTP"),
+			Pathname:    tea.String("/"),
+			Method:      tea.String("POST"),
+			AuthType:    tea.String("AK"),
+			Style:       tea.String(style),
+			ReqBodyType: tea.String(reqBodyType),
+			BodyType:    tea.String("json"),
+		}
+	}
+	cases := []struct {
+		name               string
+		signatureAlgorithm string
+		params             *Params
+	}{
+		{"DoRequest", "ACS3-HMAC-SHA256", newParams("RPC", "formData")},
+		{"DoRPCRequest", "v2", newParams("RPC", "formData")},
+		{"DoROARequest", "v2", newParams("ROA", "json")},
+		{"DoROARequestWithForm", "v2", newParams("ROA", "formData")},
+	}
+	settings := []struct {
+		config   *bool
+		runtime  *bool
+		expected bool
+	}{
+		{nil, nil, false},
+		{tea.Bool(true), nil, true},
+		{nil, tea.Bool(true), true},
+		{tea.Bool(false), tea.Bool(true), true},
+	}
+	for _, c := range cases {
+		for _, s := range settings {
+			for _, withCtx := range []bool{false, true} {
+				probe := &ipv4OnlyProbeHttpClient{}
+				config := CreateConfig()
+				config.Protocol = tea.String("HTTP")
+				config.Endpoint = tea.String(endpoint)
+				config.SignatureAlgorithm = tea.String(c.signatureAlgorithm)
+				config.HttpClient = probe
+				config.Ipv4Only = s.config
+				client, _err := NewClient(config)
+				tea_util.AssertNil(t, _err)
+				runtime := CreateRuntimeOptions()
+				runtime.Ipv4Only = s.runtime
+				if withCtx {
+					_, _err = client.CallApiWithCtx(context.Background(), c.params, CreateOpenApiRequest(), runtime)
+				} else {
+					_, _err = client.CallApi(c.params, CreateOpenApiRequest(), runtime)
+				}
+				tea_util.AssertNil(t, _err)
+				if len(probe.ipv4Only) != 1 || probe.ipv4Only[0] != s.expected {
+					t.Fatalf("%s (withCtx=%v, config=%v, runtime=%v): expected ipv4Only=%v, got %v",
+						c.name, withCtx, tea.BoolValue(s.config), tea.BoolValue(s.runtime), s.expected, probe.ipv4Only)
+				}
+			}
+		}
+	}
+}
+
+func TestIpv4OnlyExecuteAndSSEWithCtx(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/sse", &mockHandler{content: "json"})
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
+
+	newClient := func(probe *ipv4OnlyProbeHttpClient) *Client {
+		config := CreateConfig()
+		config.Protocol = tea.String("HTTP")
+		config.Endpoint = tea.String(endpoint)
+		config.HttpClient = probe
+		config.SetIpv4Only(true)
+		client, _err := NewClient(config)
+		tea_util.AssertNil(t, _err)
+		return client
+	}
+	params := &Params{
+		Action:      tea.String("TestAPI"),
+		Version:     tea.String("2022-06-01"),
+		Protocol:    tea.String("HTTP"),
+		Pathname:    tea.String("/sse"),
+		Method:      tea.String("GET"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("formData"),
+		BodyType:    tea.String("json"),
+	}
+
+	probe := &ipv4OnlyProbeHttpClient{}
+	client := newClient(probe)
+	gatewayClient, _err := pop.NewClient()
+	tea_util.AssertNil(t, _err)
+	client.SetGatewayClient(gatewayClient)
+	client.ProductId = tea.String("test")
+	client.ExecuteWithCtx(context.Background(), params, CreateOpenApiRequest(), CreateRuntimeOptions())
+	if len(probe.ipv4Only) == 0 || !probe.ipv4Only[0] {
+		t.Fatalf("ExecuteWithCtx: expected IPv4-only transport, got %v", probe.ipv4Only)
+	}
+
+	probe = &ipv4OnlyProbeHttpClient{}
+	client = newClient(probe)
+	result := make(chan *SSEResponse, 1)
+	yieldErr := make(chan error, 1)
+	go client.CallSSEApiWithCtx(context.Background(), params, CreateOpenApiRequest(), CreateRuntimeOptions(), result, yieldErr)
+	for range result {
+	}
+	tea_util.AssertNil(t, <-yieldErr)
+	if len(probe.ipv4Only) != 1 || !probe.ipv4Only[0] {
+		t.Fatalf("CallSSEApiWithCtx: expected IPv4-only transport, got %v", probe.ipv4Only)
+	}
+}
+
+func TestIpv4OnlyWebSocket(t *testing.T) {
+	listener, err := net.Listen("tcp6", "[::1]:0")
+	if err != nil {
+		t.Skip("IPv6 loopback is not available")
+	}
+	defer listener.Close()
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			conn.Close()
+		}
+	}()
+
+	params := &Params{
+		Action:               tea.String("TestAPI"),
+		Version:              tea.String("2022-06-01"),
+		Protocol:             tea.String("ws"),
+		Pathname:             tea.String("/ws"),
+		Method:               tea.String("GET"),
+		AuthType:             tea.String("Anonymous"),
+		Style:                tea.String("RPC"),
+		ReqBodyType:          tea.String("json"),
+		BodyType:             tea.String("json"),
+		WebsocketSubProtocol: tea.String(websocketutils.SubProtocolGeneral),
+	}
+	for _, ipv4Only := range []bool{false, true} {
+		for _, withCtx := range []bool{false, true} {
+			config := CreateConfig()
+			config.Endpoint = tea.String(listener.Addr().String())
+			config.SetIpv4Only(ipv4Only)
+			client, _err := NewClient(config)
+			tea_util.AssertNil(t, _err)
+			runtime := CreateRuntimeOptions()
+			runtime.WebSocketHandler = &dara.AbstractWebSocketHandler{}
+			if withCtx {
+				_, _err = client.DoRequestWithCtx(context.Background(), params, CreateOpenApiRequest(), runtime)
+			} else {
+				_, _err = client.DoRequest(params, CreateOpenApiRequest(), runtime)
+			}
+			tea_util.AssertNotNil(t, _err)
+			// an IPv6 literal can only be rejected before connecting when dialing is restricted to tcp4
+			rejected := strings.Contains(_err.Error(), "tcp4")
+			if rejected != ipv4Only {
+				t.Fatalf("withCtx=%v ipv4Only=%v: unexpected websocket error %v", withCtx, ipv4Only, _err)
+			}
+		}
 	}
 }
