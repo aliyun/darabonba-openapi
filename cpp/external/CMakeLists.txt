@@ -8,5 +8,6 @@ if(MSVC)
   endforeach()
 endif()
 
-add_subdirectory(alibabacloud_credentials)
+# darabonba_core first: credentials-cpp declares the same FetchContent name and the first declaration wins.
 add_subdirectory(darabonba_core)
+add_subdirectory(alibabacloud_credentials)
