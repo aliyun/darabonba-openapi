@@ -50,7 +50,6 @@ namespace AlibabaCloud.OpenApiClient
         protected bool? _disableHttp2;
         protected Darabonba.RetryPolicy.RetryOptions _retryOptions;
         protected string _tlsMinVersion;
-        protected bool? _ipv4Only;
         protected AttributeMap _attributeMap;
 
         /// <term><b>Description:</b></term>
@@ -128,7 +127,6 @@ namespace AlibabaCloud.OpenApiClient
             this._disableHttp2 = config.DisableHttp2;
             this._retryOptions = config.RetryOptions;
             this._tlsMinVersion = config.TlsMinVersion;
-            this._ipv4Only = config.Ipv4Only;
         }
 
         /// <term><b>Description:</b></term>
@@ -179,7 +177,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -527,7 +524,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -878,7 +874,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -1206,7 +1201,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -1534,7 +1528,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -1862,7 +1855,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -2187,7 +2179,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -2565,7 +2556,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -2943,7 +2933,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -3152,7 +3141,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -3328,7 +3316,6 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
-                {"ipv4Only", (bool?)Darabonba.Core.GetDefaultValue(runtime.Ipv4Only, _ipv4Only)},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},

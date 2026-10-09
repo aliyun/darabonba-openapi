@@ -48,6 +48,5 @@ namespace OpenApiClientUnitTests
         public string Ca => _ca;
         public bool? DisableHttp2 => _disableHttp2;
         public Aliyun.Credentials.Client Credential => _credential;
-        public bool? Ipv4Only => _ipv4Only;
     }
 }
