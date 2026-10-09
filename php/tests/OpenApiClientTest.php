@@ -693,7 +693,7 @@ class OpenApiClientTest extends TestCase
     public function testThrottlingBackoffRetryListProductQuotas()
     {
         self::ensureThrottlingMockServer();
-        self::resetThrottlingMockState(2, 1);
+        self::resetThrottlingMockState(2, 1000);
 
         $config = self::createConfig();
         $config->protocol = 'HTTP';
@@ -723,8 +723,8 @@ class OpenApiClientTest extends TestCase
         $this->assertEquals('1', $state['retryAttempts'][1]);
         $this->assertEquals('2', $state['retryAttempts'][2]);
         $this->assertEquals('', $state['retryDelays'][0]);
-        $this->assertEquals('1', $state['retryDelays'][1]);
-        $this->assertEquals('1', $state['retryDelays'][2]);
+        $this->assertEquals('1000', $state['retryDelays'][1]);
+        $this->assertEquals('1000', $state['retryDelays'][2]);
         $this->assertGreaterThanOrEqual(1800, $elapsed);
     }
 
