@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: 46150925e15a631de7ed6b08757775bf27d1e8a1
+        ref: e761d83701ef3887c3ac5e1deabd21af1999fd44
         path: .swift-ci/tea-swift
         persist-credentials: false
 
@@ -65,7 +65,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: 46150925e15a631de7ed6b08757775bf27d1e8a1
+        ref: e761d83701ef3887c3ac5e1deabd21af1999fd44
         path: .swift-ci/tea-swift
         persist-credentials: false
     - name: Prepare Swift integration dependencies
