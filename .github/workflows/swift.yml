@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: 51b0c3a5e7151cc6a1cd2b789d89b7e077cf2608
+        ref: 171e469536b1fde19a2707d8ee3ce11df16265d4
         path: .swift-ci/tea-swift
         persist-credentials: false
 
@@ -65,7 +65,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: aliyun/tea-swift
-        ref: 51b0c3a5e7151cc6a1cd2b789d89b7e077cf2608
+        ref: 171e469536b1fde19a2707d8ee3ce11df16265d4
         path: .swift-ci/tea-swift
         persist-credentials: false
     - name: Install Python for Swift 5.7 dependency preparation
