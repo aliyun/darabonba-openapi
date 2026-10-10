@@ -2225,13 +2225,11 @@ func TestIpv4OnlyRuntime(t *testing.T) {
 	}
 	settings := []struct {
 		config   *bool
-		runtime  *bool
 		expected bool
 	}{
-		{nil, nil, false},
-		{tea.Bool(true), nil, true},
-		{nil, tea.Bool(true), true},
-		{tea.Bool(false), tea.Bool(true), true},
+		{nil, false},
+		{tea.Bool(true), true},
+		{tea.Bool(false), false},
 	}
 	for _, c := range cases {
 		for _, s := range settings {
@@ -2246,7 +2244,6 @@ func TestIpv4OnlyRuntime(t *testing.T) {
 				client, _err := NewClient(config)
 				tea_util.AssertNil(t, _err)
 				runtime := CreateRuntimeOptions()
-				runtime.Ipv4Only = s.runtime
 				if withCtx {
 					_, _err = client.CallApiWithCtx(context.Background(), c.params, CreateOpenApiRequest(), runtime)
 				} else {
@@ -2254,8 +2251,8 @@ func TestIpv4OnlyRuntime(t *testing.T) {
 				}
 				tea_util.AssertNil(t, _err)
 				if len(probe.ipv4Only) != 1 || probe.ipv4Only[0] != s.expected {
-					t.Fatalf("%s (withCtx=%v, config=%v, runtime=%v): expected ipv4Only=%v, got %v",
-						c.name, withCtx, tea.BoolValue(s.config), tea.BoolValue(s.runtime), s.expected, probe.ipv4Only)
+					t.Fatalf("%s (withCtx=%v, config=%v): expected ipv4Only=%v, got %v",
+						c.name, withCtx, tea.BoolValue(s.config), s.expected, probe.ipv4Only)
 				}
 			}
 		}

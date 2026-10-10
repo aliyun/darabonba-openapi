@@ -786,18 +786,17 @@ class OpenApiClientTest extends TestCase
             ['v2', null, 'ROA', 'formData', false],
             ['ACS3-HMAC-SHA256', 'v4', 'RPC', 'formData', true],
         ];
-        // [Config.ipv4Only, RuntimeOptions.ipv4Only, expected force_ip_resolve]
+        // [Config.ipv4Only, expected force_ip_resolve] — ipv4Only is Client Config only
         $settings = [
-            [null, null, null],
-            [true, null, 'v4'],
-            [null, true, 'v4'],
-            [false, true, 'v4'],
+            [null, null],
+            [true, 'v4'],
+            [false, null],
         ];
         try {
             foreach ($paths as $path) {
                 list($algorithm, $signatureVersion, $style, $reqBodyType, $gateway) = $path;
                 foreach ($settings as $setting) {
-                    list($configIpv4Only, $runtimeIpv4Only, $expected) = $setting;
+                    list($configIpv4Only, $expected) = $setting;
                     $config = self::createConfig();
                     $config->protocol = 'HTTP';
                     $config->endpoint = 'ecs.aliyuncs.com';
@@ -809,7 +808,6 @@ class OpenApiClientTest extends TestCase
                         $client->setGatewayClient($spi);
                     }
                     $runtime = self::createRuntimeOptions();
-                    $runtime->ipv4Only = $runtimeIpv4Only;
                     $params = new Params([
                         'action' => 'TestAPI',
                         'version' => '2022-06-01',

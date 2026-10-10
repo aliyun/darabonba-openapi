@@ -348,10 +348,9 @@ describe('$openapi', function () {
       { signatureAlgorithm: "v2", style: "ROA", reqBodyType: "formData" },
       { signatureAlgorithm: "ACS3-HMAC-SHA256", style: "RPC", reqBodyType: "formData" },
     ];
+    // ipv4Only is Client Config only (no RuntimeOptions override)
     let settings = [
-      { config: true, runtime: undefined },
-      { config: undefined, runtime: true },
-      { config: false, runtime: true },
+      { config: true },
     ];
     for (let c of cases) {
       let params = new $OpenApiUtil.Params({
@@ -373,7 +372,6 @@ describe('$openapi', function () {
         config.ipv4Only = s.config;
         let client = new OpenApi(config);
         let runtime = createRuntimeOptions();
-        runtime.ipv4Only = s.runtime;
         await assert.rejects(client.callApi(params, createOpenApiRequest(), runtime), /ipv4Only is enabled/);
       }
       let dualStackConfig = createConfig();
