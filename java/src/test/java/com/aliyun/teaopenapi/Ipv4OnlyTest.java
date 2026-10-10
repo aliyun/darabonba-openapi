@@ -66,13 +66,11 @@ public class Ipv4OnlyTest {
 
     private static void assertIpv4Only(String signatureAlgorithm, String style, String reqBodyType,
                                        boolean gateway, Call call) throws Exception {
-        // config.ipv4Only, runtime.ipv4Only, expected
+        // config.ipv4Only, expected refuse IPv6 — ipv4Only is Client Config only
         Object[][] settings = {
-                {null, null, false},
-                {true, null, true},
-                {null, true, true},
-                {false, true, true},
-                {true, false, false},
+                {null, false},
+                {true, true},
+                {false, false},
         };
         for (Object[] setting : settings) {
             Config config = ClientTest.createConfig();
@@ -87,8 +85,7 @@ public class Ipv4OnlyTest {
             }
             RuntimeOptions runtime = ClientTest.createRuntimeOptions();
             runtime.connectTimeout = 1000;
-            runtime.ipv4Only = (Boolean) setting[1];
-            boolean expected = (Boolean) setting[2];
+            boolean expected = (Boolean) setting[1];
             try {
                 call.invoke(client, params(style, reqBodyType), ClientTest.createOpenApiRequest(), runtime);
                 Assert.fail("expected the request to fail");

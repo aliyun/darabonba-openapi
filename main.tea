@@ -367,7 +367,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  ipv4Only = defaultAny(runtime.ipv4Only, @ipv4Only),
+  ipv4Only = @ipv4Only,
   retry = {
     retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
@@ -576,7 +576,7 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  ipv4Only = defaultAny(runtime.ipv4Only, @ipv4Only),
+  ipv4Only = @ipv4Only,
   retry = {
     retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
@@ -787,7 +787,7 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  ipv4Only = defaultAny(runtime.ipv4Only, @ipv4Only),
+  ipv4Only = @ipv4Only,
   retry = {
     retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
@@ -1049,7 +1049,7 @@ api doRequest(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOpti
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  ipv4Only = defaultAny(runtime.ipv4Only, @ipv4Only),
+  ipv4Only = @ipv4Only,
   retry = {
     retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
@@ -1182,7 +1182,7 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
   socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
   maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
-  ipv4Only = defaultAny(runtime.ipv4Only, @ipv4Only),
+  ipv4Only = @ipv4Only,
   retry = {
     retryable = runtime.autoretry,
     maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
