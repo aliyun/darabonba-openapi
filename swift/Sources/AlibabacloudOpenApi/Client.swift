@@ -163,7 +163,7 @@ open class Client {
             if (_retryTimes > 0) {
                 var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
                 if (_backoffTime > 0) {
-                    Tea.TeaCore.sleep(_backoffTime)
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
                 }
             }
             _retryTimes = _retryTimes + 1
@@ -365,7 +365,7 @@ open class Client {
             if (_retryTimes > 0) {
                 var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
                 if (_backoffTime > 0) {
-                    Tea.TeaCore.sleep(_backoffTime)
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
                 }
             }
             _retryTimes = _retryTimes + 1
@@ -556,7 +556,7 @@ open class Client {
             if (_retryTimes > 0) {
                 var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
                 if (_backoffTime > 0) {
-                    Tea.TeaCore.sleep(_backoffTime)
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
                 }
             }
             _retryTimes = _retryTimes + 1
@@ -747,7 +747,7 @@ open class Client {
             if (_retryTimes > 0) {
                 var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
                 if (_backoffTime > 0) {
-                    Tea.TeaCore.sleep(_backoffTime)
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
                 }
             }
             _retryTimes = _retryTimes + 1
@@ -975,7 +975,7 @@ open class Client {
             if (_retryTimes > 0) {
                 var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
                 if (_backoffTime > 0) {
-                    Tea.TeaCore.sleep(_backoffTime)
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
                 }
             }
             _retryTimes = _retryTimes + 1
