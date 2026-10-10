@@ -1153,6 +1153,8 @@ export default class Client {
             ..._runtime,
             webSocketHandler: streamHandler,
           }, new $dara.RuntimeOptions({}));
+          // ipv4Only is not a RuntimeOptions field, so cast() drops it.
+          wsRuntime['ipv4Only'] = _runtime['ipv4Only'];
           const { client: wsClient, response: response_ } = await $dara.newWebSocketClientAndConnect(request_, wsRuntime);
           const wsClientObj = websocketUtils.newWebSocketClient(wsClient, response_);
           streamHandler.client = wsClientObj;
