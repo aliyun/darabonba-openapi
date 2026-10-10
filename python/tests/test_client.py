@@ -2583,10 +2583,9 @@ class TestClient(unittest.TestCase):
             fake_do_action(request, runtime)
 
         cases = [
-            (None, None, False),
-            (True, None, True),
-            (None, True, True),
-            (False, True, True),
+            (None, False),
+            (True, True),
+            (False, False),
         ]
         for signature_algorithm in ['v2', 'ACS3-HMAC-SHA256']:
             for style, req_body_type in [('RPC', 'formData'), ('ROA', 'json'), ('ROA', 'formData')]:
@@ -2601,7 +2600,7 @@ class TestClient(unittest.TestCase):
                     req_body_type=req_body_type,
                     body_type='json'
                 )
-                for config_value, runtime_value, expected in cases:
+                for config_value, expected in cases:
                     config = self.create_config()
                     config.endpoint = 'test.aliyuncs.com'
                     config.signature_algorithm = signature_algorithm
@@ -2609,7 +2608,6 @@ class TestClient(unittest.TestCase):
                     client = OpenApiClient(config)
                     self.assertEqual(config_value, client._ipv4_only)
                     runtime = self.create_runtime_options()
-                    runtime.ipv4_only = runtime_value
                     with mock.patch.object(DaraCore, 'do_action', side_effect=fake_do_action), \
                             mock.patch.object(DaraCore, 'async_do_action', side_effect=fake_async_do_action):
                         captured.clear()

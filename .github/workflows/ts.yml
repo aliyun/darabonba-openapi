@@ -34,7 +34,7 @@ jobs:
     - name: Use unreleased @darabonba/typescript
       run: |
         git clone -q https://github.com/aliyun/tea-typescript.git "$RUNNER_TEMP/tea-typescript"
-        git -C "$RUNNER_TEMP/tea-typescript" checkout -q f443aa3bfa464317ef5bf16d6e2db214811608aa
+        git -C "$RUNNER_TEMP/tea-typescript" checkout -q ad72f91b7f9d86674ab85fadce205ea61bf50188
         (cd "$RUNNER_TEMP/tea-typescript" && npm install && npx tsc)
         rm -rf node_modules/@darabonba/typescript/dist
         cp -R "$RUNNER_TEMP/tea-typescript/dist" node_modules/@darabonba/typescript/dist
