@@ -143,6 +143,10 @@ class Config extends Model
    * @var RetryOptions
    */
   public $retryOptions;
+  /**
+   * @var boolean
+   */
+  public $ipv4Only;
   protected $_name = [
     'accessKeyId' => 'accessKeyId',
     'accessKeySecret' => 'accessKeySecret',
@@ -176,6 +180,7 @@ class Config extends Model
     'disableHttp2' => 'disableHttp2',
     'tlsMinVersion' => 'tlsMinVersion',
     'retryOptions' => 'retryOptions',
+    'ipv4Only' => 'ipv4Only',
   ];
 
   public function validate()
@@ -320,6 +325,10 @@ class Config extends Model
       $res['retryOptions'] = null !== $this->retryOptions ? $this->retryOptions->toArray($noStream) : $this->retryOptions;
     }
 
+    if (null !== $this->ipv4Only) {
+      $res['ipv4Only'] = $this->ipv4Only;
+    }
+
     return $res;
   }
 
@@ -457,6 +466,10 @@ class Config extends Model
 
     if (isset($map['retryOptions'])) {
       $model->retryOptions = RetryOptions::fromMap($map['retryOptions']);
+    }
+
+    if (isset($map['ipv4Only'])) {
+      $model->ipv4Only = $map['ipv4Only'];
     }
 
     return $model;
