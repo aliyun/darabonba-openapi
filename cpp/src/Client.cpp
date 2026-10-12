@@ -89,6 +89,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
   this->_disableHttp2 = config.getDisableHttp2();
   this->_retryOptions = config.getRetryOptions();
   this->_tlsMinVersion = config.getTlsMinVersion();
+  this->_ipv4Only = config.getIpv4Only();
 }
 
 
@@ -108,6 +109,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
     {"keepAlive", runtime.getKeepAlive()},
     {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
     {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
+    {"ipv4Only", _ipv4Only},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -345,6 +347,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
     {"keepAlive", runtime.getKeepAlive()},
     {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
     {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
+    {"ipv4Only", _ipv4Only},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -581,6 +584,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
     {"keepAlive", runtime.getKeepAlive()},
     {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
     {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
+    {"ipv4Only", _ipv4Only},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -817,6 +821,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
     {"keepAlive", runtime.getKeepAlive()},
     {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
     {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
+    {"ipv4Only", _ipv4Only},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion}
     }));
@@ -1080,6 +1085,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
     {"keepAlive", runtime.getKeepAlive()},
     {"maxHostConnections", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxHostConnections(), _maxHostConnections))},
     {"retryOptions", runtime.hasRetryOptions() ? runtime.getRetryOptions() : _retryOptions},
+    {"ipv4Only", _ipv4Only},
     {"ignoreSSL", runtime.getIgnoreSSL()},
     {"tlsMinVersion", _tlsMinVersion},
     {"disableHttp2", Darabonba::Convert::boolVal(Darabonba::defaultVal(_disableHttp2, false))}

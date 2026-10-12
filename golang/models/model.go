@@ -122,6 +122,8 @@ type iConfig interface {
 	GetRetryOptions() *dara.RetryOptions
 	GetTlsMinVersion() *string
 	SetTlsMinVersion(v string) *Config
+	SetIpv4Only(v bool) *Config
+	GetIpv4Only() *bool
 }
 
 // Description:
@@ -302,6 +304,12 @@ type Config struct {
 	// http client
 	HttpClient    dara.HttpClient `json:"httpClient,omitempty" xml:"httpClient,omitempty"`
 	TlsMinVersion *string         `json:"tlsMinVersion,omitempty" xml:"tlsMinVersion,omitempty"`
+	// only use IPv4 to connect to the endpoint, AAAA records are ignored
+	//
+	// example:
+	//
+	// false
+	Ipv4Only *bool `json:"ipv4Only,omitempty" xml:"ipv4Only,omitempty"`
 }
 
 func (s Config) String() string {
@@ -442,6 +450,10 @@ func (s *Config) GetRetryOptions() *dara.RetryOptions {
 
 func (s *Config) GetHttpClient() dara.HttpClient {
 	return s.HttpClient
+}
+
+func (s *Config) GetIpv4Only() *bool {
+	return s.Ipv4Only
 }
 
 func (s *Config) SetAccessKeyId(v string) *Config {
@@ -606,6 +618,11 @@ func (s *Config) SetRetryOptions(v *dara.RetryOptions) *Config {
 
 func (s *Config) SetHttpClient(v dara.HttpClient) *Config {
 	s.HttpClient = v
+	return s
+}
+
+func (s *Config) SetIpv4Only(v bool) *Config {
+	s.Ipv4Only = &v
 	return s
 }
 

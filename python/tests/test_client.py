@@ -17,6 +17,8 @@ from alibabacloud_tea_openapi.client import Client as OpenApiClient
 from darabonba.runtime import ExtendsParameters 
 from darabonba.runtime import RuntimeOptions
 from alibabacloud_tea_openapi.utils import Utils as UtilClient
+from darabonba.core import DaraCore
+from unittest import mock
 
 
 class TestClient(unittest.TestCase):
@@ -53,7 +55,8 @@ class TestClient(unittest.TestCase):
             key='config.key',
             cert='config.cert',
             ca='config.ca',
-            disable_http_2=True
+            disable_http_2=True,
+            ipv4_only=True
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -145,6 +148,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.cert", client._cert)
         self.assertEqual("config.ca", client._ca)
         self.assertEqual(True, client._disable_http_2)
+        self.assertEqual(True, client._ipv4_only)
 
     def create_config(self) -> open_api_models.Config:
         global_parameters = open_api_models.GlobalParameters(
@@ -2566,3 +2570,51 @@ class TestClient(unittest.TestCase):
             self.assertEqual(data, event.data)
             self.assertEqual("sse-test", event.id)
             self.assertEqual("flow", event.event)
+
+    def test_ipv4_only_runtime(self):
+        captured = []
+        loop = asyncio.get_event_loop()
+
+        def fake_do_action(request, runtime):
+            captured.append(runtime.get('ipv4Only'))
+            raise RuntimeError('stop')
+
+        async def fake_async_do_action(request, runtime):
+            fake_do_action(request, runtime)
+
+        cases = [
+            (None, False),
+            (True, True),
+            (False, False),
+        ]
+        for signature_algorithm in ['v2', 'ACS3-HMAC-SHA256']:
+            for style, req_body_type in [('RPC', 'formData'), ('ROA', 'json'), ('ROA', 'formData')]:
+                params = open_api_models.Params(
+                    action='TestAPI',
+                    version='2022-06-01',
+                    protocol='HTTP',
+                    pathname='/',
+                    method='POST',
+                    auth_type='AK',
+                    style=style,
+                    req_body_type=req_body_type,
+                    body_type='json'
+                )
+                for config_value, expected in cases:
+                    config = self.create_config()
+                    config.endpoint = 'test.aliyuncs.com'
+                    config.signature_algorithm = signature_algorithm
+                    config.ipv4_only = config_value
+                    client = OpenApiClient(config)
+                    self.assertEqual(config_value, client._ipv4_only)
+                    runtime = self.create_runtime_options()
+                    with mock.patch.object(DaraCore, 'do_action', side_effect=fake_do_action), \
+                            mock.patch.object(DaraCore, 'async_do_action', side_effect=fake_async_do_action):
+                        captured.clear()
+                        with self.assertRaises(Exception):
+                            client.call_api(params, self.create_open_api_request(), runtime)
+                        self.assertEqual([expected], captured)
+                        captured.clear()
+                        with self.assertRaises(Exception):
+                            loop.run_until_complete(client.call_api_async(params, self.create_open_api_request(), runtime))
+                        self.assertEqual([expected], captured)

@@ -278,4 +278,39 @@ describe('Client.doRequest websocket', function () {
       /websocketSubProtocol must be 'awap' or 'general'/,
     );
   });
+
+  it('should pass Config.ipv4Only and webSocketHandler to the websocket client', async function () {
+    const params = new Params({
+      action: 'TestAction',
+      version: '2020-01-01',
+      protocol: 'ws',
+      pathname: '/ws',
+      method: 'GET',
+      authType: 'AK',
+      bodyType: 'string',
+      reqBodyType: 'json',
+      websocketSubProtocol: websocketUtils.SubProtocolGeneral,
+    });
+    const newClient = (ipv4Only: boolean) => new Client(new Config({
+      accessKeyId: 'ak',
+      accessKeySecret: 'sk',
+      endpoint: '[::1]:1',
+      protocol: 'ws',
+      ipv4Only,
+    }));
+    const runtime = () => new $dara.RuntimeOptions({
+      webSocketHandler: new MockWebSocketHandler(),
+      webSocketHandshakeTimeout: 1000,
+      autoretry: false,
+    });
+
+    await assert.rejects(
+      () => newClient(true).doRequest(params, new OpenApiRequest({}), runtime()),
+      /ipv4Only is enabled/,
+    );
+    await assert.rejects(
+      () => newClient(false).doRequest(params, new OpenApiRequest({}), runtime()),
+      (err: Error) => !/ipv4Only is enabled|WebSocketHandler is required/.test(err.message),
+    );
+  });
 });
