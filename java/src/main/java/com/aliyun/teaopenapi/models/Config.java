@@ -299,6 +299,15 @@ public class Config extends TeaModel {
     @NameInMap("enableUsageDataCollection")
     public Boolean enableUsageDataCollection;
 
+    /**
+     * <p>only use IPv4 to connect to the endpoint, AAAA records are ignored</p>
+     * 
+     * <strong>example:</strong>
+     * <p>false</p>
+     */
+    @NameInMap("ipv4Only")
+    public Boolean ipv4Only;
+
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
         return TeaModel.build(map, self);
@@ -575,6 +584,14 @@ public class Config extends TeaModel {
     }
     public Boolean getEnableUsageDataCollection() {
         return this.enableUsageDataCollection;
+    }
+
+    public Config setIpv4Only(Boolean ipv4Only) {
+        this.ipv4Only = ipv4Only;
+        return this;
+    }
+    public Boolean getIpv4Only() {
+        return this.ipv4Only;
     }
 
 }
