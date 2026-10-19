@@ -306,6 +306,187 @@ class TestClientDoRequestWebSocket(unittest.TestCase):
             WebSocketUtilsClient.create_web_socket_client(ws_client),
         )
 
+    def test_client_send_helpers_and_timeout(self):
+        from darabonba.response import DaraResponse
+
+        class MockWsClient:
+            def __init__(self):
+                self.texts = []
+                self.binaries = []
+                self.closed = False
+
+            def send_text(self, text):
+                self.texts.append(text)
+
+            def send_binary(self, data):
+                self.binaries.append(data)
+
+            def close(self):
+                self.closed = True
+
+            def reconnect(self):
+                return DaraResponse()
+
+            def reconnect_gracefully(self):
+                return DaraResponse()
+
+            def disconnect(self):
+                return None
+
+            def is_connected(self):
+                return True
+
+            def get_session_info(self):
+                return None
+
+        inner = MockWsClient()
+        client = websocket_utils.WebSocketClient(inner, DaraResponse())
+        self.assertIsNone(websocket_utils.WebSocketClient.create_websocket_client('nope'))
+        self.assertIsNotNone(websocket_utils.new_websocket_client(inner, DaraResponse()))
+        client.validate()
+        self.assertTrue(client.is_connected())
+        self.assertIsNone(client.get_session_info())
+        self.assertIsNotNone(client.get_response())
+        client.send_raw_awap_text_message('UpstreamTextEvent', {'a': 'b'})
+        client.send_raw_awap_text_message_with_id('UpstreamTextEvent', 'id-1', {'a': 'b'})
+        client.send_raw_awap_binary_message('UpstreamBinaryEvent', b'bin')
+        client.send_raw_awap_binary_message_with_id('UpstreamBinaryEvent', 'id-2', b'bin2')
+        client.send_general_text_message('hello')
+        client.send_general_binary_message(b'bin')
+        self.assertTrue(len(inner.texts) >= 3)
+        self.assertTrue(len(inner.binaries) >= 3)
+        client.reconnect()
+        client.reconnect_gracefully()
+        client.disconnect()
+        client.close()
+        self.assertTrue(inner.closed)
+
+        empty = websocket_utils.WebSocketClient(None, DaraResponse())
+        with self.assertRaises(Exception):
+            empty.validate()
+        empty.close()
+
+        with self.assertRaises(ValueError):
+            client.send_request('', 'text', 1)
+        with self.assertRaises(ValueError):
+            client.send_request('id', '', 1)
+        with self.assertRaises(TimeoutError):
+            client.send_request('missing', 'payload', 1)
+
+        class FailingSend:
+            def send_text(self, _text):
+                raise RuntimeError('send failed')
+
+        failing = websocket_utils.WebSocketClient(FailingSend(), DaraResponse())
+        with self.assertRaises(RuntimeError):
+            failing.send_request('ack', 'payload', 10)
+
+        none_payload = websocket_utils.new_awap_message(None, websocket_utils.with_type('UpstreamTextEvent'))
+        self.assertIn('{}', websocket_utils.build_awap_message_text(none_payload))
+        with self.assertRaises(ValueError):
+            websocket_utils.build_awap_message_text(None)
+        with self.assertRaises(ValueError):
+            websocket_utils.build_awap_message_binary(None)
+        with self.assertRaises(ValueError):
+            websocket_utils.build_awap_message_binary({'type': 'UpstreamBinaryEvent', 'payload': 'not-bytes'})
+        self.assertTrue(len(websocket_utils.build_awap_message_binary({'type': 'UpstreamBinaryEvent'})) > 0)
+
+        binary = websocket_utils.build_awap_message_binary({
+            'type': 'UpstreamBinaryEvent',
+            'id': 'b1',
+            'headers': {'k': 'v'},
+            'payload': b'not-json',
+        })
+        parsed = websocket_utils.parse_awap_message(WebSocketMessage(
+            type=WebSocketMessageType.Binary,
+            payload=binary,
+            headers={},
+        ))
+        self.assertEqual('binary', parsed['format'])
+        self.assertEqual(b'not-json', parsed['payload'])
+
+        with self.assertRaises(ValueError):
+            websocket_utils.parse_awap_message(WebSocketMessage(
+                type=WebSocketMessageType.Text,
+                payload=b'no-separator',
+                headers={},
+            ))
+
+        parsed_plain = websocket_utils.parse_general_message(WebSocketMessage(
+            type=WebSocketMessageType.Text,
+            payload=b'hello',
+            headers={},
+        ))
+        self.assertEqual(b'hello', parsed_plain['body'])
+        self.assertEqual('text', parsed_plain['format'])
+
+        session = __import__('darabonba.websocket', fromlist=['WebSocketSessionInfo']).WebSocketSessionInfo('s1')
+        missing = MockWebSocketHandler()
+        websocket_utils.StreamHandler(missing, websocket_utils.SubProtocolGeneral).handle_raw_message(
+            session,
+            WebSocketMessage(type=WebSocketMessageType.Text, payload=b'{"body":"hi"}', headers={}),
+        )
+
+        class GeneralHandler(MockWebSocketHandler):
+            def __init__(self):
+                super().__init__()
+                self.msgs = []
+                self.errors = []
+                self.closed = False
+
+            def handle_general_message(self, _session, message):
+                self.msgs.append(message)
+
+            def handle_error(self, _session, err):
+                self.errors.append(err)
+
+            def after_connection_closed(self, _session, _code, _reason):
+                self.closed = True
+
+        user = GeneralHandler()
+        handler = websocket_utils.StreamHandler(user, websocket_utils.SubProtocolGeneral)
+        handler.after_connection_established(session)
+        self.assertTrue(user.connected_called)
+        handler.after_connection_closed(session, 1000, 'bye')
+        self.assertTrue(user.closed)
+        handler.handle_error(session, RuntimeError('x'))
+        self.assertEqual(1, len(user.errors))
+        handler.handle_raw_message(session, WebSocketMessage(
+            type=WebSocketMessageType.Text, payload=b'{"body":"hi"}', headers={},
+        ))
+        self.assertEqual(1, len(user.msgs))
+
+        class RawGeneral(MockWebSocketHandler):
+            def handle_general_message(self, _session, _message):
+                raise websocket_utils.ERR_USE_RAW_MESSAGE
+
+            def handle_raw_message(self, _session, _message):
+                self.connected_called = True
+
+            def handle_error(self, _session, err):
+                self.err = err
+
+        raw_user = RawGeneral()
+        websocket_utils.StreamHandler(raw_user, websocket_utils.SubProtocolGeneral).handle_raw_message(
+            session,
+            WebSocketMessage(type=WebSocketMessageType.Text, payload=b'{"body":"hi"}', headers={}),
+        )
+        self.assertTrue(raw_user.connected_called)
+
+        class BoomGeneral(MockWebSocketHandler):
+            def handle_general_message(self, _session, _message):
+                raise RuntimeError('boom')
+
+            def handle_error(self, _session, err):
+                self.err = err
+
+        boom = BoomGeneral()
+        websocket_utils.StreamHandler(boom, websocket_utils.SubProtocolGeneral).handle_raw_message(
+            session,
+            WebSocketMessage(type=WebSocketMessageType.Text, payload=b'{"body":"hi"}', headers={}),
+        )
+        self.assertIn('boom', str(boom.err))
+
 
 if __name__ == '__main__':
     unittest.main()

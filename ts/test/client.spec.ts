@@ -47,6 +47,13 @@ const server = http.createServer((req, res) => {
         'raw-body': data,
         'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4',
       };
+      if(urlObj.pathname === '/empty') {
+          res.writeHead(204, {
+            ...headers,
+          });
+          res.end();
+          return;
+      }
       if(urlObj.pathname === '/sse') {
           res.writeHead(200, {
             ...headers,
@@ -90,6 +97,19 @@ const server = http.createServer((req, res) => {
           responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
             ", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}";
           res.writeHead(400, {
+            ...headers,
+          });
+          break;
+        case 'xml':
+          responseBody = "<?xml version=\"1.0\"?><Error><Code>Invalid</Code><Message>xml error</Message><RequestId>xml-id</RequestId></Error>";
+          res.writeHead(400, {
+            ...headers,
+            'content-type': 'text/xml;charset=utf-8',
+          });
+          break;
+        case 'serverError':
+          responseBody = "{\"Code\":\"InternalError\", \"Message\":\"boom\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+          res.writeHead(500, {
             ...headers,
           });
           break;
@@ -1758,5 +1778,174 @@ describe('Throttling backoff retry', () => {
     }
 
     assert.strictEqual(3, requestCount);
+  });
+});
+
+describe('extra client coverage', function () {
+  before((done) => {
+    server.listen(0, done);
+  });
+
+  after(function (done) {
+    this.timeout(10000);
+    server.close(done);
+  });
+
+  it('constructor helpers checkConfig and exceptions', async function () {
+    assert.throws(() => new OpenApi(null as any));
+    const empty = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.strictEqual(await empty.getAccessKeyId(), '');
+    assert.strictEqual(await empty.getAccessKeySecret(), '');
+    assert.strictEqual(await empty.getSecurityToken(), '');
+    assert.strictEqual(await empty.getBearerToken(), '');
+    assert.strictEqual(await empty.getType(), '');
+    assert.throws(() => empty.checkConfig(new $OpenApiUtil.Config()));
+    empty.checkConfig(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.deepStrictEqual(empty.getAccessDeniedDetail({ AccessDeniedDetail: { k: 'v' } }), { k: 'v' });
+    assert.deepStrictEqual(empty.getAccessDeniedDetail({ accessDeniedDetail: { k: 'v2' } }), { k: 'v2' });
+    assert.strictEqual(empty.getAccessDeniedDetail({}), null);
+    empty.setRpcHeaders({ debug: '1' });
+    assert.deepStrictEqual(empty.getRpcHeaders(), { debug: '1' });
+    assert.strictEqual(empty.getRpcHeaders(), null);
+
+    const client = new OpenApi(createConfig());
+    try {
+      await client.callApi(null as any, createOpenApiRequest(), createRuntimeOptions());
+      assert.fail();
+    } catch (err) {
+      assert.strictEqual(err.code, 'ParameterMissing');
+    }
+  });
+
+  it('v4 execute via callApi, 204 xml byte none and server errors', async function () {
+    let port = (server.address() as AddressInfo).port;
+    let config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    config.signatureVersion = 'v4';
+    let client = new OpenApi(config);
+    client._productId = 'test';
+    client.setGatewayClient(new POP());
+    let runtime = createRuntimeOptions();
+    let request = createOpenApiRequest();
+    let params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    let result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    params.bodyType = 'none';
+    result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    params.bodyType = 'json';
+    request.headers = { ...request.headers, bodyType: 'xml' };
+    runtime.extendsParameters.headers['bodyType'] = 'xml';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    request.headers = createOpenApiRequest().headers;
+    if (runtime.extendsParameters && runtime.extendsParameters.headers) {
+      delete runtime.extendsParameters.headers['bodyType'];
+    }
+
+    config.signatureAlgorithm = 'v2';
+    client = new OpenApi(config);
+    params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    result = await client.callApi(params, request, runtime);
+    assert.ok(result.headers);
+    params.reqBodyType = 'formData';
+    result = await client.callApi(params, request, runtime);
+    assert.ok(result.headers);
+
+    params.pathname = '/test';
+    params.bodyType = 'none';
+    result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    request.headers = { ...request.headers, bodyType: 'serverError' };
+    runtime.extendsParameters.headers['bodyType'] = 'serverError';
+    params.bodyType = 'json';
+    try {
+      await client.callApi(params, request, runtime);
+      assert.fail();
+    } catch (err) {
+      assert.ok(err);
+    }
+    params.reqBodyType = 'json';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    params.style = 'RPC';
+    params.reqBodyType = 'formData';
+    params.pathname = '/';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    request = createOpenApiRequest();
+    if (runtime.extendsParameters && runtime.extendsParameters.headers) {
+      delete runtime.extendsParameters.headers['bodyType'];
+    }
+
+    const akClient = new OpenApi(createConfig());
+    akClient._endpoint = `127.0.0.1:${port}`;
+    akClient._protocol = 'HTTP';
+    params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'byte',
+    });
+    result = await akClient.callApi(params, createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.body);
+    params.reqBodyType = 'byte';
+    params.bodyType = 'string';
+    result = await akClient.doRequest(params, new $OpenApiUtil.OpenApiRequest({
+      body: Buffer.from('test byte'),
+    }), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    params.reqBodyType = 'binary';
+    result = await akClient.doRequest(params, new $OpenApiUtil.OpenApiRequest({
+      stream: new Readable({
+        read() {
+          this.push(Buffer.from('stream-body'));
+          this.push(null);
+        },
+      }),
+    }), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
   });
 });
