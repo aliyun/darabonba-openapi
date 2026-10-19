@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using AlibabaCloud.OpenApiClient.Models;
 using Darabonba.Models;
@@ -348,6 +350,101 @@ namespace OpenApiClientUnitTests
                 }
             }
         }
+
+#if DARA_ASYNC_ENUMERABLES_API
+        [Fact]
+        public async Task TestCallAsyncSSEApi_StreamsBeforeEndOfResponse()
+        {
+            using (var releaseEvents = new ManualResetEventSlim())
+            using (var server = new MockHttpServer())
+            {
+                server.SseEventSent = count =>
+                {
+                    if (count == 0)
+                        releaseEvents.Wait(TimeSpan.FromSeconds(10));
+                };
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var parameters = new Params
+                {
+                    Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP",
+                    Pathname = "/sse", Method = "POST", AuthType = "AK",
+                    Style = "ROA", ReqBodyType = "formData", BodyType = "json"
+                };
+                var events = client.CallAsyncSSEApi(parameters,
+                    TestFixtures.CreateOpenApiRequest(), TestFixtures.CreateRuntimeOptions()).GetAsyncEnumerator();
+                var firstEvent = events.MoveNextAsync().AsTask();
+                try
+                {
+                    Assert.Same(firstEvent, await Task.WhenAny(firstEvent, Task.Delay(3000)));
+                    Assert.True(await firstEvent);
+                    Assert.Equal("{\"count\": 0}", events.Current.Event.Data);
+                    releaseEvents.Set();
+                    var count = 0;
+                    do
+                    {
+                        Assert.Equal(200, events.Current.StatusCode);
+                        Assert.Equal("text/event-stream", TestFixtures.GetHeader(events.Current.Headers, "content-type"));
+                        Assert.Equal("{\"count\": " + count + "}", events.Current.Event.Data);
+                        Assert.Equal("sse-test", events.Current.Event.Id);
+                        Assert.Equal("flow", events.Current.Event.Event);
+                        count++;
+                    } while (await events.MoveNextAsync());
+                    Assert.Equal(5, count);
+                }
+                finally
+                {
+                    releaseEvents.Set();
+                    await firstEvent;
+                    await events.DisposeAsync();
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("error")]
+        [InlineData("xmlError")]
+        public async Task TestCallAsyncSSEApi_ParsesErrors(string responseType)
+        {
+            using (var server = new MockHttpServer())
+            {
+                server.DefaultContent = responseType;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var parameters = new Params
+                {
+                    Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP",
+                    Pathname = "/", Method = "POST", AuthType = "AK",
+                    Style = "ROA", ReqBodyType = "json", BodyType = "json"
+                };
+                var syncError = Assert.Throws<Darabonba.Exceptions.DaraException>(() =>
+                {
+                    foreach (var item in client.CallSSEApi(parameters,
+                        TestFixtures.CreateOpenApiRequest(), TestFixtures.CreateRuntimeOptions())) { }
+                });
+                var events = client.CallAsyncSSEApi(parameters,
+                    TestFixtures.CreateOpenApiRequest(), TestFixtures.CreateRuntimeOptions()).GetAsyncEnumerator();
+                try
+                {
+                    var error = await Assert.ThrowsAsync<Darabonba.Exceptions.DaraException>(
+                        async () => { await events.MoveNextAsync(); });
+                    Assert.Equal("error code", error.Code);
+                    Assert.Equal(syncError.Code, error.Code);
+                    Assert.Equal(syncError.Message, error.Message);
+                    Assert.Contains("code: 400, error message request id: " + RequestId, error.Message);
+                    Assert.Equal(400, Convert.ToInt32(error.Data["statusCode"]));
+                }
+                finally
+                {
+                    await events.DisposeAsync();
+                }
+            }
+        }
+#endif
 
         [Fact]
         public void TestThrottlingBackoffRetry_ListProductQuotas()

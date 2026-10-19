@@ -21,6 +21,8 @@ namespace OpenApiClientUnitTests.Mock
         public string DefaultContent { get; set; } = "json";
         public Dictionary<string, string> PathContent { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        public Action<int> SseEventSent { get; set; }
+
         public bool ThrottlingMode { get; set; }
         public int ThrottleCount { get; set; }
         public int RetryAfterMs { get; set; } = 1000;
@@ -116,6 +118,11 @@ namespace OpenApiClientUnitTests.Mock
                     responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}";
                     statusCode = 400;
                     break;
+                case "xmlError":
+                    res.ContentType = "text/xml;charset=utf-8";
+                    responseBody = "<Error><Code>error code</Code><Message>error message</Message><RequestId>A45EE076-334D-5012-9746-A8F828D20FD4</RequestId></Error>";
+                    statusCode = 400;
+                    break;
                 case "serverError":
                     responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 1, \"test1\": \"str\"}}";
                     statusCode = 500;
@@ -152,7 +159,7 @@ namespace OpenApiClientUnitTests.Mock
             WriteResponse(res, 200, successBody);
         }
 
-        private static void HandleSse(HttpListenerResponse res)
+        private void HandleSse(HttpListenerResponse res)
         {
             res.StatusCode = 200;
             res.ContentType = "text/event-stream";
@@ -170,6 +177,7 @@ namespace OpenApiClientUnitTests.Mock
                     writer.Write("retry: 3\n");
                     writer.Write(":heartbeat\n\n");
                     writer.Flush();
+                    SseEventSent?.Invoke(count);
                     Thread.Sleep(100);
                 }
             }
@@ -204,7 +212,7 @@ namespace OpenApiClientUnitTests.Mock
         {
             var bytes = Encoding.UTF8.GetBytes(body);
             res.StatusCode = statusCode;
-            res.ContentType = "application/json";
+            res.ContentType = res.ContentType ?? "application/json";
             res.ContentLength64 = bytes.Length;
             res.OutputStream.Write(bytes, 0, bytes.Length);
             res.OutputStream.Close();

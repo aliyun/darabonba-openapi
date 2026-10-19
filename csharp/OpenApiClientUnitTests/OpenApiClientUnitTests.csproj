@@ -8,6 +8,10 @@
     <RootNamespace>OpenApiClientUnitTests</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <DefineConstants>$(DefineConstants);DARA_ASYNC_ENUMERABLES_API</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="**/obj/**" />
     <None Remove="**/obj/**" />
