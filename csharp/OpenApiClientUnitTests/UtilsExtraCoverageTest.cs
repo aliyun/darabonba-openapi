@@ -136,6 +136,37 @@ namespace OpenApiClientUnitTests
             request.Query = new Dictionary<string, string>();
             var authEmpty = Utils.GetAuthorization(request, "ACS3-HMAC-SHA256", "payload", "ak", "secret");
             Assert.Contains("SignedHeaders=", authEmpty);
+
+            request.Headers["Host"] = "ecs.aliyuncs.com";
+            request.Headers["host"] = "ecs.aliyuncs.com";
+            request.Headers["X-Acs-Action"] = "DescribeRegions";
+            request.Query["Space"] = "a b";
+            request.Query["Star"] = "a*b";
+            request.Query["Tilde"] = "a~b";
+            var authDup = Utils.GetAuthorization(request, "ACS3-HMAC-SHA256", "payload", "ak", "secret");
+            Assert.Contains("ACS3-HMAC-SHA256 Credential=ak", authDup);
+
+            var withStream = new OpenApiRequest
+            {
+                Stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes("x")),
+                Body = new Dictionary<string, object>
+                {
+                    { "keep", "v" },
+                    { "nested", new List<object> { "a", null, new Dictionary<string, object> { { "k", "v" } } } },
+                    { "nil", null }
+                }
+            };
+            var destReq = new OpenApiRequest();
+            Utils.Convert(withStream, destReq);
+            Assert.NotNull(destReq);
+
+            var querySpecial = Utils.Query(new Dictionary<string, object>
+            {
+                { "Empty", "" },
+                { "Nested", new Dictionary<string, object> { { "k", "v" } } },
+                { "List", new List<object> { 1, 2 } }
+            });
+            Assert.Equal("v", querySpecial["Nested.k"]);
         }
     }
 }

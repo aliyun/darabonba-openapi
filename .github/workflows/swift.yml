@@ -34,10 +34,18 @@ jobs:
 
     - name: Generate lcov
       run: |
-        BIN=$(swift test --show-bin-path)
+        BIN=$(swift build --show-bin-path)
+        TEST_BIN="${BIN}/AlibabacloudOpenApiPackageTests.xctest/Contents/MacOS/AlibabacloudOpenApiPackageTests"
+        if [ ! -f "$TEST_BIN" ]; then
+          TEST_BIN=$(find "$BIN" -name AlibabacloudOpenApiPackageTests -type f | head -n 1)
+        fi
+        PROFDATA="${BIN}/codecov/default.profdata"
+        if [ ! -f "$PROFDATA" ]; then
+          PROFDATA=$(find .build -name default.profdata | head -n 1)
+        fi
         xcrun llvm-cov export -format=lcov \
-          "${BIN}/AlibabacloudOpenApiPackageTests.xctest/Contents/MacOS/AlibabacloudOpenApiPackageTests" \
-          -instr-profile "${BIN}/codecov/default.profdata" \
+          "$TEST_BIN" \
+          -instr-profile "$PROFDATA" \
           -ignore-filename-regex='\.build|Tests' \
           > coverage.lcov
 

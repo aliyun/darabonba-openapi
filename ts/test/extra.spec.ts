@@ -110,6 +110,11 @@ describe('extra util and model coverage', function () {
     };
     const auth = OpenApiUtil.getAuthorization(req, 'ACS3-HMAC-SHA256', 'payload', 'ak', 'secret');
     assert.ok(auth.indexOf('ACS3-HMAC-SHA256 Credential=ak,') === 0);
+    req.headers['Host'] = 'example.com';
+    req.headers['X-Acs-Action'] = 'Test';
+    req.query['space'] = 'a b';
+    const authDup = OpenApiUtil.getAuthorization(req, 'ACS3-HMAC-SHA256', 'payload', 'ak', 'secret');
+    assert.ok(authDup.indexOf('ACS3-HMAC-SHA256 Credential=ak,') === 0);
 
     const signed = new $dara.Request();
     signed.method = 'POST';
@@ -138,8 +143,8 @@ describe('extra util and model coverage', function () {
     assert.ok(OpenApiUtil.getNonce());
     assert.ok(OpenApiUtil.getTimestamp().indexOf('T') >= 0);
     assert.ok(OpenApiUtil.getDateUTCString().indexOf('GMT') >= 0);
-    assert.ok(OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'central', 'vpc', 'inner').indexOf('ecs-inner-vpc') >= 0 ||
-      OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'central', 'vpc', 'inner').indexOf('aliyuncs.com') >= 0);
+    const centralEndpoint = OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'central', 'vpc', 'inner');
+    assert.ok(centralEndpoint.indexOf('ecs-inner') === 0);
 
     const gp = new GlobalParameters({ headers: { h: '1' }, queries: { q: '2' } });
     assert.strictEqual(GlobalParameters.names().headers, 'headers');

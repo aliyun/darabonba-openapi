@@ -417,6 +417,26 @@ class TestExtraCoverage(unittest.TestCase):
         events = loop.run_until_complete(collect_sse())
         self.assertGreaterEqual(len(events), 0)
 
+        for body_type in ('json', 'string', 'byte', 'none'):
+            result = loop.run_until_complete(ak.do_rpcrequest_async(
+                'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', body_type, request, runtime,
+            ))
+            self.assertEqual(200, result['statusCode'])
+            result = loop.run_until_complete(ak.do_roarequest_async(
+                'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', body_type, request, runtime,
+            ))
+            self.assertEqual(200, result['statusCode'])
+            result = loop.run_until_complete(ak.do_roarequest_with_form_async(
+                'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', body_type, request, runtime,
+            ))
+            self.assertIsNotNone(result)
+        result = loop.run_until_complete(ak.do_request_async(Params(
+            action='TestAPI', version='2022-06-01', protocol='HTTPS',
+            pathname='/test', method='POST', auth_type='AK',
+            style='ROA', req_body_type='formData', body_type='json',
+        ), request, runtime))
+        self.assertEqual(200, result['statusCode'])
+
     @httpretty.activate
     def test_direct_do_rpc_roa_and_request(self):
         httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/', body=self._json_ok)

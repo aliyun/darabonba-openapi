@@ -434,5 +434,88 @@ namespace OpenApiClientUnitTests
                 await Assert.ThrowsAsync<ClientException>(() => new TestClient(v3Anon).CallApiAsync(roa, request, runtime));
             }
         }
+
+        [Fact]
+        public async Task TestAsyncThrottlingAndXmlOnDirectMethods()
+        {
+            using (var server = new MockHttpServer())
+            {
+                server.ThrottlingMode = true;
+                server.ThrottleCount = 3;
+                server.RetryAfterMs = 1;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var request = TestFixtures.CreateOpenApiRequest();
+                await Assert.ThrowsAsync<ThrottlingException>(() =>
+                    client.DoRPCRequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "json", request, runtime));
+            }
+
+            using (var server = new MockHttpServer())
+            {
+                server.ThrottlingMode = true;
+                server.ThrottleCount = 3;
+                server.RetryAfterMs = 1;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var request = TestFixtures.CreateOpenApiRequest();
+                await Assert.ThrowsAsync<ThrottlingException>(() =>
+                    client.DoROARequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "json", request, runtime));
+            }
+
+            using (var server = new MockHttpServer())
+            {
+                server.ThrottlingMode = true;
+                server.ThrottleCount = 3;
+                server.RetryAfterMs = 1;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var request = TestFixtures.CreateOpenApiRequest();
+                await Assert.ThrowsAsync<ThrottlingException>(() =>
+                    client.DoROARequestWithFormAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "json", request, runtime));
+            }
+
+            using (var server = new MockHttpServer())
+            {
+                server.PathContent["/xml"] = "xml";
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                var runtime = TestFixtures.CreateRuntimeOptions();
+                var request = TestFixtures.CreateOpenApiRequest();
+                try
+                {
+                    await client.DoROARequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/xml", "json", request, runtime);
+                }
+                catch (Exception)
+                {
+                }
+                try
+                {
+                    await client.DoROARequestWithFormAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/xml", "json", request, runtime);
+                }
+                catch (Exception)
+                {
+                }
+                var xmlParams = new Params
+                {
+                    Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTPS", Pathname = "/xml",
+                    Method = "POST", AuthType = "Anonymous", Style = "ROA", ReqBodyType = "json", BodyType = "json"
+                };
+                try { await client.DoRequestAsync(xmlParams, request, runtime); } catch (Exception) { }
+                xmlParams.AuthType = "AK";
+                xmlParams.ReqBodyType = "formData";
+                try { await client.DoRequestAsync(xmlParams, request, runtime); } catch (Exception) { }
+            }
+        }
     }
 }

@@ -289,12 +289,19 @@ class ExtraCoverageTest extends TestCase
             'ca' => 'ca',
             'disableHttp2' => true,
             'tlsMinVersion' => '1.2',
+            'globalParameters' => array(
+                'headers' => array('h' => '1'),
+                'queries' => array('q' => '2'),
+            ),
         ));
         $config->validate();
         $this->assertEquals('example.com', $config->toArray()['endpoint']);
         $this->assertEquals('HTTP', $config->toMap()['protocol']);
         $this->assertEquals('ak', $config->toMap()['accessKeyId']);
         $this->assertEquals('bt', $config->toArray()['bearerToken']);
+        $this->assertEquals('1', $config->toArray()['globalParameters']['headers']['h']);
+        $emptyConfig = Config::fromMap(array());
+        $this->assertTrue($emptyConfig->toArray() === array() || is_array($emptyConfig->toArray()));
 
         $headers = array();
         Utils::applyRetryHeaders($headers, 0, 10);

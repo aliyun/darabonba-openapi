@@ -1149,3 +1149,27 @@ func TestV2ROAFormWithCtxAllBodies(t *testing.T) {
 	_, err = client.DoROARequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/serverError"), tea.String("json"), request, runtime)
 	tea_util.AssertNotNil(t, err)
 }
+
+func TestXMLErrorsOnRPCAndDoRequest(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/", &extraMockHandler{content: "xml"})
+	mux.Handle("/xml", &extraMockHandler{content: "xml"})
+	mux.Handle("/test", &extraMockHandler{content: "xml"})
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
+	client := newCoverageClient(t, endpoint)
+	runtime := CreateRuntimeOptions()
+	request := CreateOpenApiRequest()
+	_, err := client.DoRPCRequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = client.DoRPCRequestWithCtx(context.Background(), tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = client.DoRequest(coverageParams("ROA", "json", "json", "/xml", "Anonymous"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = client.DoRequestWithCtx(context.Background(), coverageParams("ROA", "formData", "json", "/xml", "AK"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = client.DoROARequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/xml"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = client.DoROARequestWithForm(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/xml"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+}

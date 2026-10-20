@@ -133,7 +133,14 @@ final class ClientExtraCoverageTests: XCTestCase {
             "endpoint": "127.0.0.1:\(server.port)",
             "protocol": "HTTP",
             "signatureAlgorithm": "ACS3-HMAC-SHA256",
-            "disableHttp2": true
+            "disableHttp2": true,
+            "globalParameters": GlobalParameters([
+                "headers": ["global-key": "global-value"],
+                "queries": ["global-query": "global-value"]
+            ]),
+            "userAgent": "extra-ua",
+            "readTimeout": 3000,
+            "connectTimeout": 3000
         ])
         let client = try Client(config)
         let params = Params([

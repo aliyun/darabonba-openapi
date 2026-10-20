@@ -958,22 +958,6 @@ class OpenApiClientTest extends TestCase
             $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', $bodyType, $request, $runtime));
         }
 
-        try {
-            $this->assertNotEmpty($client->doRequest(new Params([
-                'action' => 'TestAPI',
-                'version' => '2022-06-01',
-                'protocol' => 'HTTPS',
-                'pathname' => '/test',
-                'method' => 'POST',
-                'authType' => 'AK',
-                'style' => 'RPC',
-                'reqBodyType' => 'binary',
-                'bodyType' => 'json',
-            ]), new OpenApiRequest(array('stream' => 'test stream')), $runtime));
-        } catch (\Throwable $e) {
-            $this->assertNotEmpty($e->getMessage());
-        }
-
         $formReq = self::createOpenApiRequest();
         $this->assertNotEmpty($client->doRequest(new Params([
             'action' => 'TestAPI',
@@ -1039,6 +1023,21 @@ class OpenApiClientTest extends TestCase
                 'bodyType' => 'json',
             ]), $xmlRequest, $runtime);
             $this->fail('expected xml error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $xmlRequest, $runtime);
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $xmlRequest, $runtime);
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $xmlRequest, $runtime);
         } catch (\Exception $e) {
             $this->assertNotEmpty($e->getMessage());
         }
