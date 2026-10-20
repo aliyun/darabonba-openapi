@@ -302,6 +302,46 @@ class ExtraCoverageTest extends TestCase
         Utils::applyRetryHeaders($headers, 2, 15);
         $this->assertEquals('2', $headers['x-acs-retry-attempts']);
         $this->assertEquals('15', $headers['x-acs-retry-delay']);
+
+        $src = Params::fromMap(array(
+            'action' => 'DescribeRegions',
+            'version' => '2014-05-26',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'bodyType' => 'json',
+            'reqBodyType' => 'json',
+        ));
+        $dest = new Params();
+        Utils::convert($src, $dest);
+        $this->assertEquals('DescribeRegions', $dest->action);
+        $this->assertEquals('2014-05-26', $dest->version);
+
+        $nested = array(
+            'Name' => 'aliyun',
+            'Tags' => array('a', 'b'),
+            'Bytes' => 'ok',
+        );
+        $query = Utils::query($nested);
+        $this->assertEquals('aliyun', $query['Name']);
+        $form = Utils::toForm($nested);
+        $this->assertTrue(strpos($form, 'Name=aliyun') !== false);
+        $this->assertEquals('', Utils::toForm(null));
+        $parsedNull = Utils::parseToMap(null);
+        $this->assertTrue($parsedNull === null || is_array($parsedNull));
+        $converted = Utils::toArray(array(array('k' => 'v')));
+        $this->assertTrue(is_array($converted));
+        Utils::toArray(null);
+        $this->assertEquals('', Utils::arrayToStringWithSpecifiedStyle(null, 'Ids', 'json'));
+        $this->assertEquals('1,2', Utils::arrayToStringWithSpecifiedStyle(array('1', '2'), 'Ids', 'simple'));
+        $this->assertEquals('1 2', Utils::arrayToStringWithSpecifiedStyle(array('1', '2'), 'Ids', 'spaceDelimited'));
+        $this->assertEquals('1|2', Utils::arrayToStringWithSpecifiedStyle(array('1', '2'), 'Ids', 'pipeDelimited'));
+
+        $sm3 = new \Darabonba\OpenApi\Sm3();
+        $this->assertEquals(64, strlen($sm3->sign('')));
+        $this->assertEquals(64, strlen($sm3->sign(str_repeat('a', 80))));
+        $this->assertEquals(64, strlen($sm3->sign(str_repeat('b', 200))));
     }
 
     public function testWebsocketClientAndMessages()

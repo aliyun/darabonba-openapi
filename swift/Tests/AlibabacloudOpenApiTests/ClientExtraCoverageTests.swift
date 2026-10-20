@@ -132,7 +132,8 @@ final class ClientExtraCoverageTests: XCTestCase {
             "accessKeySecret": "secret",
             "endpoint": "127.0.0.1:\(server.port)",
             "protocol": "HTTP",
-            "signatureAlgorithm": "ACS3-HMAC-SHA256"
+            "signatureAlgorithm": "ACS3-HMAC-SHA256",
+            "disableHttp2": true
         ])
         let client = try Client(config)
         let params = Params([
@@ -192,7 +193,8 @@ final class ClientExtraCoverageTests: XCTestCase {
             "accessKeySecret": "secret",
             "endpoint": "127.0.0.1:\(server.port)",
             "protocol": "HTTP",
-            "signatureAlgorithm": "v2"
+            "signatureAlgorithm": "v2",
+            "disableHttp2": true
         ]))
         let emptyParams = Params([
             "action": "TestAPI",
@@ -267,6 +269,65 @@ final class ClientExtraCoverageTests: XCTestCase {
             "bodyType": "json"
         ]), request, runtime)
         XCTAssertEqual(statusCode(doReqForm), 200)
+        let rpcByte = try await client.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "byte", request, runtime)
+        XCTAssertNotNil(rpcByte["body"])
+        let rpcBinary = try await client.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "binary", request, runtime)
+        XCTAssertNotNil(rpcBinary["body"])
+        let roaByte = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "byte", request, runtime)
+        XCTAssertNotNil(roaByte["body"])
+        let roaNone = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "none", request, runtime)
+        XCTAssertEqual(statusCode(roaNone), 200)
+        let formByte = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "byte", request, runtime)
+        XCTAssertNotNil(formByte["body"])
+        let formString = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "string", request, runtime)
+        XCTAssertNotNil(formString["body"])
+        let akParams = Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "AK",
+            "style": "RPC",
+            "reqBodyType": "formData",
+            "bodyType": "json"
+        ])
+        let akResult = try await client.callApi(akParams, request, runtime)
+        XCTAssertEqual(statusCode(akResult), 200)
+        let bearerClient = try Client(Config([
+            "bearerToken": "token",
+            "endpoint": "127.0.0.1:\(server.port)",
+            "protocol": "HTTP",
+            "disableHttp2": true
+        ]))
+        let bearerResult = try await bearerClient.callApi(Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "AK",
+            "style": "ROA",
+            "reqBodyType": "json",
+            "bodyType": "json"
+        ]), request, runtime)
+        XCTAssertEqual(statusCode(bearerResult), 200)
+        do {
+            _ = try await client.callApi(Params([
+                "action": "TestAPI",
+                "version": "2022-06-01",
+                "protocol": "HTTP",
+                "pathname": "/error",
+                "method": "POST",
+                "authType": "Anonymous",
+                "style": "ROA",
+                "reqBodyType": "json",
+                "bodyType": "json"
+            ]), request, runtime)
+            XCTFail("expected client error")
+        } catch {
+            XCTAssertNotNil(error)
+        }
 
         let v2Rpc = Params([
             "action": "TestAPI",

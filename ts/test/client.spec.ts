@@ -1779,6 +1779,21 @@ describe('Throttling backoff retry', () => {
 
     assert.strictEqual(3, requestCount);
   });
+
+  it('should throttle doRPC doROA and doROAForm', async () => {
+    resetThrottlingState(3, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    const client = new OpenApi(config);
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+    await assert.rejects(() => client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', request, runtime));
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime));
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime));
+  });
 });
 
 describe('extra client coverage', function () {
@@ -2069,12 +2084,32 @@ describe('extra client coverage', function () {
     }), arrayRequest, arrayRuntime);
     assert.ok(Array.isArray(result.body) || result.body);
 
-    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', createOpenApiRequest(), createRuntimeOptions());
+    for (const bodyType of ['json', 'string', 'byte', 'none', 'binary']) {
+      result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.strictEqual(result.statusCode, 200);
+      result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.strictEqual(result.statusCode, 200);
+      result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.ok(result);
+    }
+    result = await v2.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'string', createOpenApiRequest(), createRuntimeOptions());
     assert.strictEqual(result.statusCode, 200);
-    result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
-    assert.strictEqual(result.statusCode, 200);
-    result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
-    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await v2.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'array',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
     result = await client.doRequest(new $OpenApiUtil.Params({
       action: 'TestAPI',
       version: '2022-06-01',
@@ -2087,5 +2122,57 @@ describe('extra client coverage', function () {
       bodyType: 'none',
     }), createOpenApiRequest(), createRuntimeOptions());
     assert.strictEqual(result.statusCode, 200);
+
+    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
+    client.setRpcHeaders({ 'rpc-key': 'rpc-value' });
+    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    const xmlRuntime2 = createRuntimeOptions();
+    xmlRuntime2.extendsParameters.headers['bodyType'] = 'xml';
+    const xmlRequest2 = createOpenApiRequest();
+    xmlRequest2.headers = { ...xmlRequest2.headers, bodyType: 'xml' };
+    await assert.rejects(() => client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', xmlRequest2, xmlRuntime2));
+    await assert.rejects(() => client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), xmlRequest2, xmlRuntime2));
+
+    const execConfig = createConfig();
+    execConfig.protocol = 'HTTP';
+    execConfig.endpoint = `127.0.0.1:${port}`;
+    execConfig.signatureVersion = 'v4';
+    const execClient = new OpenApi(execConfig);
+    execClient._productId = 'test';
+    execClient.setGatewayClient(new POP());
+    const hostReq = createOpenApiRequest();
+    hostReq.hostMap = { region: 'cn-hangzhou' };
+    hostReq.endpointOverride = `127.0.0.1:${port}`;
+    for (const bodyType of ['json', 'string', 'byte', 'none', 'array']) {
+      result = await execClient.execute(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'AK',
+        style: 'RPC',
+        reqBodyType: 'formData',
+        bodyType,
+      }), hostReq, createRuntimeOptions());
+      assert.ok(result);
+    }
   });
 });

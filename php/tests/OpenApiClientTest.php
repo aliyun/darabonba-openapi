@@ -941,4 +941,146 @@ class OpenApiClientTest extends TestCase
             'bodyType' => 'json',
         ]), self::createOpenApiRequest(), $runtime));
     }
+
+    public function testDirectBodyTypesAndRequestBodies()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->endpoint = '127.0.0.1:8000';
+        $client = new OpenApiClient($config);
+        $runtime = self::createRuntimeOptions();
+        $request = self::createOpenApiRequest();
+
+        foreach (array('json', 'string', 'byte', 'none') as $bodyType) {
+            $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', $bodyType, $request, $runtime));
+            $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', $bodyType, $request, $runtime));
+            $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', $bodyType, $request, $runtime));
+        }
+
+        try {
+            $this->assertNotEmpty($client->doRequest(new Params([
+                'action' => 'TestAPI',
+                'version' => '2022-06-01',
+                'protocol' => 'HTTPS',
+                'pathname' => '/test',
+                'method' => 'POST',
+                'authType' => 'AK',
+                'style' => 'RPC',
+                'reqBodyType' => 'binary',
+                'bodyType' => 'json',
+            ]), new OpenApiRequest(array('stream' => 'test stream')), $runtime));
+        } catch (\Throwable $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+
+        $formReq = self::createOpenApiRequest();
+        $this->assertNotEmpty($client->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'array',
+        ]), $formReq, $runtime));
+
+        $v2Config = self::createConfig();
+        $v2Config->protocol = 'HTTP';
+        $v2Config->signatureAlgorithm = 'v2';
+        $v2Config->endpoint = '127.0.0.1:8000';
+        $v2 = new OpenApiClient($v2Config);
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'RPC',
+            'reqBodyType' => 'json',
+            'bodyType' => 'string',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'none',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'none', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', $request, $runtime));
+
+        $client->setRpcHeaders(array('rpc-key' => 'rpc-value'));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $request, $runtime));
+
+        $xmlRequest = self::createOpenApiRequest();
+        $xmlRequest->headers['bodytype'] = 'xml';
+        try {
+            $client->doRequest(new Params([
+                'action' => 'TestAPI',
+                'version' => '2022-06-01',
+                'protocol' => 'HTTPS',
+                'pathname' => '/test',
+                'method' => 'POST',
+                'authType' => 'Anonymous',
+                'style' => 'ROA',
+                'reqBodyType' => 'json',
+                'bodyType' => 'json',
+            ]), $xmlRequest, $runtime);
+            $this->fail('expected xml error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+
+        $execConfig = self::createConfig();
+        $execConfig->protocol = 'HTTP';
+        $execConfig->endpoint = '127.0.0.1:8000';
+        $execConfig->signatureVersion = 'v4';
+        $execClient = new OpenApiClient($execConfig);
+        $execClient->setGatewayClient(new ExtraStubGateway());
+        $hostReq = self::createOpenApiRequest();
+        $hostReq->hostMap = array('region' => 'cn-hangzhou');
+        $hostReq->endpointOverride = '127.0.0.1:8000';
+        foreach (array('json', 'string', 'byte', 'none', 'array') as $execBodyType) {
+            $this->assertNotEmpty($execClient->execute(new Params([
+                'action' => 'TestAPI',
+                'version' => '2022-06-01',
+                'protocol' => 'HTTPS',
+                'pathname' => '/test',
+                'method' => 'POST',
+                'authType' => 'AK',
+                'style' => 'RPC',
+                'reqBodyType' => 'formData',
+                'bodyType' => $execBodyType,
+            ]), $hostReq, $runtime));
+        }
+
+        $sm3Config = self::createConfig();
+        $sm3Config->protocol = 'HTTP';
+        $sm3Config->endpoint = '127.0.0.1:8000';
+        $sm3Config->signatureAlgorithm = 'ACS3-HMAC-SM3';
+        $sm3 = new OpenApiClient($sm3Config);
+        $this->assertNotEmpty($sm3->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'RPC',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+    }
 }

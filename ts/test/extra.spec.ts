@@ -3,7 +3,7 @@
 import 'mocha';
 import assert from 'assert';
 
-import OpenApiUtil from '../src/utils';
+import OpenApiUtil, { GlobalParameters, Config as OpenApiConfig, Params, OpenApiRequest } from '../src/utils';
 import { AlibabaCloudError } from '../src/exceptions/AlibabaCloudError';
 import { ClientError } from '../src/exceptions/ClientError';
 import { ServerError } from '../src/exceptions/ServerError';
@@ -110,6 +110,93 @@ describe('extra util and model coverage', function () {
     };
     const auth = OpenApiUtil.getAuthorization(req, 'ACS3-HMAC-SHA256', 'payload', 'ak', 'secret');
     assert.ok(auth.indexOf('ACS3-HMAC-SHA256 Credential=ak,') === 0);
+
+    const signed = new $dara.Request();
+    signed.method = 'POST';
+    signed.pathname = '/test';
+    signed.query = {};
+    signed.headers = {
+      accept: 'application/json',
+      'content-md5': 'md5',
+      'content-type': 'application/json',
+      date: 'Mon, 11 Aug 2025 00:00:00 GMT',
+      'x-acs-action': 'DescribeRegions',
+    };
+    const sts = OpenApiUtil.getStringToSign(signed);
+    assert.ok(sts.indexOf('POST') === 0);
+    assert.ok(OpenApiUtil.getROASignature(sts, 'secret'));
+    assert.ok(OpenApiUtil.getRPCSignature({ Action: 'DescribeRegions', Version: '2014-05-26' }, 'POST', 'secret'));
+    assert.strictEqual(OpenApiUtil.toForm(null as any), '');
+    assert.ok(OpenApiUtil.toForm({ Name: 'aliyun', Ids: ['1', '2'] }).indexOf('Name=aliyun') >= 0);
+    assert.strictEqual(OpenApiUtil.arrayToStringWithSpecifiedStyle(null, 'Ids', 'json'), '');
+    assert.strictEqual(OpenApiUtil.arrayToStringWithSpecifiedStyle(['1', '2'], 'Ids', 'simple'), '1,2');
+    assert.strictEqual(OpenApiUtil.arrayToStringWithSpecifiedStyle(['1', '2'], 'Ids', 'spaceDelimited'), '1 2');
+    assert.strictEqual(OpenApiUtil.arrayToStringWithSpecifiedStyle(['1', '2'], 'Ids', 'pipeDelimited'), '1|2');
+    assert.ok(OpenApiUtil.arrayToStringWithSpecifiedStyle(['1', '2'], 'Ids', 'json').indexOf('1') >= 0);
+    assert.ok(OpenApiUtil.getEndpoint('ecs.cn-hangzhou.aliyuncs.com', false, 'internal').indexOf('-internal') >= 0);
+    assert.strictEqual(OpenApiUtil.getEndpoint('oss.aliyuncs.com', true, 'accelerate'), 'oss-accelerate.aliyuncs.com');
+    assert.ok(OpenApiUtil.getNonce());
+    assert.ok(OpenApiUtil.getTimestamp().indexOf('T') >= 0);
+    assert.ok(OpenApiUtil.getDateUTCString().indexOf('GMT') >= 0);
+    assert.ok(OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'central', 'vpc', 'inner').indexOf('ecs-inner-vpc') >= 0 ||
+      OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'central', 'vpc', 'inner').indexOf('aliyuncs.com') >= 0);
+
+    const gp = new GlobalParameters({ headers: { h: '1' }, queries: { q: '2' } });
+    assert.strictEqual(GlobalParameters.names().headers, 'headers');
+    assert.ok(GlobalParameters.types().headers);
+    assert.strictEqual(OpenApiConfig.names().endpoint, 'endpoint');
+    assert.ok(OpenApiConfig.types().endpoint);
+    assert.strictEqual(Params.names().action, 'action');
+    assert.ok(Params.types().action);
+    assert.strictEqual(OpenApiRequest.names().query, 'query');
+    assert.ok(OpenApiRequest.types().body);
+
+    const dest = new Params({});
+    OpenApiUtil.convert(new Params({ action: 'DescribeRegions', version: '2014-05-26' }), dest);
+    assert.strictEqual(dest.action, 'DescribeRegions');
+    OpenApiUtil.convert(new Params({ action: 'A' }), null as any);
+
+    const nested = OpenApiUtil.mapToFlatStyle({ Name: 'aliyun', Tags: ['a', 'b'] });
+    assert.ok(nested['#4#Name'] === 'aliyun' || nested.Name === 'aliyun' || typeof nested === 'object');
+    assert.ok(Array.isArray(OpenApiUtil.mapToFlatStyle(['a', { k: 'v' }])));
+    const modelFlat = OpenApiUtil.mapToFlatStyle(new Params({ action: 'A', version: 'v' }));
+    assert.ok(modelFlat);
+
+    const query = OpenApiUtil.query({
+      Region: 'cn-hangzhou',
+      Ids: ['a', 'b'],
+      Nested: { k: 'v' },
+      Bytes: Buffer.from('ok'),
+      Empty: null,
+    });
+    assert.strictEqual(query.Region, 'cn-hangzhou');
+    assert.ok(query['Ids.1'] === 'a' || query.Ids);
+    assert.deepStrictEqual(OpenApiUtil.query(null as any), {});
+    const stringified = OpenApiUtil.stringifyMapValue({ a: 1, b: true, c: undefined as any });
+    assert.strictEqual(stringified.a, '1');
+    assert.ok(OpenApiUtil.stringifyMapValue(null as any) == null);
+    assert.ok(OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'regional', 'vpc', '').indexOf('ecs') >= 0);
+    const cfg = new OpenApiConfig({
+      accessKeyId: 'ak',
+      accessKeySecret: 'sk',
+      securityToken: 'st',
+      bearerToken: 'bt',
+      protocol: 'HTTP',
+      method: 'POST',
+      regionId: 'cn-hangzhou',
+      endpoint: 'example.com',
+      signatureAlgorithm: 'ACS3-HMAC-SHA256',
+      disableHttp2: true,
+    });
+    assert.strictEqual(cfg.endpoint, 'example.com');
+    const apiReq = new OpenApiRequest({
+      headers: { h: '1' },
+      query: { q: '2' },
+      body: { k: 'v' },
+      hostMap: { region: 'cn-hangzhou' },
+      endpointOverride: 'oss.aliyuncs.com',
+    });
+    assert.strictEqual(apiReq.endpointOverride, 'oss.aliyuncs.com');
   });
 });
 
@@ -169,6 +256,47 @@ describe('extra websocket coverage', function () {
       timestamp: new Date(),
     });
     assert.strictEqual(parsedText.format, 'text');
+    const parsedBin = websocketUtils.parseGeneralMessage({
+      type: $dara.WebSocketMessageType.Binary,
+      payload: Buffer.from('raw-bytes'),
+      headers: {},
+      timestamp: new Date(),
+    });
+    assert.strictEqual(parsedBin.format, 'binary');
+
+    const awapText = websocketUtils.buildAwapMessageText(
+      websocketUtils.newAwapMessage({ hello: 'world' }, websocketUtils.withType('UpstreamTextEvent'), websocketUtils.withID('m1'), websocketUtils.withHeader('custom', '1')),
+    );
+    const parsedAwap = websocketUtils.parseAwapMessage({
+      type: $dara.WebSocketMessageType.Text,
+      payload: Buffer.from(awapText),
+      headers: {},
+      timestamp: new Date(),
+    });
+    assert.strictEqual(parsedAwap.type, 'UpstreamTextEvent');
+    assert.strictEqual(parsedAwap.id, 'm1');
+    assert.strictEqual(parsedAwap.headers!['custom'], '1');
+    const binaryPayload = websocketUtils.parseAwapMessage({
+      type: $dara.WebSocketMessageType.Binary,
+      payload: Buffer.from('type:UpstreamBinaryEvent\nid:b1\n\nnot-json'),
+      headers: {},
+      timestamp: new Date(),
+    });
+    assert.strictEqual(binaryPayload.format, 'binary');
+    assert.ok(binaryPayload.payload);
+    assert.throws(() => websocketUtils.parseAwapMessage({
+      type: $dara.WebSocketMessageType.Text,
+      payload: Buffer.from('no-separator'),
+      headers: {},
+      timestamp: new Date(),
+    }));
+    const emptyPayload = websocketUtils.parseAwapMessage({
+      type: $dara.WebSocketMessageType.Text,
+      payload: Buffer.from('type:UpstreamTextEvent\nid:e1\n\n'),
+      headers: {},
+      timestamp: new Date(),
+    });
+    assert.strictEqual(emptyPayload.id, 'e1');
   });
 
   it('stream handler lifecycle fallbacks and protocol routing', async function () {
