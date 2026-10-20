@@ -170,4 +170,102 @@ describe('extra websocket coverage', function () {
     });
     assert.strictEqual(parsedText.format, 'text');
   });
+
+  it('stream handler lifecycle fallbacks and protocol routing', async function () {
+    const session = {} as any;
+    const errors: Error[] = [];
+    class RecordingHandler extends $dara.AbstractWebSocketHandler {
+      established = false;
+      closed = false;
+      raw = 0;
+      awap = 0;
+      general = 0;
+      awapErr: Error | null = null;
+      afterConnectionEstablished() { this.established = true; }
+      afterConnectionClosed() { this.closed = true; }
+      handleError(_s: any, err: Error) { errors.push(err); }
+      handleRawMessage() { this.raw++; }
+      async handleAwapMessage() {
+        this.awap++;
+        if (this.awapErr) {
+          throw this.awapErr;
+        }
+      }
+      async handleGeneralMessage() { this.general++; }
+    }
+
+    const user = new RecordingHandler();
+    const handler = new websocketUtils.StreamHandler(user, websocketUtils.SubProtocolAWAP);
+    await handler.afterConnectionEstablished(session);
+    assert.ok(user.established);
+    await handler.afterConnectionClosed(session, 1000, 'bye');
+    assert.ok(user.closed);
+    await handler.handleError(session, new Error('x'));
+    assert.ok(errors.length >= 1);
+
+    const text = websocketUtils.buildAwapMessageText(
+      websocketUtils.newAwapMessage({ x: '1' }, websocketUtils.withType('UpstreamTextEvent'), websocketUtils.withID('m1')),
+    );
+    const raw: $dara.WebSocketMessage = {
+      type: $dara.WebSocketMessageType.Text,
+      payload: Buffer.from(text),
+      headers: {},
+      timestamp: new Date(),
+    };
+    await handler.handleRawMessage(session, raw);
+    assert.strictEqual(user.awap, 1);
+
+    const plain = new $dara.AbstractWebSocketHandler();
+    await new websocketUtils.StreamHandler(plain, websocketUtils.SubProtocolAWAP).handleRawMessage(session, raw);
+
+    class RawFallback extends $dara.AbstractWebSocketHandler {
+      raw = 0;
+      async handleAwapMessage() { throw websocketUtils.ErrUseRawMessage; }
+      async handleGeneralMessage() { throw websocketUtils.ErrUseRawMessage; }
+      handleRawMessage() { this.raw++; }
+    }
+    const fallback = new RawFallback();
+    await new websocketUtils.StreamHandler(fallback, websocketUtils.SubProtocolAWAP).handleRawMessage(session, raw);
+    assert.strictEqual(fallback.raw, 1);
+
+    user.awapErr = new Error('awap-fail');
+    await handler.handleRawMessage(session, raw);
+
+    const gmsg: $dara.WebSocketMessage = {
+      type: $dara.WebSocketMessageType.Text,
+      payload: Buffer.from('{"body":"hi"}'),
+      headers: {},
+      timestamp: new Date(),
+    };
+    const generalUser = new RecordingHandler();
+    await new websocketUtils.StreamHandler(generalUser, websocketUtils.SubProtocolGeneral).handleRawMessage(session, gmsg);
+    assert.strictEqual(generalUser.general, 1);
+    await new websocketUtils.StreamHandler(plain, websocketUtils.SubProtocolGeneral).handleRawMessage(session, gmsg);
+    await new websocketUtils.StreamHandler(fallback, websocketUtils.SubProtocolGeneral).handleRawMessage(session, gmsg);
+    assert.strictEqual(fallback.raw, 2);
+
+    class BoomGeneral extends $dara.AbstractWebSocketHandler {
+      async handleGeneralMessage() { throw new Error('boom'); }
+      handleError(_s: any, err: Error) { errors.push(err); }
+    }
+    await new websocketUtils.StreamHandler(new BoomGeneral(), websocketUtils.SubProtocolGeneral).handleRawMessage(session, gmsg);
+    assert.ok(errors.length >= 2);
+
+    try {
+      await websocketUtils.AbstractAwapWebSocketHandler.prototype.handleAwapMessage.call(
+        new websocketUtils.AbstractAwapWebSocketHandler(), session, {} as any,
+      );
+      assert.fail();
+    } catch (err) {
+      assert.strictEqual(err, websocketUtils.ErrUseRawMessage);
+    }
+    try {
+      await websocketUtils.AbstractGeneralWebSocketHandler.prototype.handleGeneralMessage.call(
+        new websocketUtils.AbstractGeneralWebSocketHandler(), session, {} as any,
+      );
+      assert.fail();
+    } catch (err) {
+      assert.strictEqual(err, websocketUtils.ErrUseRawMessage);
+    }
+  });
 });

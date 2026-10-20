@@ -416,3 +416,25 @@ class TestExtraCoverage(unittest.TestCase):
 
         events = loop.run_until_complete(collect_sse())
         self.assertGreaterEqual(len(events), 0)
+
+    @httpretty.activate
+    def test_direct_do_rpc_roa_and_request(self):
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/', body=self._json_ok)
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/test', body=self._json_ok)
+        runtime = RuntimeOptions(ignore_ssl=True)
+        request = OpenApiRequest(body={'key1': 'value'})
+        client = self._client()
+        self.assertEqual(200, client.do_rpcrequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, client.do_roarequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, client.do_roarequest_with_form(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, client.do_request(Params(
+            action='TestAPI', version='2022-06-01', protocol='HTTPS',
+            pathname='/test', method='POST', auth_type='Anonymous',
+            style='RPC', req_body_type='json', body_type='none',
+        ), request, runtime)['statusCode'])

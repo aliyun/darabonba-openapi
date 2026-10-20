@@ -1948,4 +1948,144 @@ describe('extra client coverage', function () {
     }), createRuntimeOptions());
     assert.strictEqual(result.statusCode, 200);
   });
+
+  it('bearer websocket xml 204 array and direct methods', async function () {
+    const port = (server.address() as AddressInfo).port;
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+
+    const bearer = new OpenApi(new $OpenApiUtil.Config({
+      bearerToken: 'token',
+      endpoint: `127.0.0.1:${port}`,
+      protocol: 'HTTP',
+    }));
+    assert.strictEqual(await bearer.getBearerToken(), 'token');
+    assert.strictEqual(await bearer.getType(), 'bearer');
+    let result = await bearer.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    const client = new OpenApi(config);
+
+    const wsClient = new OpenApi(new $OpenApiUtil.Config({
+      accessKeyId: 'ak',
+      accessKeySecret: 'sk',
+      endpoint: `127.0.0.1:${port}`,
+      protocol: 'ws',
+    }));
+    const wsParams = new $OpenApiUtil.Params({
+      action: 'TestAction',
+      version: '2020-01-01',
+      protocol: 'ws',
+      pathname: '/ws',
+      method: 'GET',
+      authType: 'AK',
+      bodyType: 'string',
+      reqBodyType: 'json',
+    });
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), runtime), /websocketSubProtocol is required/);
+    wsParams.websocketSubProtocol = 'invalid';
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), runtime), /must be 'awap' or 'general'/);
+    wsParams.websocketSubProtocol = 'awap';
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), createRuntimeOptions()), /WebSocketHandler is required/);
+
+    const xmlRuntime = createRuntimeOptions();
+    xmlRuntime.extendsParameters.headers['bodyType'] = 'xml';
+    const xmlRequest = createOpenApiRequest();
+    xmlRequest.headers = { ...xmlRequest.headers, bodyType: 'xml' };
+    try {
+      await client.callApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), xmlRequest, xmlRuntime);
+      assert.fail('expected xml error');
+    } catch (err) {
+      assert.ok(err);
+    }
+
+    const v2Config = createConfig();
+    v2Config.protocol = 'HTTP';
+    v2Config.signatureAlgorithm = 'v2';
+    v2Config.endpoint = `127.0.0.1:${port}`;
+    const v2 = new OpenApi(v2Config);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+
+    const arrayRuntime = createRuntimeOptions();
+    arrayRuntime.extendsParameters.headers['bodyType'] = 'array';
+    const arrayRequest = createOpenApiRequest();
+    arrayRequest.headers = { ...arrayRequest.headers, bodyType: 'array' };
+    result = await client.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'array',
+    }), arrayRequest, arrayRuntime);
+    assert.ok(Array.isArray(result.body) || result.body);
+
+    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'none',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+  });
 });
