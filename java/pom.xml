@@ -149,6 +149,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.4</version>
+                <configuration>
+                    <destFile>${project.build.directory}/coverage.exec</destFile>
+                    <dataFile>${project.build.directory}/coverage.exec</dataFile>
+                    <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-instrument</id>
@@ -171,6 +176,7 @@
                         </goals>
                         <configuration>
                             <dataFile>${project.build.directory}/coverage.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

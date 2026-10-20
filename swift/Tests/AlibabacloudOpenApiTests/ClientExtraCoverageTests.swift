@@ -1,0 +1,308 @@
+import Foundation
+import XCTest
+import TeaUtils
+@testable import AlibabacloudOpenApi
+
+final class ClientExtraCoverageTests: XCTestCase {
+    func testConstructorsHelpersAndModels() async throws {
+        let empty = try Client(Config([
+            "endpoint": "example.com"
+        ]))
+        let accessKeyId = try await empty.getAccessKeyId()
+        let accessKeySecret = try await empty.getAccessKeySecret()
+        let token = try await empty.getSecurityToken()
+        let bearer = try await empty.getBearerToken()
+        let type = try await empty.getType()
+        XCTAssertEqual(accessKeyId, "")
+        XCTAssertEqual(accessKeySecret, "")
+        XCTAssertEqual(token, "")
+        XCTAssertEqual(bearer, "")
+        XCTAssertEqual(type, "")
+        XCTAssertFalse(empty.getUserAgent().isEmpty)
+
+        XCTAssertThrowsError(try empty.checkConfig(Config([:])))
+        try empty.checkConfig(Config(["endpoint": "example.com"]))
+
+        try empty.setRpcHeaders(["debug": "1"])
+        XCTAssertEqual(try empty.getRpcHeaders()["debug"], "1")
+        XCTAssertEqual(try empty.getRpcHeaders().count, 0)
+
+        XCTAssertEqual(Client.defaultAny(nil, "fb") as? String, "fb")
+        XCTAssertEqual(Client.defaultAny("keep", "fb") as? String, "keep")
+
+        let bearerClient = try Client(Config([
+            "bearerToken": "token",
+            "endpoint": "example.com"
+        ]))
+        let bearerToken = try await bearerClient.getBearerToken()
+        let bearerType = try await bearerClient.getType()
+        XCTAssertEqual(bearerToken, "token")
+        XCTAssertEqual(bearerType, "bearer")
+
+        let ak = try Client(Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "sk",
+            "endpoint": "example.com"
+        ]))
+        let akId = try await ak.getAccessKeyId()
+        let akSecret = try await ak.getAccessKeySecret()
+        let akType = try await ak.getType()
+        XCTAssertEqual(akId, "ak")
+        XCTAssertEqual(akSecret, "sk")
+        XCTAssertEqual(akType, "access_key")
+
+        let config = Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "sk",
+            "securityToken": "st",
+            "bearerToken": "bt",
+            "protocol": "HTTP",
+            "method": "POST",
+            "regionId": "cn-hangzhou",
+            "readTimeout": 1000,
+            "connectTimeout": 1000,
+            "httpProxy": "http://127.0.0.1",
+            "httpsProxy": "https://127.0.0.1",
+            "endpoint": "example.com",
+            "noProxy": "localhost",
+            "maxIdleConns": 10,
+            "network": "public",
+            "userAgent": "ua",
+            "suffix": "sfx",
+            "socks5Proxy": "socks5://127.0.0.1",
+            "socks5NetWork": "tcp",
+            "endpointType": "regional",
+            "openPlatformEndpoint": "open.aliyun.com",
+            "type": "access_key",
+            "signatureVersion": "v4",
+            "signatureAlgorithm": "ACS3-HMAC-SHA256",
+            "key": "k",
+            "cert": "c",
+            "ca": "ca",
+            "disableHttp2": true,
+            "tlsMinVersion": "1.2"
+        ])
+        try config.validate()
+        XCTAssertEqual(config.toMap()["endpoint"] as? String, "example.com")
+        XCTAssertEqual(config.toMap()["protocol"] as? String, "HTTP")
+
+        let params = Params([
+            "action": "A",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/",
+            "method": "POST",
+            "authType": "AK",
+            "bodyType": "json",
+            "reqBodyType": "json",
+            "style": "RPC"
+        ])
+        try params.validate()
+        XCTAssertEqual(params.toMap()["action"] as? String, "A")
+        XCTAssertEqual(params.toMap()["style"] as? String, "RPC")
+
+        let global = GlobalParameters([
+            "headers": ["h": "1"],
+            "queries": ["q": "2"]
+        ])
+        try global.validate()
+        XCTAssertEqual((global.toMap()["headers"] as? [String: String])?["h"], "1")
+        let restoredGlobal = GlobalParameters()
+        restoredGlobal.fromMap(nil)
+        restoredGlobal.fromMap(global.toMap())
+        XCTAssertEqual(restoredGlobal.queries?["q"], "2")
+    }
+
+    func testCallApiPaths() async throws {
+        let server = TinyHTTPServer()
+        defer { server.stop() }
+
+        let runtime = TeaUtils.RuntimeOptions([:])
+        runtime.ignoreSSL = true
+        runtime.connectTimeout = 5000
+        runtime.readTimeout = 5000
+        runtime.maxAttempts = 1
+        let request = OpenApiRequest([
+            "headers": ["for-test": "sdk"],
+            "query": ["k": "v"],
+            "body": ["key1": "value"]
+        ])
+        let config = Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "secret",
+            "endpoint": "127.0.0.1:\(server.port)",
+            "protocol": "HTTP",
+            "signatureAlgorithm": "ACS3-HMAC-SHA256"
+        ])
+        let client = try Client(config)
+        let params = Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "Anonymous",
+            "style": "RPC",
+            "reqBodyType": "json",
+            "bodyType": "json"
+        ])
+        func statusCode(_ result: [String: Any]) -> Int {
+            if let n = result["statusCode"] as? Int { return n }
+            if let n = result["statusCode"] as? Int32 { return Int(n) }
+            if let n = result["statusCode"] as? Int64 { return Int(n) }
+            if let n = result["statusCode"] as? NSNumber { return n.intValue }
+            return 0
+        }
+
+        let probe = URL(string: "http://127.0.0.1:\(server.port)/test")!
+        let (_, probeResp) = try await URLSession.shared.data(from: probe)
+        XCTAssertEqual((probeResp as? HTTPURLResponse)?.statusCode, 200)
+
+        let jsonResult = try await client.callApi(params, request, runtime)
+        XCTAssertEqual(statusCode(jsonResult), 200)
+
+        params.bodyType = "none"
+        let noneResult = try await client.callApi(params, request, runtime)
+        XCTAssertEqual(statusCode(noneResult), 200)
+
+        params.bodyType = "string"
+        let stringResult = try await client.callApi(params, request, runtime)
+        XCTAssertNotNil(stringResult["body"])
+
+        params.bodyType = "byte"
+        let byteResult = try await client.callApi(params, request, runtime)
+        XCTAssertNotNil(byteResult["body"])
+
+        params.bodyType = "array"
+        params.pathname = "/array"
+        let arrayResult = try await client.callApi(params, request, runtime)
+        XCTAssertEqual(statusCode(arrayResult), 200)
+
+        params.bodyType = "json"
+        params.pathname = "/xml"
+        do {
+            _ = try await client.callApi(params, request, runtime)
+            XCTFail("expected xml error")
+        } catch {
+            XCTAssertNotNil(error)
+        }
+
+        let v2 = try Client(Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "secret",
+            "endpoint": "127.0.0.1:\(server.port)",
+            "protocol": "HTTP",
+            "signatureAlgorithm": "v2"
+        ]))
+        let emptyParams = Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/empty",
+            "method": "POST",
+            "authType": "Anonymous",
+            "style": "ROA",
+            "reqBodyType": "json",
+            "bodyType": "json"
+        ])
+        let emptyResult = try await v2.callApi(emptyParams, request, runtime)
+        XCTAssertNotNil(emptyResult["headers"])
+        emptyParams.reqBodyType = "formData"
+        let formEmpty = try await v2.callApi(emptyParams, request, runtime)
+        XCTAssertNotNil(formEmpty["headers"])
+
+        let failParams = Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/server",
+            "method": "POST",
+            "authType": "Anonymous",
+            "style": "ROA",
+            "reqBodyType": "formData",
+            "bodyType": "json"
+        ])
+        do {
+            _ = try await v2.callApi(failParams, request, runtime)
+            XCTFail("expected server error")
+        } catch {
+            XCTAssertNotNil(error)
+        }
+
+        let direct = try await client.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "json", request, runtime)
+        XCTAssertEqual(statusCode(direct), 200)
+        let rpcString = try await client.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "string", request, runtime)
+        XCTAssertEqual(statusCode(rpcString), 200)
+        let rpcNone = try await client.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "none", request, runtime)
+        XCTAssertEqual(statusCode(rpcNone), 200)
+        let roa = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(roa), 200)
+        let roaString = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "string", request, runtime)
+        XCTAssertEqual(statusCode(roaString), 200)
+        let roaForm = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(roaForm), 200)
+        let roaFormNone = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "none", request, runtime)
+        XCTAssertEqual(statusCode(roaFormNone), 200)
+        let doReq = try await client.doRequest(Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "Anonymous",
+            "style": "RPC",
+            "reqBodyType": "json",
+            "bodyType": "json"
+        ]), request, runtime)
+        XCTAssertEqual(statusCode(doReq), 200)
+        let doReqForm = try await client.doRequest(Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "AK",
+            "style": "ROA",
+            "reqBodyType": "formData",
+            "bodyType": "json"
+        ]), request, runtime)
+        XCTAssertEqual(statusCode(doReqForm), 200)
+
+        let v2Rpc = Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/",
+            "method": "POST",
+            "authType": "Anonymous",
+            "style": "RPC",
+            "reqBodyType": "formData",
+            "bodyType": "json"
+        ])
+        let v2RpcResult = try await v2.callApi(v2Rpc, request, runtime)
+        XCTAssertEqual(statusCode(v2RpcResult), 200)
+        v2Rpc.reqBodyType = "json"
+        let v2RpcJson = try await v2.callApi(v2Rpc, request, runtime)
+        XCTAssertEqual(statusCode(v2RpcJson), 200)
+
+        let reqWithHost = OpenApiRequest([
+            "headers": ["for-test": "sdk"],
+            "query": ["k": "v"],
+            "body": ["key1": "value"],
+            "hostMap": ["region": "cn-hangzhou"],
+            "endpointOverride": "127.0.0.1:\(server.port)"
+        ])
+        try reqWithHost.validate()
+        XCTAssertEqual(reqWithHost.toMap()["endpointOverride"] as? String, "127.0.0.1:\(server.port)")
+        XCTAssertEqual((reqWithHost.toMap()["hostMap"] as? [String: String])?["region"], "cn-hangzhou")
+        reqWithHost.fromMap(nil)
+        XCTAssertEqual(reqWithHost.endpointOverride, "127.0.0.1:\(server.port)")
+
+        do {
+            _ = try await client.callApi(Params([:]), request, runtime)
+            XCTFail("expected params validation error")
+        } catch {
+            XCTAssertNotNil(error)
+        }
+    }
+}

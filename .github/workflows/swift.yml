@@ -30,4 +30,21 @@ jobs:
       run: swift build
 
     - name: Test
-      run: swift test
+      run: swift test --enable-code-coverage
+
+    - name: Generate lcov
+      run: |
+        BIN=$(swift test --show-bin-path)
+        xcrun llvm-cov export -format=lcov \
+          "${BIN}/AlibabacloudOpenApiPackageTests.xctest/Contents/MacOS/AlibabacloudOpenApiPackageTests" \
+          -instr-profile "${BIN}/codecov/default.profdata" \
+          -ignore-filename-regex='\.build|Tests' \
+          > coverage.lcov
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: swift/coverage.lcov
+        flags: swift
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false

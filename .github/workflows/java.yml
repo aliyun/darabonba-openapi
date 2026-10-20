@@ -34,5 +34,6 @@ jobs:
       run: mvn test -B
     - uses: codecov/codecov-action@v4
       with:
-        flags: java # optional
+        files: java/target/site/jacoco/jacoco.xml
+        flags: java
         token: ${{ secrets.CODECOV_TOKEN }}

@@ -935,7 +935,7 @@ func TestWebSocketConnectFailureAndInvalidCredentials(t *testing.T) {
 
 type errReader struct{}
 
-func (errReader) Read(p []byte) (int, error) {
+func (*errReader) Read(p []byte) (int, error) {
 	return 0, io.ErrUnexpectedEOF
 }
 
@@ -1019,7 +1019,9 @@ func TestRPCArrayFailingStreamIdTokenAndSPI(t *testing.T) {
 	result, err = acs.CallApiWithCtx(ctx, coverageParams("RPC", "json", "array", "/", "Anonymous"), CreateOpenApiRequest(), runtime)
 	tea_util.AssertNil(t, err)
 
-	failReq := &OpenApiRequest{Stream: errReader{}}
+	// Use a pointer reader: older dara.IsNil panics on a struct value and
+	// treats it as a nil stream, so Go 1.13–1.15 never hit the error path.
+	failReq := &OpenApiRequest{Stream: &errReader{}}
 	_, err = acs.DoRequest(coverageParams("ROA", "json", "json", "/", "Anonymous"), failReq, runtime)
 	tea_util.AssertNotNil(t, err)
 	_, err = acs.DoRequestWithCtx(ctx, coverageParams("ROA", "json", "json", "/", "Anonymous"), failReq, runtime)
