@@ -345,6 +345,32 @@ class ExtraCoverageTest extends TestCase
         $this->assertEquals('1 2', Utils::arrayToStringWithSpecifiedStyle(array('1', '2'), 'Ids', 'spaceDelimited'));
         $this->assertEquals('1|2', Utils::arrayToStringWithSpecifiedStyle(array('1', '2'), 'Ids', 'pipeDelimited'));
 
+        $gpForFlat = GlobalParameters::fromMap(array(
+            'headers' => array('h' => '1'),
+            'queries' => array('q' => '2'),
+        ));
+        $flatGp = Utils::mapToFlatStyle($gpForFlat);
+        $this->assertTrue(is_object($flatGp));
+
+        $stream = null;
+        if (function_exists('GuzzleHttp\\Psr7\\stream_for')) {
+            $stream = call_user_func('GuzzleHttp\\Psr7\\stream_for', 'payload');
+        } elseif (class_exists('GuzzleHttp\\Psr7\\Utils') && method_exists('GuzzleHttp\\Psr7\\Utils', 'streamFor')) {
+            $stream = \GuzzleHttp\Psr7\Utils::streamFor('payload');
+        }
+        if ($stream !== null) {
+            $streamReq = OpenApiRequest::fromMap(array(
+                'stream' => $stream,
+                'body' => array('k' => 'v'),
+                'headers' => array('h' => '1'),
+            ));
+            $this->assertNotNull($streamReq->toArray()['stream']);
+            $this->assertEquals('v', $streamReq->toMap()['body']['k']);
+            $destReq = new OpenApiRequest();
+            Utils::convert($streamReq, $destReq);
+            $this->assertEquals('v', $destReq->body['k']);
+        }
+
         $sm3 = new \Darabonba\OpenApi\Sm3();
         $this->assertEquals(64, strlen($sm3->sign('')));
         $this->assertEquals(64, strlen($sm3->sign(str_repeat('a', 80))));

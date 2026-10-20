@@ -1060,6 +1060,18 @@ func TestRPCArrayFailingStreamIdTokenAndSPI(t *testing.T) {
 	tea_util.AssertNil(t, err)
 	result, err = v2ID.CallApiWithCtx(ctx, coverageParams("ROA", "formData", "json", "/", "AK"), CreateOpenApiRequest(), runtime)
 	tea_util.AssertNil(t, err)
+	result, err = v2ID.CallApi(coverageParams("RPC", "formData", "json", "/", "AK"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	result, err = v2ID.CallApi(coverageParams("ROA", "json", "json", "/", "AK"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	result, err = v2ID.CallApi(coverageParams("ROA", "formData", "json", "/", "AK"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	result, err = v2ID.DoRPCRequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("json"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	result, err = v2ID.DoROARequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("/"), tea.String("json"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	result, err = v2ID.DoROARequestWithForm(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("/"), tea.String("json"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
 
 	failCred := newCoverageClient(t, jsonEndpoint)
 	failCred.Credential = &mockCredential{err: io.ErrUnexpectedEOF}

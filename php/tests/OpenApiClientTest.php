@@ -1002,8 +1002,44 @@ class OpenApiClientTest extends TestCase
         $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
         $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
         $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'string', $request, $runtime));
         $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
         $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'RPC',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
 
         $client->setRpcHeaders(array('rpc-key' => 'rpc-value'));
         $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $request, $runtime));

@@ -279,5 +279,54 @@ public class ClientExtraCoverageTest {
                 new TeaPair("bodyType", "string")
         )), request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
+
+        result = v2.doRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.doRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "string", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.doROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.doROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "string", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.doROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.doROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "byte", request, runtime);
+        Assert.assertNotNull(result.get("body"));
+        result = v2.callApi(Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "RPC"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        )), request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.callApi(Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        )), request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = v2.callApi(Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "AK"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "formData"),
+                new TeaPair("bodyType", "json")
+        )), request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
     }
 }

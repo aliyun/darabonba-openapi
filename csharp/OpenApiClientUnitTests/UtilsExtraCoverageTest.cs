@@ -164,9 +164,32 @@ namespace OpenApiClientUnitTests
             {
                 { "Empty", "" },
                 { "Nested", new Dictionary<string, object> { { "k", "v" } } },
-                { "List", new List<object> { 1, 2 } }
+                { "List", new List<object> { 1, 2 } },
+                { "Model", new Params { Action = "DescribeRegions", Version = "2014-05-26" } },
+                { "Skip", null }
             });
             Assert.Equal("v", querySpecial["Nested.k"]);
+            Assert.Equal("DescribeRegions", querySpecial["Model.action"]);
+
+            var jsonStyle = Utils.ArrayToStringWithSpecifiedStyle(new List<object>
+            {
+                new Dictionary<string, object>
+                {
+                    { "keep", "v" },
+                    { "nil", null },
+                    { "model", new Params { Action = "A" } }
+                }
+            }, "Ids", "json");
+            Assert.Contains("keep", jsonStyle);
+
+            var flatModel = Utils.MapToFlatStyle(new Params { Action = "A", Version = "v" });
+            Assert.NotNull(flatModel);
+            var flatList = Utils.MapToFlatStyle(new List<object>
+            {
+                new Dictionary<string, object> { { "Name", "aliyun" } },
+                "plain"
+            });
+            Assert.NotNull(flatList);
         }
     }
 }

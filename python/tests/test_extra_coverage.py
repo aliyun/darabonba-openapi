@@ -458,3 +458,58 @@ class TestExtraCoverage(unittest.TestCase):
             pathname='/test', method='POST', auth_type='Anonymous',
             style='RPC', req_body_type='json', body_type='none',
         ), request, runtime)['statusCode'])
+
+        v2 = self._client(signature_algorithm='v2')
+        self.assertEqual(200, v2.do_rpcrequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.do_rpcrequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'string', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.do_roarequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.do_roarequest(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.do_roarequest_with_form(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.do_roarequest_with_form(
+            'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', request, runtime,
+        )['statusCode'])
+        self.assertEqual(200, v2.call_api(Params(
+            action='TestAPI', version='2022-06-01', protocol='HTTPS',
+            pathname='/', method='POST', auth_type='AK',
+            style='RPC', req_body_type='formData', body_type='json',
+        ), request, runtime)['statusCode'])
+        self.assertEqual(200, v2.call_api(Params(
+            action='TestAPI', version='2022-06-01', protocol='HTTPS',
+            pathname='/test', method='POST', auth_type='AK',
+            style='ROA', req_body_type='json', body_type='json',
+        ), request, runtime)['statusCode'])
+        self.assertEqual(200, v2.call_api(Params(
+            action='TestAPI', version='2022-06-01', protocol='HTTPS',
+            pathname='/test', method='POST', auth_type='AK',
+            style='ROA', req_body_type='formData', body_type='json',
+        ), request, runtime)['statusCode'])
+
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/xml', body=lambda req, uri, headers: [
+            400, {**headers, 'content-type': 'text/xml;charset=utf-8'},
+            '<?xml version="1.0"?><Error><Code>Invalid</Code><Message>xml error</Message><RequestId>xml-id</RequestId></Error>'
+        ])
+        xml_request = OpenApiRequest(body={'key1': 'value'})
+        with self.assertRaises(Exception):
+            client.do_roarequest(
+                'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/xml', 'json', xml_request, runtime,
+            )
+        with self.assertRaises(Exception):
+            client.do_roarequest_with_form(
+                'TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/xml', 'json', xml_request, runtime,
+            )
+        with self.assertRaises(Exception):
+            client.do_request(Params(
+                action='TestAPI', version='2022-06-01', protocol='HTTPS',
+                pathname='/xml', method='POST', auth_type='Anonymous',
+                style='ROA', req_body_type='json', body_type='json',
+            ), xml_request, runtime)

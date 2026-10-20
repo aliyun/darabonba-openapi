@@ -352,6 +352,40 @@ final class ClientExtraCoverageTests: XCTestCase {
         v2Rpc.reqBodyType = "json"
         let v2RpcJson = try await v2.callApi(v2Rpc, request, runtime)
         XCTAssertEqual(statusCode(v2RpcJson), 200)
+        v2Rpc.authType = "AK"
+        v2Rpc.reqBodyType = "formData"
+        let v2RpcAk = try await v2.callApi(v2Rpc, request, runtime)
+        XCTAssertEqual(statusCode(v2RpcAk), 200)
+        let v2RoaAk = try await v2.callApi(Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "AK",
+            "style": "ROA",
+            "reqBodyType": "json",
+            "bodyType": "json"
+        ]), request, runtime)
+        XCTAssertEqual(statusCode(v2RoaAk), 200)
+        let v2RoaFormAk = try await v2.callApi(Params([
+            "action": "TestAPI",
+            "version": "2022-06-01",
+            "protocol": "HTTP",
+            "pathname": "/test",
+            "method": "POST",
+            "authType": "AK",
+            "style": "ROA",
+            "reqBodyType": "formData",
+            "bodyType": "json"
+        ]), request, runtime)
+        XCTAssertEqual(statusCode(v2RoaFormAk), 200)
+        let v2DoRpcAk = try await v2.doRPCRequest("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "json", request, runtime)
+        XCTAssertEqual(statusCode(v2DoRpcAk), 200)
+        let v2DoRoaAk = try await v2.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(v2DoRoaAk), 200)
+        let v2DoFormAk = try await v2.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(v2DoFormAk), 200)
 
         let reqWithHost = OpenApiRequest([
             "headers": ["for-test": "sdk"],

@@ -149,6 +149,7 @@ describe('extra util and model coverage', function () {
     const gp = new GlobalParameters({ headers: { h: '1' }, queries: { q: '2' } });
     assert.strictEqual(GlobalParameters.names().headers, 'headers');
     assert.ok(GlobalParameters.types().headers);
+    assert.strictEqual(gp.toMap().headers.h, '1');
     assert.strictEqual(OpenApiConfig.names().endpoint, 'endpoint');
     assert.ok(OpenApiConfig.types().endpoint);
     assert.strictEqual(Params.names().action, 'action');
@@ -202,6 +203,14 @@ describe('extra util and model coverage', function () {
       endpointOverride: 'oss.aliyuncs.com',
     });
     assert.strictEqual(apiReq.endpointOverride, 'oss.aliyuncs.com');
+    const reqMap = apiReq.toMap();
+    assert.strictEqual(reqMap.hostMap.region, 'cn-hangzhou');
+    assert.strictEqual(reqMap.endpointOverride, 'oss.aliyuncs.com');
+    const paramsMap = dest.toMap();
+    assert.strictEqual(paramsMap.action, 'DescribeRegions');
+    const cfgMap = cfg.toMap();
+    assert.strictEqual(cfgMap.endpoint, 'example.com');
+    assert.strictEqual(cfgMap.protocol, 'HTTP');
   });
 });
 
