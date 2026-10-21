@@ -1009,8 +1009,8 @@ open class Client {
                 var requestContext: AlibabacloudGatewaySPI.InterceptorContext.Request = AlibabacloudGatewaySPI.InterceptorContext.Request([
                     "headers": Tea.TeaConverter.merge([:], globalHeaders, extendsHeaders, request.headers ?? [:], headers),
                     "query": Tea.TeaConverter.merge([:], globalQueries, extendsQueries, request.query ?? [:]),
-                    "body": request.body ?? [:],
-                    "stream": request.stream ?? Tea.TeaCore.toReadable(""),
+                    "body": request.body!,
+                    "stream": request.stream!,
                     "hostMap": request.hostMap ?? [:],
                     "pathname": params.pathname ?? "",
                     "productId": self._productId ?? "",
@@ -1098,18 +1098,10 @@ open class Client {
                 ])
                 interceptorContext.response = responseContext
                 try await self._spi!.modifyResponse(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
-                var resultBody: Any = interceptorContext.response?.deserializedBody ?? ["ok": true]
-                if let respBody = _response.body {
-                    do {
-                        resultBody = try await TeaUtils.Client.readAsJSON(respBody)
-                    } catch {
-                        resultBody = interceptorContext.response?.deserializedBody ?? ["ok": true]
-                    }
-                }
                 return [
-                    "headers": _response.headers,
-                    "statusCode": _response.statusCode,
-                    "body": resultBody
+                    "headers": interceptorContext.response!.headers ?? [:],
+                    "statusCode": interceptorContext.response!.statusCode!,
+                    "body": interceptorContext.response!.deserializedBody!
                 ]
             }
             catch {

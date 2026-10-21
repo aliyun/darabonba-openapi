@@ -32,7 +32,7 @@ final class ExecuteCoverageTests: XCTestCase {
             "hostMap": ["region": "cn-hangzhou"],
             "endpointOverride": "127.0.0.1:\(server.port)"
         ])
-        request.stream = nil
+        request.stream = Tea.TeaCore.toReadable("{}")
 
         let config = AlibabacloudOpenApi.Config([
             "accessKeyId": "ak",
@@ -106,6 +106,8 @@ final class ExecuteCoverageTests: XCTestCase {
                 "headers": ["for-test": "sdk"],
                 "endpointOverride": "127.0.0.1:\(server.port)"
             ])
+            noBody.body = [:]
+            noBody.stream = Tea.TeaCore.toReadable("{}")
             let plain = try await client.execute(emptyMethod, noBody, runtime)
             XCTAssertNotNil(plain["headers"])
         } catch {
