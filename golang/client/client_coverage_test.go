@@ -45,6 +45,9 @@ func (mock *extraMockHandler) ServeHTTP(w http.ResponseWriter, req *http.Request
 	case "array":
 		w.WriteHeader(200)
 		w.Write([]byte(`["AppId","ClassId","UserId"]`))
+	case "badjson":
+		w.WriteHeader(400)
+		w.Write([]byte("not-json"))
 	default:
 		w.WriteHeader(200)
 		w.Write([]byte(`{"AppId":"test","ClassId":"test","UserId":123}`))
@@ -1394,5 +1397,67 @@ func TestContextDirectMethodsRemainingBodies(t *testing.T) {
 	_, err = exec.ExecuteWithCtx(ctx, coverageParams("ROA", "formData", "string", "/test", "AK"), streamReq, runtime)
 	tea_util.AssertNil(t, err)
 	_, err = exec.Execute(coverageParams("RPC", "json", "byte", "/test", "Anonymous"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+}
+
+func TestRPCWithCtxErrorsAndAuthBranches(t *testing.T) {
+	ctx := context.Background()
+	runtime := CreateRuntimeOptions()
+	request := CreateOpenApiRequest()
+
+	empty := newCoverageClient(t, "example.com")
+	empty.Credential = nil
+	empty.DisableSDKError = tea.Bool(true)
+	_, err := empty.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = empty.DoROARequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("/test"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+
+	failCred := newCoverageClient(t, "127.0.0.1:1")
+	failCred.Credential = &mockCredential{err: io.ErrUnexpectedEOF}
+	failCred.DisableSDKError = tea.Bool(true)
+	_, err = failCred.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = failCred.DoRequestWithCtx(ctx, coverageParams("RPC", "json", "json", "/", "AK"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+
+	xmlServer, xmlEndpoint := startMockHTTPServer(&extraMockHandler{content: "xml"})
+	defer xmlServer.Close()
+	xmlClient := newCoverageClient(t, xmlEndpoint)
+	xmlClient.DisableSDKError = tea.Bool(true)
+	_, err = xmlClient.DoRequest(coverageParams("ROA", "json", "json", "/", "Anonymous"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = xmlClient.DoRequestWithCtx(ctx, coverageParams("ROA", "json", "json", "/", "Anonymous"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	_, err = xmlClient.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+
+	badServer, badEndpoint := startMockHTTPServer(&extraMockHandler{content: "badjson"})
+	defer badServer.Close()
+	badClient := newCoverageClient(t, badEndpoint)
+	badClient.DisableSDKError = tea.Bool(true)
+	_, err = badClient.DoRequest(coverageParams("ROA", "json", "json", "/", "Anonymous"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+	sseParams := coverageParams("ROA", "json", "json", "/", "Anonymous")
+	sseParams.Method = tea.String("GET")
+	sseEvents := make(chan *SSEResponse, 1)
+	sseErr := make(chan error, 1)
+	go badClient.CallSSEApi(sseParams, request, runtime, sseEvents, sseErr)
+	for range sseEvents {
+	}
+	tea_util.AssertNotNil(t, <-sseErr)
+
+	bearerCfg := CreateBearerTokenConfig()
+	bearerCfg.Protocol = tea.String("HTTP")
+	jsonServer, jsonEndpoint := startMockHTTPServer(&extraMockHandler{content: "json"})
+	defer jsonServer.Close()
+	bearerCfg.Endpoint = tea.String(jsonEndpoint)
+	bearer, err := NewClient(bearerCfg)
+	tea_util.AssertNil(t, err)
+	bearer.DisableSDKError = tea.Bool(true)
+	_ = bearer.SetRpcHeaders(map[string]*string{"rpc-key": tea.String("rpc-value")})
+	_, err = bearer.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("json"), request, runtime)
+	tea_util.AssertNil(t, err)
+	_, err = bearer.DoRPCRequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("string"), request, runtime)
 	tea_util.AssertNil(t, err)
 }

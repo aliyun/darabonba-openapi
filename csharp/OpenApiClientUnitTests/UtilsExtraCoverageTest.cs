@@ -190,6 +190,21 @@ namespace OpenApiClientUnitTests
                 "plain"
             });
             Assert.NotNull(flatList);
+
+            var fieldModel = new FlatFieldModel
+            {
+                Name = "n",
+                Nested = new Dictionary<string, object> { { "inner", "v" } }
+            };
+            var flatFields = Utils.MapToFlatStyle(fieldModel);
+            Assert.NotNull(flatFields);
+            Assert.Contains("#5#inner", fieldModel.Nested.Keys);
+        }
+
+        private class FlatFieldModel : Model
+        {
+            public string Name;
+            public Dictionary<string, object> Nested;
         }
     }
 }

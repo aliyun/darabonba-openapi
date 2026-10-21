@@ -197,6 +197,14 @@ func TestSendRequestAndComplete(t *testing.T) {
 
 	_, err = client.SendAwapRequestWithAck(NewAwapMessage(map[string]string{"a": "b"}, WithID("ack-004")), time.Millisecond)
 	utils.AssertNotNil(t, err)
+
+	inner.sendErr = &timeoutError{"send failed"}
+	utils.AssertNotNil(t, client.SendRawAwapTextMessage("UpstreamTextEvent", map[string]string{"a": "b"}))
+	utils.AssertNotNil(t, client.SendRawAwapTextMessageWithId("UpstreamTextEvent", "id-err", map[string]string{"a": "b"}))
+	utils.AssertNotNil(t, client.SendRawAwapBinaryMessage("UpstreamBinaryEvent", []byte("y")))
+	utils.AssertNotNil(t, client.SendRawAwapBinaryMessageWithId("UpstreamBinaryEvent", "id-err", []byte("z")))
+	utils.AssertNotNil(t, client.SendGeneralTextMessage("hello"))
+	utils.AssertNotNil(t, client.SendAwapTextMessage(NewAwapMessage(make(chan int), WithType("UpstreamTextEvent"))))
 }
 
 type timeoutError struct{ msg string }

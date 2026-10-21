@@ -49,6 +49,15 @@ describe('extra util and model coverage', function () {
     const endpoint = OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'regional', 'public', '');
     assert.strictEqual(endpoint, 'ecs.cn-hangzhou.aliyuncs.com');
     assert.throws(() => OpenApiUtil.getEndpointRules('ecs', '', 'regional', 'public', ''));
+
+    const req = new OpenApiRequest({
+      headers: { hello: 'world' },
+      query: { q: '1' },
+    });
+    const flattened = OpenApiUtil.mapToFlatStyle(req);
+    assert.ok(flattened);
+    assert.ok(Object.keys(req.headers).some((key) => key.indexOf('#') === 0));
+    assert.deepStrictEqual(OpenApiUtil.mapToFlatStyle(['a', { k: 'v' }])[0], 'a');
   });
 
   it('exceptions and SSEResponse', function () {
@@ -256,6 +265,13 @@ describe('extra websocket coverage', function () {
     await assert.rejects(() => client.sendRequest('', 'text', 1), /cannot be empty/);
     await assert.rejects(() => client.sendRequest('id', '', 1), /cannot be empty/);
     await assert.rejects(() => client.sendRequest('missing', 'payload', 5), /timeout/);
+    const failing = new websocketUtils.WebSocketClient({
+      ...mockWsClient,
+      sendText: async () => { throw new Error('send failed'); },
+    } as any, new $dara.Response(<any>{ statusCode: 101, headers: {} }));
+    await assert.rejects(() => failing.sendRequest('ack-err', 'payload', 20), /send failed/);
+    const ackMsg = websocketUtils.newAwapMessage({ a: 1 }, websocketUtils.withID('ack-1'), websocketUtils.withType('UpstreamTextEvent'));
+    await assert.rejects(() => failing.sendAwapRequestWithAck(ackMsg, 20));
 
     const nonePayload = websocketUtils.newAwapMessage(undefined as any, websocketUtils.withType('UpstreamTextEvent'));
     assert.ok(websocketUtils.buildAwapMessageText(nonePayload).indexOf('{}') >= 0);

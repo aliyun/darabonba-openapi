@@ -51,6 +51,7 @@ func Test_toJSONString(t *testing.T) {
 	utils.AssertEqual(t, "bytes", dara.StringValue(toJSONString([]byte("bytes"))))
 	utils.AssertEqual(t, "reader", dara.StringValue(toJSONString(strings.NewReader("reader"))))
 	utils.AssertEqual(t, `{"k":1}`, dara.StringValue(toJSONString(map[string]int{"k": 1})))
+	utils.AssertNil(t, toJSONString(make(chan int)))
 }
 
 func Test_ParseToMapAndToArrayInvalid(t *testing.T) {
@@ -135,6 +136,7 @@ func Test_MapToFlatStyleMoreCases(t *testing.T) {
 
 	result := MapToFlatStyle(123)
 	utils.AssertEqual(t, 123, result)
+	utils.AssertNotNil(t, MapToFlatStyle([]interface{}{map[string]interface{}{"k": "v"}, 1}))
 }
 
 func Test_rsaSignInvalidKey(t *testing.T) {

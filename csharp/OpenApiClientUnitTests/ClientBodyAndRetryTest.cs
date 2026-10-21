@@ -523,6 +523,31 @@ namespace OpenApiClientUnitTests
                 var result = client.DoRequest(parameters, request, runtime);
                 Assert.Equal(200, TestFixtures.GetStatusCode(result));
             }
+
+            using (var server = new MockHttpServer())
+            {
+                server.PathContent["/"] = "xml";
+                server.PathContent["/xml"] = "xml";
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                var client = new TestClient(config);
+                Assert.ThrowsAny<Exception>(() =>
+                    client.DoRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "json", request, runtime));
+                Assert.ThrowsAny<Exception>(() =>
+                    client.DoRequest(new Params
+                    {
+                        Action = "TestAPI",
+                        Version = "2022-06-01",
+                        Protocol = "HTTPS",
+                        Pathname = "/xml",
+                        Method = "POST",
+                        AuthType = "Anonymous",
+                        Style = "ROA",
+                        ReqBodyType = "json",
+                        BodyType = "json"
+                    }, request, runtime));
+            }
         }
     }
 }
