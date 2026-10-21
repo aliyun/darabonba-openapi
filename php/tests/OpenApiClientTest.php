@@ -18,9 +18,28 @@ use AlibabaCloud\Dara\RetryPolicy\RetryCondition;
 use PHPUnit\Framework\TestCase;
 use AlibabaCloud\Dara\RetryPolicy\RetryOptions;
 
+class ExtraStubGateway extends \Darabonba\GatewaySpi\Client
+{
+    public function modifyConfiguration($context, $attributeMap)
+    {
+        $context->request->protocol = 'HTTP';
+        if ($context->request->headers === null) {
+            $context->request->headers = [];
+        }
+        $context->request->headers['host'] = $context->configuration->endpoint;
+    }
+
+    public function modifyRequest($context, $attributeMap)
+    {
+    }
+
+    public function modifyResponse($context, $attributeMap)
+    {
+    }
+}
+
 /**
  * @internal
- * @coversNothing
  */
 class OpenApiClientTest extends TestCase
 {
@@ -755,5 +774,411 @@ class OpenApiClientTest extends TestCase
 
         $state = self::readThrottlingMockState();
         $this->assertEquals(2, $state['requestCount']);
+    }
+
+    public function testCallApiErrorsXmlEmptyAndDirectMethods()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->endpoint = '127.0.0.1:8000';
+        $client = new OpenApiClient($config);
+        $runtime = self::createRuntimeOptions();
+        $params = new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]);
+
+        $errorTypes = ['error', 'error1', 'error2', 'xml', 'serverError'];
+        foreach ($errorTypes as $bodyType) {
+            $request = self::createOpenApiRequest();
+            $request->headers['bodytype'] = $bodyType;
+            try {
+                $client->callApi($params, $request, $runtime);
+                $this->fail('expected error for bodytype ' . $bodyType);
+            } catch (\Exception $e) {
+                $this->assertNotEmpty($e->getMessage());
+            }
+        }
+
+        $request = self::createOpenApiRequest();
+        $params->bodyType = 'binary';
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+        $params->bodyType = 'none';
+        $response = $client->callApi($params, $request, $runtime);
+        $this->assertNotEmpty($response);
+
+        $v2Config = self::createConfig();
+        $v2Config->protocol = 'HTTP';
+        $v2Config->signatureAlgorithm = 'v2';
+        $v2Config->endpoint = '127.0.0.1:8000';
+        $v2Client = new OpenApiClient($v2Config);
+        $emptyParams = new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/empty',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]);
+        $response = $v2Client->callApi($emptyParams, self::createOpenApiRequest(), $runtime);
+        $this->assertTrue(isset($response['headers']));
+        $emptyParams->reqBodyType = 'formData';
+        $response = $v2Client->callApi($emptyParams, self::createOpenApiRequest(), $runtime);
+        $this->assertTrue(isset($response['headers']));
+
+        $failParams = new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]);
+        $failRequest = self::createOpenApiRequest();
+        $failRequest->headers['bodytype'] = 'serverError';
+        try {
+            $v2Client->callApi($failParams, $failRequest, $runtime);
+            $this->fail('expected ROA json server error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        $failParams->reqBodyType = 'formData';
+        try {
+            $v2Client->callApi($failParams, $failRequest, $runtime);
+            $this->fail('expected ROA form server error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        $failParams->style = 'RPC';
+        $failParams->pathname = '/';
+        try {
+            $v2Client->callApi($failParams, $failRequest, $runtime);
+            $this->fail('expected RPC server error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+
+        $bearer = new OpenApiClient(new Config([
+            'bearerToken' => 'token',
+            'endpoint' => '127.0.0.1:8000',
+            'protocol' => 'HTTP',
+        ]));
+        $this->assertEquals('token', $bearer->getBearerToken());
+        $this->assertEquals('bearer', $bearer->getType());
+        $response = $bearer->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), self::createOpenApiRequest(), $runtime);
+        $this->assertNotEmpty($response);
+
+        $directRequest = self::createOpenApiRequest();
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $directRequest, $runtime));
+        $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $directRequest, $runtime));
+        $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $directRequest, $runtime));
+        $this->assertNotEmpty($client->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'RPC',
+            'reqBodyType' => 'json',
+            'bodyType' => 'string',
+        ]), $directRequest, $runtime));
+
+        $client->setGatewayClient(null);
+        $execConfig = self::createConfig();
+        $execConfig->protocol = 'HTTP';
+        $execConfig->endpoint = '127.0.0.1:8000';
+        $execConfig->signatureVersion = 'v4';
+        $execClient = new OpenApiClient($execConfig);
+        $execClient->setGatewayClient(new ExtraStubGateway());
+        $execClient->setRpcHeaders(['rpc-exec' => '1']);
+        $response = $execClient->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'RPC',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), self::createOpenApiRequest(), $runtime);
+        $this->assertNotEmpty($response);
+        $this->assertNotEmpty($execClient->execute(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'RPC',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), self::createOpenApiRequest(), $runtime));
+    }
+
+    public function testDirectBodyTypesAndRequestBodies()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->endpoint = '127.0.0.1:8000';
+        $client = new OpenApiClient($config);
+        $runtime = self::createRuntimeOptions();
+        $request = self::createOpenApiRequest();
+
+        foreach (array('json', 'string', 'byte', 'none') as $bodyType) {
+            $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', $bodyType, $request, $runtime));
+            $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', $bodyType, $request, $runtime));
+            $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', $bodyType, $request, $runtime));
+        }
+
+        $formReq = self::createOpenApiRequest();
+        $this->assertNotEmpty($client->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'array',
+        ]), $formReq, $runtime));
+
+        $v2Config = self::createConfig();
+        $v2Config->protocol = 'HTTP';
+        $v2Config->signatureAlgorithm = 'v2';
+        $v2Config->endpoint = '127.0.0.1:8000';
+        $v2 = new OpenApiClient($v2Config);
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'RPC',
+            'reqBodyType' => 'json',
+            'bodyType' => 'string',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'none',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'none', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'string', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', $request, $runtime));
+        $this->assertNotEmpty($v2->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'RPC',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $this->assertNotEmpty($v2->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+
+        $client->setRpcHeaders(array('rpc-key' => 'rpc-value'));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $request, $runtime));
+
+        $xmlRequest = self::createOpenApiRequest();
+        $xmlRequest->headers['bodytype'] = 'xml';
+        try {
+            $client->doRequest(new Params([
+                'action' => 'TestAPI',
+                'version' => '2022-06-01',
+                'protocol' => 'HTTPS',
+                'pathname' => '/test',
+                'method' => 'POST',
+                'authType' => 'Anonymous',
+                'style' => 'ROA',
+                'reqBodyType' => 'json',
+                'bodyType' => 'json',
+            ]), $xmlRequest, $runtime);
+            $this->fail('expected xml error');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $xmlRequest, $runtime);
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', $xmlRequest, $runtime);
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', $xmlRequest, $runtime);
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+
+        $execConfig = self::createConfig();
+        $execConfig->protocol = 'HTTP';
+        $execConfig->endpoint = '127.0.0.1:8000';
+        $execConfig->signatureVersion = 'v4';
+        $execClient = new OpenApiClient($execConfig);
+        $execClient->setGatewayClient(new ExtraStubGateway());
+        $hostReq = self::createOpenApiRequest();
+        $hostReq->hostMap = array('region' => 'cn-hangzhou');
+        $hostReq->endpointOverride = '127.0.0.1:8000';
+        foreach (array('json', 'string', 'byte', 'none', 'array') as $execBodyType) {
+            $this->assertNotEmpty($execClient->execute(new Params([
+                'action' => 'TestAPI',
+                'version' => '2022-06-01',
+                'protocol' => 'HTTPS',
+                'pathname' => '/test',
+                'method' => 'POST',
+                'authType' => 'AK',
+                'style' => 'RPC',
+                'reqBodyType' => 'formData',
+                'bodyType' => $execBodyType,
+            ]), $hostReq, $runtime));
+        }
+
+        $sm3Config = self::createConfig();
+        $sm3Config->protocol = 'HTTP';
+        $sm3Config->endpoint = '127.0.0.1:8000';
+        $sm3Config->signatureAlgorithm = 'ACS3-HMAC-SM3';
+        $sm3 = new OpenApiClient($sm3Config);
+        $this->assertNotEmpty($sm3->callApi(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'RPC',
+            'reqBodyType' => 'formData',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+
+        $bearer = new OpenApiClient(new Config([
+            'bearerToken' => 'token',
+            'endpoint' => '127.0.0.1:8000',
+            'protocol' => 'HTTP',
+        ]));
+        $this->assertNotEmpty($bearer->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $emptyRoa = $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime);
+        $this->assertTrue(isset($emptyRoa['headers']));
+        $plainReq = new OpenApiRequest();
+        $emptyPlain = $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $plainReq, $runtime);
+        $this->assertTrue(isset($emptyPlain['headers']));
+        $emptyForm = $client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $plainReq, $runtime);
+        $this->assertTrue(isset($emptyForm['headers']));
+        $arrayReq = new OpenApiRequest(array(
+            'headers' => array('bodytype' => 'array'),
+        ));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'binary',
+        ]), $request, $runtime));
+        $noCred = new OpenApiClient(new Config([
+            'endpoint' => '127.0.0.1:8000',
+            'protocol' => 'HTTP',
+        ]));
+        try {
+            $noCred->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime);
+            $this->fail('expected missing credential');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $noCred->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime);
+            $this->fail('expected missing credential');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
     }
 }

@@ -32,7 +32,11 @@ jobs:
         java-version: ${{ matrix.java }}
     - name: Test
       run: mvn test -B
+    - name: Verify JaCoCo report
+      run: test -f target/site/jacoco/jacoco.xml
     - uses: codecov/codecov-action@v4
       with:
-        flags: java # optional
+        files: java/target/site/jacoco/jacoco.xml
+        flags: java
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false

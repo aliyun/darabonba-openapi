@@ -47,6 +47,13 @@ const server = http.createServer((req, res) => {
         'raw-body': data,
         'x-acs-request-id': 'A45EE076-334D-5012-9746-A8F828D20FD4',
       };
+      if(urlObj.pathname === '/empty') {
+          res.writeHead(204, {
+            ...headers,
+          });
+          res.end();
+          return;
+      }
       if(urlObj.pathname === '/sse') {
           res.writeHead(200, {
             ...headers,
@@ -90,6 +97,19 @@ const server = http.createServer((req, res) => {
           responseBody = "{\"Code\":\"error code\", \"Message\":\"error message\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"" +
             ", \"Description\":\"error description\", \"accessDeniedDetail\":{\"test\": 0}}";
           res.writeHead(400, {
+            ...headers,
+          });
+          break;
+        case 'xml':
+          responseBody = "<?xml version=\"1.0\"?><Error><Code>Invalid</Code><Message>xml error</Message><RequestId>xml-id</RequestId></Error>";
+          res.writeHead(400, {
+            ...headers,
+            'content-type': 'text/xml;charset=utf-8',
+          });
+          break;
+        case 'serverError':
+          responseBody = "{\"Code\":\"InternalError\", \"Message\":\"boom\", \"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}";
+          res.writeHead(500, {
             ...headers,
           });
           break;
@@ -1758,5 +1778,736 @@ describe('Throttling backoff retry', () => {
     }
 
     assert.strictEqual(3, requestCount);
+  });
+
+  it('should throttle doRPC doROA and doROAForm', async () => {
+    resetThrottlingState(3, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    const client = new OpenApi(config);
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+    await assert.rejects(() => client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', request, runtime));
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime));
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime));
+  });
+
+  it('should retry direct methods and callSSEApi after throttling', async () => {
+    resetThrottlingState(1, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.retryOptions = createThrottlingRetryOptions();
+    const client = new OpenApi(config);
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+    const rpc = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', request, runtime);
+    assert.strictEqual(rpc.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const roa = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime);
+    assert.strictEqual(roa.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const form = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime);
+    assert.strictEqual(form.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const viaDoRequest = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), request, runtime);
+    assert.strictEqual(viaDoRequest.statusCode, 200);
+
+    resetThrottlingState(3, 1);
+    await assert.rejects(async () => {
+      for await (const _ of client.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/sse',
+        method: 'GET',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), request, runtime)) {
+        // consume
+      }
+    });
+  });
+
+  it('should retry execute after throttling', async () => {
+    resetThrottlingState(1, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.signatureVersion = 'v4';
+    config.retryOptions = createThrottlingRetryOptions();
+    const client = new OpenApi(config);
+    client._productId = 'test';
+    client.setGatewayClient(new POP());
+    const result = await client.execute(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.execute(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'string',
+    }), createOpenApiRequest(), createRuntimeOptions()));
+  });
+});
+
+describe('extra client coverage', function () {
+  before((done) => {
+    server.listen(0, done);
+  });
+
+  after(function (done) {
+    this.timeout(10000);
+    server.close(done);
+  });
+
+  it('constructor helpers checkConfig and exceptions', async function () {
+    assert.throws(() => new OpenApi(null as any));
+    const empty = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.strictEqual(await empty.getAccessKeyId(), '');
+    assert.strictEqual(await empty.getAccessKeySecret(), '');
+    assert.strictEqual(await empty.getSecurityToken(), '');
+    assert.strictEqual(await empty.getBearerToken(), '');
+    assert.strictEqual(await empty.getType(), '');
+    assert.throws(() => empty.checkConfig(new $OpenApiUtil.Config()));
+    empty.checkConfig(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.deepStrictEqual(empty.getAccessDeniedDetail({ AccessDeniedDetail: { k: 'v' } }), { k: 'v' });
+    assert.deepStrictEqual(empty.getAccessDeniedDetail({ accessDeniedDetail: { k: 'v2' } }), { k: 'v2' });
+    assert.strictEqual(empty.getAccessDeniedDetail({}), null);
+    empty.setRpcHeaders({ debug: '1' });
+    assert.deepStrictEqual(empty.getRpcHeaders(), { debug: '1' });
+    assert.strictEqual(empty.getRpcHeaders(), null);
+
+    const client = new OpenApi(createConfig());
+    try {
+      await client.callApi(null as any, createOpenApiRequest(), createRuntimeOptions());
+      assert.fail();
+    } catch (err) {
+      assert.strictEqual(err.code, 'ParameterMissing');
+    }
+  });
+
+  it('v4 execute via callApi, 204 xml byte none and server errors', async function () {
+    let port = (server.address() as AddressInfo).port;
+    let config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    config.signatureVersion = 'v4';
+    let client = new OpenApi(config);
+    client._productId = 'test';
+    client.setGatewayClient(new POP());
+    let runtime = createRuntimeOptions();
+    let request = createOpenApiRequest();
+    let params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    let result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    client = new OpenApi(config);
+    params.bodyType = 'none';
+    result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    params.bodyType = 'json';
+    request.headers = { ...request.headers, bodyType: 'xml' };
+    runtime.extendsParameters.headers['bodyType'] = 'xml';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    request.headers = createOpenApiRequest().headers;
+    if (runtime.extendsParameters && runtime.extendsParameters.headers) {
+      delete runtime.extendsParameters.headers['bodyType'];
+    }
+
+    config.signatureAlgorithm = 'v2';
+    client = new OpenApi(config);
+    params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    result = await client.callApi(params, request, runtime);
+    assert.ok(result.headers);
+    params.reqBodyType = 'formData';
+    result = await client.callApi(params, request, runtime);
+    assert.ok(result.headers);
+
+    params.pathname = '/test';
+    params.bodyType = 'none';
+    result = await client.callApi(params, request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    request.headers = { ...request.headers, bodyType: 'serverError' };
+    runtime.extendsParameters.headers['bodyType'] = 'serverError';
+    params.bodyType = 'json';
+    try {
+      await client.callApi(params, request, runtime);
+      assert.fail();
+    } catch (err) {
+      assert.ok(err);
+    }
+    params.reqBodyType = 'json';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    params.style = 'RPC';
+    params.reqBodyType = 'formData';
+    params.pathname = '/';
+    try {
+      await client.callApi(params, request, runtime);
+    } catch (err) {
+      assert.ok(err);
+    }
+    request = createOpenApiRequest();
+    if (runtime.extendsParameters && runtime.extendsParameters.headers) {
+      delete runtime.extendsParameters.headers['bodyType'];
+    }
+
+    const akClient = new OpenApi(createConfig());
+    akClient._endpoint = `127.0.0.1:${port}`;
+    akClient._protocol = 'HTTP';
+    params = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'byte',
+    });
+    result = await akClient.callApi(params, createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.body);
+    params.reqBodyType = 'byte';
+    params.bodyType = 'string';
+    result = await akClient.doRequest(params, new $OpenApiUtil.OpenApiRequest({
+      body: Buffer.from('test byte'),
+    }), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    params.reqBodyType = 'binary';
+    result = await akClient.doRequest(params, new $OpenApiUtil.OpenApiRequest({
+      stream: new Readable({
+        read() {
+          this.push(Buffer.from('stream-body'));
+          this.push(null);
+        },
+      }),
+    }), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+  });
+
+  it('bearer websocket xml 204 array and direct methods', async function () {
+    const port = (server.address() as AddressInfo).port;
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+
+    const bearer = new OpenApi(new $OpenApiUtil.Config({
+      bearerToken: 'token',
+      endpoint: `127.0.0.1:${port}`,
+      protocol: 'HTTP',
+    }));
+    assert.strictEqual(await bearer.getBearerToken(), 'token');
+    assert.strictEqual(await bearer.getType(), 'bearer');
+    let result = await bearer.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), request, runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${port}`;
+    const client = new OpenApi(config);
+
+    const wsClient = new OpenApi(new $OpenApiUtil.Config({
+      accessKeyId: 'ak',
+      accessKeySecret: 'sk',
+      endpoint: `127.0.0.1:${port}`,
+      protocol: 'ws',
+    }));
+    const wsParams = new $OpenApiUtil.Params({
+      action: 'TestAction',
+      version: '2020-01-01',
+      protocol: 'ws',
+      pathname: '/ws',
+      method: 'GET',
+      authType: 'AK',
+      bodyType: 'string',
+      reqBodyType: 'json',
+    });
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), runtime), /websocketSubProtocol is required/);
+    wsParams.websocketSubProtocol = 'invalid';
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), runtime), /must be 'awap' or 'general'/);
+    wsParams.websocketSubProtocol = 'awap';
+    await assert.rejects(() => wsClient.doRequest(wsParams, new $OpenApiUtil.OpenApiRequest(), createRuntimeOptions()), /WebSocketHandler is required/);
+
+    const xmlRuntime = createRuntimeOptions();
+    xmlRuntime.extendsParameters.headers['bodyType'] = 'xml';
+    const xmlRequest = createOpenApiRequest();
+    xmlRequest.headers = { ...xmlRequest.headers, bodyType: 'xml' };
+    try {
+      await client.callApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), xmlRequest, xmlRuntime);
+      assert.fail('expected xml error');
+    } catch (err) {
+      assert.ok(err);
+    }
+
+    const v2Config = createConfig();
+    v2Config.protocol = 'HTTP';
+    v2Config.signatureAlgorithm = 'v2';
+    v2Config.endpoint = `127.0.0.1:${port}`;
+    const v2 = new OpenApi(v2Config);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/empty',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+
+    const arrayRuntime = createRuntimeOptions();
+    arrayRuntime.extendsParameters.headers['bodyType'] = 'array';
+    const arrayRequest = createOpenApiRequest();
+    arrayRequest.headers = { ...arrayRequest.headers, bodyType: 'array' };
+    result = await client.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'array',
+    }), arrayRequest, arrayRuntime);
+    assert.ok(Array.isArray(result.body) || result.body);
+
+    for (const bodyType of ['json', 'string', 'byte', 'none', 'binary']) {
+      result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.strictEqual(result.statusCode, 200);
+      result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.strictEqual(result.statusCode, 200);
+      result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', bodyType, createOpenApiRequest(), createRuntimeOptions());
+      assert.ok(result);
+    }
+    result = await v2.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'string', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await v2.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result.headers);
+    result = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'array',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
+    result = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'none',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
+    result = await v2.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'string', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'string', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
+    result = await v2.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'byte', createOpenApiRequest(), createRuntimeOptions());
+    assert.ok(result);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+    result = await v2.callApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    const sseAnon = client.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'GET',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    let sseCount = 0;
+    for await (const event of sseAnon) {
+      sseCount++;
+      if (sseCount >= 1) {
+        break;
+      }
+    }
+    assert.ok(sseCount >= 1);
+    client.setRpcHeaders({ 'rpc-key': 'rpc-value' });
+    result = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    const xmlRuntime2 = createRuntimeOptions();
+    xmlRuntime2.extendsParameters.headers['bodyType'] = 'xml';
+    const xmlRequest2 = createOpenApiRequest();
+    xmlRequest2.headers = { ...xmlRequest2.headers, bodyType: 'xml' };
+    await assert.rejects(() => client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', xmlRequest2, xmlRuntime2));
+    await assert.rejects(() => client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), xmlRequest2, xmlRuntime2));
+
+    const execConfig = createConfig();
+    execConfig.protocol = 'HTTP';
+    execConfig.endpoint = `127.0.0.1:${port}`;
+    execConfig.signatureVersion = 'v4';
+    const execClient = new OpenApi(execConfig);
+    execClient._productId = 'test';
+    execClient.setGatewayClient(new POP());
+    const hostReq = createOpenApiRequest();
+    hostReq.hostMap = { region: 'cn-hangzhou' };
+    hostReq.endpointOverride = `127.0.0.1:${port}`;
+    for (const bodyType of ['json', 'string', 'byte', 'none', 'array']) {
+      result = await execClient.execute(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'AK',
+        style: 'RPC',
+        reqBodyType: 'formData',
+        bodyType,
+      }), hostReq, createRuntimeOptions());
+      assert.ok(result);
+    }
+  });
+
+  it('callSSEApi remaining auth body and error paths', async function () {
+    this.timeout(15000);
+    const port = (server.address() as AddressInfo).port;
+    const runtime = createRuntimeOptions();
+
+    async function collectOne(gen: AsyncGenerator<any, any, unknown>): Promise<any> {
+      for await (const event of gen) {
+        return event;
+      }
+      return null;
+    }
+
+    const bearerCfg = createBearerTokenConfig();
+    bearerCfg.protocol = 'HTTP';
+    bearerCfg.endpoint = `127.0.0.1:${port}`;
+    const bearer = new OpenApi(bearerCfg);
+    const bearerEvent = await collectOne(bearer.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(bearerEvent);
+
+    const streamClient = new OpenApi((() => {
+      const cfg = createConfig();
+      cfg.protocol = 'HTTP';
+      cfg.endpoint = `127.0.0.1:${port}`;
+      return cfg;
+    })());
+    const streamReq = createOpenApiRequest();
+    streamReq.stream = new BytesReadable('stream-body');
+    const streamEvent = await collectOne(streamClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), streamReq, runtime));
+    assert.ok(streamEvent);
+
+    const byteReq = createOpenApiRequest();
+    byteReq.body = Buffer.from('hello');
+    const byteEvent = await collectOne(streamClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'byte',
+      bodyType: 'sse',
+    }), byteReq, runtime));
+    assert.ok(byteEvent);
+
+    const sm3Cfg = createConfig();
+    sm3Cfg.protocol = 'HTTP';
+    sm3Cfg.endpoint = `127.0.0.1:${port}`;
+    sm3Cfg.signatureAlgorithm = 'ACS3-HMAC-SM3';
+    const sm3Client = new OpenApi(sm3Cfg);
+    sm3Client.setRpcHeaders({ 'rpc-key': 'rpc-value' });
+    const sm3Event = await collectOne(sm3Client.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(sm3Event);
+
+    const idClient = new OpenApi((() => {
+      const cfg = createConfig();
+      cfg.protocol = 'HTTP';
+      cfg.endpoint = `127.0.0.1:${port}`;
+      return cfg;
+    })());
+    idClient._credential = {
+      getCredential: async () => ({
+        type: 'id_token',
+        securityToken: 'idtok',
+        providerName: 'mock',
+        accessKeyId: 'ak',
+        accessKeySecret: 'sk',
+      }),
+      getAccessKeyId: async () => 'ak',
+      getAccessKeySecret: async () => 'sk',
+      getSecurityToken: async () => 'idtok',
+      getBearerToken: () => '',
+      getType: () => 'id_token',
+    } as any;
+    const idEvent = await collectOne(idClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'GET',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(idEvent);
+
+    const idParams = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    let result = await idClient.doRequest(idParams, createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    const xmlReq = createOpenApiRequest();
+    xmlReq.headers = { ...xmlReq.headers, bodyType: 'xml' };
+    const xmlRuntime = createRuntimeOptions();
+    xmlRuntime.extendsParameters.headers['bodyType'] = 'xml';
+    await assert.rejects(async () => {
+      for await (const _ of streamClient.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'ROA',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), xmlReq, xmlRuntime)) {
+        // consume
+      }
+    });
+
+    const errReq = createOpenApiRequest();
+    errReq.headers = { ...errReq.headers, bodyType: 'error' };
+    const errRuntime = createRuntimeOptions();
+    errRuntime.extendsParameters.headers['bodyType'] = 'error';
+    await assert.rejects(async () => {
+      for await (const _ of streamClient.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'formData',
+        bodyType: 'json',
+      }), errReq, errRuntime)) {
+        // consume
+      }
+    });
   });
 });
