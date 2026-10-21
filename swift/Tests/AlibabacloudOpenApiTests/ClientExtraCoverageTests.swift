@@ -51,6 +51,17 @@ final class ClientExtraCoverageTests: XCTestCase {
         XCTAssertEqual(akSecret, "sk")
         XCTAssertEqual(akType, "access_key")
 
+        let sts = try Client(Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "sk",
+            "securityToken": "st",
+            "endpoint": "example.com"
+        ]))
+        let stsType = try await sts.getType()
+        let stsToken = try await sts.getSecurityToken()
+        XCTAssertEqual(stsType, "sts")
+        XCTAssertEqual(stsToken, "st")
+
         let config = Config([
             "accessKeyId": "ak",
             "accessKeySecret": "sk",
@@ -82,9 +93,23 @@ final class ClientExtraCoverageTests: XCTestCase {
             "disableHttp2": true,
             "tlsMinVersion": "1.2"
         ])
+        config.globalParameters = GlobalParameters([
+            "headers": ["h": "1"],
+            "queries": ["q": "2"]
+        ])
         try config.validate()
         XCTAssertEqual(config.toMap()["endpoint"] as? String, "example.com")
         XCTAssertEqual(config.toMap()["protocol"] as? String, "HTTP")
+        XCTAssertNotNil(config.toMap()["globalParameters"])
+        let restoredConfig = Config()
+        restoredConfig.fromMap(nil as [String: Any?]?)
+        restoredConfig.fromMap(config.toMap())
+        XCTAssertEqual(restoredConfig.endpoint, "example.com")
+        XCTAssertEqual(restoredConfig.signatureVersion, "v4")
+        restoredConfig.fromMap([
+            "globalParameters": ["headers": ["h": "1"], "queries": ["q": "2"]] as [String: Any?]
+        ])
+        XCTAssertEqual(restoredConfig.globalParameters?.queries?["q"], "2")
 
         let params = Params([
             "action": "A",

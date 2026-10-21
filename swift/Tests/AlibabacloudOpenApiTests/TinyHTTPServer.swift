@@ -48,7 +48,10 @@ final class TinyHTTPServer {
                 status = 200
                 content_type = "application/json"
                 body = b'{"AppId":"test","ClassId":"test","UserId":123}'
-                if path.startswith("/empty"):
+                if (self.headers.get("x-force-error") or "") == "1":
+                    status = 500
+                    body = b'{"Code":"InternalError","Message":"boom","RequestId":"rid"}'
+                elif path.startswith("/empty"):
                     status = 204
                     body = b""
                 elif path.startswith("/xml"):

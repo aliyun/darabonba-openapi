@@ -2243,4 +2243,182 @@ describe('extra client coverage', function () {
       assert.ok(result);
     }
   });
+
+  it('callSSEApi remaining auth body and error paths', async function () {
+    this.timeout(15000);
+    const port = (server.address() as AddressInfo).port;
+    const runtime = createRuntimeOptions();
+
+    async function collectOne(gen: AsyncGenerator<any, any, unknown>): Promise<any> {
+      for await (const event of gen) {
+        return event;
+      }
+      return null;
+    }
+
+    const bearerCfg = createBearerTokenConfig();
+    bearerCfg.protocol = 'HTTP';
+    bearerCfg.endpoint = `127.0.0.1:${port}`;
+    const bearer = new OpenApi(bearerCfg);
+    const bearerEvent = await collectOne(bearer.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(bearerEvent);
+
+    const streamClient = new OpenApi((() => {
+      const cfg = createConfig();
+      cfg.protocol = 'HTTP';
+      cfg.endpoint = `127.0.0.1:${port}`;
+      return cfg;
+    })());
+    const streamReq = createOpenApiRequest();
+    streamReq.stream = new BytesReadable('stream-body');
+    const streamEvent = await collectOne(streamClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), streamReq, runtime));
+    assert.ok(streamEvent);
+
+    const byteReq = createOpenApiRequest();
+    byteReq.body = Buffer.from('hello');
+    const byteEvent = await collectOne(streamClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'byte',
+      bodyType: 'sse',
+    }), byteReq, runtime));
+    assert.ok(byteEvent);
+
+    const sm3Cfg = createConfig();
+    sm3Cfg.protocol = 'HTTP';
+    sm3Cfg.endpoint = `127.0.0.1:${port}`;
+    sm3Cfg.signatureAlgorithm = 'ACS3-HMAC-SM3';
+    const sm3Client = new OpenApi(sm3Cfg);
+    sm3Client.setRpcHeaders({ 'rpc-key': 'rpc-value' });
+    const sm3Event = await collectOne(sm3Client.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(sm3Event);
+
+    const idClient = new OpenApi((() => {
+      const cfg = createConfig();
+      cfg.protocol = 'HTTP';
+      cfg.endpoint = `127.0.0.1:${port}`;
+      return cfg;
+    })());
+    idClient._credential = {
+      getCredential: async () => ({
+        type: 'id_token',
+        securityToken: 'idtok',
+        providerName: 'mock',
+        accessKeyId: 'ak',
+        accessKeySecret: 'sk',
+      }),
+      getAccessKeyId: async () => 'ak',
+      getAccessKeySecret: async () => 'sk',
+      getSecurityToken: async () => 'idtok',
+      getBearerToken: () => '',
+      getType: () => 'id_token',
+    } as any;
+    const idEvent = await collectOne(idClient.callSSEApi(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/sse',
+      method: 'GET',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'sse',
+    }), createOpenApiRequest(), runtime));
+    assert.ok(idEvent);
+
+    const idParams = new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/test',
+      method: 'POST',
+      authType: 'AK',
+      style: 'ROA',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    });
+    let result = await idClient.doRequest(idParams, createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+    result = await idClient.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', createOpenApiRequest(), runtime);
+    assert.strictEqual(result.statusCode, 200);
+
+    const xmlReq = createOpenApiRequest();
+    xmlReq.headers = { ...xmlReq.headers, bodyType: 'xml' };
+    const xmlRuntime = createRuntimeOptions();
+    xmlRuntime.extendsParameters.headers['bodyType'] = 'xml';
+    await assert.rejects(async () => {
+      for await (const _ of streamClient.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'ROA',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), xmlReq, xmlRuntime)) {
+        // consume
+      }
+    });
+
+    const errReq = createOpenApiRequest();
+    errReq.headers = { ...errReq.headers, bodyType: 'error' };
+    const errRuntime = createRuntimeOptions();
+    errRuntime.extendsParameters.headers['bodyType'] = 'error';
+    await assert.rejects(async () => {
+      for await (const _ of streamClient.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/test',
+        method: 'POST',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'formData',
+        bodyType: 'json',
+      }), errReq, errRuntime)) {
+        // consume
+      }
+    });
+  });
 });
