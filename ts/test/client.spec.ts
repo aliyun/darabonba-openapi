@@ -1794,6 +1794,58 @@ describe('Throttling backoff retry', () => {
     resetThrottlingState(3, 1);
     await assert.rejects(() => client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime));
   });
+
+  it('should retry direct methods and callSSEApi after throttling', async () => {
+    resetThrottlingState(1, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.retryOptions = createThrottlingRetryOptions();
+    const client = new OpenApi(config);
+    const runtime = createRuntimeOptions();
+    const request = createOpenApiRequest();
+    const rpc = await client.doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', request, runtime);
+    assert.strictEqual(rpc.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const roa = await client.doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime);
+    assert.strictEqual(roa.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const form = await client.doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'json', request, runtime);
+    assert.strictEqual(form.statusCode, 200);
+
+    resetThrottlingState(1, 1);
+    const viaDoRequest = await client.doRequest(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'AK',
+      style: 'RPC',
+      reqBodyType: 'formData',
+      bodyType: 'json',
+    }), request, runtime);
+    assert.strictEqual(viaDoRequest.statusCode, 200);
+
+    resetThrottlingState(3, 1);
+    await assert.rejects(async () => {
+      for await (const _ of client.callSSEApi(new $OpenApiUtil.Params({
+        action: 'TestAPI',
+        version: '2022-06-01',
+        protocol: 'HTTPS',
+        pathname: '/sse',
+        method: 'GET',
+        authType: 'Anonymous',
+        style: 'RPC',
+        reqBodyType: 'json',
+        bodyType: 'json',
+      }), request, runtime)) {
+        // consume
+      }
+    });
+  });
 });
 
 describe('extra client coverage', function () {

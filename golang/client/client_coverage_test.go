@@ -1264,4 +1264,135 @@ func TestCallSSEApiRemainingBodiesAndAuth(t *testing.T) {
 	for range downEvents {
 	}
 	tea_util.AssertNotNil(t, <-downErr)
+
+	ctx := context.Background()
+	rpcCtxEvents := make(chan *SSEResponse, 1)
+	rpcCtxErr := make(chan error, 1)
+	go rpcClient.CallSSEApiWithCtx(ctx, rpcParams, request, runtime, rpcCtxEvents, rpcCtxErr)
+	for range rpcCtxEvents {
+	}
+	<-rpcCtxErr
+
+	bearerCtxEvents := make(chan *SSEResponse, 1)
+	bearerCtxErr := make(chan error, 1)
+	go bearer.CallSSEApiWithCtx(ctx, bearerParams, request, runtime, bearerCtxEvents, bearerCtxErr)
+	for range bearerCtxEvents {
+	}
+	<-bearerCtxErr
+
+	failCtxEvents := make(chan *SSEResponse, 1)
+	failCtxErr := make(chan error, 1)
+	go failCred.CallSSEApiWithCtx(ctx, failParams, request, runtime, failCtxEvents, failCtxErr)
+	for range failCtxEvents {
+	}
+	tea_util.AssertNotNil(t, <-failCtxErr)
+
+	streamParams := coverageParams("ROA", "json", "json", "/sse", "Anonymous")
+	streamParams.Method = tea.String("GET")
+	streamReq := &OpenApiRequest{Stream: strings.NewReader("sse-stream")}
+	streamEvents := make(chan *SSEResponse, 1)
+	streamErr := make(chan error, 1)
+	go rpcClient.CallSSEApiWithCtx(ctx, streamParams, streamReq, runtime, streamEvents, streamErr)
+	for range streamEvents {
+	}
+	<-streamErr
+
+	idClient := newCoverageClient(t, endpoint)
+	idClient.Credential = &mockCredential{model: &credential.CredentialModel{
+		Type:          tea.String("id_token"),
+		SecurityToken: tea.String("id-token-value"),
+		ProviderName:  tea.String("mock"),
+	}}
+	idParams := coverageParams("ROA", "json", "json", "/sse", "AK")
+	idParams.Method = tea.String("GET")
+	idEvents := make(chan *SSEResponse, 1)
+	idErr := make(chan error, 1)
+	go idClient.CallSSEApiWithCtx(ctx, idParams, request, runtime, idEvents, idErr)
+	for range idEvents {
+	}
+	<-idErr
+
+	xmlServer, xmlEndpoint := startMockHTTPServer(&extraMockHandler{content: "xml"})
+	defer xmlServer.Close()
+	xmlClient := newCoverageClient(t, xmlEndpoint)
+	xmlParams := coverageParams("ROA", "json", "json", "/", "Anonymous")
+	xmlParams.Method = tea.String("GET")
+	xmlEvents := make(chan *SSEResponse, 1)
+	xmlErr := make(chan error, 1)
+	go xmlClient.CallSSEApiWithCtx(ctx, xmlParams, request, runtime, xmlEvents, xmlErr)
+	for range xmlEvents {
+	}
+	tea_util.AssertNotNil(t, <-xmlErr)
+}
+
+func TestContextDirectMethodsRemainingBodies(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/", &extraMockHandler{content: "json"})
+	mux.Handle("/test", &extraMockHandler{content: "json"})
+	mux.Handle("/array", &extraMockHandler{content: "array"})
+	mux.Handle("/empty", &extraMockHandler{content: "empty204"})
+	mux.Handle("/serverError", &extraMockHandler{content: "serverError"})
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
+	ctx := context.Background()
+	runtime := CreateRuntimeOptions()
+	request := CreateOpenApiRequest()
+	client := newCoverageClient(t, endpoint)
+	client.DisableSDKError = tea.Bool(true)
+
+	for _, bodyType := range []string{"binary", "byte", "string", "json", "array", "none"} {
+		path := "/"
+		if bodyType == "array" {
+			path = "/array"
+		}
+		_, err := client.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String(bodyType), request, runtime)
+		if bodyType == "array" {
+			_ = err
+		} else {
+			tea_util.AssertNil(t, err)
+		}
+		_, err = client.DoROARequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String(path), tea.String(bodyType), request, runtime)
+		tea_util.AssertNil(t, err)
+		_, err = client.DoROAFormRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String(path), tea.String(bodyType), request, runtime)
+		tea_util.AssertNil(t, err)
+	}
+
+	empty, err := client.DoROARequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/empty"), tea.String("json"), request, runtime)
+	tea_util.AssertNil(t, err)
+	tea_util.AssertNotNil(t, empty["headers"])
+	empty, err = client.DoROAFormRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/empty"), tea.String("json"), request, runtime)
+	tea_util.AssertNil(t, err)
+
+	_, err = client.DoROAFormRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/serverError"), tea.String("json"), request, runtime)
+	tea_util.AssertNotNil(t, err)
+
+	idClient := newCoverageClient(t, endpoint)
+	idClient.Credential = &mockCredential{model: &credential.CredentialModel{
+		Type:          tea.String("id_token"),
+		SecurityToken: tea.String("id-token-value"),
+		ProviderName:  tea.String("mock"),
+	}}
+	_, err = idClient.DoRPCRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("json"), request, runtime)
+	tea_util.AssertNil(t, err)
+	_, err = idClient.DoROARequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("/test"), tea.String("json"), request, runtime)
+	tea_util.AssertNil(t, err)
+	_, err = idClient.DoROAFormRequestWithCtx(ctx, tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("/test"), tea.String("string"), request, runtime)
+	tea_util.AssertNil(t, err)
+	_, err = idClient.DoRequestWithCtx(ctx, coverageParams("RPC", "json", "json", "/", "AK"), request, runtime)
+	tea_util.AssertNil(t, err)
+
+	exec := newCoverageClient(t, endpoint, func(c *Config) {
+		c.SignatureVersion = tea.String("v4")
+	})
+	exec.ProductId = tea.String("test")
+	gateway, err := pop.NewClient()
+	tea_util.AssertNil(t, err)
+	tea_util.AssertNil(t, exec.SetGatewayClient(gateway))
+	streamReq := CreateOpenApiRequest()
+	streamReq.Stream = strings.NewReader("exec-stream")
+	streamReq.HostMap = map[string]*string{"region": tea.String("cn-hangzhou")}
+	_, err = exec.ExecuteWithCtx(ctx, coverageParams("ROA", "formData", "string", "/test", "AK"), streamReq, runtime)
+	tea_util.AssertNil(t, err)
+	_, err = exec.Execute(coverageParams("RPC", "json", "byte", "/test", "Anonymous"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
 }

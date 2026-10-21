@@ -33,8 +33,9 @@ describe('extra util and model coverage', function () {
     const parsed = OpenApiUtil.parseToMap({ k: 'v' });
     assert.strictEqual(parsed['k'], 'v');
     assert.strictEqual(OpenApiUtil.parseToMap(null as any), null);
-    const arr = OpenApiUtil.toArray([{ k: 'v' }]);
+    const arr = OpenApiUtil.toArray([{ k: 'v' }, null, undefined]);
     assert.strictEqual(arr[0]['k'], 'v');
+    assert.strictEqual(arr.length, 1);
     assert.strictEqual(OpenApiUtil.toArray(null as any), null);
 
     const stringified = OpenApiUtil.stringifyMapValue({
@@ -47,6 +48,7 @@ describe('extra util and model coverage', function () {
 
     const endpoint = OpenApiUtil.getEndpointRules('ecs', 'cn-hangzhou', 'regional', 'public', '');
     assert.strictEqual(endpoint, 'ecs.cn-hangzhou.aliyuncs.com');
+    assert.throws(() => OpenApiUtil.getEndpointRules('ecs', '', 'regional', 'public', ''));
   });
 
   it('exceptions and SSEResponse', function () {
