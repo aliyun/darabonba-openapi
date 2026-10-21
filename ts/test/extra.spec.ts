@@ -409,5 +409,22 @@ describe('extra websocket coverage', function () {
     } catch (err) {
       assert.strictEqual(err, websocketUtils.ErrUseRawMessage);
     }
+
+    assert.strictEqual(websocketUtils.createWebSocketClient(null), null);
+    assert.strictEqual(websocketUtils.createWebSocketClient('nope'), null);
+    const exported = websocketUtils.newWebSocketClient({
+      sendText: async () => { /* noop */ },
+      sendBinary: async () => { /* noop */ },
+      isConnected: () => true,
+      close: async () => { /* noop */ },
+      reconnect: async () => new $dara.Response(<any>{ statusCode: 101, headers: {} }),
+      reconnectGracefully: async () => new $dara.Response(<any>{ statusCode: 101, headers: {} }),
+      disconnect: async () => { /* noop */ },
+      getSessionInfo: () => null,
+    } as any, new $dara.Response(<any>{ statusCode: 101, headers: {} }));
+    assert.ok(exported);
+    assert.strictEqual(exported.completeRequest('missing', { ok: true }), false);
+    const msg = websocketUtils.newAwapMessage({ a: 1 }, websocketUtils.withHeader('k', 'v'));
+    assert.strictEqual(msg.headers!['k'], 'v');
   });
 });

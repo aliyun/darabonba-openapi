@@ -444,6 +444,26 @@ namespace OpenApiClientUnitTests
                 Assert.NotNull(result["body"]);
                 result = await client.DoROARequestWithFormAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "byte", request, runtime);
                 Assert.NotNull(result["body"]);
+                result = client.DoROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/array", "array", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                doParams.AuthType = "Anonymous";
+                doParams.Style = "RPC";
+                doParams.ReqBodyType = "formData";
+                doParams.BodyType = "array";
+                result = await client.DoRequestAsync(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = await bearer.CallApiAsync(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                doParams.Style = "ROA";
+                doParams.ReqBodyType = "json";
+                doParams.BodyType = "json";
+                result = await bearer.CallApiAsync(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                doParams.ReqBodyType = "formData";
+                result = v2.CallApi(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = await v2.CallApiAsync(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
             }
         }
     }

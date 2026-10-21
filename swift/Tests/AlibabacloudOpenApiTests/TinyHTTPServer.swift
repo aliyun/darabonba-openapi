@@ -66,6 +66,9 @@ final class TinyHTTPServer {
                 elif path.startswith("/error"):
                     status = 400
                     body = b'{"Code":"error code","Message":"error message","RequestId":"xml-id","Description":"desc","AccessDeniedDetail":{}}'
+                elif path.startswith("/plain"):
+                    content_type = "text/plain"
+                    body = b"not-json"
                 self.send_response(status)
                 self.send_header("Content-Type", content_type)
                 self.send_header("Content-Length", str(len(body)))
@@ -111,6 +114,21 @@ final class TinyHTTPServer {
             Thread.sleep(forTimeInterval: 0.02)
         }
         precondition(port > 0, "tiny http server failed to publish a port")
+        let readyDeadline = Date().addingTimeInterval(3)
+        while Date() < readyDeadline {
+            var input: InputStream?
+            var output: OutputStream?
+            Stream.getStreamsToHost(withName: "127.0.0.1", port: Int(port), inputStream: &input, outputStream: &output)
+            output?.open()
+            if output?.streamStatus == .open || output?.streamStatus == .writing {
+                output?.close()
+                input?.close()
+                break
+            }
+            output?.close()
+            input?.close()
+            Thread.sleep(forTimeInterval: 0.05)
+        }
     }
 
     deinit {

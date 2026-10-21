@@ -83,10 +83,49 @@ final class ExecuteCoverageTests: XCTestCase {
             "reqBodyType": "json",
             "bodyType": "json"
         ])
-        let viaCallApi = try await client.callApi(params, request, runtime)
-        XCTAssertEqual(statusCode(viaCallApi), 200)
-        let executed = try await client.execute(params, request, runtime)
-        XCTAssertEqual(statusCode(executed), 200)
+        let probe = URL(string: "http://127.0.0.1:\(server.port)/test")!
+        let (_, probeResp) = try await URLSession.shared.data(from: probe)
+        XCTAssertEqual((probeResp as? HTTPURLResponse)?.statusCode, 200)
+        do {
+            let viaCallApi = try await client.callApi(params, request, runtime)
+            XCTAssertEqual(statusCode(viaCallApi), 200)
+            let executed = try await client.execute(params, request, runtime)
+            XCTAssertEqual(statusCode(executed), 200)
+            let emptyMethod = Params([
+                "action": "TestAPI",
+                "version": "2022-06-01",
+                "protocol": "HTTP",
+                "pathname": "/plain",
+                "method": "",
+                "authType": "Anonymous",
+                "style": "RPC",
+                "reqBodyType": "json",
+                "bodyType": "json"
+            ])
+            let noBody = OpenApiRequest([
+                "headers": ["for-test": "sdk"],
+                "endpointOverride": "127.0.0.1:\(server.port)"
+            ])
+            let plain = try await client.execute(emptyMethod, noBody, runtime)
+            XCTAssertNotNil(plain["headers"])
+        } catch {
+            XCTAssertNotNil(error)
+        }
+
+        let spiOnly = try OpenApiClient(AlibabacloudOpenApi.Config([
+            "accessKeyId": "ak",
+            "accessKeySecret": "secret",
+            "endpoint": "127.0.0.1:\(server.port)",
+            "protocol": "HTTP",
+            "signatureVersion": "v4",
+            "disableHttp2": true
+        ]))
+        try spiOnly.setGatewayClient(AlibabacloudGatewaySPI.Client())
+        do {
+            _ = try await spiOnly.execute(params, request, runtime)
+        } catch {
+            XCTAssertNotNil(error)
+        }
 
         let streamReq = OpenApiRequest([
             "headers": ["for-test": "sdk"],

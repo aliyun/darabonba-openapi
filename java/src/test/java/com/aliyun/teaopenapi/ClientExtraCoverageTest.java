@@ -95,6 +95,9 @@ public class ClientExtraCoverageTest {
         stubFor(post(urlMatching("/server.*"))
                 .willReturn(aResponse().withStatus(500).withBody(
                         "{\"Code\":\"InternalError\",\"Message\":\"boom\",\"RequestId\":\"A45EE076-334D-5012-9746-A8F828D20FD4\"}")));
+        stubFor(post(urlMatching("/array.*"))
+                .willReturn(aResponse().withStatus(200).withBody("[\"AppId\",\"ClassId\",\"UserId\"]")
+                        .withHeader("x-acs-request-id", "A45EE076-334D-5012-9746-A8F828D20FD4")));
 
         Config config = ClientTest.createConfig();
         config.protocol = "HTTP";
@@ -327,6 +330,37 @@ public class ClientExtraCoverageTest {
                 new TeaPair("reqBodyType", "formData"),
                 new TeaPair("bodyType", "json")
         )), request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+
+        Config bearerConfig = Config.build(TeaConverter.buildMap(
+                new TeaPair("bearerToken", "token"),
+                new TeaPair("endpoint", "localhost:" + wireMock.port()),
+                new TeaPair("protocol", "HTTP")
+        ));
+        Client bearer = new Client(bearerConfig);
+        result = bearer.doRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = bearer.doROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = bearer.doROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = client.doROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "binary", request, runtime);
+        Assert.assertNotNull(result.get("body"));
+        result = client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "binary", request, runtime);
+        Assert.assertNotNull(result.get("body"));
+        try {
+            client.doRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "array", request, runtime);
+        } catch (Exception e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+        try {
+            client.doRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "binary", request, runtime);
+        } catch (Exception e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+        result = client.doROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/array", "array", request, runtime);
+        Assert.assertEquals(200, result.get("statusCode"));
+        result = client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/array", "array", request, runtime);
         Assert.assertEquals(200, result.get("statusCode"));
     }
 }

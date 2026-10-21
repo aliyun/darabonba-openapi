@@ -1185,3 +1185,83 @@ func TestXMLErrorsOnRPCAndDoRequest(t *testing.T) {
 	_, err = client.DoROARequestWithForm(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("Anonymous"), tea.String("/xml"), tea.String("json"), request, runtime)
 	tea_util.AssertNotNil(t, err)
 }
+
+func TestSSEResponseValidate(t *testing.T) {
+	sse := &SSEResponse{}
+	_ = sse.Validate()
+	sse.SetHeaders(map[string]*string{"k": tea.String("v")})
+	_ = sse.Validate()
+	sse.SetStatusCode(200)
+	_ = sse.Validate()
+	sse.SetEvent(&dara.SSEEvent{})
+	tea_util.AssertNil(t, sse.Validate())
+	tea_util.AssertEqual(t, 200, tea.IntValue(sse.GetStatusCode()))
+	tea_util.AssertNotNil(t, sse.GetEvent())
+	tea_util.AssertEqual(t, "v", tea.StringValue(sse.GetHeaders()["k"]))
+	_ = sse.String()
+	_ = sse.GoString()
+}
+
+func TestCallSSEApiRemainingBodiesAndAuth(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/sse", &mockHandler{content: "json"})
+	server, endpoint := startMockHTTPServer(mux)
+	defer server.Close()
+	runtime := CreateRuntimeOptions()
+	request := CreateOpenApiRequest()
+
+	rpcClient := newCoverageClient(t, endpoint)
+	_ = rpcClient.SetRpcHeaders(map[string]*string{"rpc-key": tea.String("rpc-value")})
+	rpcParams := coverageParams("RPC", "json", "json", "/sse", "AK")
+	rpcParams.Method = tea.String("GET")
+	rpcEvents := make(chan *SSEResponse, 1)
+	rpcErr := make(chan error, 1)
+	go rpcClient.CallSSEApi(rpcParams, request, runtime, rpcEvents, rpcErr)
+	for range rpcEvents {
+	}
+	tea_util.AssertNil(t, <-rpcErr)
+
+	formParams := coverageParams("ROA", "formData", "json", "/sse", "Anonymous")
+	formParams.Method = tea.String("GET")
+	formEvents := make(chan *SSEResponse, 1)
+	formErr := make(chan error, 1)
+	go rpcClient.CallSSEApiWithCtx(context.Background(), formParams, request, runtime, formEvents, formErr)
+	for range formEvents {
+	}
+	<-formErr
+
+	bearerCfg := CreateBearerTokenConfig()
+	bearerCfg.Protocol = tea.String("HTTP")
+	bearerCfg.Endpoint = tea.String(endpoint)
+	bearer, err := NewClient(bearerCfg)
+	tea_util.AssertNil(t, err)
+	bearerParams := coverageParams("ROA", "json", "json", "/sse", "AK")
+	bearerParams.Method = tea.String("GET")
+	bearerEvents := make(chan *SSEResponse, 1)
+	bearerErr := make(chan error, 1)
+	go bearer.CallSSEApi(bearerParams, request, runtime, bearerEvents, bearerErr)
+	for range bearerEvents {
+	}
+	tea_util.AssertNil(t, <-bearerErr)
+
+	failCred := newCoverageClient(t, endpoint)
+	failCred.Credential = &mockCredential{err: io.ErrUnexpectedEOF}
+	failParams := coverageParams("ROA", "json", "json", "/sse", "AK")
+	failParams.Method = tea.String("GET")
+	failEvents := make(chan *SSEResponse, 1)
+	failErr := make(chan error, 1)
+	go failCred.CallSSEApi(failParams, request, runtime, failEvents, failErr)
+	for range failEvents {
+	}
+	tea_util.AssertNotNil(t, <-failErr)
+
+	down := newCoverageClient(t, "127.0.0.1:1")
+	downParams := coverageParams("ROA", "json", "json", "/sse", "Anonymous")
+	downParams.Method = tea.String("GET")
+	downEvents := make(chan *SSEResponse, 1)
+	downErr := make(chan error, 1)
+	go down.CallSSEApi(downParams, request, runtime, downEvents, downErr)
+	for range downEvents {
+	}
+	tea_util.AssertNotNil(t, <-downErr)
+}

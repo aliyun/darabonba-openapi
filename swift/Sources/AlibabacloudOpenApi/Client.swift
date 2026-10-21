@@ -1043,22 +1043,46 @@ open class Client {
                 var attributeMap: AlibabacloudGatewaySPI.AttributeMap = AlibabacloudGatewaySPI.AttributeMap([:])
                 if let localGateway = self._spi as? LocalHTTPGateway {
                     try await localGateway.prepare(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
-                    if interceptorContext.request == nil {
-                        var headers: [String: String] = requestContext.headers ?? [:]
-                        headers["host"] = request.endpointOverride ?? self._endpoint ?? "127.0.0.1"
-                        interceptorContext.request = AlibabacloudGatewaySPI.InterceptorContext.Request([
-                            "protocol": "HTTP",
-                            "method": requestContext.method ?? params.method ?? "POST",
-                            "pathname": requestContext.pathname ?? params.pathname ?? "/",
-                            "query": requestContext.query ?? [:],
-                            "stream": Tea.TeaCore.toReadable(""),
-                            "headers": headers
-                        ])
+                    _request.protocol_ = "HTTP"
+                    _request.method = TeaUtils.Client.defaultString(self._method, params.method)
+                    if _request.method.isEmpty {
+                        _request.method = "POST"
                     }
-                } else {
-                    try await self._spi!.modifyConfiguration(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
-                    try await self._spi!.modifyRequest(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
+                    _request.pathname = params.pathname ?? "/"
+                    _request.query = requestContext.query ?? [:]
+                    if let body = request.body {
+                        _request.body = Tea.TeaCore.toReadable(TeaUtils.Client.toJSONString(body))
+                    } else {
+                        _request.body = Tea.TeaCore.toReadable("{}")
+                    }
+                    var headers: [String: String] = requestContext.headers ?? [:]
+                    headers["host"] = request.endpointOverride ?? self._endpoint ?? "127.0.0.1"
+                    _request.headers = headers
+                    _lastRequest = _request
+                    var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
+                    var responseContext: AlibabacloudGatewaySPI.InterceptorContext.Response = AlibabacloudGatewaySPI.InterceptorContext.Response([
+                        "statusCode": _response.statusCode,
+                        "headers": _response.headers,
+                        "body": _response.body
+                    ])
+                    interceptorContext.response = responseContext
+                    try await localGateway.finish(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
+                    var resultBody: Any = interceptorContext.response?.deserializedBody ?? ["ok": true]
+                    if let respBody = _response.body {
+                        do {
+                            resultBody = try await TeaUtils.Client.readAsJSON(respBody)
+                        } catch {
+                            resultBody = ["ok": true]
+                        }
+                    }
+                    return [
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode,
+                        "body": resultBody
+                    ]
                 }
+                try await self._spi!.modifyConfiguration(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
+                try await self._spi!.modifyRequest(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
                 _request.protocol_ = interceptorContext.request!.protocol_ ?? ""
                 _request.method = interceptorContext.request!.method ?? ""
                 _request.pathname = interceptorContext.request!.pathname ?? ""
@@ -1073,11 +1097,7 @@ open class Client {
                     "body": _response.body
                 ])
                 interceptorContext.response = responseContext
-                if let localGateway = self._spi as? LocalHTTPGateway {
-                    try await localGateway.finish(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
-                } else {
-                    try await self._spi!.modifyResponse(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
-                }
+                try await self._spi!.modifyResponse(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
                 var resultBody: Any = interceptorContext.response?.deserializedBody ?? ["ok": true]
                 if let respBody = _response.body {
                     do {
