@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using AlibabaCloud.OpenApiClient.Models;
 using Darabonba.Models;
@@ -547,6 +548,74 @@ namespace OpenApiClientUnitTests
                         ReqBodyType = "json",
                         BodyType = "json"
                     }, request, runtime));
+            }
+        }
+
+        [Fact]
+        public async Task TestExecuteAndSseThrottlingRetry()
+        {
+            var request = TestFixtures.CreateOpenApiRequest();
+            var runtime = TestFixtures.CreateRuntimeOptions();
+
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                config.SignatureVersion = "v4";
+                var client = new TestClient(config);
+                client.ProductId = "test";
+                client.AttributeMap = new AlibabaCloud.GatewaySpi.Models.AttributeMap();
+                client.SetGatewayClient(new AlibabaCloud.GatewayPop.Client());
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/test",
+                    Method = "POST",
+                    AuthType = "Anonymous",
+                    Style = "RPC",
+                    ReqBodyType = "json",
+                    BodyType = "json"
+                };
+                var result = client.Execute(parameters, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                parameters.Style = "ROA";
+                parameters.ReqBodyType = "formData";
+                parameters.BodyType = "string";
+                result = await client.ExecuteAsync(parameters, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+            }
+
+            using (var server = new MockHttpServer())
+            {
+                server.ThrottlingMode = true;
+                server.ThrottleCount = 3;
+                server.RetryAfterMs = 1;
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.Endpoint = server.Endpoint;
+                config.RetryOptions = TestFixtures.CreateThrottlingRetryOptions();
+                var client = new TestClient(config);
+                var parameters = new Params
+                {
+                    Action = "TestAPI",
+                    Version = "2022-06-01",
+                    Protocol = "HTTPS",
+                    Pathname = "/sse",
+                    Method = "GET",
+                    AuthType = "Anonymous",
+                    Style = "ROA",
+                    ReqBodyType = "json",
+                    BodyType = "json"
+                };
+                Assert.ThrowsAny<Exception>(() =>
+                {
+                    foreach (var item in client.CallSSEApi(parameters, request, runtime))
+                    {
+                    }
+                });
             }
         }
     }

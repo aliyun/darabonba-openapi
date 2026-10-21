@@ -1461,3 +1461,42 @@ func TestRPCWithCtxErrorsAndAuthBranches(t *testing.T) {
 	_, err = bearer.DoRPCRequest(tea.String("TestAPI"), tea.String("2022-06-01"), tea.String("HTTPS"), tea.String("POST"), tea.String("AK"), tea.String("string"), request, runtime)
 	tea_util.AssertNil(t, err)
 }
+
+func TestAttributeMapAndFailingSSEStream(t *testing.T) {
+	server, endpoint := startMockHTTPServer(&extraMockHandler{content: "json"})
+	defer server.Close()
+	runtime := CreateRuntimeOptions()
+	ctx := context.Background()
+
+	exec := newCoverageClient(t, endpoint, func(c *Config) {
+		c.SignatureVersion = tea.String("v4")
+	})
+	exec.ProductId = tea.String("test")
+	exec.AttributeMap = &spi.AttributeMap{}
+	gateway, err := pop.NewClient()
+	tea_util.AssertNil(t, err)
+	tea_util.AssertNil(t, exec.SetGatewayClient(gateway))
+	result, err := exec.Execute(coverageParams("RPC", "json", "json", "/", "Anonymous"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	tea_util.AssertNotNil(t, result)
+	result, err = exec.ExecuteWithCtx(ctx, coverageParams("ROA", "formData", "string", "/test", "Anonymous"), CreateOpenApiRequest(), runtime)
+	tea_util.AssertNil(t, err)
+	tea_util.AssertNotNil(t, result)
+
+	failParams := coverageParams("ROA", "json", "json", "/", "Anonymous")
+	failParams.Method = tea.String("GET")
+	failReq := &OpenApiRequest{Stream: &errReader{}}
+	events := make(chan *SSEResponse, 1)
+	yieldErr := make(chan error, 1)
+	go exec.CallSSEApi(failParams, failReq, runtime, events, yieldErr)
+	for range events {
+	}
+	tea_util.AssertNotNil(t, <-yieldErr)
+
+	events = make(chan *SSEResponse, 1)
+	yieldErr = make(chan error, 1)
+	go exec.CallSSEApiWithCtx(ctx, failParams, &OpenApiRequest{Stream: &errReader{}}, runtime, events, yieldErr)
+	for range events {
+	}
+	tea_util.AssertNotNil(t, <-yieldErr)
+}

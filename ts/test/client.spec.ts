@@ -1846,6 +1846,43 @@ describe('Throttling backoff retry', () => {
       }
     });
   });
+
+  it('should retry execute after throttling', async () => {
+    resetThrottlingState(1, 1);
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.endpoint = `127.0.0.1:${throttlingPort}`;
+    config.signatureVersion = 'v4';
+    config.retryOptions = createThrottlingRetryOptions();
+    const client = new OpenApi(config);
+    client._productId = 'test';
+    client.setGatewayClient(new POP());
+    const result = await client.execute(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'RPC',
+      reqBodyType: 'json',
+      bodyType: 'json',
+    }), createOpenApiRequest(), createRuntimeOptions());
+    assert.strictEqual(result.statusCode, 200);
+
+    resetThrottlingState(3, 1);
+    await assert.rejects(() => client.execute(new $OpenApiUtil.Params({
+      action: 'TestAPI',
+      version: '2022-06-01',
+      protocol: 'HTTPS',
+      pathname: '/',
+      method: 'POST',
+      authType: 'Anonymous',
+      style: 'ROA',
+      reqBodyType: 'formData',
+      bodyType: 'string',
+    }), createOpenApiRequest(), createRuntimeOptions()));
+  });
 });
 
 describe('extra client coverage', function () {
