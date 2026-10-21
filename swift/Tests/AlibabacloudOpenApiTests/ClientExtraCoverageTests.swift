@@ -62,6 +62,23 @@ final class ClientExtraCoverageTests: XCTestCase {
         XCTAssertEqual(stsType, "sts")
         XCTAssertEqual(stsToken, "st")
 
+        let fromCredConfig = Config(["endpoint": "example.com"])
+        fromCredConfig.credential = sts._credential
+        let fromCred = try Client(fromCredConfig)
+        let fromCredId = try await fromCred.getAccessKeyId()
+        XCTAssertEqual(fromCredId, "ak")
+
+        let blank = Config()
+        blank.credential = sts._credential
+        XCTAssertNotNil(blank.toMap()["credential"])
+        let loaded = Config()
+        if let cred = sts._credential {
+            loaded.fromMap(["credential": cred])
+        }
+        XCTAssertNotNil(loaded.credential)
+        let emptyParams = Params()
+        XCTAssertNil(emptyParams.action)
+
         let config = Config([
             "accessKeyId": "ak",
             "accessKeySecret": "sk",
@@ -168,6 +185,10 @@ final class ClientExtraCoverageTests: XCTestCase {
             "connectTimeout": 3000
         ])
         let client = try Client(config)
+        client._globalParameters = GlobalParameters([
+            "headers": ["global-key": "global-value"],
+            "queries": ["global-query": "global-value"]
+        ])
         let params = Params([
             "action": "TestAPI",
             "version": "2022-06-01",

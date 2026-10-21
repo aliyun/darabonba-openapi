@@ -32,7 +32,7 @@ final class ExecuteCoverageTests: XCTestCase {
             "hostMap": ["region": "cn-hangzhou"],
             "endpointOverride": "127.0.0.1:\(server.port)"
         ])
-        request.stream = Tea.TeaCore.toReadable("{\"key1\":\"value\"}")
+        request.stream = nil
 
         let config = AlibabacloudOpenApi.Config([
             "accessKeyId": "ak",
@@ -57,7 +57,11 @@ final class ExecuteCoverageTests: XCTestCase {
         ])
         let client = try OpenApiClient(config)
         client._productId = "test"
-        try client.setGatewayClient(AlibabacloudGatewaySPI.Client())
+        client._globalParameters = GlobalParameters([
+            "headers": ["global-key": "global-value"],
+            "queries": ["global-query": "global-value"]
+        ])
+        try client.setGatewayClient(LocalHTTPGateway())
         try client.setRpcHeaders(["rpc-key": "rpc-value"])
 
         func statusCode(_ result: [String: Any]) -> Int {
@@ -79,18 +83,10 @@ final class ExecuteCoverageTests: XCTestCase {
             "reqBodyType": "json",
             "bodyType": "json"
         ])
-        do {
-            _ = try await client.callApi(params, request, runtime)
-            XCTFail("expected unimplemented SPI")
-        } catch {
-            XCTAssertNotNil(error)
-        }
-        do {
-            _ = try await client.execute(params, request, runtime)
-            XCTFail("expected unimplemented SPI")
-        } catch {
-            XCTAssertNotNil(error)
-        }
+        let viaCallApi = try await client.callApi(params, request, runtime)
+        XCTAssertEqual(statusCode(viaCallApi), 200)
+        let executed = try await client.execute(params, request, runtime)
+        XCTAssertEqual(statusCode(executed), 200)
 
         let streamReq = OpenApiRequest([
             "headers": ["for-test": "sdk"],
@@ -291,6 +287,44 @@ final class ExecuteCoverageTests: XCTestCase {
             "bodyType": "string"
         ]), request, runtime)
         XCTAssertEqual(statusCode(sm3Result), 200)
+        let roaBinary = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "Anonymous", "/test", "binary", request, runtime)
+        XCTAssertNotNil(roaBinary["body"])
+        let formBinary = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "binary", request, runtime)
+        XCTAssertNotNil(formBinary["body"])
+        let formSts = try await client.doROARequestWithForm("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(formSts), 200)
+        let stsRoa = try await client.doROARequest("TestAPI", "2022-06-01", "HTTP", "POST", "AK", "/test", "json", request, runtime)
+        XCTAssertEqual(statusCode(stsRoa), 200)
+
+        let gateway = try LocalHTTPGateway()
+        XCTAssertEqual(gateway.describe()["name"], "LocalHTTPGateway")
+        let emptyCtx = AlibabacloudGatewaySPI.InterceptorContext([:])
+        try await gateway.prepare(emptyCtx)
+        try await gateway.finish(emptyCtx)
+        let prepared = AlibabacloudGatewaySPI.InterceptorContext([
+            "request": AlibabacloudGatewaySPI.InterceptorContext.Request([
+                "method": "POST",
+                "pathname": "/test",
+                "headers": ["for-test": "sdk"]
+            ]),
+            "configuration": AlibabacloudGatewaySPI.InterceptorContext.Configuration([
+                "endpoint": "127.0.0.1"
+            ]),
+            "response": AlibabacloudGatewaySPI.InterceptorContext.Response([
+                "statusCode": 200,
+                "headers": ["k": "v"]
+            ])
+        ])
+        try await gateway.prepare(prepared)
+        try await gateway.finish(prepared)
+        let invalidJson = AlibabacloudGatewaySPI.InterceptorContext([
+            "response": AlibabacloudGatewaySPI.InterceptorContext.Response([
+                "statusCode": 200,
+                "headers": ["k": "v"],
+                "body": Tea.TeaCore.toReadable("not-json")
+            ])
+        ])
+        try await gateway.finish(invalidJson)
 
         let streamMap = OpenApiRequest()
         streamMap.stream = Tea.TeaCore.toReadable("x")

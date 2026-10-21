@@ -78,6 +78,14 @@ namespace OpenApiClientUnitTests
             Assert.Equal("", await empty.GetTypeAsync());
 
             var ak = new TestClient(TestFixtures.CreateConfig());
+            var fromCred = new TestClient(new Config
+            {
+                Endpoint = "example.com",
+                Credential = ak.Credential
+            });
+            Assert.Equal("ak", fromCred.GetAccessKeyId());
+            Assert.Equal("secret", fromCred.GetAccessKeySecret());
+            Assert.Equal("token", fromCred.GetSecurityToken());
             Assert.Equal("ak", await ak.GetAccessKeyIdAsync());
             Assert.Equal("secret", await ak.GetAccessKeySecretAsync());
             Assert.Equal("token", await ak.GetSecurityTokenAsync());
@@ -388,6 +396,54 @@ namespace OpenApiClientUnitTests
                 catch (Exception)
                 {
                 }
+
+                result = client.DoROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "binary", request, runtime);
+                Assert.NotNull(result["body"]);
+                result = await client.DoROARequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/array", "array", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = client.DoROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "binary", request, runtime);
+                Assert.NotNull(result["body"]);
+                result = await client.DoRPCRequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "array", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                var sm3 = new TestClient(new Config
+                {
+                    AccessKeyId = "ak",
+                    AccessKeySecret = "secret",
+                    Endpoint = server.Endpoint,
+                    Protocol = "HTTP",
+                    SignatureAlgorithm = "ACS3-HMAC-SM3"
+                });
+                doParams.AuthType = "AK";
+                doParams.Style = "ROA";
+                doParams.ReqBodyType = "json";
+                doParams.BodyType = "string";
+                result = sm3.DoRequest(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+
+                var bearerCfg = TestFixtures.CreateBearerTokenConfig();
+                bearerCfg.Endpoint = server.Endpoint;
+                bearerCfg.Protocol = "HTTP";
+                var bearer = new TestClient(bearerCfg);
+                result = bearer.DoRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "json", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = await bearer.DoROARequestAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = bearer.DoROARequestWithForm("TestAPI", "2022-06-01", "HTTPS", "POST", "AK", "/test", "json", request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                doParams.AuthType = "AK";
+                doParams.Style = "ROA";
+                doParams.ReqBodyType = "json";
+                doParams.BodyType = "json";
+                result = await bearer.DoRequestAsync(doParams, request, runtime);
+                Assert.Equal(200, TestFixtures.GetStatusCode(result));
+                result = client.DoRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "binary", request, runtime);
+                Assert.NotNull(result["body"]);
+                result = client.DoRPCRequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "byte", request, runtime);
+                Assert.NotNull(result["body"]);
+                result = client.DoROARequest("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "byte", request, runtime);
+                Assert.NotNull(result["body"]);
+                result = await client.DoROARequestWithFormAsync("TestAPI", "2022-06-01", "HTTPS", "POST", "Anonymous", "/test", "byte", request, runtime);
+                Assert.NotNull(result["body"]);
             }
         }
     }

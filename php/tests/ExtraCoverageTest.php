@@ -4,6 +4,7 @@ namespace Darabonba\OpenApi\Tests;
 
 use AlibabaCloud\Dara\AbstractWebSocketHandler;
 use AlibabaCloud\Dara\Models\RuntimeOptions;
+use AlibabaCloud\Dara\Request;
 use AlibabaCloud\Dara\WebSocketMessage;
 use Darabonba\OpenApi\Exceptions\AlibabaCloudException;
 use Darabonba\OpenApi\Exceptions\ClientException;
@@ -16,6 +17,8 @@ use Darabonba\OpenApi\Models\Params;
 use Darabonba\OpenApi\Models\SSEResponse;
 use Darabonba\OpenApi\OpenApiClient;
 use Darabonba\OpenApi\Utils;
+use Darabonba\OpenApi\WebsocketUtils\AbstractAwapWebSocketHandler;
+use Darabonba\OpenApi\WebsocketUtils\AbstractGeneralWebSocketHandler;
 use Darabonba\OpenApi\WebsocketUtils\Awap;
 use Darabonba\OpenApi\WebsocketUtils\AwapUtil;
 use Darabonba\OpenApi\WebsocketUtils\Client as WebSocketClient;
@@ -88,6 +91,11 @@ class ExtraRecordingWsClient implements \AlibabaCloud\Dara\WebSocketClientInterf
     public function getSessionInfo() { return null; }
     public function close() { $this->closed = true; }
     public function pump($timeoutMs = 100) {}
+}
+
+class ExtraThrowingWsClient extends ExtraRecordingWsClient
+{
+    public function reconnectGracefully() { throw new \RuntimeException('reconnect-fail'); }
 }
 
 class ExtraPlainHandler extends AbstractWebSocketHandler
@@ -632,5 +640,149 @@ class ExtraCoverageTest extends TestCase
             $caught = true;
         }
         $this->assertTrue($caught);
+    }
+
+    public function testUtilsSseAndWebsocketRemainders()
+    {
+        $this->assertEquals('ecs.cn-hangzhou.aliyuncs.com', Utils::getProductEndpoint('ecs', 'cn-hangzhou', 'regional', 'public', '', null, 'ecs.cn-hangzhou.aliyuncs.com'));
+        $this->assertEquals('mapped.aliyuncs.com', Utils::getProductEndpoint('ecs', 'cn-hangzhou', 'regional', 'public', '', array('cn-hangzhou' => 'mapped.aliyuncs.com'), null));
+        $this->assertTrue(strpos(Utils::getProductEndpoint('ecs', 'cn-hangzhou', 'regional', 'public', '', null, null), 'ecs') !== false);
+        $this->assertEquals(array(), Utils::hash(array(1, 2, 3), 'unknown'));
+        $this->assertTrue(strlen(Utils::hash(array(ord('t'), ord('e'), ord('s'), ord('t')), 'ACS3-HMAC-SHA256')) > 0);
+        $this->assertTrue(strlen(Utils::hash(array(ord('t'), ord('e'), ord('s'), ord('t')), 'ACS3-HMAC-SM3')) > 0);
+        $this->assertTrue(strlen(Utils::sign('secret', 'source', 'ACS3-HMAC-SHA256')) > 0);
+        $this->assertTrue(strlen(Utils::sign('secret', 'source', 'ACS3-HMAC-SM3')) > 0);
+
+        $awap = new Awap();
+        $awap->withHeader('k', 'v')->withFormat(Awap::MESSAGE_FORMAT_TEXT);
+        $this->assertEquals('v', $awap->headers['k']);
+        $this->assertTrue(strpos($awap->toJSON(), 'text') !== false);
+        $general = new General();
+        $general->body = array('a' => 1);
+        $this->assertTrue(strpos($general->toJSON(), 'a') !== false);
+
+        $caught = false;
+        try {
+            $h = new AbstractAwapWebSocketHandler();
+            $h->handleAwapMessage(null, new Awap());
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+        $caught = false;
+        try {
+            $h = new AbstractGeneralWebSocketHandler();
+            $h->handleGeneralMessage(null, new General());
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+
+        $this->assertNull(WebSocketClient::createWebSocketClient(null));
+        $this->assertNull(WebSocketClient::createWebSocketClient('nope'));
+        $inner = new ExtraRecordingWsClient();
+        $ws = new WebSocketClient($inner, null);
+        $this->assertSame($ws, WebSocketClient::createWebSocketClient($ws));
+        $empty = new WebSocketClient(null, null);
+        $caught = false;
+        try {
+            $empty->reconnect();
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+        $caught = false;
+        try {
+            $empty->reconnectGracefully();
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+        $empty->reconnectGracefullyAsync();
+        $empty->pump(1);
+        $caught = false;
+        try {
+            $empty->validate();
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+        $this->assertFalse($empty->isConnected());
+        $this->assertNull($empty->getSessionInfo());
+        $empty->close();
+        $empty->disconnect();
+
+        $ack = AwapUtil::newAwapMessage(array(), 'AckRequiredTextEvent', 'ack-timeout');
+        $caught = false;
+        try {
+            $ws->sendAwapRequestWithAck($ack, 1);
+        } catch (\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught);
+        $this->assertFalse($ws->completeRequest('missing', 'x'));
+
+        $this->assertEquals('', Utils::toForm(null));
+        $this->assertTrue(strpos(Utils::toForm(new GlobalParameters(array('queries' => array('q' => '1')))), 'q') !== false);
+        $obj = new \stdClass();
+        $obj->nested = 'v';
+        $this->assertTrue(strlen(Utils::toForm(array('obj' => $obj))) > 0);
+        $this->assertEquals('a b', Utils::arrayToStringWithSpecifiedStyle(array('a', 'b'), 'p', 'spaceDelimited'));
+        $this->assertEquals('a|b', Utils::arrayToStringWithSpecifiedStyle(array('a', 'b'), 'p', 'pipeDelimited'));
+        $this->assertEquals('a,b', Utils::arrayToStringWithSpecifiedStyle(array('a', 'b'), 'p', 'simple'));
+        $modelArr = Utils::toArray(new GlobalParameters(array('queries' => array('q' => '1'))));
+        $this->assertEquals('1', $modelArr['queries']['q']);
+        $stringified = Utils::stringifyMapValue(array('n' => 1, 'b' => true, 'z' => null, 'o' => $obj));
+        $this->assertEquals('1', $stringified['n']);
+        $this->assertEquals('true', $stringified['b']);
+        Utils::sign('not-a-key', 'source', 'ACS3-RSA-SHA256');
+        Utils::sign(str_repeat('s', 80), 'source', 'ACS3-HMAC-SM3');
+        Utils::hash(array(ord('t')), 'ACS3-RSA-SHA256');
+        Utils::hash(array(ord('t')), 'ACS3-HMAC-SHA256');
+        Utils::hash(array(ord('t')), 'ACS3-HMAC-SM3');
+        Utils::arrayToStringWithSpecifiedStyle(null, 'p', 'simple');
+        Utils::arrayToStringWithSpecifiedStyle(array('a', 'b'), 'p', 'unknown');
+        $req = new Request();
+        $req->method = 'GET';
+        $req->pathname = '/p';
+        $req->query = array('empty' => '', 'skip' => null, 'k' => 'v');
+        $this->assertTrue(strlen(Utils::getStringToSign($req)) > 0);
+
+        $sse = SSEResponse::fromMap(array(
+            'headers' => array('k' => 'v'),
+            'statusCode' => 200,
+        ));
+        $this->assertEquals(200, $sse->toMap()['statusCode']);
+        $sse->headers = array('k' => 'v');
+        $sse->statusCode = 200;
+        if (class_exists('AlibabaCloud\\Dara\\SSE\\Event')) {
+            $sse->event = call_user_func(array('AlibabaCloud\\Dara\\SSE\\Event', 'fromMap'), array('data' => 'd'));
+            $sse->validate();
+        }
+
+        $cfg = new Config(array(
+            'endpoint' => 'example.com',
+            'globalParameters' => new GlobalParameters(array('queries' => array('q' => '1'))),
+        ));
+        $cfg->validate();
+        $this->assertEquals('example.com', $cfg->toArray()['endpoint']);
+
+        $user = new ExtraRecordingHandler();
+        $handler = new Handler($user, Handler::SUB_PROTOCOL_AWAP);
+        $handler->client = new WebSocketClient(new ExtraThrowingWsClient(), null);
+        $reconnect = new WebSocketMessage();
+        $reconnect->type = \AlibabaCloud\Dara\WebSocketMessageType::TEXT;
+        $reconnect->payload = AwapUtil::buildAwapMessageText(AwapUtil::newAwapMessage(array(), 'RECONNECT', 'r-fail'));
+        $handler->handleRawMessage(null, $reconnect);
+        $this->assertTrue(count($user->errors) > 0);
+        $ackMsg = AwapUtil::newAwapMessage(array(), 'UpstreamTextEvent', 'ack-ok');
+        $ackMsg->headers['ack-id'] = 'pending-1';
+        $ws = new WebSocketClient(new ExtraRecordingWsClient(), null);
+        $handler->client = $ws;
+        $ws->completeRequest('pending-1', 'x');
+        $ackRaw = new WebSocketMessage();
+        $ackRaw->type = \AlibabaCloud\Dara\WebSocketMessageType::TEXT;
+        $ackRaw->payload = AwapUtil::buildAwapMessageText($ackMsg);
+        $handler->handleRawMessage(null, $ackRaw);
     }
 }

@@ -513,3 +513,35 @@ class TestExtraCoverage(unittest.TestCase):
                 pathname='/xml', method='POST', auth_type='Anonymous',
                 style='ROA', req_body_type='json', body_type='json',
             ), xml_request, runtime)
+
+    @httpretty.activate
+    def test_utils_flat_map_and_rpc_errors(self):
+        self.assertEqual(1000, Utils._get_time_left('Other:1,TimeLeft:1000'))
+        self.assertEqual(0, Utils._get_time_left(''))
+        self.assertEqual({'a.b': '1', 'c.1': '2', 'c.2': '3'}, Utils.flat_map({'a': {'b': 1}, 'c': [2, 3]}))
+        self.assertEqual(Utils.anyify_map_value({'k': 'v'})['k'], 'v')
+        from alibabacloud_tea_openapi import utils as utils_mod
+        self.assertEqual('abc', utils_mod.to_str(b'abc'))
+
+        def server_callback(request, uri, headers):
+            return [500, headers, '{"Code":"InternalError","Message":"boom","RequestId":"rid","Description":"d","Detail":"x"}']
+
+        def client_callback(request, uri, headers):
+            return [400, headers, '{"Code":"Invalid","Message":"bad","RequestId":"rid","AccessDeniedDetail":{"k":"v"}}']
+
+        def throttle_callback(request, uri, headers):
+            headers['x-acs-retry-after'] = '1000'
+            return [429, headers, '{"Code":"Throttling","Message":"slow","RequestId":"rid"}']
+
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/', body=server_callback)
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/client-err', body=client_callback)
+        httpretty.register_uri(httpretty.POST, 'http://test.aliyuncs.com/throttle', body=throttle_callback)
+        client = self._client()
+        runtime = RuntimeOptions(ignore_ssl=True, autoretry=False, max_attempts=1)
+        request = OpenApiRequest(body={'key1': 'value'})
+        with self.assertRaises(Exception):
+            client.do_rpcrequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'json', request, runtime)
+        with self.assertRaises(Exception):
+            client.do_roarequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/client-err', 'json', request, runtime)
+        with self.assertRaises(Exception):
+            client.do_roarequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/throttle', 'json', request, runtime)

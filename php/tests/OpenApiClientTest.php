@@ -1117,5 +1117,68 @@ class OpenApiClientTest extends TestCase
             'reqBodyType' => 'formData',
             'bodyType' => 'json',
         ]), $request, $runtime));
+
+        $bearer = new OpenApiClient(new Config([
+            'bearerToken' => 'token',
+            'endpoint' => '127.0.0.1:8000',
+            'protocol' => 'HTTP',
+        ]));
+        $this->assertNotEmpty($bearer->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime));
+        $this->assertNotEmpty($bearer->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'AK',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'json',
+        ]), $request, $runtime));
+        $emptyRoa = $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $request, $runtime);
+        $this->assertTrue(isset($emptyRoa['headers']));
+        $plainReq = new OpenApiRequest();
+        $emptyPlain = $client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $plainReq, $runtime);
+        $this->assertTrue(isset($emptyPlain['headers']));
+        $emptyForm = $client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/empty', 'json', $plainReq, $runtime);
+        $this->assertTrue(isset($emptyForm['headers']));
+        $arrayReq = new OpenApiRequest(array(
+            'headers' => array('bodytype' => 'array'),
+        ));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'array', $arrayReq, $runtime));
+        $this->assertNotEmpty($client->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doROARequestWithForm('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'Anonymous', '/test', 'binary', $request, $runtime));
+        $this->assertNotEmpty($client->doRequest(new Params([
+            'action' => 'TestAPI',
+            'version' => '2022-06-01',
+            'protocol' => 'HTTPS',
+            'pathname' => '/test',
+            'method' => 'POST',
+            'authType' => 'Anonymous',
+            'style' => 'ROA',
+            'reqBodyType' => 'json',
+            'bodyType' => 'binary',
+        ]), $request, $runtime));
+        $noCred = new OpenApiClient(new Config([
+            'endpoint' => '127.0.0.1:8000',
+            'protocol' => 'HTTP',
+        ]));
+        try {
+            $noCred->doRPCRequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', 'json', $request, $runtime);
+            $this->fail('expected missing credential');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
+        try {
+            $noCred->doROARequest('TestAPI', '2022-06-01', 'HTTPS', 'POST', 'AK', '/test', 'json', $request, $runtime);
+            $this->fail('expected missing credential');
+        } catch (\Exception $e) {
+            $this->assertNotEmpty($e->getMessage());
+        }
     }
 }
