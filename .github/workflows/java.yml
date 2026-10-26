@@ -33,7 +33,7 @@ jobs:
     - name: Install unreleased tea
       run: |
         git clone -q https://github.com/aliyun/tea-java.git "$RUNNER_TEMP/tea-java"
-        git -C "$RUNNER_TEMP/tea-java" checkout -q 6a3692eb752428a12fb20a0de25f7937cf84eecf
+        git -C "$RUNNER_TEMP/tea-java" checkout -q b4a7c9f50f5bdc7bb6254b07b1549be94e395799
         OPTS="-q -B install -DskipTests -Dgpg.skip -Djacoco.skip=true -Dmaven.javadoc.skip=true"
         mvn $OPTS -f "$RUNNER_TEMP/tea-java/pom.xml"
     - name: Test
