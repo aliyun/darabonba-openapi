@@ -705,7 +705,7 @@ class OpenApiClientTest extends TestCase
     public function testThrottlingBackoffRetryListProductQuotas()
     {
         self::ensureThrottlingMockServer();
-        self::resetThrottlingMockState(2, 1);
+        self::resetThrottlingMockState(2, 1000);
 
         $config = self::createConfig();
         $config->protocol = 'HTTP';
@@ -735,8 +735,8 @@ class OpenApiClientTest extends TestCase
         $this->assertEquals('1', $state['retryAttempts'][1]);
         $this->assertEquals('2', $state['retryAttempts'][2]);
         $this->assertEquals('', $state['retryDelays'][0]);
-        $this->assertEquals('1', $state['retryDelays'][1]);
-        $this->assertEquals('1', $state['retryDelays'][2]);
+        $this->assertEquals('1000', $state['retryDelays'][1]);
+        $this->assertEquals('1000', $state['retryDelays'][2]);
         $this->assertGreaterThanOrEqual(1800, $elapsed);
     }
 
@@ -1180,5 +1180,88 @@ class OpenApiClientTest extends TestCase
         } catch (\Exception $e) {
             $this->assertNotEmpty($e->getMessage());
         }
+    }
+
+    public function testIpv4OnlyIsPassedToRuntime()
+    {
+        $resolves = [];
+        $stack = \GuzzleHttp\HandlerStack::create(function ($request, array $options) use (&$resolves) {
+            $resolves[] = isset($options['force_ip_resolve']) ? $options['force_ip_resolve'] : null;
+            return new \GuzzleHttp\Promise\FulfilledPromise(new \GuzzleHttp\Psr7\Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{"RequestId":"ipv4-only"}'
+            ));
+        });
+        \AlibabaCloud\Dara\Dara::config(['handler' => $stack]);
+
+        $spi = new Ipv4OnlyStubGateway();
+
+        $paths = [
+            ['ACS3-HMAC-SHA256', null, 'RPC', 'formData', false],
+            ['v2', null, 'RPC', 'formData', false],
+            ['v2', null, 'ROA', 'json', false],
+            ['v2', null, 'ROA', 'formData', false],
+            ['ACS3-HMAC-SHA256', 'v4', 'RPC', 'formData', true],
+        ];
+        // [Config.ipv4Only, expected force_ip_resolve] — ipv4Only is Client Config only
+        $settings = [
+            [null, null],
+            [true, 'v4'],
+            [false, null],
+        ];
+        try {
+            foreach ($paths as $path) {
+                list($algorithm, $signatureVersion, $style, $reqBodyType, $gateway) = $path;
+                foreach ($settings as $setting) {
+                    list($configIpv4Only, $expected) = $setting;
+                    $config = self::createConfig();
+                    $config->protocol = 'HTTP';
+                    $config->endpoint = 'ecs.aliyuncs.com';
+                    $config->signatureAlgorithm = $algorithm;
+                    $config->signatureVersion = $signatureVersion;
+                    $config->ipv4Only = $configIpv4Only;
+                    $client = new OpenApiClient($config);
+                    if ($gateway) {
+                        $client->setGatewayClient($spi);
+                    }
+                    $runtime = self::createRuntimeOptions();
+                    $params = new Params([
+                        'action' => 'TestAPI',
+                        'version' => '2022-06-01',
+                        'protocol' => 'HTTP',
+                        'pathname' => '/',
+                        'method' => 'POST',
+                        'authType' => 'AK',
+                        'style' => $style,
+                        'reqBodyType' => $reqBodyType,
+                        'bodyType' => 'json',
+                    ]);
+
+                    $resolves = [];
+                    $client->callApi($params, self::createOpenApiRequest(), $runtime);
+                    $this->assertSame([$expected], $resolves, json_encode([$path, $setting]));
+                }
+            }
+        } finally {
+            \AlibabaCloud\Dara\Dara::config([]);
+        }
+    }
+}
+
+class Ipv4OnlyStubGateway extends \Darabonba\GatewaySpi\Client
+{
+    public function modifyConfiguration($context, $attributeMap)
+    {
+    }
+
+    public function modifyRequest($context, $attributeMap)
+    {
+        $context->request->headers['host'] = 'ecs.aliyuncs.com';
+    }
+
+    public function modifyResponse($context, $attributeMap)
+    {
+        $context->response->deserializedBody = (string) $context->response->body;
     }
 }
