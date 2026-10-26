@@ -43,6 +43,8 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getNoProxy());
         config.setMaxIdleConns(100);
         Assert.assertEquals(100, (int) config.getMaxIdleConns());
+        config.setIpv4Only(true);
+        Assert.assertTrue(config.getIpv4Only());
         config.setNetwork("test");
         Assert.assertEquals("test", config.getNetwork());
         config.setUserAgent("test");

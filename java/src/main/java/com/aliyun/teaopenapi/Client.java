@@ -57,6 +57,7 @@ public class Client {
     public String _tlsMinVersion;
     public com.aliyun.gateway.spi.models.AttributeMap _attributeMap;
     public Boolean _enableUsageDataCollection;
+    public Boolean _ipv4Only;
     /**
      * <b>description</b> :
      * <p>Init client with Config</p>
@@ -127,6 +128,7 @@ public class Client {
         this._disableHttp2 = config.disableHttp2;
         this._tlsMinVersion = config.tlsMinVersion;
         this._enableUsageDataCollection = config.enableUsageDataCollection;
+        this._ipv4Only = config.ipv4Only;
     }
 
     /**
@@ -159,6 +161,7 @@ public class Client {
             new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
             new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("ipv4Only", _ipv4Only),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
                 new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
@@ -438,6 +441,7 @@ public class Client {
             new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
             new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("ipv4Only", _ipv4Only),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
                 new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
@@ -703,6 +707,7 @@ public class Client {
             new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
             new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("ipv4Only", _ipv4Only),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
                 new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
@@ -962,6 +967,7 @@ public class Client {
             new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
             new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("ipv4Only", _ipv4Only),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
                 new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
@@ -1255,6 +1261,7 @@ public class Client {
             new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
             new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
             new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
+            new TeaPair("ipv4Only", _ipv4Only),
             new TeaPair("retry", TeaConverter.buildMap(
                 new TeaPair("retryable", runtime.autoretry),
                 new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
