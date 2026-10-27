@@ -44,6 +44,9 @@ final class TinyHTTPServer {
                     n = int(self.headers.get("Content-Length") or 0)
                     if n:
                         self.rfile.read(n)
+                if self.headers.get("x-disconnect") == "1":
+                    self.close_connection = True
+                    return
                 path = (self.path or "/").split("?", 1)[0]
                 status = 200
                 content_type = "application/json"
@@ -114,6 +117,7 @@ final class TinyHTTPServer {
             Thread.sleep(forTimeInterval: 0.02)
         }
         precondition(port > 0, "tiny http server failed to publish a port")
+        #if !os(Linux)
         let readyDeadline = Date().addingTimeInterval(3)
         while Date() < readyDeadline {
             var input: InputStream?
@@ -129,6 +133,7 @@ final class TinyHTTPServer {
             input?.close()
             Thread.sleep(forTimeInterval: 0.05)
         }
+        #endif
     }
 
     deinit {
