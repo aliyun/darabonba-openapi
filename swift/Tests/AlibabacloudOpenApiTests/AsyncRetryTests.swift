@@ -42,8 +42,8 @@ final class AsyncRetryTests: XCTestCase {
             ])
             request.stream = TeaCore.toReadable("{}")
             let runtime = RuntimeOptions([
-                "autoretry": true, "maxAttempts": 1,
-                "backoffPolicy": "fixed", "backoffPeriod": 1,
+                "autoretry": true, "max_attempts": 1,
+                "backoff_policy": "fixed", "backoff_period": 1,
                 "connectTimeout": 1000, "readTimeout": 1000
             ])
             let started = DispatchTime.now().uptimeNanoseconds
