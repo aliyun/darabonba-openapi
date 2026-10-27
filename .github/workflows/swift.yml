@@ -51,21 +51,6 @@ jobs:
     - name: Select Xcode
       run: sudo xcode-select -s "${{ matrix.xcode_select }}"
 
-    - name: Check out legacy dependency setup helper
-      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
-      uses: actions/checkout@v4
-      with:
-        repository: aliyun/tea-swift
-        ref: 9689419769550fe126b9399379c07cd76d9bff39
-        path: .swift-ci/tea-swift
-        persist-credentials: false
-
-    - name: Prepare unpublished dependencies with released Tea
-      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
-      run: |
-        python3 "$GITHUB_WORKSPACE/.swift-ci/tea-swift/.github/scripts/prepare-swift-dependencies.py" "$GITHUB_WORKSPACE/swift"
-        python3 "$GITHUB_WORKSPACE/.github/scripts/use-released-tea.py" "$GITHUB_WORKSPACE/swift"
-
     - name: Verify toolchain
       run: |
         xcodebuild -version
@@ -80,14 +65,10 @@ jobs:
     - name: Generate lcov
       run: |
         BIN=$(swift build --show-bin-path)
-        TEST_BIN="${BIN}/AlibabacloudOpenApiPackageTests.xctest/Contents/MacOS/AlibabacloudOpenApiPackageTests"
-        if [ ! -f "$TEST_BIN" ]; then
-          TEST_BIN=$(find "$BIN" -name AlibabacloudOpenApiPackageTests -type f | head -n 1)
-        fi
+        TEST_BIN=$(find "$BIN" -type f -path '*.xctest/Contents/MacOS/*' -print -quit)
+        test -n "$TEST_BIN"
         PROFDATA="${BIN}/codecov/default.profdata"
-        if [ ! -f "$PROFDATA" ]; then
-          PROFDATA=$(find .build -name default.profdata | head -n 1)
-        fi
+        test -f "$PROFDATA"
         xcrun llvm-cov export -format=lcov \
           "$TEST_BIN" \
           -instr-profile "$PROFDATA" \
@@ -115,19 +96,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         persist-credentials: false
-    - name: Check out legacy dependency setup helper
-      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
-      uses: actions/checkout@v4
-      with:
-        repository: aliyun/tea-swift
-        ref: 9689419769550fe126b9399379c07cd76d9bff39
-        path: .swift-ci/tea-swift
-        persist-credentials: false
-    - name: Prepare unpublished dependencies with released Tea
-      if: github.event_name == 'pull_request' && github.event.pull_request.number == 296
-      run: |
-        python3 "$GITHUB_WORKSPACE/.swift-ci/tea-swift/.github/scripts/prepare-swift-dependencies.py" "$GITHUB_WORKSPACE/swift"
-        python3 "$GITHUB_WORKSPACE/.github/scripts/use-released-tea.py" "$GITHUB_WORKSPACE/swift"
     - name: Swift version
       run: swift --version
     - name: Test

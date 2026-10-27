@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 import XCTest
 import Tea
 import TeaUtils
@@ -86,9 +83,6 @@ final class ExecuteCoverageTests: XCTestCase {
             "reqBodyType": "json",
             "bodyType": "json"
         ])
-        let probe = URL(string: "http://127.0.0.1:\(server.port)/test")!
-        let (_, probeResp) = try await URLSession.shared.data(from: probe)
-        XCTAssertEqual((probeResp as? HTTPURLResponse)?.statusCode, 200)
         do {
             let viaCallApi = try await client.callApi(params, request, runtime)
             XCTAssertEqual(statusCode(viaCallApi), 200)

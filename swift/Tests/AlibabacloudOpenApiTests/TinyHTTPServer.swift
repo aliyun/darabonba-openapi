@@ -44,6 +44,9 @@ final class TinyHTTPServer {
                     n = int(self.headers.get("Content-Length") or 0)
                     if n:
                         self.rfile.read(n)
+                if self.headers.get("x-disconnect") == "1":
+                    self.close_connection = True
+                    return
                 path = (self.path or "/").split("?", 1)[0]
                 status = 200
                 content_type = "application/json"

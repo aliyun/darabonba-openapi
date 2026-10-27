@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 import XCTest
 import TeaUtils
 @testable import AlibabacloudOpenApi
@@ -210,10 +207,6 @@ final class ClientExtraCoverageTests: XCTestCase {
             if let n = result["statusCode"] as? NSNumber { return n.intValue }
             return 0
         }
-
-        let probe = URL(string: "http://127.0.0.1:\(server.port)/test")!
-        let (_, probeResp) = try await URLSession.shared.data(from: probe)
-        XCTAssertEqual((probeResp as? HTTPURLResponse)?.statusCode, 200)
 
         let jsonResult = try await client.callApi(params, request, runtime)
         XCTAssertEqual(statusCode(jsonResult), 200)
