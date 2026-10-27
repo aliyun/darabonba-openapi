@@ -98,8 +98,17 @@ namespace OpenApiClientUnitTests.Mock
 
             string responseBody;
             int statusCode;
+            string contentType = "application/json";
             switch (content)
             {
+                case "empty204":
+                    WriteResponse(res, 204, "", null);
+                    return;
+                case "xml":
+                    responseBody = "<?xml version=\"1.0\"?><Error><Code>Invalid</Code><Message>xml error</Message><RequestId>xml-id</RequestId></Error>";
+                    statusCode = 400;
+                    contentType = "text/xml;charset=utf-8";
+                    break;
                 case "array":
                     responseBody = "[\"AppId\", \"ClassId\", \"UserId\"]";
                     statusCode = 200;
@@ -126,7 +135,7 @@ namespace OpenApiClientUnitTests.Mock
                     break;
             }
 
-            WriteResponse(res, statusCode, responseBody);
+            WriteResponse(res, statusCode, responseBody, contentType);
         }
 
         private void HandleThrottling(HttpListenerRequest req, HttpListenerResponse res)
@@ -202,11 +211,22 @@ namespace OpenApiClientUnitTests.Mock
 
         private static void WriteResponse(HttpListenerResponse res, int statusCode, string body)
         {
-            var bytes = Encoding.UTF8.GetBytes(body);
+            WriteResponse(res, statusCode, body, "application/json");
+        }
+
+        private static void WriteResponse(HttpListenerResponse res, int statusCode, string body, string contentType)
+        {
+            var bytes = Encoding.UTF8.GetBytes(body ?? "");
             res.StatusCode = statusCode;
-            res.ContentType = "application/json";
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                res.ContentType = contentType;
+            }
             res.ContentLength64 = bytes.Length;
-            res.OutputStream.Write(bytes, 0, bytes.Length);
+            if (bytes.Length > 0)
+            {
+                res.OutputStream.Write(bytes, 0, bytes.Length);
+            }
             res.OutputStream.Close();
         }
 

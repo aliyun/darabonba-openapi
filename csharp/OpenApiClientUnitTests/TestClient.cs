@@ -1,3 +1,4 @@
+using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Models;
 
 namespace OpenApiClientUnitTests
@@ -15,6 +16,12 @@ namespace OpenApiClientUnitTests
         {
             get => _productId;
             set => _productId = value;
+        }
+
+        public AttributeMap AttributeMap
+        {
+            get => _attributeMap;
+            set => _attributeMap = value;
         }
 
         public string Endpoint => _endpoint;
@@ -40,5 +47,6 @@ namespace OpenApiClientUnitTests
         public string Cert => _cert;
         public string Ca => _ca;
         public bool? DisableHttp2 => _disableHttp2;
+        public Aliyun.Credentials.Client Credential => _credential;
     }
 }

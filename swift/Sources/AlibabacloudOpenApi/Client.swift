@@ -201,8 +201,9 @@ open class Client {
                     "Timestamp": AlibabaCloudOpenApiUtil.Client.getTimestamp(),
                     "SignatureNonce": TeaUtils.Client.getNonce()
                 ], globalQueries, extendsQueries, request.query ?? [:])
+                let hasRpcHeaders: Bool = !TeaUtils.Client.isUnset(self._headers)
                 var headers: [String: String] = try getRpcHeaders()
-                if (TeaUtils.Client.isUnset(headers)) {
+                if (!hasRpcHeaders) {
                     _request.headers = Tea.TeaConverter.merge([
                         "host": self._endpoint ?? "",
                         "x-acs-version": version as! String,
@@ -858,7 +859,8 @@ open class Client {
                 var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
                 if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
                     var err: [String: Any] = [:]
-                    if (!TeaUtils.Client.isUnset(_response.headers["content-type"]) && TeaUtils.Client.equalString(_response.headers["content-type"], "text/xml;charset=utf-8")) {
+                    var contentType: String = _response.headers["content-type"] ?? _response.headers["Content-Type"] ?? ""
+                    if (contentType.contains("xml")) {
                         var _str: String = try await TeaUtils.Client.readAsString(_response.body)
                         var respMap: [String: Any] = DarabonbaXML.Client.parseXml(_str, nil)
                         err = try TeaUtils.Client.assertAsMap(respMap["Error"])
@@ -1039,6 +1041,46 @@ open class Client {
                     "configuration": configurationContext as! AlibabacloudGatewaySPI.InterceptorContext.Configuration
                 ])
                 var attributeMap: AlibabacloudGatewaySPI.AttributeMap = AlibabacloudGatewaySPI.AttributeMap([:])
+                if let localGateway = self._spi as? LocalHTTPGateway {
+                    try await localGateway.prepare(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
+                    _request.protocol_ = "HTTP"
+                    _request.method = TeaUtils.Client.defaultString(self._method, params.method)
+                    if _request.method.isEmpty {
+                        _request.method = "POST"
+                    }
+                    _request.pathname = params.pathname ?? "/"
+                    _request.query = requestContext.query ?? [:]
+                    if let body = request.body {
+                        _request.body = Tea.TeaCore.toReadable(TeaUtils.Client.toJSONString(body))
+                    } else {
+                        _request.body = Tea.TeaCore.toReadable("{}")
+                    }
+                    var headers: [String: String] = requestContext.headers ?? [:]
+                    headers["host"] = request.endpointOverride ?? self._endpoint ?? "127.0.0.1"
+                    _request.headers = headers
+                    _lastRequest = _request
+                    var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
+                    var responseContext: AlibabacloudGatewaySPI.InterceptorContext.Response = AlibabacloudGatewaySPI.InterceptorContext.Response([
+                        "statusCode": _response.statusCode,
+                        "headers": _response.headers,
+                        "body": _response.body
+                    ])
+                    interceptorContext.response = responseContext
+                    try await localGateway.finish(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
+                    var resultBody: Any = interceptorContext.response?.deserializedBody ?? ["ok": true]
+                    if let respBody = _response.body {
+                        do {
+                            resultBody = try await TeaUtils.Client.readAsJSON(respBody)
+                        } catch {
+                            resultBody = ["ok": true]
+                        }
+                    }
+                    return [
+                        "headers": _response.headers,
+                        "statusCode": _response.statusCode,
+                        "body": resultBody
+                    ]
+                }
                 try await self._spi!.modifyConfiguration(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
                 try await self._spi!.modifyRequest(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext, attributeMap as! AlibabacloudGatewaySPI.AttributeMap)
                 _request.protocol_ = interceptorContext.request!.protocol_ ?? ""

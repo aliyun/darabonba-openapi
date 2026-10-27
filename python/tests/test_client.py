@@ -225,7 +225,7 @@ class TestClient(unittest.TestCase):
         )
         return req
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_rpcwith_v2sign_ak_form(self):
         requestBody = 'key1=value&key2=1&key3=True'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -434,7 +434,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
             self.assertEqual('InvalidCredentials', e.code)
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_rpcwith_v2sign_anonymous_json(self):
         requestBody = 'key1=value&key2=1&key3=True'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -550,7 +550,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_roawith_v2sign_ak_form(self):
         requestBody = 'key1=value&key2=1&key3=True'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -877,7 +877,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
             self.assertEqual('InvalidCredentials', e.code)
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_roawith_v2sign_anonymous_json(self):
         requestBody = '{"key1":"value","key2":1,"key3":true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -996,7 +996,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_rpcwith_v3sign_ak_form(self):
         requestBody = 'key1=value&key2=1&key3=True'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -1213,7 +1213,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
             self.assertEqual('InvalidCredentials', e.code)
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_rpcwith_v3sign_anonymous_json(self):
         requestBody = '{"key1":"value","key2":1,"key3":true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -1333,7 +1333,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_roawith_v3sign_ak_form(self):
         requestBody = 'key1=value&key2=1&key3=True'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -1550,7 +1550,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('Please set up the credentials correctly. If you are setting them through environment variables, please ensure that ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set correctly. See https://help.aliyun.com/zh/sdk/developer-reference/configure-the-alibaba-cloud-accesskey-environment-variable-on-linux-macos-and-windows-systems for more details.', e.message)
             self.assertEqual('InvalidCredentials', e.code)
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_call_api_for_roawith_v3sign_anonymous_json(self):
         requestBody = '{"key1":"value","key2":1,"key3":true}'
         responseBody = '{"AppId":"test", "ClassId":"test", "UserId":123}'
@@ -1667,7 +1667,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_response_body_type(self):
         requestBody = 'key1=value&key2=1&key3=True'
         config = self.create_config()
@@ -1953,7 +1953,7 @@ class TestClient(unittest.TestCase):
             self.assertEqual('error code', e.code)
             self.assertEqual(0, e.accessDeniedDetail['test'])
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_request_body_type(self):
         config = self.create_config()
         runtime = self.create_runtime_options()
@@ -2304,7 +2304,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(123, result.get('body').get('UserId'))
         self.assertEqual(200, result.get('statusCode'))
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_sse_api_call(self):
         # 初始化请求和模拟响应体
         request_body = 'key1=value&key2=1&key3=True'
@@ -2403,7 +2403,7 @@ class TestClient(unittest.TestCase):
             })
         )
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_throttling_backoff_retry_list_product_quotas(self):
         import time
         state = {
@@ -2464,7 +2464,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('1000', state['retry_delays'][2])
         self.assertGreaterEqual(elapsed, 1.8)
 
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     def test_throttling_backoff_retry_list_product_quotas_exhausted(self):
         from alibabacloud_tea_openapi.exceptions import ThrottlingException
         state = {
@@ -2500,7 +2500,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual('Throttling', cm.exception.code)
         self.assertEqual(3, state['request_count'])
     
-    @httpretty.activate(allow_net_connect=False)
+    @httpretty.activate
     async def test_sse_api_call_async(self):
         # 初始化请求和模拟响应体
         request_body = 'key1=value&key2=1&key3=True'

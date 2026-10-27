@@ -34,7 +34,7 @@ jobs:
     - name: Build
       run: go mod tidy
     - name: Test
-      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/... ./utils/...
+      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./client/... ./utils/... ./websocketUtils/...
     - uses: codecov/codecov-action@v4
       with:
         flags: golang # optional

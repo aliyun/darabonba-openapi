@@ -35,7 +35,12 @@ let package = Package(
                     ]),
             .testTarget(
                     name: "AlibabacloudOpenApiTests",
-                    dependencies: ["AlibabacloudOpenApi"]),
+                    dependencies: [
+                        "AlibabacloudOpenApi",
+                        .product(name: "Tea", package: "tea-swift"),
+                        .product(name: "TeaUtils", package: "tea-utils"),
+                        .product(name: "AlibabacloudGatewaySPI", package: "alibabacloud-gateway-spi"),
+                    ]),
         ],
         swiftLanguageVersions: [.v5]
 )

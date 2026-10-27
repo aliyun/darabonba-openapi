@@ -107,9 +107,44 @@ while ($client = @stream_socket_accept($server)) {
 
         echo $bodyType . "\n";
 
+        if ($path === '/empty') {
+            $responseHeaders = "HTTP/1.1 204 No Content\r\n" .
+                "Connection: close\r\n" .
+                "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                "http-method: $method\r\n" .
+                "pathname: $path\r\n\r\n";
+            fwrite($client, $responseHeaders);
+            fclose($client);
+            continue;
+        }
+
         switch ($bodyType) {
             case 'array':
                 $responseBody = json_encode(["AppId", "ClassId", "UserId"]);
+                break;
+            case 'xml':
+                $responseHeaders = "HTTP/1.1 400 Bad Request\r\n" .
+                    "Connection: close\r\n" .
+                    "Content-Type: text/xml;charset=utf-8\r\n" .
+                    "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                    "http-method: $method\r\n" .
+                    "pathname: $path\r\n";
+                $responseBody = "<?xml version=\"1.0\"?><Error><Code>InvalidAccessKeyId</Code><Message>xml error</Message><RequestId>xml-request-id</RequestId></Error>";
+                break;
+            case 'serverError':
+                $responseHeaders = "HTTP/1.1 500 Internal Server Error\r\n" .
+                    "Connection: close\r\n" .
+                    "Content-Type: application/json\r\n" .
+                    "x-acs-request-id: A45EE076-334D-5012-9746-A8F828D20FD4\r\n" .
+                    "http-method: $method\r\n" .
+                    "pathname: $path\r\n";
+                $responseBody = json_encode([
+                    "Code" => "InternalError",
+                    "Message" => "server boom",
+                    "RequestId" => "A45EE076-334D-5012-9746-A8F828D20FD4",
+                    "Description" => "desc",
+                    "Detail" => "detail"
+                ]);
                 break;
             case 'error':
                 $responseHeaders = "HTTP/1.1 400 Bad Request\r\n" .
