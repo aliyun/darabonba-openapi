@@ -12,8 +12,8 @@ import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
 import * as crypto from 'crypto';
 
-function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean): string {
-  let method = 'HMAC-SHA256';
+function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean, queryMethod?: string): string {
+  let method = queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
   let explicit = false;
   for (const source of sources) {
     if (!source) continue;
@@ -35,6 +35,8 @@ function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key:
 }
 
 function rpcSignatureWithSHA256(params: {[key: string]: string}, method: string, secret: string): string {
+  const signer = (OpenApiUtil as any).getRPCSignatureWithSHA256;
+  if (typeof signer === 'function') return signer.call(OpenApiUtil, params, method, secret);
   const encode = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
   const normalized = OpenApiUtil.query(params);
   const canonical = Object.keys(normalized).sort().map(key => encode(key) + '=' + encode(normalized[key])).join('&');
@@ -42,6 +44,8 @@ function rpcSignatureWithSHA256(params: {[key: string]: string}, method: string,
 }
 
 function roaSignatureWithSHA256(stringToSign: string, secret: string): string {
+  const signer = (OpenApiUtil as any).getROASignatureWithSHA256;
+  if (typeof signer === 'function') return signer.call(OpenApiUtil, stringToSign, secret);
   return crypto.createHmac('sha256', secret).update(stringToSign, 'utf8').digest('base64');
 }
 
@@ -736,7 +740,7 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false);
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false, request_.query['SignatureMethod']);
             request_.query["SignatureMethod"] = method;
             request_.query["SignatureVersion"] = "1.0";
             request_.query["AccessKeyId"] = accessKeyId;

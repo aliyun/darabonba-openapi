@@ -71,6 +71,42 @@ def test_header_precedence_and_conflicts():
         Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-MD5'})
 
 
+@pytest.mark.parametrize('override,expected', [(None, 'HMAC-SHA1'), ('HMAC-SHA256', 'HMAC-SHA256')])
+@pytest.mark.parametrize('is_async', [False, True])
+def test_rpc_explicit_sha1_query_and_header_precedence(override, expected, is_async):
+    client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
+    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
+                    method='GET', auth_type='AK', style='RPC', body_type='none')
+    captured = []
+
+    def send(request, runtime):
+        captured.append(request)
+        return SimpleNamespace(status_code=200, headers={})
+
+    async def send_async(request, runtime):
+        return send(request, runtime)
+
+    request = OpenApiRequest(query={'SignatureMethod': 'HMAC-SHA1'},
+                             headers={'x-acs-signature-method': override} if override else None)
+    if is_async:
+        with patch.object(TeaCore, 'async_do_action', side_effect=send_async):
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(client.call_api_async(params, request, RuntimeOptions()))
+            finally:
+                loop.close()
+    else:
+        with patch.object(TeaCore, 'do_action', side_effect=send):
+            client.call_api(params, request, RuntimeOptions())
+    query = captured[0].query
+    assert query['SignatureMethod'] == expected
+    signed = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}'
+                      for k, v in sorted(query.items()) if k != 'Signature' and v is not None)
+    digest = hashlib.sha1 if expected == 'HMAC-SHA1' else hashlib.sha256
+    signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), digest).digest()).decode()
+    assert query['Signature'] == signature
+
+
 def test_rpc_special_characters_and_old_util():
     params = {'你好': 'a b+&=中', 'empty': '', 'skip': None}
     query = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}' for k, v in sorted(params.items()) if v is not None)
@@ -95,3 +131,43 @@ def test_roa_non_hmac_auth_keeps_original_header(auth_type):
     with patch.object(TeaCore, 'do_action', side_effect=send):
         client.call_api(params, OpenApiRequest(), RuntimeOptions())
     assert captured[0].headers['x-acs-signature-method'] == 'HMAC-SHA1'
+
+
+@pytest.mark.parametrize('style,method_name', [
+    ('RPC', 'get_rpcsignature_with_sha256'), ('ROA', 'get_roasignature_with_sha256')
+])
+def test_sha256_request_uses_new_util_when_available(style, method_name):
+    method = getattr(OpenApiUtilClient, method_name, None)
+    if not callable(method):
+        pytest.skip('requires the SHA256-capable OpenAPI Util')
+    client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
+    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
+                    method='GET', auth_type='AK', style=style, body_type='none')
+    captured = []
+
+    def send(request, runtime):
+        captured.append(request)
+        return SimpleNamespace(status_code=200, headers={})
+
+    with patch.object(OpenApiUtilClient, method_name, wraps=method) as signer:
+        with patch.object(TeaCore, 'do_action', side_effect=send):
+            client.call_api(params, OpenApiRequest(), RuntimeOptions())
+    assert signer.call_count == 1
+    signature = method(*signer.call_args[0], **signer.call_args[1])
+    if style == 'RPC':
+        assert captured[0].query['Signature'] == signature
+    else:
+        assert captured[0].headers['authorization'] == 'acs id:' + signature
+
+
+@pytest.mark.parametrize('method_name', ['get_rpcsignature_with_sha256', 'get_roasignature_with_sha256'])
+def test_sha256_fallback_works_with_old_util(method_name):
+    with patch.object(OpenApiUtilClient, method_name, None, create=True):
+        if method_name == 'get_rpcsignature_with_sha256':
+            signature = Client._get_v2_rpc_signature({'key': 'value'}, 'GET', 'secret', 'HMAC-SHA256')
+            text = 'GET&%2F&' + quote_plus('key=value', safe='~')
+            expected = hmac.new(b'secret&', text.encode(), hashlib.sha256).digest()
+        else:
+            signature = Client._get_v2_roa_signature('payload', 'secret', 'HMAC-SHA256')
+            expected = hmac.new(b'secret', b'payload', hashlib.sha256).digest()
+        assert signature == base64.b64encode(expected).decode()

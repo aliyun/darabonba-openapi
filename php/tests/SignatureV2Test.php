@@ -9,6 +9,12 @@ use Darabonba\OpenApi\Models\Params;
 use Darabonba\OpenApi\OpenApiClient;
 use PHPUnit\Framework\TestCase;
 
+class SignatureV2UtilProbe
+{
+    public static function getRPCSignatureWithSHA256($params, $method, $secret) { return 'util-rpc'; }
+    public static function getROASignatureWithSHA256($stringToSign, $secret) { return 'util-roa'; }
+}
+
 class SignatureV2Test extends TestCase
 {
     private static $process;
@@ -70,6 +76,34 @@ class SignatureV2Test extends TestCase
         $this->assertEquals('custom', $client->callApi($params, $request, $runtime)['body']['headers']['x-acs-signature-method']);
     }
 
+    public function testRpcQuerySignatureMethod()
+    {
+        $config = new Config(['accessKeyId' => 'ak', 'accessKeySecret' => 'secret', 'securityToken' => 'token', 'protocol' => 'HTTP', 'endpoint' => 'signatures.example.invalid', 'signatureAlgorithm' => 'v2', 'globalParameters' => new GlobalParameters(['queries' => []])]);
+        $runtime = new RuntimeOptions(['httpProxy' => 'http://127.0.0.1:' . self::$port, 'extendsParameters' => new ExtendsParameters(['queries' => []])]);
+        $request = new OpenApiRequest(['query' => ['test' => 'value'], 'body' => ['body' => 'test'], 'headers' => []]);
+        $client = new OpenApiClient($config);
+        $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/', 'method' => 'POST', 'authType' => 'AK', 'style' => 'RPC', 'reqBodyType' => 'formData', 'bodyType' => 'json']);
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($config->globalParameters->queries['SignatureMethod']);
+        $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($runtime->extendsParameters->queries['SignatureMethod']);
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $request->query['SignatureMethod'] = 'legacy';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = '';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
+        $this->assertSignature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->headers['X-Acs-Signature-Method'] = '';
+        try { $client->callApi($params, $request, $runtime); $this->fail('empty signature method accepted'); }
+        catch (\Exception $error) { $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false); }
+    }
+
     public function testV3RequestRemainsAvailable()
     {
         $config = new Config(['accessKeyId' => 'ak', 'accessKeySecret' => 'secret', 'protocol' => 'HTTP', 'endpoint' => 'signatures.example.invalid']);
@@ -78,6 +112,21 @@ class SignatureV2Test extends TestCase
         $runtime = new RuntimeOptions(['httpProxy' => 'http://127.0.0.1:' . self::$port]);
         $captured = (new OpenApiClient($config))->callApi($params, $request, $runtime)['body'];
         $this->assertTrue(strpos($captured['headers']['authorization'], 'ACS3-HMAC-SHA256 ') === 0);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testSha256PrefersAvailableUtilMethods()
+    {
+        class_alias(SignatureV2UtilProbe::class, 'AlibabaCloud\\OpenApiUtil\\OpenApiUtilClient');
+        $rpc = new \ReflectionMethod(OpenApiClient::class, 'rpcSignatureWithSHA256');
+        $roa = new \ReflectionMethod(OpenApiClient::class, 'roaSignatureWithSHA256');
+        $rpc->setAccessible(true);
+        $roa->setAccessible(true);
+        $this->assertSame('util-rpc', $rpc->invoke(null, [], 'GET', 'secret'));
+        $this->assertSame('util-roa', $roa->invoke(null, 'payload', 'secret'));
     }
 
     private function assertSignature($captured, $style, $method)

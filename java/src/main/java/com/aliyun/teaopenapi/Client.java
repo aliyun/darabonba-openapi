@@ -22,6 +22,25 @@ public class Client {
 
     private final static InterceptorChain interceptorChain = InterceptorChain.create();
 
+    private static java.lang.reflect.Method signatureV2Method(String name, Class<?>... parameters) {
+        try {
+            return com.aliyun.openapiutil.Client.class.getMethod(name, parameters);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+
+    private static String invokeSignatureV2(java.lang.reflect.Method method, Object... arguments) throws Exception {
+        try {
+            return (String) method.invoke(null, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            Throwable cause = error.getCause();
+            if (cause instanceof Exception) throw (Exception) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw error;
+        }
+    }
+
     @SafeVarargs
     private static String configureSignatureV2Header(java.util.Map<String, String> target, boolean required, java.util.Map<String, String>... sources) {
         String value = null;
@@ -56,6 +75,8 @@ public class Client {
 
     private static String signV2Sha256(String text, String secret) throws Exception {
         if (secret == null || secret.length() == 0) return secret;
+        java.lang.reflect.Method util = signatureV2Method("getROASignatureWithSHA256", String.class, String.class);
+        if (util != null) return invokeSignatureV2(util, text, secret);
         javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
         mac.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("UTF-8"), "HmacSHA256"));
         return org.apache.commons.codec.binary.Base64.encodeBase64String(mac.doFinal(text.getBytes("UTF-8")));
@@ -63,6 +84,8 @@ public class Client {
 
     private static String signRpcV2Sha256(java.util.Map<String, String> parameters, String method, String secret) throws Exception {
         if (parameters == null || secret == null || secret.length() == 0) return secret;
+        java.lang.reflect.Method util = signatureV2Method("getRPCSignatureWithSHA256", java.util.Map.class, String.class, String.class);
+        if (util != null) return invokeSignatureV2(util, parameters, method, secret);
         String[] keys = parameters.keySet().toArray(new String[parameters.size()]);
         java.util.Arrays.sort(keys);
         StringBuilder query = new StringBuilder();
@@ -358,6 +381,7 @@ public class Client {
                         }
 
                         String signatureMethod = configureSignatureV2Header(request_.headers, false, globalHeaders, extendsHeaders, request.headers, headers);
+                        if (!request_.headers.containsKey("x-acs-signature-method") && "HMAC-SHA1".equals(request_.query.get("SignatureMethod"))) signatureMethod = "HMAC-SHA1";
                         request_.query.put("SignatureMethod", signatureMethod);
                         request_.query.put("SignatureVersion", "1.0");
                         request_.query.put("AccessKeyId", accessKeyId);

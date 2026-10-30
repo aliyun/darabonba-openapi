@@ -17,6 +17,25 @@ namespace AlibabaCloud.OpenApiClient
 {
     public class Client 
     {
+        private static System.Reflection.MethodInfo SignatureV2Method(string name, Type[] parameters)
+        {
+            return typeof(AlibabaCloud.OpenApiUtil.Client).GetMethod(name, parameters);
+        }
+
+        private static string InvokeSignatureV2(System.Reflection.MethodInfo method, object[] arguments)
+        {
+            try
+            {
+                return (string)method.Invoke(null, arguments);
+            }
+            catch (System.Reflection.TargetInvocationException error)
+            {
+                if (error.InnerException != null)
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error.InnerException).Throw();
+                throw;
+            }
+        }
+
         private static string ConfigureSignatureV2Header(Dictionary<string, string> target, bool required, params Dictionary<string, string>[] sources)
         {
             string value = null;
@@ -50,6 +69,11 @@ namespace AlibabaCloud.OpenApiClient
 
         private static string SignV2(string text, string secret, string method)
         {
+            if (method == "HMAC-SHA256")
+            {
+                var util = SignatureV2Method("GetROASignatureWithSHA256", new[] { typeof(string), typeof(string) });
+                if (util != null) return InvokeSignatureV2(util, new object[] { text, secret });
+            }
             using (HMAC mac = method == "HMAC-SHA1" ? (HMAC)new HMACSHA1(Encoding.UTF8.GetBytes(secret)) : new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
                 return Convert.ToBase64String(mac.ComputeHash(Encoding.UTF8.GetBytes(text)));
         }
@@ -69,6 +93,11 @@ namespace AlibabaCloud.OpenApiClient
 
         private static string SignRpcV2(Dictionary<string, string> parameters, string method, string secret, string signatureMethod)
         {
+            if (signatureMethod == "HMAC-SHA256")
+            {
+                var util = SignatureV2Method("GetRPCSignatureWithSHA256", new[] { typeof(Dictionary<string, string>), typeof(string), typeof(string) });
+                if (util != null) return InvokeSignatureV2(util, new object[] { parameters, method, secret });
+            }
             var keys = new List<string>(parameters.Keys);
             keys.Sort(StringComparer.Ordinal);
             var query = new StringBuilder();
@@ -404,6 +433,7 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Query["SecurityToken"] = securityToken;
                             }
                             string signatureMethod = ConfigureSignatureV2Header(request_.Headers, false, globalHeaders, extendsHeaders, request.Headers, headers);
+                            if (!request_.Headers.ContainsKey("x-acs-signature-method") && request_.Query.ContainsKey("SignatureMethod") && request_.Query["SignatureMethod"] == "HMAC-SHA1") signatureMethod = "HMAC-SHA1";
                             request_.Query["SignatureMethod"] = signatureMethod;
                             request_.Query["SignatureVersion"] = "1.0";
                             request_.Query["AccessKeyId"] = accessKeyId;
@@ -727,6 +757,7 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Query["SecurityToken"] = securityToken;
                             }
                             string signatureMethod = ConfigureSignatureV2Header(request_.Headers, false, globalHeaders, extendsHeaders, request.Headers, headers);
+                            if (!request_.Headers.ContainsKey("x-acs-signature-method") && request_.Query.ContainsKey("SignatureMethod") && request_.Query["SignatureMethod"] == "HMAC-SHA1") signatureMethod = "HMAC-SHA1";
                             request_.Query["SignatureMethod"] = signatureMethod;
                             request_.Query["SignatureVersion"] = "1.0";
                             request_.Query["AccessKeyId"] = accessKeyId;

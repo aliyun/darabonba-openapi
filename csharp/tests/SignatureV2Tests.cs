@@ -14,6 +14,23 @@ using Xunit;
 
 public class SignatureV2Tests
 {
+    private static readonly InvalidOperationException SignatureFailure = new InvalidOperationException("signature failure");
+
+    public static string FailSignature()
+    {
+        throw SignatureFailure;
+    }
+
+    [Fact]
+    public void UtilFailureIsPropagated()
+    {
+        var invoke = typeof(Client).GetMethod("InvokeSignatureV2", BindingFlags.NonPublic | BindingFlags.Static);
+        var failure = typeof(SignatureV2Tests).GetMethod("FailSignature", BindingFlags.Public | BindingFlags.Static);
+        Assert.NotNull(invoke);
+        var error = Assert.Throws<TargetInvocationException>(() => invoke.Invoke(null, new object[] { failure, new object[0] }));
+        Assert.Same(SignatureFailure, error.InnerException);
+    }
+
     [Fact]
     public void LegacyRpcSha1MatchesExistingUtilForSpecialAndEmptyValues()
     {
@@ -46,19 +63,25 @@ public class SignatureV2Tests
     }
 
     [Theory]
-    [InlineData("RPC", false, "HMAC-SHA256")]
-    [InlineData("RPC", true, "HMAC-SHA1")]
-    [InlineData("ROA", false, "HMAC-SHA256")]
-    [InlineData("ROA", true, "HMAC-SHA1")]
-    [InlineData("RPCAsync", false, "HMAC-SHA256")]
-    [InlineData("RPCAsync", true, "HMAC-SHA1")]
-    [InlineData("ROAAsync", false, "HMAC-SHA256")]
-    [InlineData("ROAAsync", true, "HMAC-SHA1")]
-    [InlineData("ROAForm", false, "HMAC-SHA256")]
-    [InlineData("ROAForm", true, "HMAC-SHA1")]
-    [InlineData("ROAFormAsync", false, "HMAC-SHA256")]
-    [InlineData("ROAFormAsync", true, "HMAC-SHA1")]
-    public void ActualRequestsUseSelectedSignature(string style, bool overrideHeader, string expected)
+    [InlineData("RPC", null, null, "HMAC-SHA256")]
+    [InlineData("RPC", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPC", null, "HMAC-SHA1", "HMAC-SHA1")]
+    [InlineData("RPC", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
+    [InlineData("RPC", null, "unsupported", "HMAC-SHA256")]
+    [InlineData("RPC", null, "", "HMAC-SHA256")]
+    [InlineData("ROA", null, null, "HMAC-SHA256")]
+    [InlineData("ROA", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPCAsync", null, null, "HMAC-SHA256")]
+    [InlineData("RPCAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPCAsync", null, "HMAC-SHA1", "HMAC-SHA1")]
+    [InlineData("RPCAsync", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
+    [InlineData("ROAAsync", null, null, "HMAC-SHA256")]
+    [InlineData("ROAAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROAForm", null, null, "HMAC-SHA256")]
+    [InlineData("ROAForm", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROAFormAsync", null, null, "HMAC-SHA256")]
+    [InlineData("ROAFormAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    public void ActualRequestsUseSelectedSignature(string style, string overrideHeader, string queryAlgorithm, string expected)
     {
         var socket = new TcpListener(IPAddress.Loopback, 0);
         socket.Start();
@@ -83,10 +106,11 @@ public class SignatureV2Tests
             var request = new OpenApiRequest { Headers = new Dictionary<string, string>(), Query = new Dictionary<string, string>() };
             request.Query["中文 +/%~"] = "空 格+/%*~雪";
             request.Query["Empty"] = "";
-            if (overrideHeader)
+            if (queryAlgorithm != null) request.Query["SignatureMethod"] = queryAlgorithm;
+            if (overrideHeader != null)
             {
-                config.GlobalParameters = new GlobalParameters { Headers = new Dictionary<string, string> { { "x-acs-signature-method", "HMAC-SHA256" } } };
-                request.Headers["X-Acs-Signature-Method"] = "HMAC-SHA1";
+                config.GlobalParameters = new GlobalParameters { Headers = new Dictionary<string, string> { { "x-acs-signature-method", overrideHeader == "HMAC-SHA1" ? "HMAC-SHA256" : "HMAC-SHA1" } } };
+                request.Headers["X-Acs-Signature-Method"] = overrideHeader;
             }
             var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
             var client = new Client(config);

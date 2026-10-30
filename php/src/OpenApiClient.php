@@ -28,9 +28,9 @@ use Darabonba\GatewaySpi\Models\InterceptorContext\response;
  */
 class OpenApiClient
 {
-  private static function signatureMethod(&$headers, $sources, $roa)
+  private static function signatureMethod(&$headers, $sources, $roa, $queryMethod = null)
   {
-    $method = 'HMAC-SHA256';
+    $method = $queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
     $explicit = false;
     foreach ($sources as $source) {
       $seen = false;
@@ -52,6 +52,9 @@ class OpenApiClient
 
   private static function rpcSignatureWithSHA256($params, $method, $secret)
   {
+    if (method_exists(OpenApiUtilClient::class, 'getRPCSignatureWithSHA256')) {
+      return OpenApiUtilClient::getRPCSignatureWithSHA256($params, $method, $secret);
+    }
     ksort($params);
     $canonical = [];
     foreach ($params as $key => $value) {
@@ -59,6 +62,14 @@ class OpenApiClient
     }
     $stringToSign = $method . '&%2F&' . rawurlencode(implode('&', $canonical));
     return base64_encode(hash_hmac('sha256', $stringToSign, $secret . '&', true));
+  }
+
+  private static function roaSignatureWithSHA256($stringToSign, $secret)
+  {
+    if (method_exists(OpenApiUtilClient::class, 'getROASignatureWithSHA256')) {
+      return OpenApiUtilClient::getROASignatureWithSHA256($stringToSign, $secret);
+    }
+    return base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
   }
   protected $_endpoint;
 
@@ -332,7 +343,7 @@ class OpenApiClient
             if (!Utils::empty_($securityToken)) {
               $_request->query["SecurityToken"] = $securityToken;
             }
-            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false);
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false, isset($_request->query['SignatureMethod']) ? $_request->query['SignatureMethod'] : null);
             $_request->query["SignatureMethod"] = $signatureMethod;
             $_request->query["SignatureVersion"] = "1.0";
             $_request->query["AccessKeyId"] = $accessKeyId;
@@ -555,7 +566,7 @@ class OpenApiClient
             }
             $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = OpenApiUtilClient::getStringToSign($_request);
-            $signature = $signatureMethod === 'HMAC-SHA1' ? OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) : base64_encode(hash_hmac('sha256', $stringToSign, $accessKeySecret, true));
+            $signature = $signatureMethod === 'HMAC-SHA1' ? OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) : self::roaSignatureWithSHA256($stringToSign, $accessKeySecret);
             $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . $signature;
           }
         }
@@ -780,7 +791,7 @@ class OpenApiClient
             }
             $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = OpenApiUtilClient::getStringToSign($_request);
-            $signature = $signatureMethod === 'HMAC-SHA1' ? OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) : base64_encode(hash_hmac('sha256', $stringToSign, $accessKeySecret, true));
+            $signature = $signatureMethod === 'HMAC-SHA1' ? OpenApiUtilClient::getROASignature($stringToSign, $accessKeySecret) : self::roaSignatureWithSHA256($stringToSign, $accessKeySecret);
             $_request->headers["authorization"] = "acs " . $accessKeyId . ":" . $signature;
           }
         }

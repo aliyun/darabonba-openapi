@@ -84,6 +84,9 @@ class Client:
     def _get_v2_rpc_signature(params, method, secret, algorithm):
         if algorithm == 'HMAC-SHA1':
             return OpenApiUtilClient.get_rpcsignature(params, method, secret)
+        sign = getattr(OpenApiUtilClient, 'get_rpcsignature_with_sha256', None)
+        if callable(sign):
+            return sign(params, method, secret)
         query = '&'.join(f'{quote(k, safe="~", encoding="utf-8")}={quote(params[k], safe="~", encoding="utf-8")}'
                          for k in sorted(params) if params[k] is not None)
         string_to_sign = f'{method}&%2F&{quote_plus(query, safe="~", encoding="utf-8")}'
@@ -94,6 +97,9 @@ class Client:
     def _get_v2_roa_signature(string_to_sign, secret, algorithm):
         if algorithm == 'HMAC-SHA1':
             return OpenApiUtilClient.get_roasignature(string_to_sign, secret)
+        sign = getattr(OpenApiUtilClient, 'get_roasignature_with_sha256', None)
+        if callable(sign):
+            return sign(string_to_sign, secret)
         return base64.b64encode(hmac.new(secret.encode('utf-8'), string_to_sign.encode('utf-8'),
                                          hashlib.sha256).digest()).decode('utf-8')
 
@@ -300,6 +306,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
+                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
+                            algorithm = 'HMAC-SHA1'
                         _request.query['SignatureMethod'] = algorithm
                         _request.query['SignatureVersion'] = '1.0'
                         _request.query['AccessKeyId'] = access_key_id
@@ -515,6 +523,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
+                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
+                            algorithm = 'HMAC-SHA1'
                         _request.query['SignatureMethod'] = algorithm
                         _request.query['SignatureVersion'] = '1.0'
                         _request.query['AccessKeyId'] = access_key_id

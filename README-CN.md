@@ -11,7 +11,7 @@
 
 ## 签名 V2 兼容性
 
-Java、C#、Python、PHP 和 TypeScript 客户端使用签名 V2 的 AccessKey 和 STS 请求默认采用 HMAC-SHA256。如果服务需要 HMAC-SHA1，可在请求头或全局请求头中将 `x-acs-signature-method` 设置为 `HMAC-SHA1`。签名版本保持不变。
+Java、C#、Python、PHP 和 TypeScript 客户端使用签名 V2 的 AccessKey 和 STS 请求默认采用 HMAC-SHA256。如果服务需要 HMAC-SHA1，可在请求头或全局请求头中将 `x-acs-signature-method` 设置为 `HMAC-SHA1`。RPC 请求也可将查询参数 `SignatureMethod` 设置为 `HMAC-SHA1`，显式请求头优先。签名版本保持不变。
 
 ## 问题
 
