@@ -19,6 +19,7 @@ let package = Package(
             .package(url: "https://github.com/alibabacloud-sdk-swift/tea-utils", from: "1.1.0"),
             .package(url: "https://github.com/aliyun/credentials-swift", from: "1.0.3"),
             .package(url: "https://github.com/alibabacloud-sdk-swift/openapi-util", from: "1.0.3"),
+            .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.5.1"),
             .package(url: "https://github.com/alibabacloud-sdk-swift/alibabacloud-gateway-spi", from: "0.0.3"),
             .package(url: "https://github.com/alibabacloud-sdk-swift/tea-xml", from: "1.0.4"),
         ],
@@ -30,6 +31,7 @@ let package = Package(
                         .product(name: "TeaUtils", package: "tea-utils"),
                         .product(name: "AlibabaCloudCredentials", package: "credentials-swift"),
                         .product(name: "AlibabaCloudOpenApiUtil", package: "openapi-util"),
+                        .product(name: "CryptoSwift", package: "CryptoSwift"),
                         .product(name: "AlibabacloudGatewaySPI", package: "alibabacloud-gateway-spi"),
                         .product(name: "DarabonbaXML", package: "tea-xml")
                     ]),
@@ -40,6 +42,7 @@ let package = Package(
                         .product(name: "Tea", package: "tea-swift"),
                         .product(name: "TeaUtils", package: "tea-utils"),
                         .product(name: "AlibabacloudGatewaySPI", package: "alibabacloud-gateway-spi"),
+                        .product(name: "CryptoSwift", package: "CryptoSwift"),
                     ]),
         ],
         swiftLanguageVersions: [.v5]

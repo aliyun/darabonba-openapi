@@ -41,6 +41,33 @@ use AlibabaCloud\Dara\WebSocketUtil;
  */
 class OpenApiClient
 {
+  private static function signatureMethod(&$headers, $sources, $roa, $queryMethod = null)
+  {
+    $method = $queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
+    $explicit = false;
+    foreach ($sources as $source) {
+      $seen = false;
+      $sourceMethod = null;
+      foreach ($source ?: [] as $key => $value) {
+        if (strtolower($key) === 'x-acs-signature-method') {
+          if ($seen && $sourceMethod !== $value) {
+            throw new ClientException(['code' => 'InvalidSignatureAlgorithm', 'message' => 'Conflicting signature V2 algorithms', 'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null]);
+          }
+          $sourceMethod = $value;
+          $seen = true;
+        }
+      }
+      if ($seen) { $method = $sourceMethod; $explicit = true; }
+    }
+    if ($method !== 'HMAC-SHA1' && $method !== 'HMAC-SHA256') {
+      throw new ClientException(['code' => 'InvalidSignatureAlgorithm', 'message' => 'Unsupported signature V2 algorithm', 'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null]);
+    }
+    foreach ($headers as $key => $value) {
+      if (strtolower($key) === 'x-acs-signature-method') unset($headers[$key]);
+    }
+    if ($roa || $explicit) $headers['x-acs-signature-method'] = $method;
+    return $method;
+  }
   /**
    * @var string
    */
@@ -431,7 +458,8 @@ class OpenApiClient
               @$_request->query['SecurityToken'] = $securityToken;
             }
 
-            @$_request->query['SignatureMethod'] = 'HMAC-SHA1';
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false, isset($_request->query['SignatureMethod']) ? $_request->query['SignatureMethod'] : null);
+            @$_request->query['SignatureMethod'] = $signatureMethod;
             @$_request->query['SignatureVersion'] = '1.0';
             @$_request->query['AccessKeyId'] = $accessKeyId;
             $t = null;
@@ -440,7 +468,9 @@ class OpenApiClient
             }
 
             $signedParam = Dara::merge([], $_request->query, Utils::query($t));
-            @$_request->query['Signature'] = Utils::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
+            @$_request->query['Signature'] = $signatureMethod === 'HMAC-SHA1'
+              ? Utils::getRPCSignature($signedParam, $_request->method, $accessKeySecret)
+              : Utils::getRPCSignatureWithSHA256($signedParam, $_request->method, $accessKeySecret);
           }
         }
 
@@ -689,8 +719,10 @@ class OpenApiClient
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
 
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = Utils::getStringToSign($_request);
-            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
+            $signature = $signatureMethod === 'HMAC-SHA1' ? Utils::getROASignature($stringToSign, $accessKeySecret) : Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
 
@@ -947,8 +979,10 @@ class OpenApiClient
               @$_request->headers['x-acs-security-token'] = $securityToken;
             }
 
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = Utils::getStringToSign($_request);
-            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
+            $signature = $signatureMethod === 'HMAC-SHA1' ? Utils::getROASignature($stringToSign, $accessKeySecret) : Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
 

@@ -569,7 +569,7 @@ func TestCallApiForRPCWithV2Sign_AK_Form(t *testing.T) {
 	tea_util.AssertNil(t, _err)
 	tea_util.AssertEqual(t, "key1=value&key2=1&key3=true", headers["raw-body"])
 	regx, _ := regexp.Compile("AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+" +
-		"&SignatureMethod=HMAC-SHA1&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01" +
+		"&SignatureMethod=HMAC-SHA256&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01" +
 		"&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=true")
 	str, _ := util.AssertAsString(headers["raw-query"])
 	find := regx.FindAllString(tea.StringValue(str), -1)
@@ -733,7 +733,7 @@ func TestCallApiForROAWithV2Sign_HTTPS_AK_Form(t *testing.T) {
 	tea_util.AssertNotNil(t, headers["date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
-	tea_util.AssertEqual(t, "HMAC-SHA1", headers["x-acs-signature-method"])
+	tea_util.AssertEqual(t, "HMAC-SHA256", headers["x-acs-signature-method"])
 	tea_util.AssertEqual(t, "1.0", headers["x-acs-signature-version"])
 	tea_util.AssertEqual(t, "ak", headers["x-acs-accesskey-id"])
 	tea_util.AssertEqual(t, "token", headers["x-acs-security-token"])

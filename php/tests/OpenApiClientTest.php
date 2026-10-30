@@ -415,6 +415,134 @@ class OpenApiClientTest extends TestCase
         }
     }
 
+    public function testV2SignatureAlgorithms()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->signatureAlgorithm = 'v2';
+        $config->endpoint = '127.0.0.1:8000';
+        $config->globalParameters->headers['x-acs-signature-method'] = 'HMAC-SHA256';
+        $runtime = self::createRuntimeOptions();
+        $runtime->extendsParameters->headers['x-acs-signature-method'] = 'HMAC-SHA256';
+        $request = self::createOpenApiRequest();
+        $request->headers['capture-signature'] = 'true';
+        $client = new OpenApiClient($config);
+        foreach (['HMAC-SHA256', 'HMAC-SHA1'] as $signatureMethod) {
+            if ($signatureMethod === 'HMAC-SHA1') $request->headers['X-Acs-Signature-Method'] = $signatureMethod;
+            foreach (['RPC', 'ROA'] as $style) {
+                foreach (['json', 'formData'] as $bodyType) {
+                    $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/test', 'method' => 'POST', 'authType' => 'AK', 'style' => $style, 'reqBodyType' => $bodyType, 'bodyType' => 'json']);
+                    $captured = $client->callApi($params, $request, $runtime)['body'];
+                    $this->assertCapturedV2Signature($captured, $style, $signatureMethod);
+                }
+            }
+        }
+        $request->headers['x-acs-signature-method'] = 'HMAC-SHA1';
+        $captured = $client->callApi($params, $request, $runtime)['body'];
+        $this->assertCapturedV2Signature($captured, 'ROA', 'HMAC-SHA1');
+        $request->headers['x-acs-signature-method'] = 'HMAC-SHA256';
+        try {
+            $client->callApi($params, $request, $runtime);
+            $this->fail('conflicting signature methods were accepted');
+        } catch (\Exception $error) {
+            $this->assertTrue(strpos($error->getMessage(), 'Conflicting signature V2 algorithms') !== false);
+        }
+        unset($request->headers['x-acs-signature-method']);
+        $request->headers['X-Acs-Signature-Method'] = 'unsupported';
+        try {
+            $client->callApi($params, $request, $runtime);
+            $this->fail('invalid signature method was accepted');
+        } catch (\Exception $error) {
+            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
+        }
+    }
+
+    private function assertCapturedV2Signature($captured, $style, $signatureMethod)
+    {
+        $parts = parse_url($captured['path']);
+        parse_str(isset($parts['query']) ? $parts['query'] : '', $query);
+        $digest = $signatureMethod === 'HMAC-SHA1' ? 'sha1' : 'sha256';
+        if ($style === 'RPC') {
+            $this->assertEquals($signatureMethod, $query['SignatureMethod']);
+            $signature = $query['Signature'];
+            unset($query['Signature']);
+            parse_str($captured['body'], $body);
+            $query = array_merge($query, $body);
+            ksort($query, SORT_STRING);
+            $canonical = [];
+            foreach ($query as $key => $value) $canonical[] = rawurlencode($key) . '=' . rawurlencode($value);
+            $stringToSign = $captured['method'] . '&%2F&' . rawurlencode(implode('&', $canonical));
+            $this->assertEquals(base64_encode(hash_hmac($digest, $stringToSign, 'secret&', true)), $signature);
+        } else {
+            $headers = $captured['headers'];
+            $this->assertEquals($signatureMethod, $headers['x-acs-signature-method']);
+            $canonicalHeaders = [];
+            foreach ($headers as $key => $value) if (strpos($key, 'x-acs-') === 0) $canonicalHeaders[$key] = $key . ':' . trim($value) . "\n";
+            ksort($canonicalHeaders, SORT_STRING);
+            ksort($query, SORT_STRING);
+            $canonicalQuery = [];
+            foreach ($query as $key => $value) $canonicalQuery[] = $key . '=' . $value;
+            $resource = $parts['path'] . ($canonicalQuery ? '?' . implode('&', $canonicalQuery) : '');
+            $stringToSign = implode("\n", [$captured['method'], $headers['accept'], isset($headers['content-md5']) ? $headers['content-md5'] : '', isset($headers['content-type']) ? $headers['content-type'] : '', $headers['date']]) . "\n" . implode('', $canonicalHeaders) . $resource;
+            $this->assertEquals('acs ak:' . base64_encode(hash_hmac($digest, $stringToSign, 'secret', true)), $headers['authorization']);
+        }
+    }
+
+    public function testV2NonHmacHeadersRemainUnchanged()
+    {
+        self::ensureMockServer();
+        $config = new Config(['bearerToken' => 'token', 'protocol' => 'HTTP', 'signatureAlgorithm' => 'v2', 'endpoint' => '127.0.0.1:8000']);
+        $client = new OpenApiClient($config);
+        $request = self::createOpenApiRequest();
+        $request->headers['capture-signature'] = 'true';
+        $request->headers['x-acs-signature-method'] = 'custom';
+        $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/test', 'method' => 'POST', 'authType' => 'AK', 'style' => 'ROA', 'reqBodyType' => 'json', 'bodyType' => 'json']);
+        $response = $client->callApi($params, $request, self::createRuntimeOptions());
+        $this->assertEquals('custom', $response['body']['headers']['x-acs-signature-method']);
+        $params->authType = 'Anonymous';
+        $response = $client->callApi($params, $request, self::createRuntimeOptions());
+        $this->assertEquals('custom', $response['body']['headers']['x-acs-signature-method']);
+    }
+
+    public function testV2RpcQuerySignatureMethod()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->signatureAlgorithm = 'v2';
+        $config->endpoint = '127.0.0.1:8000';
+        $runtime = self::createRuntimeOptions();
+        $runtime->extendsParameters->queries = [];
+        $request = self::createOpenApiRequest();
+        $request->headers['capture-signature'] = 'true';
+        $client = new OpenApiClient($config);
+        $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/', 'method' => 'POST', 'authType' => 'AK', 'style' => 'RPC', 'reqBodyType' => 'formData', 'bodyType' => 'json']);
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($config->globalParameters->queries['SignatureMethod']);
+        $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($runtime->extendsParameters->queries['SignatureMethod']);
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $request->query['SignatureMethod'] = 'legacy';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = '';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->headers['X-Acs-Signature-Method'] = '';
+        try {
+            $client->callApi($params, $request, $runtime);
+            $this->fail('empty signature method was accepted');
+        } catch (\Exception $error) {
+            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
+        }
+    }
+
     public function testCallApiForRPCWithV2Sign_Anonymous_JSON()
     {
         $config = self::createConfig();
@@ -705,7 +833,7 @@ class OpenApiClientTest extends TestCase
     public function testThrottlingBackoffRetryListProductQuotas()
     {
         self::ensureThrottlingMockServer();
-        self::resetThrottlingMockState(2, 1);
+        self::resetThrottlingMockState(2, 1000);
 
         $config = self::createConfig();
         $config->protocol = 'HTTP';
@@ -735,8 +863,8 @@ class OpenApiClientTest extends TestCase
         $this->assertEquals('1', $state['retryAttempts'][1]);
         $this->assertEquals('2', $state['retryAttempts'][2]);
         $this->assertEquals('', $state['retryDelays'][0]);
-        $this->assertEquals('1', $state['retryDelays'][1]);
-        $this->assertEquals('1', $state['retryDelays'][2]);
+        $this->assertEquals('1000', $state['retryDelays'][1]);
+        $this->assertEquals('1000', $state['retryDelays'][2]);
         $this->assertGreaterThanOrEqual(1800, $elapsed);
     }
 

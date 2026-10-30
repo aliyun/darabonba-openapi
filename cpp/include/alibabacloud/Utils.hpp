@@ -77,6 +77,7 @@ namespace Utils
        * @return the signature
        */
       static string getROASignature(const string &stringToSign, const string &secret);
+      static string getROASignatureWithSHA256(const string &stringToSign, const string &secret);
 
       /**
        * Parse filter into a form string
@@ -112,6 +113,7 @@ namespace Utils
        * @return the signature
        */
       static string getRPCSignature(const map<string, string> &signedParams, const string &method, const string &secret);
+      static string getRPCSignatureWithSHA256(const map<string, string> &signedParams, const string &method, const string &secret);
 
       /**
        * Parse array into a string with specified style
