@@ -10,44 +10,6 @@ import SPI, * as $SPI from '@alicloud/gateway-spi';
 import XML from '@alicloud/tea-xml';
 import { Readable } from 'stream';
 import * as $tea from '@alicloud/tea-typescript';
-import * as crypto from 'crypto';
-
-function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean, queryMethod?: string): string {
-  let method = queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
-  let explicit = false;
-  for (const source of sources) {
-    if (!source) continue;
-    let seen = false;
-    let value: string;
-    for (const key of Object.keys(source)) {
-      if (key.toLowerCase() === 'x-acs-signature-method') {
-        if (seen && value !== source[key]) throw $tea.newError({ code: 'InvalidSignatureAlgorithm', message: 'Conflicting signature V2 algorithms' });
-        value = source[key];
-        seen = true;
-      }
-    }
-    if (seen) { method = value; explicit = true; }
-  }
-  if (method !== 'HMAC-SHA1' && method !== 'HMAC-SHA256') throw $tea.newError({ code: 'InvalidSignatureAlgorithm', message: 'Unsupported signature V2 algorithm' });
-  for (const key of Object.keys(headers)) if (key.toLowerCase() === 'x-acs-signature-method') delete headers[key];
-  if (roa || explicit) headers['x-acs-signature-method'] = method;
-  return method;
-}
-
-function rpcSignatureWithSHA256(params: {[key: string]: string}, method: string, secret: string): string {
-  const signer = (OpenApiUtil as any).getRPCSignatureWithSHA256;
-  if (typeof signer === 'function') return signer.call(OpenApiUtil, params, method, secret);
-  const encode = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-  const normalized = OpenApiUtil.query(params);
-  const canonical = Object.keys(normalized).sort().map(key => encode(key) + '=' + encode(normalized[key])).join('&');
-  return crypto.createHmac('sha256', secret + '&').update(method + '&%2F&' + encode(canonical), 'utf8').digest('base64');
-}
-
-function roaSignatureWithSHA256(stringToSign: string, secret: string): string {
-  const signer = (OpenApiUtil as any).getROASignatureWithSHA256;
-  if (typeof signer === 'function') return signer.call(OpenApiUtil, stringToSign, secret);
-  return crypto.createHmac('sha256', secret).update(stringToSign, 'utf8').digest('base64');
-}
 
 export class GlobalParameters extends $tea.Model {
   headers?: { [key: string]: string };
@@ -740,8 +702,7 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false, request_.query['SignatureMethod']);
-            request_.query["SignatureMethod"] = method;
+            request_.query["SignatureMethod"] = "HMAC-SHA1";
             request_.query["SignatureVersion"] = "1.0";
             request_.query["AccessKeyId"] = accessKeyId;
             let t : {[key: string ]: any} = null;
@@ -753,9 +714,7 @@ export default class Client {
               ...request_.query,
               ...OpenApiUtil.query(t),
             };
-            request_.query["Signature"] = method === 'HMAC-SHA1'
-              ? OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret)
-              : rpcSignatureWithSHA256(signedParam, request_.method, accessKeySecret);
+            request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
           }
 
         }
@@ -986,10 +945,8 @@ export default class Client {
               request_.headers["x-acs-security-token"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            const signature = method === 'HMAC-SHA1' ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret) : roaSignatureWithSHA256(stringToSign, accessKeySecret);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
+            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
           }
 
         }
@@ -1233,10 +1190,8 @@ export default class Client {
               request_.headers["x-acs-security-token"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            const signature = method === 'HMAC-SHA1' ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret) : roaSignatureWithSHA256(stringToSign, accessKeySecret);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
+            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
           }
 
         }

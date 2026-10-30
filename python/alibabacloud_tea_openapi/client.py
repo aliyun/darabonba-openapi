@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
-import base64
-import hashlib
-import hmac
 import time
-from urllib.parse import quote, quote_plus
 
 from Tea.exceptions import TeaException, UnretryableException
 from Tea.request import TeaRequest
@@ -59,49 +55,6 @@ class Client:
     _tls_min_version: str = None
     _attribute_map: spi_models.AttributeMap = None
     _enable_usage_data_collection: bool = None
-
-    @staticmethod
-    def _get_v2_signature_method(headers, *header_groups):
-        algorithm = 'HMAC-SHA256'
-        found = False
-        for group in header_groups:
-            values = [value for key, value in (group or {}).items()
-                      if key.lower() == 'x-acs-signature-method']
-            if len(set(values)) > 1:
-                raise ValueError('Conflicting signature V2 algorithm headers')
-            if values and not found:
-                algorithm, found = values[0], True
-        if algorithm not in ('HMAC-SHA1', 'HMAC-SHA256'):
-            raise ValueError('Unsupported signature V2 algorithm')
-        for key in list(headers):
-            if key.lower() == 'x-acs-signature-method':
-                del headers[key]
-        if found:
-            headers['x-acs-signature-method'] = algorithm
-        return algorithm
-
-    @staticmethod
-    def _get_v2_rpc_signature(params, method, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return OpenApiUtilClient.get_rpcsignature(params, method, secret)
-        sign = getattr(OpenApiUtilClient, 'get_rpcsignature_with_sha256', None)
-        if callable(sign):
-            return sign(params, method, secret)
-        query = '&'.join(f'{quote(k, safe="~", encoding="utf-8")}={quote(params[k], safe="~", encoding="utf-8")}'
-                         for k in sorted(params) if params[k] is not None)
-        string_to_sign = f'{method}&%2F&{quote_plus(query, safe="~", encoding="utf-8")}'
-        return base64.b64encode(hmac.new((secret + '&').encode('utf-8'),
-                                         string_to_sign.encode('utf-8'), hashlib.sha256).digest()).decode('utf-8')
-
-    @staticmethod
-    def _get_v2_roa_signature(string_to_sign, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return OpenApiUtilClient.get_roasignature(string_to_sign, secret)
-        sign = getattr(OpenApiUtilClient, 'get_roasignature_with_sha256', None)
-        if callable(sign):
-            return sign(string_to_sign, secret)
-        return base64.b64encode(hmac.new(secret.encode('utf-8'), string_to_sign.encode('utf-8'),
-                                         hashlib.sha256).digest()).decode('utf-8')
 
     def __init__(
         self, 
@@ -305,10 +258,7 @@ class Client:
                         security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
-                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
-                            algorithm = 'HMAC-SHA1'
-                        _request.query['SignatureMethod'] = algorithm
+                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
                         _request.query['SignatureVersion'] = '1.0'
                         _request.query['AccessKeyId'] = access_key_id
                         t = None
@@ -316,7 +266,7 @@ class Client:
                             t = UtilClient.assert_as_map(request.body)
                         signed_param = TeaCore.merge(_request.query,
                             OpenApiUtilClient.query(t))
-                        _request.query['Signature'] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
+                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -522,10 +472,7 @@ class Client:
                         security_token = credential_model.security_token
                         if not UtilClient.empty(security_token):
                             _request.query['SecurityToken'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
-                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
-                            algorithm = 'HMAC-SHA1'
-                        _request.query['SignatureMethod'] = algorithm
+                        _request.query['SignatureMethod'] = 'HMAC-SHA1'
                         _request.query['SignatureVersion'] = '1.0'
                         _request.query['AccessKeyId'] = access_key_id
                         t = None
@@ -533,7 +480,7 @@ class Client:
                             t = UtilClient.assert_as_map(request.body)
                         signed_param = TeaCore.merge(_request.query,
                             OpenApiUtilClient.query(t))
-                        _request.query['Signature'] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
+                        _request.query['Signature'] = OpenApiUtilClient.get_rpcsignature(signed_param, _request.method, access_key_secret)
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
@@ -728,10 +675,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -936,10 +881,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -1145,10 +1088,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = TeaCore.do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):
@@ -1354,10 +1295,8 @@ class Client:
                         if not UtilClient.empty(security_token):
                             _request.headers['x-acs-accesskey-id'] = access_key_id
                             _request.headers['x-acs-security-token'] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = OpenApiUtilClient.get_string_to_sign(_request)
-                        _request.headers['authorization'] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers['authorization'] = f'acs {access_key_id}:{OpenApiUtilClient.get_roasignature(string_to_sign, access_key_secret)}'
                 _last_request = _request
                 _response = await TeaCore.async_do_action(_request, _runtime)
                 if UtilClient.equal_number(_response.status_code, 204):

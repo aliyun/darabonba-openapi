@@ -12,7 +12,7 @@ English | [简体中文](README-CN.md)
 
 ## Signature V2 compatibility
 
-In the Java, C#, Python, PHP and TypeScript clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. To use HMAC-SHA1 with a service that requires it, set `x-acs-signature-method` to `HMAC-SHA1` in the request headers or global headers. RPC requests can also set the `SignatureMethod` query parameter to `HMAC-SHA1`; an explicit header takes precedence. The signature version is unchanged.
+In the Java and C# clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. To use HMAC-SHA1 with a service that requires it, set `x-acs-signature-method` to `HMAC-SHA1` in the request headers or global headers. RPC requests can also set the `SignatureMethod` query parameter to `HMAC-SHA1`; an explicit header takes precedence. The signature version is unchanged.
 
 ## Issues
 

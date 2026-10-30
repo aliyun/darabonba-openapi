@@ -261,7 +261,7 @@ class TestClient(unittest.TestCase):
             assert 'ak' == request.querystring['AccessKeyId'][0]
             assert 'token' == request.querystring['SecurityToken'][0]
             assert '1.0' == request.querystring['SignatureVersion'][0]
-            assert 'HMAC-SHA256' == request.querystring['SignatureMethod'][0]
+            assert 'HMAC-SHA1' == request.querystring['SignatureMethod'][0]
             assert 'json' == request.querystring['Format'][0]
             assert None is not request.querystring['Timestamp'][0]
             assert None is not request.querystring['SignatureNonce'][0]
@@ -357,7 +357,7 @@ class TestClient(unittest.TestCase):
 
         def request_callback(url, **request):
             assert None is not re.match(
-                '.+AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+&SignatureMethod=HMAC-SHA256&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
+                '.+AccessKeyId=ak&Action=TestAPI&Format=json&SecurityToken=token&Signature=.+&SignatureMethod=HMAC-SHA1&SignatureNonce=.+&SignatureVersion=1.0&Timestamp=.+&Version=2022-06-01&extends-key=extends-value&global-query=global-value&key1=value&key2=1&key3=True',
                 str(url))
             assert 'global-value' == request['headers'].get('global-key')
             assert 'extends-value' == request['headers'].get('extends-key')
@@ -588,7 +588,7 @@ class TestClient(unittest.TestCase):
             assert '2022-06-01' == request.headers.get('x-acs-version')
             assert 'TestAPI' == request.headers.get('x-acs-action')
             assert 'application/json' == request.headers.get('accept')
-            assert 'HMAC-SHA256' == request.headers.get('x-acs-signature-method')
+            assert 'HMAC-SHA1' == request.headers.get('x-acs-signature-method')
             assert '1.0' == request.headers.get('x-acs-signature-version')
             assert 'ak' == request.headers.get('x-acs-accesskey-id')
             assert 'token' == request.headers.get('x-acs-security-token')
@@ -738,7 +738,7 @@ class TestClient(unittest.TestCase):
             assert '2022-06-01' == request['headers'].get('x-acs-version')
             assert 'TestAPI' == request['headers'].get('x-acs-action')
             assert 'application/json' == request['headers'].get('accept')
-            assert 'HMAC-SHA256' == request['headers'].get('x-acs-signature-method')
+            assert 'HMAC-SHA1' == request['headers'].get('x-acs-signature-method')
             assert '1.0' == request['headers'].get('x-acs-signature-version')
             assert 'ak' == request['headers'].get('x-acs-accesskey-id')
             assert 'token' == request['headers'].get('x-acs-security-token')
