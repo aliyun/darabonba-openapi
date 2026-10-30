@@ -144,33 +144,6 @@ init(config: OpenApiUtil.Config) {
   @tlsMinVersion = config.tlsMinVersion;
 }
 
-function getSignatureV2Header(headers: map[string]string): string {
-  var found = false;
-  var method: string = null;
-  if (!$isNull(headers)) {
-    for (var key : headers.keySet()) {
-      if (key.toLower() == 'x-acs-signature-method') {
-        if (found && (method != headers[key])) {
-          throw new Client{ code = 'InvalidSignatureAlgorithm', message = 'Conflicting signature V2 algorithms' };
-        }
-        found = true;
-        method = headers[key];
-      }
-    }
-  }
-  return method;
-}
-
-function removeSignatureV2Headers(headers: map[string]string): map[string]string {
-  var result: map[string]string = {};
-  for (var key : headers.keySet()) {
-    if (key.toLower() != 'x-acs-signature-method') {
-      result[key] = headers[key];
-    }
-  }
-  return result;
-}
-
 /**
  * Encapsulate the request and invoke the network
  * @param action api name
@@ -280,24 +253,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       if (!$isNull(securityToken) && securityToken != "") {
         __request.query.SecurityToken = securityToken;
       }
-      var signatureMethod = getSignatureV2Header(globalHeaders);
-      var overrideMethod = getSignatureV2Header(extendsHeaders);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      overrideMethod = getSignatureV2Header(request.headers);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      overrideMethod = getSignatureV2Header(headers);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      __request.headers = removeSignatureV2Headers(__request.headers);
-      if (!$isNull(signatureMethod)) {
-        __request.headers.x-acs-signature-method = signatureMethod;
-      } else if (__request.query.SignatureMethod == 'HMAC-SHA1') {
-        signatureMethod = 'HMAC-SHA1';
-      }
-      signatureMethod = $string($default(signatureMethod, 'HMAC-SHA256'));
-      if ((signatureMethod != 'HMAC-SHA1') && (signatureMethod != 'HMAC-SHA256')) {
-        throw new Client{ code = 'InvalidSignatureAlgorithm', message = 'Unsupported signature V2 algorithm' };
-      }
-      __request.query.SignatureMethod = signatureMethod;
+      __request.query.SignatureMethod = 'HMAC-SHA1';
       __request.query.SignatureVersion = '1.0';
       __request.query.AccessKeyId = accessKeyId;
       var t : map[string]any = null;
@@ -308,11 +264,7 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
         ...__request.query,
         ...OpenApiUtil.query(t)
       };
-      if (signatureMethod == 'HMAC-SHA1') {
-        __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
-      } else {
-        __request.query.Signature = OpenApiUtil.getRPCSignatureWithSHA256(signedParam, __request.method, accessKeySecret);
-      }
+      __request.query.Signature = OpenApiUtil.getRPCSignature(signedParam, __request.method, accessKeySecret);
     }
   }
 } returns {
@@ -516,22 +468,8 @@ api doROARequest(action: string, version: string, protocol: string, method: stri
         __request.headers.x-acs-security-token = securityToken;
       }
 
-      var signatureMethod = getSignatureV2Header(globalHeaders);
-      var overrideMethod = getSignatureV2Header(extendsHeaders);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      overrideMethod = getSignatureV2Header(request.headers);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      signatureMethod = $string($default(signatureMethod, 'HMAC-SHA256'));
-      __request.headers = removeSignatureV2Headers(__request.headers);
-      __request.headers.x-acs-signature-method = signatureMethod;
       var stringToSign = OpenApiUtil.getStringToSign(__request);
-      if (signatureMethod == 'HMAC-SHA1') {
-        __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
-      } else if (signatureMethod == 'HMAC-SHA256') {
-        __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret)}`;
-      } else {
-        throw new Client{ code = 'InvalidSignatureAlgorithm', message = 'Unsupported signature V2 algorithm' };
-      }
+      __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
     }
   }
 } returns {
@@ -741,22 +679,8 @@ api doROARequestWithForm(action: string, version: string, protocol: string, meth
         __request.headers.x-acs-accesskey-id = accessKeyId;
         __request.headers.x-acs-security-token = securityToken;
       }
-      var signatureMethod = getSignatureV2Header(globalHeaders);
-      var overrideMethod = getSignatureV2Header(extendsHeaders);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      overrideMethod = getSignatureV2Header(request.headers);
-      if (!$isNull(overrideMethod)) { signatureMethod = overrideMethod; }
-      signatureMethod = $string($default(signatureMethod, 'HMAC-SHA256'));
-      __request.headers = removeSignatureV2Headers(__request.headers);
-      __request.headers.x-acs-signature-method = signatureMethod;
       var stringToSign = OpenApiUtil.getStringToSign(__request);
-      if (signatureMethod == 'HMAC-SHA1') {
-        __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
-      } else if (signatureMethod == 'HMAC-SHA256') {
-        __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret)}`;
-      } else {
-        throw new Client{ code = 'InvalidSignatureAlgorithm', message = 'Unsupported signature V2 algorithm' };
-      }
+      __request.headers.authorization = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
     }
   }
 } returns {
