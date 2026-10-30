@@ -10,6 +10,10 @@ English | [简体中文](README-CN.md)
 [![TypeScript CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml)
 [![codecov](https://codecov.io/gh/aliyun/darabonba-openapi/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/darabonba-openapi)
 
+## Signature V2 compatibility
+
+In the Java, C#, Python, PHP and TypeScript clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. To use HMAC-SHA1 with a service that requires it, set `x-acs-signature-method` to `HMAC-SHA1` in the request headers or global headers. The signature version is unchanged.
+
 ## Issues
 
 [Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
