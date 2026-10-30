@@ -134,6 +134,7 @@ static function getStringToSign(request: $Request): string;
  * @return the signature
  */
 static function getROASignature(stringToSign: string, secret: string): string;
+static function getROASignatureWithSHA256(stringToSign: string, secret: string): string;
 
 /**
  * Parse filter into a form string
@@ -170,6 +171,7 @@ static function query(filter: object): map[string]string;
  * @return the signature
  */
 static function getRPCSignature(signedParams: map[string]string, method: string, secret: string): string;
+static function getRPCSignatureWithSHA256(signedParams: map[string]string, method: string, secret: string): string;
 
 /**
  * Parse array into a string with specified style

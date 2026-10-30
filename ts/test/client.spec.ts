@@ -4,6 +4,7 @@ import http from 'http';
 import url from 'url';
 import 'mocha';
 import assert from 'assert';
+import crypto from 'crypto';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
@@ -123,6 +124,34 @@ const server = http.createServer((req, res) => {
   }
 });
 
+function percent(value: string): string {
+  return encodeURIComponent(value).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+}
+
+function verifyV2Signature(headers: any, style: string, method: string): void {
+  const algorithm = method === 'HMAC-SHA1' ? 'sha1' : 'sha256';
+  const query = new URLSearchParams(headers['raw-query'] || '');
+  if (style === 'RPC') {
+    const signature = query.get('Signature');
+    query.delete('Signature');
+    const body = new URLSearchParams(headers['raw-body'] || '');
+    body.forEach((value, key) => query.set(key, value));
+    const keys: string[] = [];
+    query.forEach((_value, key) => keys.push(key));
+    const canonical = keys.sort().map(key => percent(key) + '=' + percent(query.get(key))).join('&');
+    const signed = headers['http-method'] + '&%2F&' + percent(canonical);
+    assert.strictEqual(signature, crypto.createHmac(algorithm, 'secret&').update(signed).digest('base64'));
+  } else {
+    const canonicalHeaders = Object.keys(headers).filter(key => key.startsWith('x-acs-') && key !== 'x-acs-request-id').sort()
+      .map(key => key + ':' + String(headers[key]).trim() + '\n').join('');
+    const keys: string[] = [];
+    query.forEach((_value, key) => keys.push(key));
+    const resource = headers.pathname + (keys.length ? '?' + keys.sort().map(key => key + '=' + query.get(key)).join('&') : '');
+    const signed = [headers['http-method'], headers.accept, headers['content-md5'] || '', headers['content-type'] || '', headers.date].join('\n') + '\n' + canonicalHeaders + resource;
+    assert.strictEqual(headers.authorization, 'acs ak:' + crypto.createHmac(algorithm, 'secret').update(signed).digest('base64'));
+  }
+}
+
 class BytesReadable extends Readable {
   value: Buffer
 
@@ -231,6 +260,64 @@ describe('$openapi', function () {
   after(function (done) {
     this.timeout(10000);
     server.close(done);
+  });
+
+  it('honors mixed-case SHA1 headers with request precedence', async function () {
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.signatureAlgorithm = 'v2';
+    config.endpoint = `127.0.0.1:${(server.address() as AddressInfo).port}`;
+    config.globalParameters.headers['x-acs-signature-method'] = 'HMAC-SHA256';
+    const runtime = createRuntimeOptions();
+    runtime.extendsParameters.headers['x-acs-signature-method'] = 'HMAC-SHA256';
+    const request = createOpenApiRequest();
+    request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA1';
+    const client = new OpenApi(config);
+    for (const style of ['RPC', 'ROA']) {
+      for (const reqBodyType of ['json', 'formData']) {
+        const params = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/test', method: 'POST', authType: 'AK', style, reqBodyType, bodyType: 'json' });
+        const headers = (await client.callApi(params, request, runtime)).headers;
+        if (style === 'RPC') {
+          assert.strictEqual(new URLSearchParams(headers['raw-query']).get('SignatureMethod'), 'HMAC-SHA1');
+        } else {
+          assert.strictEqual(headers['x-acs-signature-method'], 'HMAC-SHA1');
+        }
+        verifyV2Signature(headers, style, 'HMAC-SHA1');
+      }
+    }
+    request.headers['X-Acs-Signature-Method'] = 'unsupported';
+    const params = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/', method: 'POST', authType: 'AK', style: 'RPC', reqBodyType: 'formData', bodyType: 'json' });
+    try {
+      await client.callApi(params, request, runtime);
+      assert.fail('invalid signature method was accepted');
+    } catch (error) {
+      assert.strictEqual(error.code, 'InvalidSignatureAlgorithm');
+    }
+    request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA1';
+    request.headers['x-acs-signature-method'] = 'HMAC-SHA1';
+    const duplicateHeaders = (await client.callApi(params, request, runtime)).headers;
+    verifyV2Signature(duplicateHeaders, 'RPC', 'HMAC-SHA1');
+    request.headers['x-acs-signature-method'] = 'HMAC-SHA256';
+    try {
+      await client.callApi(params, request, runtime);
+      assert.fail('conflicting signature methods were accepted');
+    } catch (error) {
+      assert.strictEqual(error.code, 'InvalidSignatureAlgorithm');
+    }
+  });
+
+  it('preserves custom signature headers for bearer and anonymous requests', async function () {
+    const config = createBearerTokenConfig();
+    config.protocol = 'HTTP';
+    config.signatureAlgorithm = 'v2';
+    config.endpoint = `127.0.0.1:${(server.address() as AddressInfo).port}`;
+    const request = createOpenApiRequest();
+    request.headers['x-acs-signature-method'] = 'custom';
+    const params = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/test', method: 'POST', authType: 'AK', style: 'ROA', reqBodyType: 'json', bodyType: 'json' });
+    const client = new OpenApi(config);
+    assert.strictEqual((await client.callApi(params, request, createRuntimeOptions())).headers['x-acs-signature-method'], 'custom');
+    params.authType = 'Anonymous';
+    assert.strictEqual((await client.callApi(params, request, createRuntimeOptions())).headers['x-acs-signature-method'], 'custom');
   });
 
   it('config should ok', async function () {
@@ -379,8 +466,9 @@ describe('$openapi', function () {
     let result = await client.callApi(params, request, runtime);
     let headers = result["headers"];
     assert.strictEqual(headers["raw-body"], "key1=value&key2=1&key3=true");
-    let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA1&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
+    let regexp = /Action=TestAPI&Format=json&Version=2022-06-01&Timestamp=.+&SignatureNonce=.+&global-query=global-value&key1=value&key2=1&key3=true&SecurityToken=token&SignatureMethod=HMAC-SHA256&SignatureVersion=1\.0&AccessKeyId=ak&Signature=.+/;
     assert.ok(regexp.test(headers["raw-query"]));
+    verifyV2Signature(headers, 'RPC', 'HMAC-SHA256');
     assert.ok(String(headers["user-agent"]).endsWith("TeaDSL/2 config.userAgent"));
     assert.strictEqual(headers["global-key"], "global-value");
     assert.strictEqual(headers["extends-key"], "extends-value");
@@ -505,7 +593,8 @@ describe('$openapi', function () {
     assert.ok(headers["x-acs-signature-nonce"].length > 0);
     assert.ok(headers["date"].length > 0);
     assert.strictEqual(headers["accept"], "application/json");
-    assert.strictEqual(headers["x-acs-signature-method"], "HMAC-SHA1");
+    assert.strictEqual(headers["x-acs-signature-method"], "HMAC-SHA256");
+    verifyV2Signature(headers, 'ROA', 'HMAC-SHA256');
     assert.strictEqual(headers["x-acs-signature-version"], "1.0");
     assert.strictEqual(headers["x-acs-accesskey-id"], "ak");
     assert.strictEqual(headers["x-acs-security-token"], "token");

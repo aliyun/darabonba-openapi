@@ -17,6 +17,34 @@ export * as websocketUtils from './websocketUtils';
 export * as WebSocketUtils from './websocketUtils';
 export * as $WebSocketUtils from './websocketUtils';
 
+function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean): string {
+  let method = 'HMAC-SHA256';
+  let explicit = false;
+  for (const source of sources) {
+    if (!source) continue;
+    let seen = false;
+    let value: string;
+    for (const key of Object.keys(source)) {
+      if (key.toLowerCase() === 'x-acs-signature-method') {
+        if (seen && value !== source[key]) {
+          throw new $_error.ClientError({ code: 'InvalidSignatureAlgorithm', message: 'Conflicting signature V2 algorithms' });
+        }
+        value = source[key];
+        seen = true;
+      }
+    }
+    if (seen) { method = value; explicit = true; }
+  }
+  if (method !== 'HMAC-SHA1' && method !== 'HMAC-SHA256') {
+    throw new $_error.ClientError({ code: 'InvalidSignatureAlgorithm', message: 'Unsupported signature V2 algorithm' });
+  }
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === 'x-acs-signature-method') delete headers[key];
+  }
+  if (roa || explicit) headers['x-acs-signature-method'] = method;
+  return method;
+}
+
 export default class Client {
   _endpoint: string;
   _regionId: string;
@@ -276,7 +304,8 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            request_.query["SignatureMethod"] = "HMAC-SHA1";
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false);
+            request_.query["SignatureMethod"] = method;
             request_.query["SignatureVersion"] = "1.0";
             request_.query["AccessKeyId"] = accessKeyId;
             let t : {[key: string ]: any} = null;
@@ -288,7 +317,9 @@ export default class Client {
               ...request_.query,
               ...OpenApiUtil.query(t),
             };
-            request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
+            request_.query["Signature"] = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret)
+              : OpenApiUtil.getRPCSignatureWithSHA256(signedParam, request_.method, accessKeySecret);
           }
 
         }
@@ -539,8 +570,12 @@ export default class Client {
               request_.headers["x-acs-security-token"] = securityToken;
             }
 
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+            const signature = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret)
+              : OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
         }
@@ -799,8 +834,12 @@ export default class Client {
               request_.headers["x-acs-security-token"] = securityToken;
             }
 
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+            const signature = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret)
+              : OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
         }

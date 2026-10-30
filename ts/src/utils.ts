@@ -830,6 +830,10 @@ ${date}
     return crypto.createHmac('sha1', secret).update(utf8Buff).digest('base64')
   }
 
+  static getROASignatureWithSHA256(stringToSign: string, secret: string): string {
+    return crypto.createHmac('sha256', secret).update(stringToSign, 'utf8').digest('base64');
+  }
+
   /**
    * Parse filter into a form string
    * @param filter object
@@ -895,6 +899,12 @@ ${date}
     var stringToSign = `${method}&${encode('/')}&${encode(canonicalized)}`;
     const key = secret + '&';
     return crypto.createHmac('sha1', key).update(stringToSign).digest('base64');
+  }
+
+  static getRPCSignatureWithSHA256(signedParams: {[key: string ]: string}, method: string, secret: string): string {
+    const canonicalized = canonicalize(normalize(signedParams));
+    const stringToSign = `${method}&${encode('/')}&${encode(canonicalized)}`;
+    return crypto.createHmac('sha256', secret + '&').update(stringToSign, 'utf8').digest('base64');
   }
 
   /**

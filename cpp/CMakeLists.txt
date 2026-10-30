@@ -92,6 +92,19 @@ target_link_libraries(${PROJECT_NAME}
         alibabacloud_credentials
 )
 
+if(ENABLE_UNIT_TESTS)
+  enable_testing()
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  add_executable(signature_v2_client_test tests/signature_v2_client.cpp)
+  target_link_libraries(signature_v2_client_test PRIVATE ${PROJECT_NAME})
+  add_test(NAME signature_v2_client
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_signature_v2.py $<TARGET_FILE:signature_v2_client_test>)
+  add_executable(signature_v2_utils_test tests/test_utils.cpp)
+  target_link_libraries(signature_v2_utils_test PRIVATE ${PROJECT_NAME} gtest_main)
+  add_test(NAME signature_v2_utils
+           COMMAND signature_v2_utils_test --gtest_filter=UtilsTest.GetROASignature:UtilsTest.GetRPCSignature)
+endif()
+
 # Windows compatibility
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PUBLIC Crypt32 Rpcrt4 Ws2_32)
