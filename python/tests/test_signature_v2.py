@@ -96,6 +96,42 @@ def test_header_precedence_and_conflicts():
         Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-MD5'})
 
 
+@pytest.mark.parametrize('override,expected', [(None, 'HMAC-SHA1'), ('HMAC-SHA256', 'HMAC-SHA256')])
+@pytest.mark.parametrize('is_async', [False, True])
+def test_rpc_explicit_sha1_query_and_header_precedence(override, expected, is_async):
+    client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
+    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
+                    method='GET', auth_type='AK', style='RPC', body_type='none')
+    captured = []
+
+    def send(request, runtime):
+        captured.append(request)
+        return SimpleNamespace(status_code=200, headers={})
+
+    async def send_async(request, runtime):
+        return send(request, runtime)
+
+    request = OpenApiRequest(query={'SignatureMethod': 'HMAC-SHA1'},
+                             headers={'x-acs-signature-method': override} if override else None)
+    if is_async:
+        with patch.object(DaraCore, 'async_do_action', side_effect=send_async):
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(client.call_api_async(params, request, RuntimeOptions()))
+            finally:
+                loop.close()
+    else:
+        with patch.object(DaraCore, 'do_action', side_effect=send):
+            client.call_api(params, request, RuntimeOptions())
+    query = captured[0].query
+    assert query['SignatureMethod'] == expected
+    signed = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}'
+                      for k, v in sorted(query.items()) if k != 'Signature' and v is not None)
+    digest = hashlib.sha1 if expected == 'HMAC-SHA1' else hashlib.sha256
+    expected_signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), digest).digest()).decode()
+    assert query['Signature'] == expected_signature
+
+
 @pytest.mark.parametrize('auth_type', ['Anonymous', 'AK'])
 def test_roa_non_hmac_auth_keeps_original_header(auth_type):
     config = Config(bearer_token='token', endpoint='example.com', signature_algorithm='v2')

@@ -201,6 +201,10 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 				if err != nil {
 					return _result, err
 				}
+				if _, hasAlgorithmHeader := request_.Headers["x-acs-signature-method"]; !hasAlgorithmHeader &&
+					dara.StringValue(request_.Query["SignatureMethod"]) == "HMAC-SHA1" {
+					signatureMethod = "HMAC-SHA1"
+				}
 				request_.Query["SignatureMethod"] = dara.String(signatureMethod)
 				request_.Query["SignatureVersion"] = dara.String("1.0")
 				request_.Query["AccessKeyId"] = dara.String(accessKeyId)

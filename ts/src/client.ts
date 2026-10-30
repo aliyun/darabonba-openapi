@@ -17,8 +17,8 @@ export * as websocketUtils from './websocketUtils';
 export * as WebSocketUtils from './websocketUtils';
 export * as $WebSocketUtils from './websocketUtils';
 
-function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean): string {
-  let method = 'HMAC-SHA256';
+function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean, queryMethod?: string): string {
+  let method = queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
   let explicit = false;
   for (const source of sources) {
     if (!source) continue;
@@ -304,7 +304,7 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false);
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false, request_.query['SignatureMethod']);
             request_.query["SignatureMethod"] = method;
             request_.query["SignatureVersion"] = "1.0";
             request_.query["AccessKeyId"] = accessKeyId;

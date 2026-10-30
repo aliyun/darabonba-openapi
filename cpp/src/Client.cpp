@@ -266,8 +266,11 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
             request_.getQuery()["SecurityToken"] = securityToken;
           }
 
-          normalizeSignatureV2Header(request_.getHeaders(), false, globalHeaders, extendsHeaders, request.getHeaders());
-          request_.getQuery()["SignatureMethod"] = signatureV2Method(request_.getHeaders());
+          bool explicitHeader = normalizeSignatureV2Header(request_.getHeaders(), false, globalHeaders, extendsHeaders, request.getHeaders());
+          string method = signatureV2Method(request_.getHeaders());
+          auto queryMethod = request_.getQuery().find("SignatureMethod");
+          if (!explicitHeader && queryMethod != request_.getQuery().end() && queryMethod->second == "HMAC-SHA1") method = "HMAC-SHA1";
+          request_.getQuery()["SignatureMethod"] = method;
           request_.getQuery()["SignatureVersion"] = "1.0";
           request_.getQuery()["AccessKeyId"] = accessKeyId;
           json t = nullptr;

@@ -158,7 +158,7 @@ func signatureV2Method(headers map[string]*string, sources ...map[string]*string
 			}
 		}
 	}
-	if method == "" {
+	if !found {
 		method = "HMAC-SHA256"
 	}
 	if method != "HMAC-SHA1" && method != "HMAC-SHA256" {
@@ -363,6 +363,10 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				signatureMethod, err := signatureV2Method(request_.Headers, globalHeaders, extendsHeaders, request.Headers, headers)
 				if err != nil {
 					return _result, err
+				}
+				if _, hasAlgorithmHeader := request_.Headers["x-acs-signature-method"]; !hasAlgorithmHeader &&
+					dara.StringValue(request_.Query["SignatureMethod"]) == "HMAC-SHA1" {
+					signatureMethod = "HMAC-SHA1"
 				}
 				request_.Query["SignatureMethod"] = dara.String(signatureMethod)
 				request_.Query["SignatureVersion"] = dara.String("1.0")

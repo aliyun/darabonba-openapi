@@ -41,9 +41,9 @@ use AlibabaCloud\Dara\WebSocketUtil;
  */
 class OpenApiClient
 {
-  private static function signatureMethod(&$headers, $sources, $roa)
+  private static function signatureMethod(&$headers, $sources, $roa, $queryMethod = null)
   {
-    $method = 'HMAC-SHA256';
+    $method = $queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
     $explicit = false;
     foreach ($sources as $source) {
       $seen = false;
@@ -458,7 +458,7 @@ class OpenApiClient
               @$_request->query['SecurityToken'] = $securityToken;
             }
 
-            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false);
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false, isset($_request->query['SignatureMethod']) ? $_request->query['SignatureMethod'] : null);
             @$_request->query['SignatureMethod'] = $signatureMethod;
             @$_request->query['SignatureVersion'] = '1.0';
             @$_request->query['AccessKeyId'] = $accessKeyId;

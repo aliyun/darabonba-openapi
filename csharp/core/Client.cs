@@ -377,7 +377,9 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Query["SecurityToken"] = securityToken;
                             }
                             NormalizeSignatureV2Header(request_.Headers, false, globalHeaders, extendsHeaders, request.Headers, headers);
-                            request_.Query["SignatureMethod"] = GetSignatureV2Algorithm(request_.Headers);
+                            string signatureMethod = GetSignatureV2Algorithm(request_.Headers);
+                            if (!request_.Headers.ContainsKey("x-acs-signature-method") && request_.Query.ContainsKey("SignatureMethod") && request_.Query["SignatureMethod"] == "HMAC-SHA1") signatureMethod = "HMAC-SHA1";
+                            request_.Query["SignatureMethod"] = signatureMethod;
                             request_.Query["SignatureVersion"] = "1.0";
                             request_.Query["AccessKeyId"] = accessKeyId;
                             Dictionary<string, object> t = null;
@@ -725,7 +727,9 @@ namespace AlibabaCloud.OpenApiClient
                                 request_.Query["SecurityToken"] = securityToken;
                             }
                             NormalizeSignatureV2Header(request_.Headers, false, globalHeaders, extendsHeaders, request.Headers, headers);
-                            request_.Query["SignatureMethod"] = GetSignatureV2Algorithm(request_.Headers);
+                            string signatureMethod = GetSignatureV2Algorithm(request_.Headers);
+                            if (!request_.Headers.ContainsKey("x-acs-signature-method") && request_.Query.ContainsKey("SignatureMethod") && request_.Query["SignatureMethod"] == "HMAC-SHA1") signatureMethod = "HMAC-SHA1";
+                            request_.Query["SignatureMethod"] = signatureMethod;
                             request_.Query["SignatureVersion"] = "1.0";
                             request_.Query["AccessKeyId"] = accessKeyId;
                             Dictionary<string, object> t = null;

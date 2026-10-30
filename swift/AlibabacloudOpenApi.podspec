@@ -21,6 +21,7 @@ Pod::Spec.new do |spec|
   spec.dependency 'TeaUtils',  '~> 1.1.0'
   spec.dependency 'AlibabaCloudCredentials',  '~> 1.0.3'
   spec.dependency 'AlibabaCloudOpenApiUtil',  '~> 1.0.3'
+  spec.dependency 'CryptoSwift', '~> 1.5.1'
   spec.dependency 'AlibabacloudGatewaySPI',  '~> 0.0.3'
   spec.dependency 'DarabonbaXML',  '~> 1.0.4'
 

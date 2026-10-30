@@ -302,6 +302,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
+                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
+                            algorithm = 'HMAC-SHA1'
                         _request.query["SignatureMethod"] = algorithm
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id
@@ -522,6 +524,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
+                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
+                            algorithm = 'HMAC-SHA1'
                         _request.query["SignatureMethod"] = algorithm
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id

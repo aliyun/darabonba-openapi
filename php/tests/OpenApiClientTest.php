@@ -505,6 +505,44 @@ class OpenApiClientTest extends TestCase
         $this->assertEquals('custom', $response['body']['headers']['x-acs-signature-method']);
     }
 
+    public function testV2RpcQuerySignatureMethod()
+    {
+        self::ensureMockServer();
+        $config = self::createConfig();
+        $config->protocol = 'HTTP';
+        $config->signatureAlgorithm = 'v2';
+        $config->endpoint = '127.0.0.1:8000';
+        $runtime = self::createRuntimeOptions();
+        $runtime->extendsParameters->queries = [];
+        $request = self::createOpenApiRequest();
+        $request->headers['capture-signature'] = 'true';
+        $client = new OpenApiClient($config);
+        $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/', 'method' => 'POST', 'authType' => 'AK', 'style' => 'RPC', 'reqBodyType' => 'formData', 'bodyType' => 'json']);
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($config->globalParameters->queries['SignatureMethod']);
+        $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($runtime->extendsParameters->queries['SignatureMethod']);
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+        $request->query['SignatureMethod'] = 'legacy';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = '';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->query['SignatureMethod'] = 'HMAC-SHA1';
+        $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $request->headers['X-Acs-Signature-Method'] = '';
+        try {
+            $client->callApi($params, $request, $runtime);
+            $this->fail('empty signature method was accepted');
+        } catch (\Exception $error) {
+            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
+        }
+    }
+
     public function testCallApiForRPCWithV2Sign_Anonymous_JSON()
     {
         $config = self::createConfig();

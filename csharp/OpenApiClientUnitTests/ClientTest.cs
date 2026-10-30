@@ -62,10 +62,12 @@ namespace OpenApiClientUnitTests
         }
 
         [Theory]
-        [InlineData(null, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA1", false, "HMAC-SHA1", 20)]
-        [InlineData("HMAC-SHA256", true, "HMAC-SHA1", 20)]
-        public void TestCallApiForRPCWithV2Sign_AK_Form(string configuredAlgorithm, bool overrideHeader, string expectedAlgorithm, int signatureBytes)
+        [InlineData(null, false, false, "HMAC-SHA256", 32)]
+        [InlineData("HMAC-SHA1", false, false, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA256", true, false, "HMAC-SHA1", 20)]
+        [InlineData(null, false, true, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA256", false, true, "HMAC-SHA256", 32)]
+        public void TestCallApiForRPCWithV2Sign_AK_Form(string configuredAlgorithm, bool overrideHeader, bool overrideQuery, string expectedAlgorithm, int signatureBytes)
         {
             using (var server = new MockHttpServer())
             {
@@ -78,6 +80,7 @@ namespace OpenApiClientUnitTests
                 var client = new TestClient(config);
                 var request = TestFixtures.CreateOpenApiRequest();
                 if (overrideHeader) request.Headers["X-Acs-Signature-Method"] = "HMAC-SHA1";
+                if (overrideQuery) request.Query["SignatureMethod"] = "HMAC-SHA1";
                 var parameters = new Params
                 {
                     Action = "TestAPI",

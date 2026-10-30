@@ -290,6 +290,8 @@ api doRPCRequest(action: string, version: string, protocol: string, method: stri
       __request.headers = removeSignatureV2Headers(__request.headers);
       if (!$isNull(signatureMethod)) {
         __request.headers.x-acs-signature-method = signatureMethod;
+      } else if (__request.query.SignatureMethod == 'HMAC-SHA1') {
+        signatureMethod = 'HMAC-SHA1';
       }
       signatureMethod = $string($default(signatureMethod, 'HMAC-SHA256'));
       if ((signatureMethod != 'HMAC-SHA1') && (signatureMethod != 'HMAC-SHA256')) {

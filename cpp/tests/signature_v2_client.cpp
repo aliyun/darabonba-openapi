@@ -21,6 +21,8 @@ int main(int argc, char **argv) {
     config.setGlobalParameters(global);
   }
   OpenApiRequest request;
+  if (scenario == "querysha1" || scenario == "headerwins") request.setQuery({{"SignatureMethod", "HMAC-SHA1"}});
+  if (scenario == "headerwins") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA256"}});
   if (scenario == "override") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}});
   if (scenario == "conflict") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}, {"x-acs-signature-method", "HMAC-SHA256"}});
   if (scenario == "invalid") request.setHeaders({{"X-Acs-Signature-Method", "invalid"}});

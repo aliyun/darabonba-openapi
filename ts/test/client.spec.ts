@@ -320,6 +320,34 @@ describe('$openapi', function () {
     assert.strictEqual((await client.callApi(params, request, createRuntimeOptions())).headers['x-acs-signature-method'], 'custom');
   });
 
+  it('honors RPC SignatureMethod from merged query unless a header overrides it', async function () {
+    const config = createConfig();
+    config.protocol = 'HTTP';
+    config.signatureAlgorithm = 'v2';
+    config.endpoint = `127.0.0.1:${(server.address() as AddressInfo).port}`;
+    const runtime = createRuntimeOptions();
+    runtime.extendsParameters.queries = {};
+    const request = createOpenApiRequest();
+    const client = new OpenApi(config);
+    const params = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/', method: 'POST', authType: 'AK', style: 'RPC', reqBodyType: 'formData', bodyType: 'json' });
+    for (const source of [config.globalParameters.queries, runtime.extendsParameters.queries, request.query]) {
+      source['SignatureMethod'] = 'HMAC-SHA1';
+      verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA1');
+      delete source['SignatureMethod'];
+    }
+    config.globalParameters.queries['SignatureMethod'] = 'HMAC-SHA1';
+    request.query['SignatureMethod'] = 'legacy';
+    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    request.query['SignatureMethod'] = '';
+    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    request.query['SignatureMethod'] = 'HMAC-SHA1';
+    request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
+    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    request.headers['X-Acs-Signature-Method'] = '';
+    try { await client.callApi(params, request, runtime); assert.fail('empty method accepted'); }
+    catch (error) { assert.strictEqual(error.code, 'InvalidSignatureAlgorithm'); }
+  });
+
   it('config should ok', async function () {
     let globalParameters = new $OpenApiUtil.GlobalParameters({
       headers: {

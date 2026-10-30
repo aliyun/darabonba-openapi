@@ -62,6 +62,93 @@ func TestSignatureV2Requests(t *testing.T) {
 	}
 }
 
+func TestSignatureV2RpcQueryFallback(t *testing.T) {
+	cases := []struct {
+		name, global, runtime, query, header, want string
+		querySet                                   bool
+	}{
+		{name: "global query sha1", global: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "runtime overrides global", global: "HMAC-SHA256", runtime: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "request overrides runtime", runtime: "invalid", query: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "header sha256 overrides query", query: "HMAC-SHA1", header: "HMAC-SHA256", want: "HMAC-SHA256"},
+		{name: "header sha1 overrides query", query: "invalid", header: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "invalid query uses default", query: "invalid", want: "HMAC-SHA256"},
+		{name: "empty query uses default", querySet: true, want: "HMAC-SHA256"},
+		{name: "default", want: "HMAC-SHA256"},
+	}
+	for _, tc := range cases {
+		for _, withContext := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/context=%v", tc.name, withContext), func(t *testing.T) {
+				config := CreateConfig()
+				config.Protocol = dara.String("HTTP")
+				config.Endpoint = dara.String("example.com")
+				config.SignatureAlgorithm = dara.String("v2")
+				config.HttpClient = &signatureV2Verifier{t: t, style: "RPC", method: tc.want}
+				if tc.global != "" {
+					config.GlobalParameters.Queries["SignatureMethod"] = dara.String(tc.global)
+				}
+				client, err := NewClient(config)
+				if err != nil {
+					t.Fatal(err)
+				}
+				runtime := CreateRuntimeOptions()
+				if tc.runtime != "" {
+					runtime.ExtendsParameters.Queries["SignatureMethod"] = dara.String(tc.runtime)
+				}
+				request := CreateOpenApiRequest()
+				request.Body = nil
+				if tc.query != "" || tc.querySet {
+					request.Query["SignatureMethod"] = dara.String(tc.query)
+				}
+				if tc.header != "" {
+					request.Headers["X-Acs-Signature-Method"] = dara.String(tc.header)
+				}
+				params := coverageParams("RPC", "formData", "json", "/", "AK")
+				if withContext {
+					_, err = client.CallApiWithCtx(context.Background(), params, request, runtime)
+				} else {
+					_, err = client.CallApi(params, request, runtime)
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	}
+}
+
+func TestSignatureV2EmptyHeaderRejected(t *testing.T) {
+	for _, style := range []string{"RPC", "ROA"} {
+		for _, withContext := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/context=%v", style, withContext), func(t *testing.T) {
+				config := CreateConfig()
+				config.Endpoint = dara.String("example.com")
+				config.SignatureAlgorithm = dara.String("v2")
+				client, err := NewClient(config)
+				if err != nil {
+					t.Fatal(err)
+				}
+				request := CreateOpenApiRequest()
+				request.Headers["X-Acs-Signature-Method"] = dara.String("")
+				request.Query["SignatureMethod"] = dara.String("HMAC-SHA1")
+				pathname := "/"
+				if style == "ROA" {
+					pathname = "/test"
+				}
+				params := coverageParams(style, "json", "json", pathname, "AK")
+				if withContext {
+					_, err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+				} else {
+					_, err = client.CallApi(params, request, CreateRuntimeOptions())
+				}
+				if err == nil || !strings.Contains(err.Error(), "Unsupported signature V2 algorithm") {
+					t.Fatalf("expected an unsupported algorithm error, got %v", err)
+				}
+			})
+		}
+	}
+}
+
 type signatureV2Verifier struct {
 	t      *testing.T
 	style  string
@@ -215,5 +302,8 @@ func TestSignatureV2HeaderPrecedenceAndConflicts(t *testing.T) {
 	}
 	if _, err := signatureV2Method(map[string]*string{}, map[string]*string{"X-Acs-Signature-Method": dara.String("unknown")}); err == nil {
 		t.Fatal("unsupported signature algorithm should be rejected")
+	}
+	if _, err := signatureV2Method(map[string]*string{}, map[string]*string{"X-Acs-Signature-Method": dara.String("")}); err == nil {
+		t.Fatal("empty signature algorithm should be rejected")
 	}
 }
