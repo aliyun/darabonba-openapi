@@ -30,6 +30,7 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
+    public String _endpointSuffix;
     public Integer _readTimeout;
     public Integer _connectTimeout;
     public Integer _callTimeout;
@@ -106,6 +107,11 @@ public class Client {
         this._endpointType = config.endpointType;
         this._network = config.network;
         this._suffix = config.suffix;
+        if (com.aliyun.teautil.Common.empty(config.endpointSuffix)) {
+            this._endpointSuffix = System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+        } else {
+            this._endpointSuffix = config.endpointSuffix;
+        }
         this._protocol = config.protocol;
         this._method = config.method;
         this._regionId = config.regionId;
@@ -1372,7 +1378,22 @@ public class Client {
                 interceptorContext.configuration = configurationContext;
                 com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
                 if (!com.aliyun.teautil.Common.isUnset(_attributeMap)) {
-                    attributeMap = _attributeMap;
+                    if (!com.aliyun.teautil.Common.isUnset(_attributeMap.attributes)) {
+                        java.util.Map<String, Object> copiedAttributes = new java.util.HashMap<String, Object>();
+                        for (java.util.Map.Entry<String, ?> entry : _attributeMap.attributes.entrySet()) {
+                            copiedAttributes.put(entry.getKey(), entry.getValue());
+                        }
+                        attributeMap.attributes = copiedAttributes;
+                    }
+                    if (!com.aliyun.teautil.Common.isUnset(_attributeMap.key)) {
+                        attributeMap.key = new java.util.HashMap<String, String>(_attributeMap.key);
+                    }
+                }
+                if (!com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
+                    if (attributeMap.key == null) {
+                        attributeMap.key = new java.util.HashMap<String, String>();
+                    }
+                    attributeMap.key.put("endpointSuffix", this._endpointSuffix);
                 }
 
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

@@ -1522,4 +1522,82 @@ public class ClientTest {
             Assert.assertTrue(e.getMessage().contains("timeout") || e.getMessage().contains("connect timed out") || e.getMessage().contains("Read timed out"));
         }
     }
+
+    @Test
+    public void testEndpointSuffix() throws Exception {
+        Config config = new Config();
+        config.endpoint = "example.com";
+        config.setEndpointSuffix("example.net");
+        Assert.assertEquals("example.net", config.getEndpointSuffix());
+        Client client = new Client(config);
+        Assert.assertEquals("example.net", client._endpointSuffix);
+
+        final com.aliyun.gateway.spi.models.AttributeMap original = new com.aliyun.gateway.spi.models.AttributeMap();
+        original.key = new java.util.HashMap<String, String>();
+        original.key.put("kept", "yes");
+        client._attributeMap = original;
+
+        final java.util.Map<String, String> seen = new java.util.HashMap<String, String>();
+        client._spi = new com.aliyun.gateway.spi.Client() {
+            @Override
+            public void modifyConfiguration(com.aliyun.gateway.spi.models.InterceptorContext context, com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+                if (attributeMap.key != null) {
+                    seen.putAll(attributeMap.key);
+                }
+                Assert.assertTrue(attributeMap != original);
+            }
+
+            @Override
+            public void modifyRequest(com.aliyun.gateway.spi.models.InterceptorContext context, com.aliyun.gateway.spi.models.AttributeMap attributeMap) throws Exception {
+                throw new RuntimeException("stop-suffix");
+            }
+
+            @Override
+            public void modifyResponse(com.aliyun.gateway.spi.models.InterceptorContext context, com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+            }
+        };
+        RuntimeOptions runtime = createRuntimeOptions();
+        runtime.autoretry = false;
+        runtime.maxAttempts = 1;
+        try {
+            client.execute(paramsFromSuffixTest(), createOpenApiRequest(), runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
+        }
+        Assert.assertEquals("example.net", seen.get("endpointSuffix"));
+        Assert.assertEquals("yes", seen.get("kept"));
+        Assert.assertEquals("yes", original.key.get("kept"));
+        Assert.assertNull(original.key.get("endpointSuffix"));
+
+        seen.clear();
+        client._endpointSuffix = "";
+        try {
+            client.execute(paramsFromSuffixTest(), createOpenApiRequest(), runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
+        }
+        Assert.assertEquals("yes", seen.get("kept"));
+        Assert.assertNull(seen.get("endpointSuffix"));
+
+        Config envConfig = new Config();
+        envConfig.endpoint = "example.com";
+        Client fromEnv = new Client(envConfig);
+        Assert.assertEquals(System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX"), fromEnv._endpointSuffix);
+    }
+
+    private static Params paramsFromSuffixTest() throws Exception {
+        return Params.build(TeaConverter.buildMap(
+                new TeaPair("action", "TestAPI"),
+                new TeaPair("version", "2022-06-01"),
+                new TeaPair("protocol", "HTTPS"),
+                new TeaPair("pathname", "/test"),
+                new TeaPair("method", "POST"),
+                new TeaPair("authType", "Anonymous"),
+                new TeaPair("style", "ROA"),
+                new TeaPair("reqBodyType", "json"),
+                new TeaPair("bodyType", "json")
+        ));
+    }
 }
