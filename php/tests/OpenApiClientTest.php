@@ -1181,4 +1181,45 @@ class OpenApiClientTest extends TestCase
             $this->assertNotEmpty($e->getMessage());
         }
     }
+
+    public function testEndpointSuffix()
+    {
+        putenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX=example.com');
+        try {
+            $fromEnv = new OpenApiClient(new Config([
+                'endpoint' => 'example.com',
+            ]));
+            $build = new \ReflectionMethod(OpenApiClient::class, 'attributeMapWithEndpointSuffix');
+            $build->setAccessible(true);
+            $mapped = $build->invoke($fromEnv);
+            $this->assertEquals('example.com', $mapped->key['endpointSuffix']);
+
+            $explicit = new OpenApiClient(new Config([
+                'endpoint' => 'example.com',
+                'endpointSuffix' => 'example.net',
+            ]));
+            $property = new \ReflectionProperty(OpenApiClient::class, '_attributeMap');
+            $property->setAccessible(true);
+            $original = new \Darabonba\GatewaySpi\Models\AttributeMap([]);
+            $original->key = array('signatureTypePrefix' => 'ACS4-');
+            $property->setValue($explicit, $original);
+            $mapped = $build->invoke($explicit);
+            $this->assertEquals('example.net', $mapped->key['endpointSuffix']);
+            $this->assertEquals('ACS4-', $mapped->key['signatureTypePrefix']);
+            $this->assertFalse(isset($original->key['endpointSuffix']));
+            $restored = Config::fromMap(array('endpointSuffix' => 'example.net'));
+            $this->assertEquals('example.net', $restored->endpointSuffix);
+            $this->assertEquals('example.net', $restored->toMap()['endpointSuffix']);
+        } finally {
+            putenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+        }
+
+        $bare = new OpenApiClient(new Config([
+            'endpoint' => 'example.com',
+        ]));
+        $build = new \ReflectionMethod(OpenApiClient::class, 'attributeMapWithEndpointSuffix');
+        $build->setAccessible(true);
+        $mapped = $build->invoke($bare);
+        $this->assertTrue($mapped->key === null || !isset($mapped->key['endpointSuffix']));
+    }
 }

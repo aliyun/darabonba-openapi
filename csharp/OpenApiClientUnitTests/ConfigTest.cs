@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using AlibabaCloud.OpenApiClient.Models;
 using Xunit;
@@ -156,6 +158,43 @@ namespace OpenApiClientUnitTests
             Assert.Throws<ClientException>(() => new TestClient(null));
             var emptyConfig = new Config();
             Assert.Throws<ClientException>(() => client.CheckConfig(emptyConfig));
+        }
+
+        [Fact]
+        public void TestEndpointSuffix()
+        {
+            Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", "example.com");
+            try
+            {
+                var fromEnv = new TestClient(new Config { Endpoint = "example.com" });
+                Assert.Equal("example.com", fromEnv.EndpointSuffix);
+                var mapped = fromEnv.BuildAttributeMap();
+                Assert.Equal("example.com", mapped.Key["endpointSuffix"]);
+
+                var explicitConfig = new Config
+                {
+                    Endpoint = "example.com",
+                    EndpointSuffix = "example.net"
+                };
+                var explicitClient = new TestClient(explicitConfig);
+                Assert.Equal("example.net", explicitClient.EndpointSuffix);
+                explicitClient.AttributeMap = new AttributeMap
+                {
+                    Key = new Dictionary<string, string> { { "signatureTypePrefix", "ACS4-" } }
+                };
+                mapped = explicitClient.BuildAttributeMap();
+                Assert.Equal("example.net", mapped.Key["endpointSuffix"]);
+                Assert.Equal("ACS4-", mapped.Key["signatureTypePrefix"]);
+                Assert.False(explicitClient.AttributeMap.Key.ContainsKey("endpointSuffix"));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", null);
+            }
+
+            var bare = new TestClient(new Config { Endpoint = "example.com" });
+            Assert.True(string.IsNullOrEmpty(bare.EndpointSuffix));
+            Assert.Null(bare.BuildAttributeMap().Key);
         }
     }
 }

@@ -3566,15 +3566,7 @@ namespace AlibabaCloud.OpenApiClient
             }
         }
 
-        /// <term><b>Description:</b></term>
-        /// <description>
-        /// <para>Get accesskey id by using credential</para>
-        /// </description>
-        /// 
-        /// <returns>
-        /// accesskey id
-        /// </returns>
-        AttributeMap AttributeMapWithEndpointSuffix()
+        protected AttributeMap AttributeMapWithEndpointSuffix()
         {
             AttributeMap attributeMap = new AttributeMap();
             if (!_attributeMap.IsNull())
@@ -3603,6 +3595,14 @@ namespace AlibabaCloud.OpenApiClient
             return copied;
         }
 
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>Get accesskey id by using credential</para>
+        /// </description>
+        /// 
+        /// <returns>
+        /// accesskey id
+        /// </returns>
         public string GetAccessKeyId()
         {
             if (_credential.IsNull())

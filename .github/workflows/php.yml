@@ -169,6 +169,16 @@ jobs:
     - name: Run tests with coverage
       run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
+    - name: Require 90% diff coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
+          --base "${{ github.event.pull_request.base.sha }}" \
+          --report coverage.xml \
+          --format clover \
+          --minimum 90
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:

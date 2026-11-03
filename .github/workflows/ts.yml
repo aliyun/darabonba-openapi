@@ -30,6 +30,15 @@ jobs:
     # @darabonba/typescript@^1.0.5 on npm includes WebSocket client.
     - run: npm install
     - run: npm run test-cov
+    - name: Require 90% diff coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
+          --base "${{ github.event.pull_request.base.sha }}" \
+          --report coverage/lcov.info \
+          --format lcov \
+          --minimum 90
     - uses: codecov/codecov-action@v4
       with:
         flags: typescript # optional

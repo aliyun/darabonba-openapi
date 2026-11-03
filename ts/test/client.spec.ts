@@ -1885,6 +1885,33 @@ describe('Throttling backoff retry', () => {
   });
 });
 
+describe('endpoint suffix', function () {
+  it('uses config before the environment and copies the attribute map', function () {
+    process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX = 'example.com';
+    const fromEnv = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.strictEqual(fromEnv._endpointSuffix, 'example.com');
+    let mapped = fromEnv.attributeMapWithEndpointSuffix();
+    assert.strictEqual(mapped.key.endpointSuffix, 'example.com');
+
+    const explicit = new OpenApi(new $OpenApiUtil.Config({
+      endpoint: 'example.com',
+      endpointSuffix: 'example.net',
+    }));
+    assert.strictEqual(explicit._endpointSuffix, 'example.net');
+    (explicit as any)._attributeMap = { key: { signatureTypePrefix: 'ACS4-' } };
+    mapped = explicit.attributeMapWithEndpointSuffix();
+    assert.strictEqual(mapped.key.endpointSuffix, 'example.net');
+    assert.strictEqual(mapped.key.signatureTypePrefix, 'ACS4-');
+    assert.strictEqual((explicit as any)._attributeMap.key.endpointSuffix, undefined);
+    delete process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX;
+
+    const bare = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
+    assert.ok(!bare._endpointSuffix);
+    mapped = bare.attributeMapWithEndpointSuffix();
+    assert.ok(!mapped.key || !mapped.key.endpointSuffix);
+  });
+});
+
 describe('extra client coverage', function () {
   before((done) => {
     server.listen(0, done);
