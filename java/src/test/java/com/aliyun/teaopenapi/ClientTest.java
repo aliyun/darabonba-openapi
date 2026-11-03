@@ -1583,6 +1583,16 @@ public class ClientTest {
         }
         Assert.assertEquals("caller.example", seen.get("endpointSuffix"));
         Assert.assertTrue(seenMaps.get(seenMaps.size() - 1) == original);
+        original.key.put("endpointSuffix", " \t\r\n");
+        try {
+            client.execute(paramsFromSuffixTest(), createOpenApiRequest(), runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
+        }
+        Assert.assertEquals("example.net", seen.get("endpointSuffix"));
+        Assert.assertEquals(" \t\r\n", original.key.get("endpointSuffix"));
+        Assert.assertTrue(seenMaps.get(seenMaps.size() - 1) != original);
         original.key.remove("endpointSuffix");
 
         seen.clear();

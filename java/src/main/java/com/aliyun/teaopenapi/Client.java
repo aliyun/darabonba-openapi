@@ -1388,7 +1388,7 @@ public class Client {
                 if (!com.aliyun.teautil.Common.isUnset(attributeMap.key)) {
                     callerSuffix = attributeMap.key.get("endpointSuffix");
                 }
-                if (com.aliyun.teautil.Common.empty(callerSuffix) && !com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
+                if ((callerSuffix == null || callerSuffix.trim().isEmpty()) && !com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
                     com.aliyun.gateway.spi.models.AttributeMap copied = new com.aliyun.gateway.spi.models.AttributeMap();
                     if (!com.aliyun.teautil.Common.isUnset(attributeMap.attributes)) {
                         java.util.Map<String, Object> copiedAttributes = new java.util.HashMap<String, Object>();
