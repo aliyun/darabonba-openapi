@@ -28,14 +28,12 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    # TEMP: install the unreleased ipv4Only commit of tea (aliyun/tea-java#255)
-    # over the released version; remove this step and bump the dependency before merging.
+    # TEMP: install tea until 1.4.3 is on Maven Central (aliyun/tea-java bump #257);
+    # remove this step after Central publish.
     - name: Install unreleased tea
       run: |
         git clone -q https://github.com/aliyun/tea-java.git "$RUNNER_TEMP/tea-java"
-        # b4a7c9f is the closed PR head and is not on tea-java's default branches.
-        git -C "$RUNNER_TEMP/tea-java" fetch -q origin pull/255/head
-        git -C "$RUNNER_TEMP/tea-java" checkout -q b4a7c9f50f5bdc7bb6254b07b1549be94e395799
+        git -C "$RUNNER_TEMP/tea-java" checkout -q ede3c12a6f005e634ddc39e758e3c68bdb930003
         OPTS="-q -B install -DskipTests -Dgpg.skip -Djacoco.skip=true -Dmaven.javadoc.skip=true"
         mvn $OPTS -f "$RUNNER_TEMP/tea-java/pom.xml"
     - name: Test
