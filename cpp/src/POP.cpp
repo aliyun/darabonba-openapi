@@ -37,13 +37,13 @@ void POP::modifyConfiguration(InterceptorContext &context,
          {"message" , "'config' or 'request' can not be unset"}
      }));
   }
-  resolveEndpointSuffix(attributeMap);
+  std::string endpointSuffix = resolveEndpointSuffix(attributeMap);
   InterceptorContextRequest request = context.getRequest();
   InterceptorContextConfiguration config = context.getConfiguration();
   config.setEndpoint(getEndpoint(request.getProductId(), config.getRegionId(),
                                  config.getEndpointRule(), config.getNetwork(),
                                  config.getSuffix(), config.getEndpointMap(),
-                                 config.getEndpoint()));
+                                 config.getEndpoint(), endpointSuffix));
 }
 
 void POP::modifyRequest(InterceptorContext &context,
@@ -122,7 +122,8 @@ void POP::modifyRequest(InterceptorContext &context,
 
     auto dateNew = Darabonba::String::subString(date, 0, 10);
     dateNew = Darabonba::String::replace(dateNew, "-", "");
-    auto region = getRegion(request.getProductId(), config.getEndpoint());
+    auto region = getRegion(request.getProductId(), config.getEndpoint(),
+                            resolveEndpointSuffix(attributeMap));
     auto signingkey = getSigningkey(signatureAlgorithm, accessKeySecret,
                                     request.getProductId(), region, dateNew);
     request.getHeaders()["Authorization"] = getAuthorization(
@@ -181,12 +182,30 @@ void POP::modifyResponse(InterceptorContext &context,
   }
 }
 
+namespace {
+
+bool endsWith(const std::string &value, const std::string &suffix) {
+  return !suffix.empty() && suffix.size() <= value.size() &&
+         value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+std::string hostWithoutPort(const std::string &endpoint) {
+  auto colon = endpoint.find(':');
+  if (colon == std::string::npos) {
+    return endpoint;
+  }
+  return endpoint.substr(0, colon);
+}
+
+} // namespace
+
 std::string
 POP::getEndpoint(const std::string &productId, const std::string &regionId,
                  const std::string &endpointRule, const std::string &network,
                  const std::string &suffix,
                  const std::map<std::string, std::string> &endpointMap,
-                 const std::string &endpoint) {
+                 const std::string &endpoint,
+                 const std::string &endpointSuffix) {
   if (!endpoint.empty()) {
     return endpoint;
   }
@@ -197,40 +216,40 @@ POP::getEndpoint(const std::string &productId, const std::string &regionId,
       return it->second;
   }
 
+  std::string resolved = endpointSuffix.empty() ? _endpointSuffix : endpointSuffix;
   return applyEndpointSuffix(Utils::getEndpointRules(productId, regionId, endpointRule,
-                                        network, suffix));
+                                        network, suffix), resolved);
 }
 
-std::string POP::resolveEndpointSuffix(AttributeMap &attributeMap) {
-  bool explicitSuffix = false;
+std::string POP::resolveEndpointSuffix(AttributeMap &attributeMap) const {
   if (attributeMap.hasKey()) {
     std::map<std::string, std::string> key = attributeMap.getKey();
     auto it = key.find("endpointSuffix");
     if (it != key.end() && !it->second.empty()) {
-      this->_endpointSuffix = it->second;
-      explicitSuffix = true;
+      return it->second;
     }
   }
-  if (!explicitSuffix) {
-    const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
-    if (envSuffix != nullptr && envSuffix[0] != '\0') {
-      this->_endpointSuffix = envSuffix;
-    }
+  const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+  if (envSuffix != nullptr && envSuffix[0] != '\0') {
+    return std::string(envSuffix);
   }
-  if (this->_endpointSuffix.empty()) {
-    this->_endpointSuffix = "aliyuncs.com";
-  }
-  return this->_endpointSuffix;
+  return "aliyuncs.com";
 }
 
 std::string POP::applyEndpointSuffix(const std::string &endpoint) const {
-  if (_endpointSuffix.empty() || _endpointSuffix == "aliyuncs.com" || endpoint.empty()) {
+  return applyEndpointSuffix(endpoint, _endpointSuffix);
+}
+
+std::string POP::applyEndpointSuffix(const std::string &endpoint,
+                                     const std::string &endpointSuffix) const {
+  std::string suffix = endpointSuffix.empty() ? "aliyuncs.com" : endpointSuffix;
+  if (suffix == "aliyuncs.com" || endpoint.empty()) {
     return endpoint;
   }
   const std::string old = ".aliyuncs.com";
   if (endpoint.size() >= old.size() &&
       endpoint.compare(endpoint.size() - old.size(), old.size(), old) == 0) {
-    return endpoint.substr(0, endpoint.size() - old.size()) + "." + _endpointSuffix;
+    return endpoint.substr(0, endpoint.size() - old.size()) + "." + suffix;
   }
   return endpoint;
 }
@@ -338,14 +357,26 @@ Darabonba::Bytes POP::getSigningkey(const std::string &signatureAlgorithm,
 }
 
 std::string POP::getRegion(const std::string &product,
-                           const std::string &endpoint) {
+                           const std::string &endpoint,
+                           const std::string &endpointSuffix) {
   if (product.empty() || endpoint.empty()) {
     return "center";
   }
 
+  std::string suffix = endpointSuffix.empty() ? _endpointSuffix : endpointSuffix;
+  std::string host = hostWithoutPort(endpoint);
+  std::string domain = "aliyuncs.com";
+  if (!suffix.empty() && endsWith(host, suffix)) {
+    domain = suffix;
+  } else if (endsWith(host, "aliyuncs.com")) {
+    domain = "aliyuncs.com";
+  } else if (!suffix.empty()) {
+    domain = suffix;
+  }
+
   std::string popcode = Darabonba::String::toLower(product);
   std::string region = Darabonba::String::replace(endpoint, popcode, "");
-  region = Darabonba::String::replace(region, _endpointSuffix.empty() ? "aliyuncs.com" : _endpointSuffix, "");
+  region = Darabonba::String::replace(region, domain, "");
   region = Darabonba::String::replace(region, ".", "");
   if (!region.empty()) {
     return region;

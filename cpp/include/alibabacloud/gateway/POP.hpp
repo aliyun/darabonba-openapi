@@ -27,7 +27,8 @@ public:
                           const std::string &endpointRule,
                           const std::string &network, const std::string &suffix,
                           const std::map<std::string, std::string> &endpointMap,
-                          const std::string &endpoint);
+                          const std::string &endpoint,
+                          const std::string &endpointSuffix = "");
 
   Darabonba::Json defaultAny(Darabonba::Json &inputValue,
                              Darabonba::Json &defaultValue);
@@ -56,12 +57,15 @@ public:
                                  const std::string &region,
                                  const std::string &date);
 
-  std::string getRegion(const std::string &product,
-                        const std::string &endpoint);
+  std::string getRegion(const std::string &product, const std::string &endpoint,
+                        const std::string &endpointSuffix = "");
 
-  std::string resolveEndpointSuffix(AttributeMap &attributeMap);
+  std::string resolveEndpointSuffix(AttributeMap &attributeMap) const;
 
   std::string applyEndpointSuffix(const std::string &endpoint) const;
+
+  std::string applyEndpointSuffix(const std::string &endpoint,
+                                  const std::string &endpointSuffix) const;
 
   std::string buildCanonicalizedResource(const Darabonba::Http::Query &query);
 

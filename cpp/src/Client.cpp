@@ -1179,15 +1179,19 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
         {"configuration" , configurationContext}
       }));
       AttributeMap attributeMap = AttributeMap();
+      std::map<std::string, std::string> keys;
       if (!Darabonba::isNull(_attributeMap)) {
-        attributeMap = _attributeMap;
+        if (_attributeMap.hasAttributes()) {
+          attributeMap.setAttributes(_attributeMap.attributes());
+        }
+        if (_attributeMap.hasKey()) {
+          keys = _attributeMap.getKey();
+        }
       }
       if (!_endpointSuffix.empty()) {
-        std::map<std::string, std::string> keys;
-        if (attributeMap.hasKey()) {
-          keys = attributeMap.getKey();
-        }
         keys["endpointSuffix"] = _endpointSuffix;
+      }
+      if (!keys.empty()) {
         attributeMap.setKey(keys);
       }
 
