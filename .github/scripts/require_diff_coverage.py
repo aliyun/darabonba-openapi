@@ -192,16 +192,21 @@ def source_prefix(root, report, changed):
         directory = parent
 
 
-def best_match(report_path, changed_paths):
+def best_match(report_path, changed_paths, source_root=None):
     report_parts = [part for part in norm(report_path).split("/") if part]
     best = []
     best_len = 0
     for candidate in changed_paths:
-        parts = [part for part in norm(candidate).split("/") if part]
+        relative = norm(candidate)
+        if source_root and relative.startswith(norm(source_root) + "/"):
+            relative = relative[len(norm(source_root)) + 1:]
+        parts = [part for part in relative.split("/") if part]
         matched = 0
         while matched < len(parts) and matched < len(report_parts) and parts[-1 - matched] == report_parts[-1 - matched]:
             matched += 1
         if matched == 0:
+            continue
+        if source_root and matched != min(len(parts), len(report_parts)):
             continue
         if matched > best_len:
             best = [candidate]
@@ -233,6 +238,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", required=True)
     parser.add_argument("--report", required=True)
+    parser.add_argument("--source-root", help="Repository-relative source tree covered by this report")
     parser.add_argument("--format", required=True, choices=["go", "cobertura", "jacoco", "clover", "lcov"])
     parser.add_argument("--minimum", type=float, default=90.0)
     args = parser.parse_args()
@@ -248,7 +254,7 @@ def main():
         for path, lines in changed_lines(root, args.base).items()
         if not is_test_path(path)
     }
-    prefix = source_prefix(root, report, changed)
+    prefix = norm(args.source_root) if args.source_root else source_prefix(root, report, changed)
     if prefix:
         changed = {
             path: lines
@@ -261,7 +267,7 @@ def main():
     missing = []
     matched = False
     for report_path, lines in covered.items():
-        source = best_match(report_path, changed)
+        source = best_match(report_path, changed, args.source_root)
         if source is None:
             continue
         matched = True

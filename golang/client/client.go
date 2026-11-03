@@ -1754,7 +1754,7 @@ func (client *Client) attributeMapWithEndpointSuffix() *spi.AttributeMap {
 	if dara.IsNil(attributeMap) {
 		attributeMap = &spi.AttributeMap{}
 	}
-	if attributeMap.Key != nil && dara.StringValue(attributeMap.Key["endpointSuffix"]) != "" {
+	if attributeMap.Key != nil && strings.TrimSpace(dara.StringValue(attributeMap.Key["endpointSuffix"])) != "" {
 		return attributeMap
 	}
 	suffix := dara.StringValue(client.EndpointSuffix)

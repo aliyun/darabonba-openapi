@@ -30,6 +30,21 @@ TEST(POPTest, ExplicitEndpointSuffix) {
   }
 }
 
+TEST(POPTest, EndpointSuffixValidation) {
+  AlibabaCloud::Gateway::POP client;
+  EXPECT_EQ("ecs.aliyuncs.alibaba", client.applyEndpointSuffix("ecs.aliyuncs.com", " \tALIYUNCS.ALIBABA\r\n"));
+  EXPECT_EQ("ecs.aliyuncs.com", client.applyEndpointSuffix("ecs.aliyuncs.com", "  "));
+  for (const string suffix : {"example.net", ".foo", "a/b", "host:8080"}) {
+    EXPECT_ANY_THROW(client.applyEndpointSuffix("ecs.aliyuncs.com", suffix));
+    AlibabaCloud::Gateway::Models::AttributeMap attributes;
+    attributes.setKey({{"endpointSuffix", suffix}});
+    EXPECT_ANY_THROW(client.resolveEndpointSuffix(attributes));
+  }
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  attributes.setKey({{"endpointSuffix", " ALIYUNCS.ALIBABA "}});
+  EXPECT_EQ("aliyuncs.alibaba", client.resolveEndpointSuffix(attributes));
+}
+
 // Test Convert
 TEST(UtilsTest, Convert) {  // Convert is typically used with actual model classes, not tested directly here
   SUCCEED();

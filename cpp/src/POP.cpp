@@ -22,6 +22,28 @@ namespace AlibabaCloud {
 
 namespace Gateway {
 
+namespace {
+std::string checkedEndpointSuffix(const std::string &value) {
+  const auto first = value.find_first_not_of(" \t\r\n\f\v");
+  if (first == std::string::npos) {
+    return "";
+  }
+  const auto last = value.find_last_not_of(" \t\r\n\f\v");
+  std::string suffix = value.substr(first, last - first + 1);
+  for (char &c : suffix) {
+    if (c >= 'A' && c <= 'Z') {
+      c = static_cast<char>(c - 'A' + 'a');
+    }
+  }
+  if (suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba") {
+    throw ClientException(json({
+        {"code", "InvalidEndpointSuffix"},
+        {"message", "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba"}}));
+  }
+  return suffix;
+}
+} // namespace
+
 POP::POP() {
   this->_sha256 = "ACS4-HMAC-SHA256";
   this->_sm3 = "ACS4-HMAC-SM3";
@@ -225,13 +247,19 @@ std::string POP::resolveEndpointSuffix(AttributeMap &attributeMap) const {
   if (attributeMap.hasKey()) {
     std::map<std::string, std::string> key = attributeMap.getKey();
     auto it = key.find("endpointSuffix");
-    if (it != key.end() && !it->second.empty()) {
-      return it->second;
+    if (it != key.end()) {
+      std::string suffix = checkedEndpointSuffix(it->second);
+      if (!suffix.empty()) {
+        return suffix;
+      }
     }
   }
   const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
   if (envSuffix != nullptr && envSuffix[0] != '\0') {
-    return std::string(envSuffix);
+    std::string suffix = checkedEndpointSuffix(envSuffix);
+    if (!suffix.empty()) {
+      return suffix;
+    }
   }
   return "aliyuncs.com";
 }
@@ -242,7 +270,10 @@ std::string POP::applyEndpointSuffix(const std::string &endpoint) const {
 
 std::string POP::applyEndpointSuffix(const std::string &endpoint,
                                      const std::string &endpointSuffix) const {
-  std::string suffix = endpointSuffix.empty() ? "aliyuncs.com" : endpointSuffix;
+  std::string suffix = checkedEndpointSuffix(endpointSuffix);
+  if (suffix.empty()) {
+    suffix = "aliyuncs.com";
+  }
   if (suffix == "aliyuncs.com" || endpoint.empty()) {
     return endpoint;
   }

@@ -1944,6 +1944,30 @@ describe('Throttling backoff retry', () => {
 });
 
 describe('endpoint suffix', function () {
+  it('passes config defaults and caller attributes through execute', async function () {
+    const fromEmpty = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com', endpointSuffix: '' }));
+    assert.strictEqual(fromEmpty._endpointSuffix, process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX);
+    const client = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'ecs.aliyuncs.com', endpointSuffix: 'aliyuncs.alibaba' }));
+    const original = { key: { endpointSuffix: '  ' } };
+    (client as any)._attributeMap = original;
+    let seen: any;
+    (client as any)._spi = {
+      modifyConfiguration: async (ctx: any, attrs: any) => {
+        seen = attrs;
+        assert.strictEqual(ctx.configuration.endpoint, 'oss-cn-hangzhou.aliyuncs.com');
+        throw new Error('stop-before-network');
+      }
+    };
+    const req = createOpenApiRequest();
+    req.endpointOverride = 'oss-cn-hangzhou.aliyuncs.com';
+    await assert.rejects(client.execute(new $OpenApiUtil.Params({
+      action: 'TestAPI', version: '2022-06-01', protocol: 'HTTPS', pathname: '/',
+      method: 'GET', authType: 'Anonymous', style: 'ROA', reqBodyType: 'json', bodyType: 'json',
+    }), req, new $dara.RuntimeOptions({ autoretry: false })));
+    assert.strictEqual(seen.key.endpointSuffix, 'aliyuncs.alibaba');
+    assert.strictEqual(original.key.endpointSuffix, '  ');
+  });
+
   it('uses config before the environment and copies the attribute map', function () {
     process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX = 'example.com';
     const fromEnv = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));
@@ -1961,6 +1985,20 @@ describe('endpoint suffix', function () {
     assert.strictEqual(mapped.key.endpointSuffix, 'example.net');
     assert.strictEqual(mapped.key.signatureTypePrefix, 'ACS4-');
     assert.strictEqual((explicit as any)._attributeMap.key.endpointSuffix, undefined);
+    for (const value of ['', ' \t\r\n', 'caller.example']) {
+      const original = { key: { endpointSuffix: value }, attributes: { kept: 'value' } };
+      (explicit as any)._attributeMap = original;
+      mapped = explicit.attributeMapWithEndpointSuffix();
+      assert.strictEqual(mapped.key.endpointSuffix, value.trim() ? value : 'example.net');
+      assert.strictEqual(original.key.endpointSuffix, value);
+      assert.strictEqual(mapped.attributes.kept, 'value');
+      if (!value.trim()) {
+        mapped.attributes.kept = 'changed';
+        assert.strictEqual(original.attributes.kept, 'value');
+      } else {
+        assert.strictEqual(mapped, original);
+      }
+    }
     delete process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX;
 
     const bare = new OpenApi(new $OpenApiUtil.Config({ endpoint: 'example.com' }));

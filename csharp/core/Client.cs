@@ -3573,7 +3573,7 @@ namespace AlibabaCloud.OpenApiClient
             {
                 attributeMap = _attributeMap;
             }
-            if (!attributeMap.IsNull() && attributeMap.Key != null && attributeMap.Key.ContainsKey("endpointSuffix") && !string.IsNullOrEmpty(attributeMap.Key["endpointSuffix"]))
+            if (!attributeMap.IsNull() && attributeMap.Key != null && attributeMap.Key.ContainsKey("endpointSuffix") && !string.IsNullOrWhiteSpace(attributeMap.Key["endpointSuffix"]))
             {
                 return attributeMap;
             }

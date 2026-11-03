@@ -186,6 +186,30 @@ namespace OpenApiClientUnitTests
                 Assert.Equal("example.net", mapped.Key["endpointSuffix"]);
                 Assert.Equal("ACS4-", mapped.Key["signatureTypePrefix"]);
                 Assert.False(explicitClient.AttributeMap.Key.ContainsKey("endpointSuffix"));
+
+                foreach (var callerSuffix in new[] { null, "", " \t\r\n", "caller.example" })
+                {
+                    var original = new AttributeMap
+                    {
+                        Key = new Dictionary<string, string> { { "endpointSuffix", callerSuffix } },
+                        Attributes = new Dictionary<string, object> { { "kept", "value" } }
+                    };
+                    explicitClient.AttributeMap = original;
+                    mapped = explicitClient.BuildAttributeMap();
+                    Assert.Equal(string.IsNullOrWhiteSpace(callerSuffix) ? "example.net" : callerSuffix, mapped.Key["endpointSuffix"]);
+                    Assert.Equal(callerSuffix, original.Key["endpointSuffix"]);
+                    Assert.Equal("value", mapped.Attributes["kept"]);
+                    if (string.IsNullOrWhiteSpace(callerSuffix))
+                    {
+                        Assert.NotSame(original, mapped);
+                        mapped.Attributes["kept"] = "changed";
+                        Assert.Equal("value", original.Attributes["kept"]);
+                    }
+                    else
+                    {
+                        Assert.Same(original, mapped);
+                    }
+                }
             }
             finally
             {

@@ -1194,7 +1194,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
           keys = _attributeMap.getKey();
         }
       }
-      if (!_endpointSuffix.empty() && keys["endpointSuffix"].empty()) {
+      if (!_endpointSuffix.empty() && keys["endpointSuffix"].find_first_not_of(" \t\r\n\f\v") == std::string::npos) {
         keys["endpointSuffix"] = _endpointSuffix;
       }
       if (!keys.empty()) {

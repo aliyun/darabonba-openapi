@@ -1792,7 +1792,7 @@ class OpenApiClient
     if (is_null($attributeMap)) {
       $attributeMap = new AttributeMap([]);
     }
-    if (!is_null($attributeMap->key) && !empty($attributeMap->key['endpointSuffix'])) {
+    if (!is_null($attributeMap->key) && isset($attributeMap->key['endpointSuffix']) && trim($attributeMap->key['endpointSuffix']) !== '') {
       return $attributeMap;
     }
     if (empty($this->_endpointSuffix)) {

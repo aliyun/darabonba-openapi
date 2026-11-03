@@ -1692,7 +1692,7 @@ export default class Client {
     if ($dara.isNull(attributeMap)) {
       attributeMap = new $SPI.AttributeMap({ });
     }
-    if (attributeMap.key && attributeMap.key["endpointSuffix"]) {
+    if (attributeMap.key && attributeMap.key["endpointSuffix"] && attributeMap.key["endpointSuffix"].trim()) {
       return attributeMap;
     }
     if (!this._endpointSuffix) {

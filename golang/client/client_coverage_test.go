@@ -530,6 +530,17 @@ func TestEndpointSuffixConfigAndEnv(t *testing.T) {
 	tea_util.AssertEqual(t, "example.net", tea.StringValue(explicit.EndpointSuffix))
 	mapped = explicit.attributeMapWithEndpointSuffix()
 	tea_util.AssertEqual(t, "example.net", tea.StringValue(mapped.Key["endpointSuffix"]))
+	for _, value := range []string{"", " \t\r\n", "caller.example"} {
+		original := &spi.AttributeMap{Key: map[string]*string{"endpointSuffix": tea.String(value)}}
+		explicit.AttributeMap = original
+		mapped = explicit.attributeMapWithEndpointSuffix()
+		want := "example.net"
+		if value == "caller.example" {
+			want = value
+		}
+		tea_util.AssertEqual(t, want, tea.StringValue(mapped.Key["endpointSuffix"]))
+		tea_util.AssertEqual(t, value, tea.StringValue(original.Key["endpointSuffix"]))
+	}
 }
 
 func TestErrorTypesAndSSEResponse(t *testing.T) {

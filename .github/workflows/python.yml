@@ -40,6 +40,7 @@ jobs:
         git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
         python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
           --base "${{ github.event.pull_request.base.sha }}" \
+          --source-root python \
           --report coverage.xml \
           --format cobertura \
           --minimum 90

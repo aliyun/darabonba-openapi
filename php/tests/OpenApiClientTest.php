@@ -1229,6 +1229,21 @@ class OpenApiClientTest extends TestCase
             $this->assertEquals('example.net', $mapped->key['endpointSuffix']);
             $this->assertEquals('ACS4-', $mapped->key['signatureTypePrefix']);
             $this->assertFalse(isset($original->key['endpointSuffix']));
+            foreach (array('', " \t\r\n", 'caller.example') as $value) {
+                $original->key['endpointSuffix'] = $value;
+                $original->attributes = array('kept' => 'value');
+                $mapped = $build->invoke($explicit);
+                $this->assertEquals(trim($value) === '' ? 'example.net' : $value, $mapped->key['endpointSuffix']);
+                $this->assertEquals($value, $original->key['endpointSuffix']);
+                $this->assertEquals('value', $mapped->attributes['kept']);
+                if (trim($value) === '') {
+                    $mapped->attributes['kept'] = 'changed';
+                    $this->assertEquals('value', $original->attributes['kept']);
+                    $this->assertNotSame($original, $mapped);
+                } else {
+                    $this->assertSame($original, $mapped);
+                }
+            }
             $restored = Config::fromMap(array('endpointSuffix' => 'example.net'));
             $this->assertEquals('example.net', $restored->endpointSuffix);
             $this->assertEquals('example.net', $restored->toMap()['endpointSuffix']);

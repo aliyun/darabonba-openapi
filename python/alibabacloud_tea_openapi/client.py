@@ -2656,7 +2656,7 @@ class Client:
         existing = None
         if not DaraCore.is_null(attribute_map.key):
             existing = attribute_map.key.get('endpointSuffix')
-        if existing:
+        if existing and existing.strip():
             return attribute_map
         if not self._endpoint_suffix:
             return attribute_map

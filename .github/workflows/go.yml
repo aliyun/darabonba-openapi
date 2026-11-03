@@ -41,6 +41,7 @@ jobs:
         git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
         python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
           --base "${{ github.event.pull_request.base.sha }}" \
+          --source-root golang \
           --report coverage.txt \
           --format go \
           --minimum 90

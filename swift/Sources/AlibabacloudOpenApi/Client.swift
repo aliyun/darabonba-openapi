@@ -1156,7 +1156,7 @@ open class Client {
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func attributeMapWithEndpointSuffix(_ attributeMap: AlibabacloudGatewaySPI.AttributeMap) -> AlibabacloudGatewaySPI.AttributeMap {
-        if let existing = attributeMap.key?["endpointSuffix"], !existing.isEmpty {
+        if let existing = attributeMap.key?["endpointSuffix"], !existing.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return attributeMap
         }
         guard let suffix = self._endpointSuffix, !suffix.isEmpty else {

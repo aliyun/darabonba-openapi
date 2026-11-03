@@ -23,6 +23,23 @@ final class ClientExtraCoverageTests: XCTestCase {
         XCTAssertEqual(mapped.key?["signatureTypePrefix"], "ACS4-")
         XCTAssertNil(original.key?["endpointSuffix"])
 
+        for value in ["", " \t\r\n", "caller.example"] {
+            original.key = ["endpointSuffix": value]
+            original.attributes = ["kept": "value"]
+            mapped = explicit.attributeMapWithEndpointSuffix(original)
+            let blank = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            XCTAssertEqual(mapped.key?["endpointSuffix"], blank ? "example.net" : value)
+            XCTAssertEqual(original.key?["endpointSuffix"], value)
+            XCTAssertEqual(mapped.attributes?["kept"] as? String, "value")
+            if blank {
+                XCTAssertFalse(mapped === original)
+                mapped.attributes?["kept"] = "changed"
+                XCTAssertEqual(original.attributes?["kept"] as? String, "value")
+            } else {
+                XCTAssertTrue(mapped === original)
+            }
+        }
+
         let config = Config(["endpointSuffix": "example.net"])
         XCTAssertEqual(config.toMap()["endpointSuffix"] as? String, "example.net")
         let restored = Config()
