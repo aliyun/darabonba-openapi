@@ -27,10 +27,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    # @darabonba/typescript@^1.0.6 required for ipv4Only; TEMP overlay until npm publish.
+    # Keep @darabonba/typescript@^1.0.5 (npm latest) so install resolves; TEMP overlay
+    # supplies ipv4Only until 1.0.6 is published (aliyun/tea-typescript#80). Then bump
+    # package.json to ^1.0.6 and remove the overlay step before merging.
     - run: npm install
-    # TEMP: overlay @darabonba/typescript until 1.0.6 publish (aliyun/tea-typescript bump); remove after npm 1.0.6.
-    # remove this step and bump the dependency before merging.
+    # TEMP: overlay unreleased ipv4Only bits; remove after npm 1.0.6.
     - name: Use unreleased @darabonba/typescript
       run: |
         git clone -q https://github.com/aliyun/tea-typescript.git "$RUNNER_TEMP/tea-typescript"

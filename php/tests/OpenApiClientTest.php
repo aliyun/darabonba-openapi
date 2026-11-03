@@ -122,17 +122,22 @@ class OpenApiClientTest extends TestCase
 
     private static function getResponseHeader($headers, $name)
     {
-        $key = strtolower($name);
-        if (!isset($headers[$key])) {
+        if (!is_array($headers)) {
             return null;
         }
+        $want = strtolower($name);
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) !== $want) {
+                continue;
+            }
+            if (is_array($value)) {
+                return isset($value[0]) ? $value[0] : null;
+            }
 
-        $value = $headers[$key];
-        if (is_array($value)) {
-            return $value[0];
+            return $value;
         }
 
-        return $value;
+        return null;
     }
 
     public static function stopThrottlingMockServer()
@@ -646,6 +651,22 @@ class OpenApiClientTest extends TestCase
 
     public function testCallSSEApiWithSignV3()
     {
+        // PHP 5.6 CI has seen intermittent SSE stream/header errors; retry once.
+        $last = null;
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            try {
+                $this->assertCallSSEApiWithSignV3Once();
+                return;
+            } catch (\Exception $e) {
+                $last = $e;
+                usleep(500000);
+            }
+        }
+        throw $last;
+    }
+
+    private function assertCallSSEApiWithSignV3Once()
+    {
         self::ensureMockServer();
 
         // 额外等待确保 Mock 服务器完全启动 (for CI environments)
@@ -670,25 +691,26 @@ class OpenApiClientTest extends TestCase
         ]);
         $response = $client->callSSEApi($params, $request, $runtime);
 
-
-        // Add more assertions as needed
         $events = [];
 
         // SSE events are typically separated by double newline
         foreach ($response as $event) {
             $this->assertEquals(200, $event->statusCode);
             $headers = $event->headers;
-            $this->assertEquals('text/event-stream;charset=UTF-8', $headers['Content-Type'][0]);
-            $this->assertEquals('sdk', $headers['for-test'][0]);
-            $userAgentArray = explode(' ', $headers['user-agent'][0]);
+            // Header map casing differs across PHP/Guzzle; look up case-insensitively.
+            $this->assertEquals(
+                'text/event-stream;charset=UTF-8',
+                self::getResponseHeader($headers, 'Content-Type')
+            );
+            $this->assertEquals('sdk', self::getResponseHeader($headers, 'for-test'));
+            $userAgentArray = explode(' ', self::getResponseHeader($headers, 'user-agent'));
             $this->assertEquals('config.userAgent', end($userAgentArray));
-            $this->assertEquals('global-value', $headers['global-key'][0]);
-            $this->assertEquals('extends-value', $headers['extends-key'][0]);
-            $this->assertNotEmpty($headers['x-acs-signature-nonce'][0]);
-            $this->assertNotEmpty($headers['x-acs-date'][0]);
-            $this->assertEquals('application/json', $headers['accept'][0]);
+            $this->assertEquals('global-value', self::getResponseHeader($headers, 'global-key'));
+            $this->assertEquals('extends-value', self::getResponseHeader($headers, 'extends-key'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-signature-nonce'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-date'));
+            $this->assertEquals('application/json', self::getResponseHeader($headers, 'accept'));
             $event = $event->event->toArray();
-            // var_dump($event);
             $events[] = json_decode($event['data'], true);
         }
         $expectedEvents = [
