@@ -31,19 +31,6 @@ public class SignatureV2Tests
         Assert.Same(SignatureFailure, error.InnerException);
     }
 
-    [Fact]
-    public void LegacyRpcSha1MatchesExistingUtilForSpecialAndEmptyValues()
-    {
-        var parameters = new Dictionary<string, string> {
-            { "中文 +/%~", "空 格+/%*~雪" }, { "empty", "" }, { "null", null }, { "Action", "Test" }
-        };
-        string expected = AlibabaCloud.OpenApiUtil.Client.GetRPCSignature(parameters, "POST", "secret");
-        var method = typeof(Client).GetMethod("SignRpcV2", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.NotNull(method);
-        string actual = (string)method.Invoke(null, new object[] { parameters, "POST", "secret", "HMAC-SHA1" });
-        Assert.Equal(expected, actual);
-    }
-
     private static string Sign(string text, string key, string method)
     {
         using (HMAC mac = method == "HMAC-SHA1" ? (HMAC)new HMACSHA1(Encoding.UTF8.GetBytes(key)) : new HMACSHA256(Encoding.UTF8.GetBytes(key)))
@@ -64,23 +51,23 @@ public class SignatureV2Tests
 
     [Theory]
     [InlineData("RPC", null, null, "HMAC-SHA256")]
-    [InlineData("RPC", "HMAC-SHA1", null, "HMAC-SHA1")]
-    [InlineData("RPC", null, "HMAC-SHA1", "HMAC-SHA1")]
+    [InlineData("RPC", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("RPC", null, "HMAC-SHA1", "HMAC-SHA256")]
     [InlineData("RPC", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
     [InlineData("RPC", null, "unsupported", "HMAC-SHA256")]
     [InlineData("RPC", null, "", "HMAC-SHA256")]
     [InlineData("ROA", null, null, "HMAC-SHA256")]
-    [InlineData("ROA", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROA", "HMAC-SHA1", null, "HMAC-SHA256")]
     [InlineData("RPCAsync", null, null, "HMAC-SHA256")]
-    [InlineData("RPCAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
-    [InlineData("RPCAsync", null, "HMAC-SHA1", "HMAC-SHA1")]
+    [InlineData("RPCAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("RPCAsync", null, "HMAC-SHA1", "HMAC-SHA256")]
     [InlineData("RPCAsync", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
     [InlineData("ROAAsync", null, null, "HMAC-SHA256")]
-    [InlineData("ROAAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROAAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
     [InlineData("ROAForm", null, null, "HMAC-SHA256")]
-    [InlineData("ROAForm", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROAForm", "HMAC-SHA1", null, "HMAC-SHA256")]
     [InlineData("ROAFormAsync", null, null, "HMAC-SHA256")]
-    [InlineData("ROAFormAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("ROAFormAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
     public void ActualRequestsUseSelectedSignature(string style, string overrideHeader, string queryAlgorithm, string expected)
     {
         var socket = new TcpListener(IPAddress.Loopback, 0);
@@ -157,6 +144,22 @@ public class SignatureV2Tests
             else client.DoROARequest("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, runtime);
         });
         Assert.Contains("Conflicting signature V2 algorithms", error.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RpcBodyCannotOverrideSignatureMethod(bool async)
+    {
+        var config = new Config { Endpoint = "127.0.0.1", Protocol = "HTTP", AccessKeyId = "ak", AccessKeySecret = "secret" };
+        var request = new OpenApiRequest { Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } } };
+        var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
+        var client = new Client(config);
+        var error = Assert.Throws<Tea.TeaException>(() => {
+            if (async) client.DoRPCRequestAsync("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, runtime).GetAwaiter().GetResult();
+            else client.DoRPCRequest("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, runtime);
+        });
+        Assert.Contains("Unsupported signature V2 algorithm", error.Message);
     }
 
     [Theory]
