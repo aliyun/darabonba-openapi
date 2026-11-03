@@ -206,17 +206,17 @@ POP::getEndpoint(const std::string &productId, const std::string &regionId,
                  const std::map<std::string, std::string> &endpointMap,
                  const std::string &endpoint,
                  const std::string &endpointSuffix) {
+  std::string resolved = endpointSuffix.empty() ? _endpointSuffix : endpointSuffix;
   if (!endpoint.empty()) {
-    return endpoint;
+    return applyEndpointSuffix(endpoint, resolved);
   }
 
   if (!endpointMap.empty()) {
     auto it = endpointMap.find(regionId);
     if (it != endpointMap.end())
-      return it->second;
+      return applyEndpointSuffix(it->second, resolved);
   }
 
-  std::string resolved = endpointSuffix.empty() ? _endpointSuffix : endpointSuffix;
   return applyEndpointSuffix(Utils::getEndpointRules(productId, regionId, endpointRule,
                                         network, suffix), resolved);
 }
