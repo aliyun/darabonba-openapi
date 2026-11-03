@@ -65,6 +65,10 @@ public class Client {
      * 
      * @param config config contains the necessary information to create a client
      */
+    String endpointSuffixFromEnv() {
+        return System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+    }
+
     public Client(com.aliyun.teaopenapi.models.Config config) throws Exception {
         if (com.aliyun.teautil.Common.isUnset(config)) {
             throw new TeaException(TeaConverter.buildMap(
@@ -108,7 +112,7 @@ public class Client {
         this._network = config.network;
         this._suffix = config.suffix;
         if (com.aliyun.teautil.Common.empty(config.endpointSuffix)) {
-            this._endpointSuffix = System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            this._endpointSuffix = this.endpointSuffixFromEnv();
         } else {
             this._endpointSuffix = config.endpointSuffix;
         }
@@ -1376,24 +1380,29 @@ public class Client {
                 com.aliyun.gateway.spi.models.InterceptorContext interceptorContext = new com.aliyun.gateway.spi.models.InterceptorContext();
                 interceptorContext.request = requestContext;
                 interceptorContext.configuration = configurationContext;
-                com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
-                if (!com.aliyun.teautil.Common.isUnset(_attributeMap)) {
-                    if (!com.aliyun.teautil.Common.isUnset(_attributeMap.attributes)) {
+                com.aliyun.gateway.spi.models.AttributeMap attributeMap = _attributeMap;
+                if (com.aliyun.teautil.Common.isUnset(attributeMap)) {
+                    attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
+                }
+                String callerSuffix = null;
+                if (!com.aliyun.teautil.Common.isUnset(attributeMap.key)) {
+                    callerSuffix = attributeMap.key.get("endpointSuffix");
+                }
+                if (com.aliyun.teautil.Common.empty(callerSuffix) && !com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
+                    com.aliyun.gateway.spi.models.AttributeMap copied = new com.aliyun.gateway.spi.models.AttributeMap();
+                    if (!com.aliyun.teautil.Common.isUnset(attributeMap.attributes)) {
                         java.util.Map<String, Object> copiedAttributes = new java.util.HashMap<String, Object>();
-                        for (java.util.Map.Entry<String, ?> entry : _attributeMap.attributes.entrySet()) {
+                        for (java.util.Map.Entry<String, ?> entry : attributeMap.attributes.entrySet()) {
                             copiedAttributes.put(entry.getKey(), entry.getValue());
                         }
-                        attributeMap.attributes = copiedAttributes;
+                        copied.attributes = copiedAttributes;
                     }
-                    if (!com.aliyun.teautil.Common.isUnset(_attributeMap.key)) {
-                        attributeMap.key = new java.util.HashMap<String, String>(_attributeMap.key);
+                    copied.key = new java.util.HashMap<String, String>();
+                    if (!com.aliyun.teautil.Common.isUnset(attributeMap.key)) {
+                        copied.key.putAll(attributeMap.key);
                     }
-                }
-                if (!com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
-                    if (attributeMap.key == null) {
-                        attributeMap.key = new java.util.HashMap<String, String>();
-                    }
-                    attributeMap.key.put("endpointSuffix", this._endpointSuffix);
+                    copied.key.put("endpointSuffix", this._endpointSuffix);
+                    attributeMap = copied;
                 }
 
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

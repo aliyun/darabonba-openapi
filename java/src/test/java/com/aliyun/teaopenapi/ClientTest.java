@@ -1538,13 +1538,15 @@ public class ClientTest {
         client._attributeMap = original;
 
         final java.util.Map<String, String> seen = new java.util.HashMap<String, String>();
+        final java.util.List<com.aliyun.gateway.spi.models.AttributeMap> seenMaps = new java.util.ArrayList<com.aliyun.gateway.spi.models.AttributeMap>();
         client._spi = new com.aliyun.gateway.spi.Client() {
             @Override
             public void modifyConfiguration(com.aliyun.gateway.spi.models.InterceptorContext context, com.aliyun.gateway.spi.models.AttributeMap attributeMap) {
+                seen.clear();
                 if (attributeMap.key != null) {
                     seen.putAll(attributeMap.key);
                 }
-                Assert.assertTrue(attributeMap != original);
+                seenMaps.add(attributeMap);
             }
 
             @Override
@@ -1569,6 +1571,19 @@ public class ClientTest {
         Assert.assertEquals("yes", seen.get("kept"));
         Assert.assertEquals("yes", original.key.get("kept"));
         Assert.assertNull(original.key.get("endpointSuffix"));
+        Assert.assertTrue(seenMaps.get(0) != original);
+
+        original.key.put("endpointSuffix", "caller.example");
+        seen.clear();
+        try {
+            client.execute(paramsFromSuffixTest(), createOpenApiRequest(), runtime);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
+        }
+        Assert.assertEquals("caller.example", seen.get("endpointSuffix"));
+        Assert.assertTrue(seenMaps.get(seenMaps.size() - 1) == original);
+        original.key.remove("endpointSuffix");
 
         seen.clear();
         client._endpointSuffix = "";
@@ -1583,8 +1598,23 @@ public class ClientTest {
 
         Config envConfig = new Config();
         envConfig.endpoint = "example.com";
-        Client fromEnv = new Client(envConfig);
-        Assert.assertEquals(System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX"), fromEnv._endpointSuffix);
+        Client fromEnv = new Client(envConfig) {
+            @Override
+            String endpointSuffixFromEnv() {
+                return "from-override";
+            }
+        };
+        Assert.assertEquals("from-override", fromEnv._endpointSuffix);
+        Config configured = new Config();
+        configured.endpoint = "example.com";
+        configured.endpointSuffix = "aliyuncs.alibaba";
+        Client configWins = new Client(configured) {
+            @Override
+            String endpointSuffixFromEnv() {
+                return "from-override";
+            }
+        };
+        Assert.assertEquals("aliyuncs.alibaba", configWins._endpointSuffix);
     }
 
     private static Params paramsFromSuffixTest() throws Exception {
