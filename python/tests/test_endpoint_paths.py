@@ -29,6 +29,8 @@ class EndpointPathsTests(unittest.TestCase):
                 client._endpoint_for_request(request)
 
     def test_outbound_host_for_sync_and_async_entries(self):
+        loop = asyncio.new_event_loop()
+        self.addCleanup(loop.close)
         params = Params(action='Test', version='2020-01-01', protocol='HTTPS', method='GET', pathname='/', auth_type='Anonymous', style='ROA', req_body_type='json', body_type='string')
         runtime = RuntimeOptions(autoretry=False, max_attempts=1)
         seen = []
@@ -64,14 +66,14 @@ class EndpointPathsTests(unittest.TestCase):
             lambda c, r: c.do_request(params, r, runtime),
             lambda c, r: c.call_api(params, r, runtime),
             lambda c, r: list(c.call_sseapi(params, r, runtime)),
-            lambda c, r: asyncio.run(c.do_rpcrequest_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', 'string', r, runtime)),
-            lambda c, r: asyncio.run(c.do_roarequest_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', r, runtime)),
-            lambda c, r: asyncio.run(c.do_roarequest_with_form_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', r, runtime)),
-            lambda c, r: asyncio.run(c.do_request_async(params, r, runtime)),
-            lambda c, r: asyncio.run(c.call_api_async(params, r, runtime)),
-            lambda c, r: asyncio.run(consume_sse(c, r)),
+            lambda c, r: loop.run_until_complete(c.do_rpcrequest_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', 'string', r, runtime)),
+            lambda c, r: loop.run_until_complete(c.do_roarequest_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', r, runtime)),
+            lambda c, r: loop.run_until_complete(c.do_roarequest_with_form_async('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', r, runtime)),
+            lambda c, r: loop.run_until_complete(c.do_request_async(params, r, runtime)),
+            lambda c, r: loop.run_until_complete(c.call_api_async(params, r, runtime)),
+            lambda c, r: loop.run_until_complete(consume_sse(c, r)),
             lambda c, r: c.execute(params, r, runtime),
-            lambda c, r: asyncio.run(c.execute_async(params, r, runtime)),
+            lambda c, r: loop.run_until_complete(c.execute_async(params, r, runtime)),
         ]
         with mock.patch.object(DaraCore, 'do_action', side_effect=capture), \
                 mock.patch.object(DaraCore, 'async_do_action', side_effect=capture_async), \

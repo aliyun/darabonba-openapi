@@ -114,6 +114,21 @@ func TestEndpointSuffixAllRequestPaths(t *testing.T) {
 		},
 	}
 	for name, path := range paths {
+		t.Run(name+"/invalidSuffix", func(t *testing.T) {
+			hosts := make(chan string, 1)
+			c, err := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("evil.com"), HttpClient: &endpointCaptureClient{hosts: hosts}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = path(c, &OpenApiRequest{}, &dara.RuntimeOptions{})
+			var invalid *ClientError
+			if !errors.As(err, &invalid) || tea.StringValue(invalid.Code) != "InvalidEndpointSuffix" {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(hosts) != 0 {
+				t.Fatal("invalid suffix reached transport")
+			}
+		})
 		for _, item := range []struct{ endpoint, override, want string }{
 			{"ecs.cn-hangzhou.aliyuncs.com", "", "ecs.cn-hangzhou.aliyuncs.alibaba"},
 			{"ecs.cn-hangzhou.aliyuncs.com", "oss-cn-hangzhou.aliyuncs.com", "oss-cn-hangzhou.aliyuncs.alibaba"},
@@ -145,6 +160,20 @@ func TestEndpointSuffixAllRequestPaths(t *testing.T) {
 		}
 	}
 	for _, withCtx := range []bool{false, true} {
+		invalidClient, _ := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("evil.com")})
+		invalidResults, invalidErrors := make(chan *SSEResponse, 1), make(chan error, 1)
+		if withCtx {
+			go invalidClient.CallSSEApiWithCtx(ctx, nil, &OpenApiRequest{}, &dara.RuntimeOptions{}, invalidResults, invalidErrors)
+		} else {
+			go invalidClient.CallSSEApi(nil, &OpenApiRequest{}, &dara.RuntimeOptions{}, invalidResults, invalidErrors)
+		}
+		for range invalidResults {
+			t.Fatal("unexpected SSE result")
+		}
+		var invalid *ClientError
+		if err := <-invalidErrors; !errors.As(err, &invalid) || tea.StringValue(invalid.Code) != "InvalidEndpointSuffix" {
+			t.Fatalf("unexpected SSE error: %v", err)
+		}
 		hosts := make(chan string, 8)
 		c, _ := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("aliyuncs.alibaba"), HttpClient: &endpointCaptureClient{hosts: hosts}})
 		result, errs := make(chan *SSEResponse, 1), make(chan error, 8)
