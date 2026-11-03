@@ -65,6 +65,23 @@ public class Client {
      * 
      * @param config config contains the necessary information to create a client
      */
+    private String endpointForRequest(OpenApiRequest request) throws Exception {
+        String endpoint = com.aliyun.teautil.Common.empty(request.endpointOverride) ? this._endpoint : request.endpointOverride;
+        String suffix = this._attributeMap != null && this._attributeMap.key != null ? this._attributeMap.key.get("endpointSuffix") : null;
+        if (suffix == null || suffix.trim().isEmpty()) suffix = this._endpointSuffix;
+        if (suffix == null || suffix.trim().isEmpty()) suffix = this.endpointSuffixFromEnv();
+        suffix = suffix == null ? "" : suffix.trim().toLowerCase(java.util.Locale.ROOT);
+        if (suffix.isEmpty()) suffix = "aliyuncs.com";
+        if (!"aliyuncs.com".equals(suffix) && !"aliyuncs.alibaba".equals(suffix)) {
+            throw new com.aliyun.tea.TeaException(com.aliyun.tea.TeaConverter.buildMap(
+                new com.aliyun.tea.TeaPair("code", "InvalidEndpointSuffix"),
+                new com.aliyun.tea.TeaPair("message", "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba")));
+        }
+        String old = ".aliyuncs.com";
+        return endpoint != null && !"aliyuncs.com".equals(suffix) && endpoint.endsWith(old)
+            ? endpoint.substring(0, endpoint.length() - old.length()) + "." + suffix : endpoint;
+    }
+
     String endpointSuffixFromEnv() {
         return System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
     }
@@ -248,7 +265,7 @@ public class Client {
                     // endpoint is setted in product client
                     request_.headers = TeaConverter.merge(String.class,
                         TeaConverter.buildMap(
-                            new TeaPair("host", _endpoint),
+                            new TeaPair("host", this.endpointForRequest(request)),
                             new TeaPair("x-acs-version", version),
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
@@ -260,7 +277,7 @@ public class Client {
                 } else {
                     request_.headers = TeaConverter.merge(String.class,
                         TeaConverter.buildMap(
-                            new TeaPair("host", _endpoint),
+                            new TeaPair("host", this.endpointForRequest(request)),
                             new TeaPair("x-acs-version", version),
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
@@ -514,7 +531,7 @@ public class Client {
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("accept", "application/json"),
                         new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("x-acs-signature-method", "HMAC-SHA1"),
@@ -780,7 +797,7 @@ public class Client {
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("accept", "application/json"),
                         new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("x-acs-signature-method", "HMAC-SHA1"),
@@ -1049,7 +1066,7 @@ public class Client {
                 // endpoint is setted in product client
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("x-acs-version", params.version),
                         new TeaPair("x-acs-action", params.action),
                         new TeaPair("user-agent", this.getUserAgent()),
@@ -1370,7 +1387,7 @@ public class Client {
                 ));
                 com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration configurationContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
                     new TeaPair("regionId", _regionId),
-                    new TeaPair("endpoint", com.aliyun.teautil.Common.defaultString(request.endpointOverride, _endpoint)),
+                    new TeaPair("endpoint", this.endpointForRequest(request)),
                     new TeaPair("endpointRule", _endpointRule),
                     new TeaPair("endpointMap", _endpointMap),
                     new TeaPair("endpointType", _endpointType),

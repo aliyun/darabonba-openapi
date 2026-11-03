@@ -1527,10 +1527,10 @@ public class ClientTest {
     public void testEndpointSuffix() throws Exception {
         Config config = new Config();
         config.endpoint = "example.com";
-        config.setEndpointSuffix("example.net");
-        Assert.assertEquals("example.net", config.getEndpointSuffix());
+        config.setEndpointSuffix("aliyuncs.alibaba");
+        Assert.assertEquals("aliyuncs.alibaba", config.getEndpointSuffix());
         Client client = new Client(config);
-        Assert.assertEquals("example.net", client._endpointSuffix);
+        Assert.assertEquals("aliyuncs.alibaba", client._endpointSuffix);
 
         final com.aliyun.gateway.spi.models.AttributeMap original = new com.aliyun.gateway.spi.models.AttributeMap();
         original.key = new java.util.HashMap<String, String>();
@@ -1567,13 +1567,13 @@ public class ClientTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
         }
-        Assert.assertEquals("example.net", seen.get("endpointSuffix"));
+        Assert.assertEquals("aliyuncs.alibaba", seen.get("endpointSuffix"));
         Assert.assertEquals("yes", seen.get("kept"));
         Assert.assertEquals("yes", original.key.get("kept"));
         Assert.assertNull(original.key.get("endpointSuffix"));
         Assert.assertTrue(seenMaps.get(0) != original);
 
-        original.key.put("endpointSuffix", "caller.example");
+        original.key.put("endpointSuffix", "aliyuncs.com");
         seen.clear();
         try {
             client.execute(paramsFromSuffixTest(), createOpenApiRequest(), runtime);
@@ -1581,7 +1581,7 @@ public class ClientTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
         }
-        Assert.assertEquals("caller.example", seen.get("endpointSuffix"));
+        Assert.assertEquals("aliyuncs.com", seen.get("endpointSuffix"));
         Assert.assertTrue(seenMaps.get(seenMaps.size() - 1) == original);
         original.key.put("endpointSuffix", " \t\r\n");
         try {
@@ -1590,7 +1590,7 @@ public class ClientTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage() != null && e.getMessage().contains("stop-suffix"));
         }
-        Assert.assertEquals("example.net", seen.get("endpointSuffix"));
+        Assert.assertEquals("aliyuncs.alibaba", seen.get("endpointSuffix"));
         Assert.assertEquals(" \t\r\n", original.key.get("endpointSuffix"));
         Assert.assertTrue(seenMaps.get(seenMaps.size() - 1) != original);
         original.key.remove("endpointSuffix");
