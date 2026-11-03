@@ -649,20 +649,37 @@ class OpenApiClientTest extends TestCase
         $this->assertNotEmpty($response);
     }
 
+    public function testMockServerReadsFragmentedSSERequest()
+    {
+        self::ensureMockServer();
+        $socket = stream_socket_client('tcp://127.0.0.1:8000', $errno, $errstr, 5);
+        $this->assertTrue(is_resource($socket), $errstr);
+        stream_set_timeout($socket, 5);
+        $body = '{"key":"value"}';
+        $padding = str_repeat('x', 2048);
+        $request = "POST /sse HTTP/1.1\r\nHost: 127.0.0.1:8000\r\n" .
+            "Content-Type: application/json\r\nContent-Length: " . strlen($body) . "\r\n" .
+            "for-test: sdk\r\nX-Padding: " . $padding . "\r\n\r\n" . $body;
+        try {
+            fwrite($socket, substr($request, 0, 64));
+            usleep(50000);
+            fwrite($socket, substr($request, 64));
+            $response = stream_get_contents($socket);
+        } finally {
+            fclose($socket);
+        }
+        $parts = explode("\r\n\r\n", $response, 2);
+        $this->assertCount(2, $parts);
+        $this->assertSame(1, preg_match_all('/^Content-Type:/mi', $parts[0], $matches));
+        $this->assertSame(0, preg_match('/^Content-Length:/mi', $parts[0]));
+        $this->assertTrue(strpos($parts[0], 'text/event-stream;charset=UTF-8') !== false);
+        $this->assertTrue(strpos($parts[0], $padding) !== false);
+        $this->assertSame(5, substr_count($parts[1], 'event: flow'));
+    }
+
     public function testCallSSEApiWithSignV3()
     {
-        // PHP 5.6 CI has seen intermittent SSE stream/header errors; retry once.
-        $last = null;
-        for ($attempt = 0; $attempt < 2; $attempt++) {
-            try {
-                $this->assertCallSSEApiWithSignV3Once();
-                return;
-            } catch (\Exception $e) {
-                $last = $e;
-                usleep(500000);
-            }
-        }
-        throw $last;
+        $this->assertCallSSEApiWithSignV3Once();
     }
 
     private function assertCallSSEApiWithSignV3Once()
