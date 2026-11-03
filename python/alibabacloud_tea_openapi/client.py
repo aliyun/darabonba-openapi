@@ -73,6 +73,7 @@ class Client:
     _disable_http_2: bool = None
     _retry_options: RetryOptions = None
     _tls_min_version: str = None
+    _ipv4_only: bool = None
     _attribute_map: spi_models.AttributeMap = None
 
     def __init__(
@@ -134,6 +135,7 @@ class Client:
         self._disable_http_2 = config.disable_http_2
         self._retry_options = config.retry_options
         self._tls_min_version = config.tls_min_version
+        self._ipv4_only = config.ipv4_only
 
     """
      * @remarks
@@ -172,6 +174,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -391,6 +394,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -626,6 +630,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -833,6 +838,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -1055,6 +1061,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -1262,6 +1269,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -1508,6 +1516,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -1769,6 +1778,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -2020,6 +2030,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -2151,6 +2162,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -2282,6 +2294,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,
@@ -2442,6 +2455,7 @@ class Client:
             'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
             'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
             'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
             'retryOptions': self._retry_options,
             'ignoreSSL': runtime.ignore_ssl,
             'tlsMinVersion': self._tls_min_version,

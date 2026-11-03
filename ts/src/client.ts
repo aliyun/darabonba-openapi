@@ -50,6 +50,7 @@ export default class Client {
   _disableHttp2: boolean;
   _retryOptions: $dara.RetryOptions;
   _tlsMinVersion: string;
+  _ipv4Only: boolean;
   _attributeMap: $SPI.AttributeMap;
 
   /**
@@ -120,6 +121,7 @@ export default class Client {
     this._disableHttp2 = config.disableHttp2;
     this._retryOptions = config.retryOptions;
     this._tlsMinVersion = config.tlsMinVersion;
+    this._ipv4Only = config.ipv4Only;
   }
 
   /**
@@ -149,6 +151,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -424,6 +427,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -683,6 +687,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -963,6 +968,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -1147,6 +1153,8 @@ export default class Client {
             ..._runtime,
             webSocketHandler: streamHandler,
           }, new $dara.RuntimeOptions({}));
+          // ipv4Only is not a RuntimeOptions field, so cast() drops it.
+          wsRuntime['ipv4Only'] = _runtime['ipv4Only'];
           const { client: wsClient, response: response_ } = await $dara.newWebSocketClientAndConnect(request_, wsRuntime);
           const wsClientObj = websocketUtils.newWebSocketClient(wsClient, response_);
           streamHandler.client = wsClientObj;
@@ -1294,6 +1302,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
@@ -1451,6 +1460,7 @@ export default class Client {
       socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
       socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
       maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
       retryOptions: this._retryOptions,
       ignoreSSL: runtime.ignoreSSL,
       tlsMinVersion: this._tlsMinVersion,
