@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import Tea
 import TeaUtils
 #if canImport(CryptoKit)
 import CryptoKit
@@ -79,8 +80,11 @@ final class SignatureV2Tests: XCTestCase {
         do {
             _ = try await Client(config).callApi(params, OpenApiRequest(["body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
             XCTFail("conflicting body method was accepted")
+        } catch let error as Tea.ReuqestError {
+            XCTAssertEqual(error.code, "InvalidSignatureAlgorithm")
+            XCTAssertEqual(error.message, "Conflicting signature V2 algorithms")
         } catch {
-            XCTAssertTrue(String(describing: error).contains("Conflicting signature V2 algorithms"))
+            XCTFail("unexpected error: \(error)")
         }
     }
 
