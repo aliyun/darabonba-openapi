@@ -2650,18 +2650,26 @@ class Client:
 
 
     def _attribute_map_with_endpoint_suffix(self):
-        attribute_map = spi_models.AttributeMap()
-        if not DaraCore.is_null(self._attribute_map):
-            attribute_map = self._attribute_map
+        attribute_map = self._attribute_map
+        if DaraCore.is_null(attribute_map):
+            attribute_map = spi_models.AttributeMap()
+        existing = None
+        if not DaraCore.is_null(attribute_map.key):
+            existing = attribute_map.key.get('endpointSuffix')
+        if existing:
+            return attribute_map
         if not self._endpoint_suffix:
             return attribute_map
         keys = {}
-        if attribute_map is not None and not DaraCore.is_null(attribute_map.key):
+        if not DaraCore.is_null(attribute_map.key):
             keys.update(attribute_map.key)
         keys['endpointSuffix'] = self._endpoint_suffix
+        attributes = None
+        if not DaraCore.is_null(attribute_map.attributes):
+            attributes = dict(attribute_map.attributes)
         return spi_models.AttributeMap(
             key=keys,
-            attributes=None if attribute_map is None else attribute_map.attributes,
+            attributes=attributes,
         )
 
     def get_access_key_id(self) -> str:

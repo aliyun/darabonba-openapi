@@ -259,10 +259,12 @@ def main():
     total = 0
     hit = 0
     missing = []
+    matched = False
     for report_path, lines in covered.items():
         source = best_match(report_path, changed)
         if source is None:
             continue
+        matched = True
         for number, status in lines.items():
             if number not in changed[source]:
                 continue
@@ -273,6 +275,9 @@ def main():
                 missing.append("%s:%s" % (source, number))
 
     if total == 0:
+        if changed and not matched:
+            print("coverage report did not match any changed file")
+            return 1
         print("diff coverage: no instrumented lines changed")
         return 0
     percent = 100.0 * hit / total

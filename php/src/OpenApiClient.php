@@ -1788,15 +1788,18 @@ class OpenApiClient
    */
   private function attributeMapWithEndpointSuffix()
   {
-    $attributeMap = new AttributeMap([]);
-    if (!is_null($this->_attributeMap)) {
-      $attributeMap = $this->_attributeMap;
+    $attributeMap = $this->_attributeMap;
+    if (is_null($attributeMap)) {
+      $attributeMap = new AttributeMap([]);
+    }
+    if (!is_null($attributeMap->key) && !empty($attributeMap->key['endpointSuffix'])) {
+      return $attributeMap;
     }
     if (empty($this->_endpointSuffix)) {
       return $attributeMap;
     }
     $keys = [];
-    if (!is_null($attributeMap) && !is_null($attributeMap->key)) {
+    if (!is_null($attributeMap->key)) {
       foreach ($attributeMap->key as $name => $value) {
         $keys[$name] = $value;
       }
@@ -1804,8 +1807,12 @@ class OpenApiClient
     $keys['endpointSuffix'] = $this->_endpointSuffix;
     $copied = new AttributeMap([]);
     $copied->key = $keys;
-    if (!is_null($attributeMap)) {
-      $copied->attributes = $attributeMap->attributes;
+    if (!is_null($attributeMap->attributes)) {
+      $attributes = [];
+      foreach ($attributeMap->attributes as $name => $value) {
+        $attributes[$name] = $value;
+      }
+      $copied->attributes = $attributes;
     }
     return $copied;
   }

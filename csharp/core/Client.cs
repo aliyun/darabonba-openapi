@@ -3573,6 +3573,10 @@ namespace AlibabaCloud.OpenApiClient
             {
                 attributeMap = _attributeMap;
             }
+            if (!attributeMap.IsNull() && attributeMap.Key != null && attributeMap.Key.ContainsKey("endpointSuffix") && !string.IsNullOrEmpty(attributeMap.Key["endpointSuffix"]))
+            {
+                return attributeMap;
+            }
             if (string.IsNullOrEmpty(this._endpointSuffix))
             {
                 return attributeMap;
@@ -3588,9 +3592,14 @@ namespace AlibabaCloud.OpenApiClient
             keys["endpointSuffix"] = this._endpointSuffix;
             AttributeMap copied = new AttributeMap();
             copied.Key = keys;
-            if (!attributeMap.IsNull())
+            if (!attributeMap.IsNull() && attributeMap.Attributes != null)
             {
-                copied.Attributes = attributeMap.Attributes;
+                Dictionary<string, object> attributes = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, object> item in attributeMap.Attributes)
+                {
+                    attributes[item.Key] = item.Value;
+                }
+                copied.Attributes = attributes;
             }
             return copied;
         }

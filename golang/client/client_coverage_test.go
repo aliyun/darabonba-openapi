@@ -510,6 +510,15 @@ func TestEndpointSuffixConfigAndEnv(t *testing.T) {
 	tea_util.AssertEqual(t, "ACS4-", tea.StringValue(mapped.Key["signatureTypePrefix"]))
 	_, present := original.Key["endpointSuffix"]
 	tea_util.AssertEqual(t, false, present)
+	original.Attributes = map[string]interface{}{"scope": "client"}
+	mapped = client.attributeMapWithEndpointSuffix()
+	mapped.Attributes["scope"] = "changed"
+	tea_util.AssertEqual(t, "client", original.Attributes["scope"])
+	preset := &spi.AttributeMap{Key: map[string]*string{"endpointSuffix": tea.String("caller.example")}}
+	client.AttributeMap = preset
+	if client.attributeMapWithEndpointSuffix() != preset {
+		t.Fatal("caller endpointSuffix was replaced")
+	}
 
 	explicit, err := NewClient(&Config{
 		AccessKeyId:     tea.String("ak"),

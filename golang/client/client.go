@@ -1750,28 +1750,35 @@ func (client *Client) CheckConfig(config *openapiutil.Config) (_err error) {
 //
 // @param spi - .
 func (client *Client) attributeMapWithEndpointSuffix() *spi.AttributeMap {
-	attributeMap := &spi.AttributeMap{}
-	if !dara.IsNil(client.AttributeMap) {
-		attributeMap = client.AttributeMap
+	attributeMap := client.AttributeMap
+	if dara.IsNil(attributeMap) {
+		attributeMap = &spi.AttributeMap{}
+	}
+	if attributeMap.Key != nil && dara.StringValue(attributeMap.Key["endpointSuffix"]) != "" {
+		return attributeMap
 	}
 	suffix := dara.StringValue(client.EndpointSuffix)
 	if suffix == "" {
 		return attributeMap
 	}
 	keys := map[string]*string{}
-	if attributeMap != nil && attributeMap.Key != nil {
+	if attributeMap.Key != nil {
 		for name, value := range attributeMap.Key {
 			keys[name] = value
 		}
 	}
 	keys["endpointSuffix"] = dara.String(suffix)
-	copied := &spi.AttributeMap{
-		Key: keys,
+	var attributes map[string]interface{}
+	if attributeMap.Attributes != nil {
+		attributes = map[string]interface{}{}
+		for name, value := range attributeMap.Attributes {
+			attributes[name] = value
+		}
 	}
-	if attributeMap != nil {
-		copied.Attributes = attributeMap.Attributes
+	return &spi.AttributeMap{
+		Key:        keys,
+		Attributes: attributes,
 	}
-	return copied
 }
 
 func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {

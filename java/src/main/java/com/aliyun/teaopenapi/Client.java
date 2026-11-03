@@ -20,7 +20,6 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
-    public String _endpointSuffix;
     public Integer _readTimeout;
     public Integer _connectTimeout;
     public String _httpProxy;
@@ -83,11 +82,6 @@ public class Client {
         this._endpointType = config.endpointType;
         this._network = config.network;
         this._suffix = config.suffix;
-        if (com.aliyun.teautil.Common.empty(config.endpointSuffix)) {
-            this._endpointSuffix = System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
-        } else {
-            this._endpointSuffix = config.endpointSuffix;
-        }
         this._protocol = config.protocol;
         this._method = config.method;
         this._regionId = config.regionId;
@@ -1180,11 +1174,6 @@ public class Client {
                     new TeaPair("configuration", configurationContext)
                 ));
                 com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
-                if (!com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
-                    java.util.Map<String, String> endpointKeys = new java.util.HashMap<String, String>();
-                    endpointKeys.put("endpointSuffix", this._endpointSuffix);
-                    attributeMap.key = endpointKeys;
-                }
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 _spi.modifyConfiguration(interceptorContext, attributeMap);
                 // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

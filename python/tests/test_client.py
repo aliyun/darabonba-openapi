@@ -3,8 +3,6 @@
 import unittest
 import asyncio
 import os
-from darabonba.core import DaraCore
-from unittest import mock
 import re
 import json
 import httpretty
@@ -20,6 +18,8 @@ from alibabacloud_tea_openapi.client import Client as OpenApiClient
 from darabonba.runtime import ExtendsParameters 
 from darabonba.runtime import RuntimeOptions
 from alibabacloud_tea_openapi.utils import Utils as UtilClient
+from darabonba.core import DaraCore
+from unittest import mock
 
 
 class TestClient(unittest.TestCase):
@@ -56,7 +56,8 @@ class TestClient(unittest.TestCase):
             key='config.key',
             cert='config.cert',
             ca='config.ca',
-            disable_http_2=True
+            disable_http_2=True,
+            ipv4_only=True
         )
         cre_config = credential_models.Config(
             access_key_id='accessKeyId',
@@ -148,6 +149,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual("config.cert", client._cert)
         self.assertEqual("config.ca", client._ca)
         self.assertEqual(True, client._disable_http_2)
+        self.assertEqual(True, client._ipv4_only)
 
     def create_config(self) -> open_api_models.Config:
         global_parameters = open_api_models.GlobalParameters(
@@ -2570,7 +2572,6 @@ class TestClient(unittest.TestCase):
             self.assertEqual("sse-test", event.id)
             self.assertEqual("flow", event.event)
 
-
     def test_endpoint_suffix(self):
         from alibabacloud_gateway_spi.models import AttributeMap
         os.environ['ALIBABA_CLOUD_ENDPOINT_SUFFIX'] = 'example.com'
@@ -2597,6 +2598,13 @@ class TestClient(unittest.TestCase):
             self.assertEqual('example.net', mapped.key['endpointSuffix'])
             self.assertEqual('ACS4-', mapped.key['signatureTypePrefix'])
             self.assertNotIn('endpointSuffix', original.key)
+            self.assertIsNot(mapped, original)
+            preset = AttributeMap(key={'endpointSuffix': 'caller.example', 'kept': 'yes'})
+            explicit._attribute_map = preset
+            mapped = explicit._attribute_map_with_endpoint_suffix()
+            self.assertIs(mapped, preset)
+            self.assertEqual('caller.example', mapped.key['endpointSuffix'])
+            self.assertEqual('yes', mapped.key['kept'])
             restored = open_api_models.Config()
             restored.from_map({'endpointSuffix': 'example.net'})
             self.assertEqual('example.net', restored.endpoint_suffix)

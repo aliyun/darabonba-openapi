@@ -1688,24 +1688,34 @@ export default class Client {
    * @returns accesskey id
    */
   attributeMapWithEndpointSuffix(): $SPI.AttributeMap {
-    let attributeMap = new $SPI.AttributeMap({ });
-    if (!$dara.isNull(this._attributeMap)) {
-      attributeMap = this._attributeMap;
+    let attributeMap = this._attributeMap;
+    if ($dara.isNull(attributeMap)) {
+      attributeMap = new $SPI.AttributeMap({ });
+    }
+    if (attributeMap.key && attributeMap.key["endpointSuffix"]) {
+      return attributeMap;
     }
     if (!this._endpointSuffix) {
       return attributeMap;
     }
     let keys: {[key: string]: string} = {};
-    if (attributeMap && attributeMap.key) {
+    if (attributeMap.key) {
       let source = attributeMap.key;
       for (let name of Object.keys(source)) {
         keys[name] = source[name];
       }
     }
     keys["endpointSuffix"] = this._endpointSuffix;
+    let attributes: {[key: string]: any} = undefined;
+    if (attributeMap.attributes) {
+      attributes = {};
+      for (let name of Object.keys(attributeMap.attributes)) {
+        attributes[name] = attributeMap.attributes[name];
+      }
+    }
     return new $SPI.AttributeMap({
       key: keys,
-      attributes: attributeMap ? attributeMap.attributes : undefined,
+      attributes: attributes,
     });
   }
 
