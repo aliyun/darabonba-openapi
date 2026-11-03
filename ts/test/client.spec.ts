@@ -1954,7 +1954,7 @@ describe('endpoint suffix', function () {
     (client as any)._spi = {
       modifyConfiguration: async (ctx: any, attrs: any) => {
         seen = attrs;
-        assert.strictEqual(ctx.configuration.endpoint, 'oss-cn-hangzhou.aliyuncs.com');
+        assert.strictEqual(ctx.configuration.endpoint, 'oss-cn-hangzhou.aliyuncs.alibaba');
         throw new Error('stop-before-network');
       }
     };

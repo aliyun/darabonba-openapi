@@ -12,6 +12,37 @@ namespace OpenApiClientUnitTests
     public class ConfigTest
     {
         [Fact]
+        public void TestRequestEndpointSuffix()
+        {
+            var previous = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            var resolve = typeof(AlibabaCloud.OpenApiClient.Client).GetMethod("EndpointForRequest", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            try
+            {
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", null);
+                var client = new TestClient(new Config { Endpoint = "ecs.aliyuncs.com" });
+                var request = new OpenApiRequest();
+                Assert.Equal("ecs.aliyuncs.com", resolve.Invoke(client, new object[] { request }));
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", " ALIYUNCS.ALIBABA ");
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                client = new TestClient(new Config { Endpoint = "ecs.aliyuncs.com", EndpointSuffix = "aliyuncs.com" });
+                Assert.Equal("ecs.aliyuncs.com", resolve.Invoke(client, new object[] { request }));
+                client.AttributeMap = new AttributeMap { Key = new Dictionary<string, string> { { "endpointSuffix", " ALIYUNCS.ALIBABA " } } };
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "oss-cn-hangzhou.aliyuncs.com";
+                Assert.Equal("oss-cn-hangzhou.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "ecs.aliyun.com";
+                Assert.Equal("ecs.aliyun.com", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "ecs.aliyuncs.alibaba";
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                client.AttributeMap.Key["endpointSuffix"] = "evil.com";
+                var error = Assert.Throws<System.Reflection.TargetInvocationException>(() => resolve.Invoke(client, new object[] { request }));
+                Assert.IsType<ClientException>(error.InnerException);
+                Assert.Equal("ecs.aliyuncs.com", client.Endpoint);
+            }
+            finally { Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", previous); }
+        }
+
+        [Fact]
         public void TestConfig()
         {
             var globalParameters = new GlobalParameters

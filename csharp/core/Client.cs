@@ -268,7 +268,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -284,7 +284,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -615,7 +615,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -631,7 +631,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -948,7 +948,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1275,7 +1275,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1602,7 +1602,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1929,7 +1929,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -2259,7 +2259,7 @@ namespace AlibabaCloud.OpenApiClient
                     (
                         new Dictionary<string, string>()
                         {
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"x-acs-version", params_.Version},
                             {"x-acs-action", params_.Action},
                             {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -2636,7 +2636,7 @@ namespace AlibabaCloud.OpenApiClient
                     (
                         new Dictionary<string, string>()
                         {
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"x-acs-version", params_.Version},
                             {"x-acs-action", params_.Action},
                             {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -3038,7 +3038,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
+                        Endpoint = EndpointForRequest(request),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -3242,7 +3242,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
+                        Endpoint = EndpointForRequest(request),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -3365,7 +3365,7 @@ namespace AlibabaCloud.OpenApiClient
             (
                 new Dictionary<string, string>()
                 {
-                    {"host", _endpoint},
+                    {"host", EndpointForRequest(request)},
                     {"x-acs-version", params_.Version},
                     {"x-acs-action", params_.Action},
                     {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -3564,6 +3564,21 @@ namespace AlibabaCloud.OpenApiClient
             {
                 return await ExecuteAsync(params_, request, runtime);
             }
+        }
+
+        private string EndpointForRequest(OpenApiRequest request)
+        {
+            string endpoint = string.IsNullOrEmpty(request.EndpointOverride) ? _endpoint : request.EndpointOverride;
+            AttributeMap attributes = AttributeMapWithEndpointSuffix();
+            string suffix = null;
+            if (attributes.Key != null) attributes.Key.TryGetValue("endpointSuffix", out suffix);
+            if (string.IsNullOrWhiteSpace(suffix)) suffix = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            suffix = string.IsNullOrWhiteSpace(suffix) ? "aliyuncs.com" : suffix.Trim().ToLowerInvariant();
+            if (suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba")
+                throw new ClientException { Code = "InvalidEndpointSuffix", Message = "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba" };
+            const string old = ".aliyuncs.com";
+            return !string.IsNullOrEmpty(endpoint) && suffix != "aliyuncs.com" && endpoint.EndsWith(old, StringComparison.Ordinal)
+                ? endpoint.Substring(0, endpoint.Length - old.Length) + "." + suffix : endpoint;
         }
 
         protected AttributeMap AttributeMapWithEndpointSuffix()

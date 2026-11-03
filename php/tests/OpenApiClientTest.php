@@ -1260,6 +1260,75 @@ class OpenApiClientTest extends TestCase
         $this->assertTrue($mapped->key === null || !isset($mapped->key['endpointSuffix']));
     }
 
+    public function testEndpointSuffixAllRequestPaths()
+    {
+        $seen = [];
+        $stack = \GuzzleHttp\HandlerStack::create(function ($request, array $options) use (&$seen) {
+            $seen[] = $request->getUri()->getHost();
+            return new \GuzzleHttp\Promise\FulfilledPromise(new \GuzzleHttp\Psr7\Response(200, [], ''));
+        });
+        \AlibabaCloud\Dara\Dara::config(['handler' => $stack]);
+        try {
+            foreach (['doRPCRequest', 'doROARequest', 'doROARequestWithForm', 'doRequest', 'callApi', 'callSSEApi'] as $method) {
+                foreach ([
+                    ['ecs.aliyuncs.com', '', 'ecs.aliyuncs.alibaba'],
+                    ['ecs.aliyuncs.com', 'oss-cn-hangzhou.aliyuncs.com', 'oss-cn-hangzhou.aliyuncs.alibaba'],
+                    ['ecs.aliyun.com', '', 'ecs.aliyun.com'],
+                    ['ecs.aliyuncs.alibaba', '', 'ecs.aliyuncs.alibaba'],
+                ] as $item) {
+                    $client = new OpenApiClient(new Config(['endpoint' => $item[0], 'endpointSuffix' => 'aliyuncs.alibaba']));
+                    $request = new OpenApiRequest(['endpointOverride' => $item[1]]);
+                    $runtime = new RuntimeOptions(['autoretry' => false, 'maxAttempts' => 1]);
+                    $params = new Params(['action' => 'Test', 'version' => '2020-01-01', 'protocol' => 'HTTPS', 'method' => 'GET', 'pathname' => '/', 'authType' => 'Anonymous', 'style' => 'ROA', 'reqBodyType' => 'json', 'bodyType' => 'string']);
+                    $seen = [];
+                    if ($method === 'doRPCRequest') {
+                        $client->doRPCRequest('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', 'string', $request, $runtime);
+                    } elseif ($method === 'doROARequest' || $method === 'doROARequestWithForm') {
+                        $client->$method('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', $request, $runtime);
+                    } elseif ($method === 'callSSEApi') {
+                        foreach ($client->callSSEApi($params, $request, $runtime) as $event) { }
+                    } else {
+                        $client->$method($params, $request, $runtime);
+                    }
+                    $this->assertSame([$item[2]], $seen, $method);
+                }
+            }
+        } finally {
+            \AlibabaCloud\Dara\Dara::config([]);
+        }
+    }
+
+    public function testRequestEndpointSuffix()
+    {
+        $resolve = new \ReflectionMethod(OpenApiClient::class, 'endpointForRequest');
+        $resolve->setAccessible(true);
+        $client = new OpenApiClient(new Config(['endpoint' => 'ecs.aliyuncs.com', 'endpointSuffix' => ' ALIYUNCS.ALIBABA ']));
+        $request = new OpenApiRequest([]);
+        $this->assertEquals('ecs.aliyuncs.alibaba', $resolve->invoke($client, $request));
+        foreach (array(
+            'oss-cn-hangzhou.aliyuncs.com' => 'oss-cn-hangzhou.aliyuncs.alibaba',
+            'ecs.aliyun.com' => 'ecs.aliyun.com',
+            'ecs.aliyuncs.alibaba' => 'ecs.aliyuncs.alibaba',
+        ) as $endpoint => $expected) {
+            $request->endpointOverride = $endpoint;
+            $this->assertEquals($expected, $resolve->invoke($client, $request));
+        }
+        $attributes = new \ReflectionProperty(OpenApiClient::class, '_attributeMap');
+        $attributes->setAccessible(true);
+        $map = new \Darabonba\GatewaySpi\Models\AttributeMap([]);
+        $map->key = array('endpointSuffix' => 'aliyuncs.com');
+        $attributes->setValue($client, $map);
+        $request->endpointOverride = '';
+        $this->assertEquals('ecs.aliyuncs.com', $resolve->invoke($client, $request));
+        $map->key['endpointSuffix'] = 'evil.com';
+        try {
+            $resolve->invoke($client, $request);
+            $this->fail('invalid endpointSuffix was accepted');
+        } catch (\Darabonba\OpenApi\Exceptions\ClientException $expected) {
+            $this->assertEquals('InvalidEndpointSuffix', $expected->code);
+        }
+    }
+
     public function testIpv4OnlyIsPassedToRuntime()
     {
         $resolves = [];

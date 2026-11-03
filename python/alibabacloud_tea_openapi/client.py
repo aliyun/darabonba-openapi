@@ -230,14 +230,14 @@ class Client:
                 if DaraCore.is_null(headers):
                     # endpoint is setted in product client
                     _request.headers = DaraCore.merge({
-                        'host': self._endpoint,
+                        'host': self._endpoint_for_request(request),
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers)
                 else:
                     _request.headers = DaraCore.merge({
-                        'host': self._endpoint,
+                        'host': self._endpoint_for_request(request),
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
@@ -450,14 +450,14 @@ class Client:
                 if DaraCore.is_null(headers):
                     # endpoint is setted in product client
                     _request.headers = DaraCore.merge({
-                        'host': self._endpoint,
+                        'host': self._endpoint_for_request(request),
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
                     }, global_headers, extends_headers, request.headers)
                 else:
                     _request.headers = DaraCore.merge({
-                        'host': self._endpoint,
+                        'host': self._endpoint_for_request(request),
                         'x-acs-version': version,
                         'x-acs-action': action,
                         'user-agent': Utils.get_user_agent(self._user_agent),
@@ -677,7 +677,7 @@ class Client:
                         extends_queries = extends_parameters.queries
                 _request.headers = DaraCore.merge({
                     'date': Utils.get_date_utcstring(),
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
@@ -885,7 +885,7 @@ class Client:
                         extends_queries = extends_parameters.queries
                 _request.headers = DaraCore.merge({
                     'date': Utils.get_date_utcstring(),
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
@@ -1108,7 +1108,7 @@ class Client:
                         extends_queries = extends_parameters.queries
                 _request.headers = DaraCore.merge({
                     'date': Utils.get_date_utcstring(),
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
@@ -1316,7 +1316,7 @@ class Client:
                         extends_queries = extends_parameters.queries
                 _request.headers = DaraCore.merge({
                     'date': Utils.get_date_utcstring(),
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
                     'x-acs-signature-method': 'HMAC-SHA1',
@@ -1575,7 +1575,7 @@ class Client:
                 _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
                 _request.headers = DaraCore.merge({
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
@@ -1826,7 +1826,7 @@ class Client:
                 _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
                 _request.headers = DaraCore.merge({
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
@@ -2098,7 +2098,7 @@ class Client:
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
                     region_id = self._region_id,
-                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint = self._endpoint_for_request(request),
                     endpoint_rule = self._endpoint_rule,
                     endpoint_map = self._endpoint_map,
                     endpoint_type = self._endpoint_type,
@@ -2228,7 +2228,7 @@ class Client:
                 )
                 configuration_context = spi_models.InterceptorContextConfiguration(
                     region_id = self._region_id,
-                    endpoint = request.endpoint_override or self._endpoint,
+                    endpoint = self._endpoint_for_request(request),
                     endpoint_rule = self._endpoint_rule,
                     endpoint_map = self._endpoint_map,
                     endpoint_type = self._endpoint_type,
@@ -2338,7 +2338,7 @@ class Client:
                 _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
                 _request.headers = DaraCore.merge({
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
@@ -2499,7 +2499,7 @@ class Client:
                 _request.query = DaraCore.merge({}, global_queries, extends_queries, request.query)
                 # endpoint is setted in product client
                 _request.headers = DaraCore.merge({
-                    'host': self._endpoint,
+                    'host': self._endpoint_for_request(request),
                     'x-acs-version': params.version,
                     'x-acs-action': params.action,
                     'user-agent': Utils.get_user_agent(self._user_agent),
@@ -2648,6 +2648,20 @@ class Client:
         else:
             return await self.execute_async(params, request, runtime)
 
+
+    def _endpoint_for_request(self, request):
+        endpoint = request.endpoint_override or self._endpoint
+        attributes = self._attribute_map_with_endpoint_suffix()
+        suffix = ((attributes.key or {}).get('endpointSuffix') or '').strip().lower()
+        if not suffix:
+            suffix = os.environ.get('ALIBABA_CLOUD_ENDPOINT_SUFFIX', '').strip().lower()
+        suffix = suffix or 'aliyuncs.com'
+        if suffix not in ('aliyuncs.com', 'aliyuncs.alibaba'):
+            raise main_exceptions.ClientException(code='InvalidEndpointSuffix', message='endpointSuffix must be aliyuncs.com or aliyuncs.alibaba')
+        old = '.aliyuncs.com'
+        if endpoint and suffix != 'aliyuncs.com' and endpoint.endswith(old):
+            return endpoint[:-len(old)] + '.' + suffix
+        return endpoint
 
     def _attribute_map_with_endpoint_suffix(self):
         attribute_map = self._attribute_map

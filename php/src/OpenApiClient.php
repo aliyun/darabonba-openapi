@@ -399,14 +399,14 @@ class OpenApiClient
         if (is_null($headers)) {
           // endpoint is setted in product client
           $_request->headers = Dara::merge([
-            'host' => $this->_endpoint,
+            'host' => $this->endpointForRequest($request),
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
           ], $globalHeaders, $extendsHeaders, $request->headers);
         } else {
           $_request->headers = Dara::merge([
-            'host' => $this->_endpoint,
+            'host' => $this->endpointForRequest($request),
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -660,7 +660,7 @@ class OpenApiClient
 
         $_request->headers = Dara::merge([
           'date' => Utils::getDateUTCString(),
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
           'x-acs-signature-method' => 'HMAC-SHA1',
@@ -918,7 +918,7 @@ class OpenApiClient
 
         $_request->headers = Dara::merge([
           'date' => Utils::getDateUTCString(),
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
           'x-acs-signature-method' => 'HMAC-SHA1',
@@ -1212,7 +1212,7 @@ class OpenApiClient
         $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
         // endpoint is setted in product client
         $_request->headers = Dara::merge([
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'x-acs-version' => $params->version,
           'x-acs-action' => $params->action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -1531,7 +1531,7 @@ class OpenApiClient
         ]);
         $configurationContext = new configuration([
           'regionId' => $this->_regionId,
-          'endpoint' => '' . ($request->endpointOverride ? $request->endpointOverride : $this->_endpoint),
+          'endpoint' => $this->endpointForRequest($request),
           'endpointRule' => $this->_endpointRule,
           'endpointMap' => $this->_endpointMap,
           'endpointType' => $this->_endpointType,
@@ -1644,7 +1644,7 @@ class OpenApiClient
     $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
     // endpoint is setted in product client
     $_request->headers = Dara::merge([
-      'host' => $this->_endpoint,
+      'host' => $this->endpointForRequest($request),
       'x-acs-version' => $params->version,
       'x-acs-action' => $params->action,
       'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -1786,6 +1786,27 @@ class OpenApiClient
    * @returns accesskey id
    * @return string
    */
+  private function endpointForRequest($request)
+  {
+    $endpoint = $request->endpointOverride ? $request->endpointOverride : $this->_endpoint;
+    $attributes = $this->attributeMapWithEndpointSuffix();
+    $suffix = isset($attributes->key['endpointSuffix']) ? strtolower(trim($attributes->key['endpointSuffix'])) : '';
+    if ($suffix === '') {
+      $env = getenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+      $suffix = $env === false ? '' : strtolower(trim($env));
+    }
+    if ($suffix === '') { $suffix = 'aliyuncs.com'; }
+    if ($suffix !== 'aliyuncs.com' && $suffix !== 'aliyuncs.alibaba') {
+      throw new ClientException([
+        'code' => 'InvalidEndpointSuffix', 'message' => 'endpointSuffix must be aliyuncs.com or aliyuncs.alibaba',
+        'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null,
+      ]);
+    }
+    $old = '.aliyuncs.com';
+    return $endpoint && $suffix !== 'aliyuncs.com' && substr($endpoint, -strlen($old)) === $old
+      ? substr($endpoint, 0, -strlen($old)) . '.' . $suffix : $endpoint;
+  }
+
   private function attributeMapWithEndpointSuffix()
   {
     $attributeMap = $this->_attributeMap;

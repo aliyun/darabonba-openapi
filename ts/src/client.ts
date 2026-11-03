@@ -226,7 +226,7 @@ export default class Client {
         if ($dara.isNull(headers)) {
           // endpoint is setted in product client
           request_.headers = {
-            host: this._endpoint,
+            host: this.endpointForRequest(request),
             'x-acs-version': version,
             'x-acs-action': action,
             'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
@@ -236,7 +236,7 @@ export default class Client {
           };
         } else {
           request_.headers = {
-            host: this._endpoint,
+            host: this.endpointForRequest(request),
             'x-acs-version': version,
             'x-acs-action': action,
             'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
@@ -490,7 +490,7 @@ export default class Client {
 
         request_.headers = {
           date: OpenApiUtil.getDateUTCString(),
-          host: this._endpoint,
+          host: this.endpointForRequest(request),
           accept: "application/json",
           'x-acs-signature-nonce': OpenApiUtil.getNonce(),
           'x-acs-signature-method': "HMAC-SHA1",
@@ -750,7 +750,7 @@ export default class Client {
 
         request_.headers = {
           date: OpenApiUtil.getDateUTCString(),
-          host: this._endpoint,
+          host: this.endpointForRequest(request),
           accept: "application/json",
           'x-acs-signature-nonce': OpenApiUtil.getNonce(),
           'x-acs-signature-method': "HMAC-SHA1",
@@ -1050,7 +1050,7 @@ export default class Client {
         };
         // endpoint is setted in product client
         request_.headers = {
-          host: this._endpoint,
+          host: this.endpointForRequest(request),
           'x-acs-version': params.version,
           'x-acs-action': params.action,
           'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
@@ -1395,7 +1395,7 @@ export default class Client {
         });
         let configurationContext = new $SPI.InterceptorContextConfiguration({
           regionId: this._regionId,
-          endpoint: request.endpointOverride || this._endpoint,
+          endpoint: this.endpointForRequest(request),
           endpointRule: this._endpointRule,
           endpointMap: this._endpointMap,
           endpointType: this._endpointType,
@@ -1525,7 +1525,7 @@ export default class Client {
         };
         // endpoint is setted in product client
         request_.headers = {
-          host: this._endpoint,
+          host: this.endpointForRequest(request),
           'x-acs-version': params.version,
           'x-acs-action': params.action,
           'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
@@ -1687,6 +1687,20 @@ export default class Client {
    * Get accesskey id by using credential
    * @returns accesskey id
    */
+  private endpointForRequest(request: $OpenApiUtil.OpenApiRequest): string {
+    const endpoint = request.endpointOverride || this._endpoint;
+    const attributes = this.attributeMapWithEndpointSuffix();
+    let suffix = ((attributes.key && attributes.key.endpointSuffix) || '').trim().toLowerCase();
+    if (!suffix) suffix = (process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX || '').trim().toLowerCase();
+    if (!suffix) suffix = 'aliyuncs.com';
+    if (suffix !== 'aliyuncs.com' && suffix !== 'aliyuncs.alibaba') {
+      throw new $_error.ClientError({ code: 'InvalidEndpointSuffix', message: 'endpointSuffix must be aliyuncs.com or aliyuncs.alibaba' });
+    }
+    const old = '.aliyuncs.com';
+    return endpoint && suffix !== 'aliyuncs.com' && endpoint.endsWith(old)
+      ? endpoint.substring(0, endpoint.length - old.length) + '.' + suffix : endpoint;
+  }
+
   attributeMapWithEndpointSuffix(): $SPI.AttributeMap {
     let attributeMap = this._attributeMap;
     if ($dara.isNull(attributeMap)) {

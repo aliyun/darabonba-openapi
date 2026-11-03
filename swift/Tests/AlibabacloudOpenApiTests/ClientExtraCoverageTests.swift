@@ -5,6 +5,23 @@ import AlibabacloudGatewaySPI
 @testable import AlibabacloudOpenApi
 
 final class ClientExtraCoverageTests: XCTestCase {
+    func testRequestEndpointSuffix() throws {
+        let client = try Client(Config(["endpoint": "ecs.aliyuncs.com", "endpointSuffix": " ALIYUNCS.ALIBABA "]))
+        let request = OpenApiRequest()
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        request.endpointOverride = "oss-cn-hangzhou.aliyuncs.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "oss-cn-hangzhou.aliyuncs.alibaba")
+        request.endpointOverride = "ecs.aliyun.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyun.com")
+        request.endpointOverride = "ecs.aliyuncs.alibaba"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        client._endpointSuffix = "aliyuncs.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        client._endpointSuffix = "evil.com"
+        XCTAssertThrowsError(try client.endpointForRequest(request))
+        XCTAssertEqual(client._endpoint, "ecs.aliyuncs.com")
+    }
+
     func testEndpointSuffix() throws {
         let fromEnv = try Client(Config(["endpoint": "example.com"]))
         XCTAssertEqual(fromEnv._endpointSuffix, ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"])

@@ -81,6 +81,8 @@ namespace OpenApi
 
       json getAccessDeniedDetail(const json &err);
     protected:
+      string endpointForRequest(const Utils::Models::OpenApiRequest &request);
+
       string _endpoint;
 
       string _regionId;
