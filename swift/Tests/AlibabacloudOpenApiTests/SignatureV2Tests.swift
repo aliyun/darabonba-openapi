@@ -25,7 +25,7 @@ final class SignatureV2Tests: XCTestCase {
                     let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/test", "method": "GET", "authType": "AK", "style": style, "reqBodyType": requestBodyType, "bodyType": "string"])
                     let result = try await Client(config).callApi(params, request, runtime)
                     let captured = try XCTUnwrap(result["body"] as? String)
-                    try verify(captured, style: style, algorithm: algorithm)
+                    try verify(captured, style: style, algorithm: "HMAC-SHA256")
                 }
             }
         }
@@ -53,9 +53,9 @@ final class SignatureV2Tests: XCTestCase {
 
     func testRpcQuerySignatureMethod() async throws {
         let cases: [([String: String], [String: String], [String: String], [String: String], String)] = [
-            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA1"),
-            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA1"),
-            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA1"),
+            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA256"),
+            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA256"),
+            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA256"),
             (["SignatureMethod": "HMAC-SHA1"], [:], ["SignatureMethod": "legacy"], [:], "HMAC-SHA256"),
             ([:], [:], ["SignatureMethod": ""], [:], "HMAC-SHA256"),
             ([:], [:], ["SignatureMethod": "HMAC-SHA1"], ["X-Acs-Signature-Method": "HMAC-SHA256"], "HMAC-SHA256")
@@ -70,6 +70,17 @@ final class SignatureV2Tests: XCTestCase {
             let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "GET", "authType": "AK", "style": "RPC", "reqBodyType": "json", "bodyType": "string"])
             let result = try await Client(config).callApi(params, OpenApiRequest(["query": query, "headers": headers]), runtime)
             try verify(try XCTUnwrap(result["body"] as? String), style: "RPC", algorithm: algorithm)
+        }
+    }
+
+    func testRpcBodySignatureMethodConflict() async throws {
+        let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "localhost", "protocol": "http", "signatureAlgorithm": "v2"])
+        let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "POST", "authType": "AK", "style": "RPC", "reqBodyType": "formData", "bodyType": "string"])
+        do {
+            _ = try await Client(config).callApi(params, OpenApiRequest(["body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
+            XCTFail("conflicting body method was accepted")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("Conflicting signature V2 algorithms"))
         }
     }
 

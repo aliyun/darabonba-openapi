@@ -146,7 +146,9 @@ class Client:
                 raise ValueError('Conflicting signature V2 algorithm headers')
             if values and not found:
                 algorithm, found = values[0], True
-        if algorithm not in ('HMAC-SHA1', 'HMAC-SHA256'):
+        if algorithm == 'HMAC-SHA1':
+            algorithm = 'HMAC-SHA256'
+        if algorithm != 'HMAC-SHA256':
             raise ValueError('Unsupported signature V2 algorithm')
         for key in list(headers):
             if key.lower() == 'x-acs-signature-method':
@@ -157,16 +159,12 @@ class Client:
 
     @staticmethod
     def _get_v2_rpc_signature(signed_params, method, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return Utils.get_rpcsignature(signed_params, method, secret)
         if algorithm == 'HMAC-SHA256':
             return Utils.get_rpcsignature_with_sha256(signed_params, method, secret)
         raise ValueError('Unsupported signature V2 algorithm')
 
     @staticmethod
     def _get_v2_roa_signature(string_to_sign, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return Utils.get_roasignature(string_to_sign, secret)
         if algorithm == 'HMAC-SHA256':
             return Utils.get_roasignature_with_sha256(string_to_sign, secret)
         raise ValueError('Unsupported signature V2 algorithm')
@@ -302,8 +300,6 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
-                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
-                            algorithm = 'HMAC-SHA1'
                         _request.query["SignatureMethod"] = algorithm
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id
@@ -311,6 +307,8 @@ class Client:
                         if not DaraCore.is_null(request.body):
                             t = request.body
                         signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
+                        if signed_param.get('SignatureMethod') != algorithm:
+                            raise ValueError('Unsupported signature V2 algorithm')
                         _request.query["Signature"] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
 
                 _last_request = _request
@@ -524,8 +522,6 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
                         algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers)
-                        if 'x-acs-signature-method' not in _request.headers and _request.query.get('SignatureMethod') == 'HMAC-SHA1':
-                            algorithm = 'HMAC-SHA1'
                         _request.query["SignatureMethod"] = algorithm
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id
@@ -533,6 +529,8 @@ class Client:
                         if not DaraCore.is_null(request.body):
                             t = request.body
                         signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
+                        if signed_param.get('SignatureMethod') != algorithm:
+                            raise ValueError('Unsupported signature V2 algorithm')
                         _request.query["Signature"] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
 
                 _last_request = _request

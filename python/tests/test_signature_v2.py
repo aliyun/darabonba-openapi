@@ -15,7 +15,7 @@ from alibabacloud_tea_openapi.models import Config, OpenApiRequest, Params
 from alibabacloud_tea_openapi.utils import Utils
 
 
-@pytest.mark.parametrize('algorithm,digest', [(None, hashlib.sha256), ('HMAC-SHA1', hashlib.sha1)])
+@pytest.mark.parametrize('algorithm,digest', [(None, hashlib.sha256), ('HMAC-SHA256', hashlib.sha256), ('HMAC-SHA1', hashlib.sha256)])
 @pytest.mark.parametrize('style', ['RPC', 'ROA'])
 @pytest.mark.parametrize('is_async', [False, True])
 def test_v2_signatures_and_algorithm_field(algorithm, digest, style, is_async):
@@ -46,7 +46,7 @@ def test_v2_signatures_and_algorithm_field(algorithm, digest, style, is_async):
             client.call_api(params, request, RuntimeOptions())
 
     request = captured[0]
-    expected_method = 'HMAC-SHA1' if algorithm else 'HMAC-SHA256'
+    expected_method = 'HMAC-SHA256'
     if style == 'RPC':
         assert request.query['SignatureMethod'] == expected_method
         signed_params = {k: v for k, v in request.query.items() if k != 'Signature' and v is not None}
@@ -61,44 +61,27 @@ def test_v2_signatures_and_algorithm_field(algorithm, digest, style, is_async):
         assert request.headers['authorization'] == 'acs id:' + expected
 
 
-def test_roa_explicit_sha1_header_overrides_default():
-    config = Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2')
-    client = Client(config)
-    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
-                    method='GET', auth_type='AK', style='ROA', body_type='none')
-    captured = []
-
-    def send(request, runtime):
-        captured.append(request)
-        return SimpleNamespace(status_code=200, headers={})
-
-    with patch.object(DaraCore, 'do_action', side_effect=send):
-        client.call_api(params, OpenApiRequest(headers={'x-acs-signature-method': 'HMAC-SHA1'}), RuntimeOptions())
-    request = captured[0]
-    expected = base64.b64encode(hmac.new(b'secret', Utils.get_string_to_sign(request).encode(), hashlib.sha1).digest()).decode()
-    assert request.headers['authorization'] == 'acs id:' + expected
-
-
 def test_legacy_util_keeps_sha1():
     expected = base64.b64encode(hmac.new(b'secret', b'payload', hashlib.sha1).digest()).decode()
     assert Utils.get_roasignature('payload', 'secret') == expected
 
 
 def test_header_precedence_and_conflicts():
-    headers = {'x-acs-signature-method': 'HMAC-SHA256', 'X-Acs-Signature-Method': 'HMAC-SHA1'}
-    assert Client._get_v2_signature_method(headers, {'X-Acs-Signature-Method': 'HMAC-SHA1'},
-                                           {'x-acs-signature-method': 'HMAC-SHA256'}) == 'HMAC-SHA1'
-    assert headers == {'x-acs-signature-method': 'HMAC-SHA1'}
+    headers = {'x-acs-signature-method': 'HMAC-SHA256', 'X-Acs-Signature-Method': 'HMAC-SHA256'}
+    assert Client._get_v2_signature_method(headers, {'X-Acs-Signature-Method': 'HMAC-SHA256'},
+                                           {'x-acs-signature-method': 'HMAC-SHA256'}) == 'HMAC-SHA256'
+    assert headers == {'x-acs-signature-method': 'HMAC-SHA256'}
     with pytest.raises(ValueError, match='Conflicting'):
         Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-SHA1',
                                              'X-Acs-Signature-Method': 'HMAC-SHA256'})
     with pytest.raises(ValueError, match='Unsupported'):
         Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-MD5'})
+    assert Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-SHA1'}) == 'HMAC-SHA256'
 
 
-@pytest.mark.parametrize('override,expected', [(None, 'HMAC-SHA1'), ('HMAC-SHA256', 'HMAC-SHA256')])
+@pytest.mark.parametrize('override', [None, 'HMAC-SHA256'])
 @pytest.mark.parametrize('is_async', [False, True])
-def test_rpc_explicit_sha1_query_and_header_precedence(override, expected, is_async):
+def test_rpc_sha1_query_is_overridden(override, is_async):
     client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
     params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
                     method='GET', auth_type='AK', style='RPC', body_type='none')
@@ -124,12 +107,28 @@ def test_rpc_explicit_sha1_query_and_header_precedence(override, expected, is_as
         with patch.object(DaraCore, 'do_action', side_effect=send):
             client.call_api(params, request, RuntimeOptions())
     query = captured[0].query
-    assert query['SignatureMethod'] == expected
+    assert query['SignatureMethod'] == 'HMAC-SHA256'
     signed = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}'
                       for k, v in sorted(query.items()) if k != 'Signature' and v is not None)
-    digest = hashlib.sha1 if expected == 'HMAC-SHA1' else hashlib.sha256
-    expected_signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), digest).digest()).decode()
+    expected_signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), hashlib.sha256).digest()).decode()
     assert query['Signature'] == expected_signature
+
+
+@pytest.mark.parametrize('is_async', [False, True])
+def test_rpc_rejects_sha1_signature_method_in_body(is_async):
+    client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
+    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
+                    method='POST', auth_type='AK', style='RPC', body_type='none', req_body_type='formData')
+    request = OpenApiRequest(body={'SignatureMethod': 'HMAC-SHA1'})
+    with pytest.raises(Exception, match='Unsupported'):
+        if is_async:
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(client.call_api_async(params, request, RuntimeOptions()))
+            finally:
+                loop.close()
+        else:
+            client.call_api(params, request, RuntimeOptions())
 
 
 @pytest.mark.parametrize('auth_type', ['Anonymous', 'AK'])

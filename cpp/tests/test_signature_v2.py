@@ -53,7 +53,7 @@ def main():
     endpoint = "127.0.0.1:" + str(server.server_port)
     try:
         for style in ("RPC", "ROA"):
-            for scenario, algorithm in (("default", "HMAC-SHA256"), ("override", "HMAC-SHA1")):
+            for scenario, algorithm in (("default", "HMAC-SHA256"), ("override", "HMAC-SHA256")):
                 subprocess.run([executable, endpoint, style, scenario], check=True, timeout=10)
                 path, headers = Handler.requests.get(timeout=5)
                 check_request(style, algorithm, path, headers)
@@ -61,7 +61,7 @@ def main():
                 result = subprocess.run([executable, endpoint, style, scenario], timeout=10, capture_output=True)
                 assert result.returncode != 0, (style, scenario)
                 assert b"InvalidSignatureAlgorithm" in result.stderr, (style, scenario, result.stderr)
-        for scenario, algorithm in (("querysha1", "HMAC-SHA1"), ("headerwins", "HMAC-SHA256")):
+        for scenario, algorithm in (("querysha1", "HMAC-SHA256"), ("headerwins", "HMAC-SHA256")):
             subprocess.run([executable, endpoint, "RPC", scenario], check=True, timeout=10)
             path, headers = Handler.requests.get(timeout=5)
             check_request("RPC", algorithm, path, headers)

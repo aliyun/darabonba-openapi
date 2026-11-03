@@ -58,23 +58,22 @@ static bool normalizeSignatureV2Header(map<string, string> &target, bool require
     if (key == "x-acs-signature-method") it = target.erase(it);
     else ++it;
   }
-  if (found || required) target["x-acs-signature-method"] = found ? value : "HMAC-SHA1";
+  if (found || required) target["x-acs-signature-method"] = found && value != "HMAC-SHA1" ? value : "HMAC-SHA256";
   return found;
 }
 
 static string signatureV2Method(const map<string, string> &headers) {
   auto it = headers.find("x-acs-signature-method");
   string method = it == headers.end() ? "HMAC-SHA256" : it->second;
-  if (method != "HMAC-SHA1" && method != "HMAC-SHA256") {
+  if (method != "HMAC-SHA256") {
     throw ClientException(map<string, string>{{"code", "InvalidSignatureAlgorithm"}, {"message", "Unsupported signature V2 algorithm"}});
   }
   return method;
 }
 
 static string signV2ROA(const map<string, string> &headers, const string &stringToSign, const string &secret) {
-  return signatureV2Method(headers) == "HMAC-SHA1"
-      ? Utils::Utils::getROASignature(stringToSign, secret)
-      : Utils::Utils::getROASignatureWithSHA256(stringToSign, secret);
+  signatureV2Method(headers);
+  return Utils::Utils::getROASignatureWithSHA256(stringToSign, secret);
 }
 
 /**
@@ -266,10 +265,8 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
             request_.getQuery()["SecurityToken"] = securityToken;
           }
 
-          bool explicitHeader = normalizeSignatureV2Header(request_.getHeaders(), false, globalHeaders, extendsHeaders, request.getHeaders());
+          normalizeSignatureV2Header(request_.getHeaders(), false, globalHeaders, extendsHeaders, request.getHeaders());
           string method = signatureV2Method(request_.getHeaders());
-          auto queryMethod = request_.getQuery().find("SignatureMethod");
-          if (!explicitHeader && queryMethod != request_.getQuery().end() && queryMethod->second == "HMAC-SHA1") method = "HMAC-SHA1";
           request_.getQuery()["SignatureMethod"] = method;
           request_.getQuery()["SignatureVersion"] = "1.0";
           request_.getQuery()["AccessKeyId"] = accessKeyId;
@@ -281,9 +278,8 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
           map<string, string> signedParam = Darabonba::Core::merge(request_.getQuery(),
             Utils::Utils::query(t)
           ).get<map<string, string>>();
-          request_.getQuery()["Signature"] = request_.getQuery()["SignatureMethod"] == "HMAC-SHA1"
-              ? Utils::Utils::getRPCSignature(signedParam, request_.getMethod(), accessKeySecret)
-              : Utils::Utils::getRPCSignatureWithSHA256(signedParam, request_.getMethod(), accessKeySecret);
+          if (signedParam["SignatureMethod"] != method) throw ClientException(map<string, string>{{"code", "InvalidSignatureAlgorithm"}, {"message", "Conflicting signature V2 algorithms"}});
+          request_.getQuery()["Signature"] = Utils::Utils::getRPCSignatureWithSHA256(signedParam, request_.getMethod(), accessKeySecret);
         }
 
       }

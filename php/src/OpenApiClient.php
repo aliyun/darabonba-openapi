@@ -41,9 +41,9 @@ use AlibabaCloud\Dara\WebSocketUtil;
  */
 class OpenApiClient
 {
-  private static function signatureMethod(&$headers, $sources, $roa, $queryMethod = null)
+  private static function signatureMethod(&$headers, $sources, $roa)
   {
-    $method = $queryMethod === 'HMAC-SHA1' ? 'HMAC-SHA1' : 'HMAC-SHA256';
+    $method = 'HMAC-SHA256';
     $explicit = false;
     foreach ($sources as $source) {
       $seen = false;
@@ -59,7 +59,8 @@ class OpenApiClient
       }
       if ($seen) { $method = $sourceMethod; $explicit = true; }
     }
-    if ($method !== 'HMAC-SHA1' && $method !== 'HMAC-SHA256') {
+    if ($method === 'HMAC-SHA1') $method = 'HMAC-SHA256';
+    if ($method !== 'HMAC-SHA256') {
       throw new ClientException(['code' => 'InvalidSignatureAlgorithm', 'message' => 'Unsupported signature V2 algorithm', 'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null]);
     }
     foreach ($headers as $key => $value) {
@@ -458,7 +459,7 @@ class OpenApiClient
               @$_request->query['SecurityToken'] = $securityToken;
             }
 
-            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false, isset($_request->query['SignatureMethod']) ? $_request->query['SignatureMethod'] : null);
+            $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers, $headers], false);
             @$_request->query['SignatureMethod'] = $signatureMethod;
             @$_request->query['SignatureVersion'] = '1.0';
             @$_request->query['AccessKeyId'] = $accessKeyId;
@@ -468,9 +469,10 @@ class OpenApiClient
             }
 
             $signedParam = Dara::merge([], $_request->query, Utils::query($t));
-            @$_request->query['Signature'] = $signatureMethod === 'HMAC-SHA1'
-              ? Utils::getRPCSignature($signedParam, $_request->method, $accessKeySecret)
-              : Utils::getRPCSignatureWithSHA256($signedParam, $_request->method, $accessKeySecret);
+            if ($signedParam['SignatureMethod'] !== $signatureMethod) {
+              throw new ClientException(['code' => 'InvalidSignatureAlgorithm', 'message' => 'Unsupported signature V2 algorithm', 'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null]);
+            }
+            @$_request->query['Signature'] = Utils::getRPCSignatureWithSHA256($signedParam, $_request->method, $accessKeySecret);
           }
         }
 
@@ -721,7 +723,7 @@ class OpenApiClient
 
             $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = Utils::getStringToSign($_request);
-            $signature = $signatureMethod === 'HMAC-SHA1' ? Utils::getROASignature($stringToSign, $accessKeySecret) : Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            $signature = Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
             @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
@@ -981,7 +983,7 @@ class OpenApiClient
 
             $signatureMethod = self::signatureMethod($_request->headers, [$globalHeaders, $extendsHeaders, $request->headers], true);
             $stringToSign = Utils::getStringToSign($_request);
-            $signature = $signatureMethod === 'HMAC-SHA1' ? Utils::getROASignature($stringToSign, $accessKeySecret) : Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            $signature = Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
             @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
