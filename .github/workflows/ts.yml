@@ -27,14 +27,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    # @darabonba/typescript@^1.0.5 on npm includes WebSocket client.
+    # @darabonba/typescript@^1.0.6 required for ipv4Only; TEMP overlay until npm publish.
     - run: npm install
-    # TEMP: overlay @darabonba/typescript with the unreleased ipv4Only commit (aliyun/tea-typescript#78);
+    # TEMP: overlay @darabonba/typescript until 1.0.6 publish (aliyun/tea-typescript bump); remove after npm 1.0.6.
     # remove this step and bump the dependency before merging.
     - name: Use unreleased @darabonba/typescript
       run: |
         git clone -q https://github.com/aliyun/tea-typescript.git "$RUNNER_TEMP/tea-typescript"
-        git -C "$RUNNER_TEMP/tea-typescript" checkout -q a2f86c8
+        git -C "$RUNNER_TEMP/tea-typescript" checkout -q 37d97cc5513867cb9f80bd84a99a86b097082c2c
         (cd "$RUNNER_TEMP/tea-typescript" && npm install && npx tsc)
         rm -rf node_modules/@darabonba/typescript/dist
         cp -R "$RUNNER_TEMP/tea-typescript/dist" node_modules/@darabonba/typescript/dist
