@@ -33,6 +33,7 @@ model Config {
   network?: string(description='network for endpoint',example='public',default=''),
   userAgent?: string(description='user agent',example='Alibabacloud/1',default=''),
   suffix?: string(description='suffix for endpoint',example='aliyun',default=''),
+  endpointSuffix?: string(description='domain suffix used by generated POP endpoints',example='aliyuncs.com',default=''),
   socks5Proxy?: string(description='socks5 proxy',default=''),
   socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
   endpointType?: string(description='endpoint type',example='internal',default=''),

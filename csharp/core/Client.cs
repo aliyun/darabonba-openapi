@@ -26,6 +26,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _endpointRule;
         protected Dictionary<string, string> _endpointMap;
         protected string _suffix;
+        protected string _endpointSuffix;
         protected int? _readTimeout;
         protected int? _connectTimeout;
         protected string _httpProxy;
@@ -106,6 +107,14 @@ namespace AlibabaCloud.OpenApiClient
             this._endpointType = config.EndpointType;
             this._network = config.Network;
             this._suffix = config.Suffix;
+            if (string.IsNullOrEmpty(config.EndpointSuffix))
+            {
+                this._endpointSuffix = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            }
+            else
+            {
+                this._endpointSuffix = config.EndpointSuffix;
+            }
             this._protocol = config.Protocol;
             this._method = config.Method;
             this._regionId = config.RegionId;
@@ -3041,11 +3050,7 @@ namespace AlibabaCloud.OpenApiClient
                         Request = requestContext,
                         Configuration = configurationContext,
                     };
-                    AttributeMap attributeMap = new AttributeMap();
-                    if (!_attributeMap.IsNull())
-                    {
-                        attributeMap = _attributeMap;
-                    }
+                    AttributeMap attributeMap = AttributeMapWithEndpointSuffix();
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     this._spi.ModifyConfiguration(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -3249,11 +3254,7 @@ namespace AlibabaCloud.OpenApiClient
                         Request = requestContext,
                         Configuration = configurationContext,
                     };
-                    AttributeMap attributeMap = new AttributeMap();
-                    if (!_attributeMap.IsNull())
-                    {
-                        attributeMap = _attributeMap;
-                    }
+                    AttributeMap attributeMap = AttributeMapWithEndpointSuffix();
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     await this._spi.ModifyConfigurationAsync(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -3573,6 +3574,35 @@ namespace AlibabaCloud.OpenApiClient
         /// <returns>
         /// accesskey id
         /// </returns>
+        AttributeMap AttributeMapWithEndpointSuffix()
+        {
+            AttributeMap attributeMap = new AttributeMap();
+            if (!_attributeMap.IsNull())
+            {
+                attributeMap = _attributeMap;
+            }
+            if (string.IsNullOrEmpty(this._endpointSuffix))
+            {
+                return attributeMap;
+            }
+            Dictionary<string, string> keys = new Dictionary<string, string>();
+            if (!attributeMap.IsNull() && attributeMap.Key != null)
+            {
+                foreach (KeyValuePair<string, string> item in attributeMap.Key)
+                {
+                    keys[item.Key] = item.Value;
+                }
+            }
+            keys["endpointSuffix"] = this._endpointSuffix;
+            AttributeMap copied = new AttributeMap();
+            copied.Key = keys;
+            if (!attributeMap.IsNull())
+            {
+                copied.Attributes = attributeMap.Attributes;
+            }
+            return copied;
+        }
+
         public string GetAccessKeyId()
         {
             if (_credential.IsNull())

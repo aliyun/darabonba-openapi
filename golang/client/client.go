@@ -31,6 +31,7 @@ type Client struct {
 	EndpointRule         *string
 	EndpointMap          map[string]*string
 	Suffix               *string
+	EndpointSuffix       *string
 	ReadTimeout          *int
 	ConnectTimeout       *int
 	HttpProxy            *string
@@ -115,6 +116,12 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 		client.UserAgent = dara.String(os.Getenv("ALIBABA_CLOUD_USER_AGENT"))
 	} else {
 		client.UserAgent = config.UserAgent
+	}
+
+	if dara.IsNil(config.EndpointSuffix) || dara.StringValue(config.EndpointSuffix) == "" {
+		client.EndpointSuffix = dara.String(os.Getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX"))
+	} else {
+		client.EndpointSuffix = config.EndpointSuffix
 	}
 
 	client.Endpoint = config.Endpoint
@@ -1262,10 +1269,7 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 			Request:       requestContext,
 			Configuration: configurationContext,
 		}
-		attributeMap := &spi.AttributeMap{}
-		if !dara.IsNil(client.AttributeMap) {
-			attributeMap = client.AttributeMap
-		}
+		attributeMap := client.attributeMapWithEndpointSuffix()
 
 		// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
@@ -1736,6 +1740,31 @@ func (client *Client) CheckConfig(config *openapiutil.Config) (_err error) {
 // set gateway client
 //
 // @param spi - .
+func (client *Client) attributeMapWithEndpointSuffix() *spi.AttributeMap {
+	attributeMap := &spi.AttributeMap{}
+	if !dara.IsNil(client.AttributeMap) {
+		attributeMap = client.AttributeMap
+	}
+	suffix := dara.StringValue(client.EndpointSuffix)
+	if suffix == "" {
+		return attributeMap
+	}
+	keys := map[string]*string{}
+	if attributeMap != nil && attributeMap.Key != nil {
+		for name, value := range attributeMap.Key {
+			keys[name] = value
+		}
+	}
+	keys["endpointSuffix"] = dara.String(suffix)
+	copied := &spi.AttributeMap{
+		Key: keys,
+	}
+	if attributeMap != nil {
+		copied.Attributes = attributeMap.Attributes
+	}
+	return copied
+}
+
 func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {
 	client.Spi = spi
 	return _err

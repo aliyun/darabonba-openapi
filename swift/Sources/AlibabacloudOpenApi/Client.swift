@@ -23,6 +23,8 @@ open class Client {
 
     public var _suffix: String?
 
+    public var _endpointSuffix: String?
+
     public var _readTimeout: Int?
 
     public var _connectTimeout: Int?
@@ -105,6 +107,11 @@ open class Client {
         self._endpointType = config.endpointType
         self._network = config.network
         self._suffix = config.suffix
+        if TeaUtils.Client.isUnset(config.endpointSuffix) || (config.endpointSuffix ?? "").isEmpty {
+            self._endpointSuffix = ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"]
+        } else {
+            self._endpointSuffix = config.endpointSuffix
+        }
         self._protocol = config.protocol_
         self._method = config.method
         self._regionId = config.regionId
@@ -1040,7 +1047,7 @@ open class Client {
                     "request": requestContext as! AlibabacloudGatewaySPI.InterceptorContext.Request,
                     "configuration": configurationContext as! AlibabacloudGatewaySPI.InterceptorContext.Configuration
                 ])
-                var attributeMap: AlibabacloudGatewaySPI.AttributeMap = AlibabacloudGatewaySPI.AttributeMap([:])
+                var attributeMap: AlibabacloudGatewaySPI.AttributeMap = attributeMapWithEndpointSuffix(AlibabacloudGatewaySPI.AttributeMap([:]))
                 if let localGateway = self._spi as? LocalHTTPGateway {
                     try await localGateway.prepare(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
                     _request.protocol_ = "HTTP"
@@ -1148,6 +1155,18 @@ open class Client {
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func attributeMapWithEndpointSuffix(_ attributeMap: AlibabacloudGatewaySPI.AttributeMap) -> AlibabacloudGatewaySPI.AttributeMap {
+        guard let suffix = self._endpointSuffix, !suffix.isEmpty else {
+            return attributeMap
+        }
+        var keys = attributeMap.key ?? [:]
+        keys["endpointSuffix"] = suffix
+        let copied = AlibabacloudGatewaySPI.AttributeMap([:])
+        copied.key = keys
+        copied.attributes = attributeMap.attributes
+        return copied
+    }
+
     public func getAccessKeyId() async throws -> String {
         if (TeaUtils.Client.isUnset(self._credential)) {
             return ""

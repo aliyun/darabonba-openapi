@@ -10,6 +10,7 @@
 #include <darabonba/String.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/signature/Signer.hpp>
+#include <cstdlib>
 #include <set>
 #include <sstream>
 #include <unordered_set>
@@ -24,6 +25,7 @@ namespace Gateway {
 POP::POP() {
   this->_sha256 = "ACS4-HMAC-SHA256";
   this->_sm3 = "ACS4-HMAC-SM3";
+  this->_endpointSuffix = "aliyuncs.com";
 }
 
 void POP::modifyConfiguration(InterceptorContext &context,
@@ -35,6 +37,7 @@ void POP::modifyConfiguration(InterceptorContext &context,
          {"message" , "'config' or 'request' can not be unset"}
      }));
   }
+  resolveEndpointSuffix(attributeMap);
   InterceptorContextRequest request = context.getRequest();
   InterceptorContextConfiguration config = context.getConfiguration();
   config.setEndpoint(getEndpoint(request.getProductId(), config.getRegionId(),
@@ -194,8 +197,42 @@ POP::getEndpoint(const std::string &productId, const std::string &regionId,
       return it->second;
   }
 
-  return Utils::getEndpointRules(productId, regionId, endpointRule,
-                                        network, suffix);
+  return applyEndpointSuffix(Utils::getEndpointRules(productId, regionId, endpointRule,
+                                        network, suffix));
+}
+
+std::string POP::resolveEndpointSuffix(AttributeMap &attributeMap) {
+  bool explicitSuffix = false;
+  if (attributeMap.hasKey()) {
+    std::map<std::string, std::string> key = attributeMap.getKey();
+    auto it = key.find("endpointSuffix");
+    if (it != key.end() && !it->second.empty()) {
+      this->_endpointSuffix = it->second;
+      explicitSuffix = true;
+    }
+  }
+  if (!explicitSuffix) {
+    const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+    if (envSuffix != nullptr && envSuffix[0] != '\0') {
+      this->_endpointSuffix = envSuffix;
+    }
+  }
+  if (this->_endpointSuffix.empty()) {
+    this->_endpointSuffix = "aliyuncs.com";
+  }
+  return this->_endpointSuffix;
+}
+
+std::string POP::applyEndpointSuffix(const std::string &endpoint) const {
+  if (_endpointSuffix.empty() || _endpointSuffix == "aliyuncs.com" || endpoint.empty()) {
+    return endpoint;
+  }
+  const std::string old = ".aliyuncs.com";
+  if (endpoint.size() >= old.size() &&
+      endpoint.compare(endpoint.size() - old.size(), old.size(), old) == 0) {
+    return endpoint.substr(0, endpoint.size() - old.size()) + "." + _endpointSuffix;
+  }
+  return endpoint;
 }
 
 Darabonba::Json POP::defaultAny(Darabonba::Json &inputValue,
@@ -308,7 +345,7 @@ std::string POP::getRegion(const std::string &product,
 
   std::string popcode = Darabonba::String::toLower(product);
   std::string region = Darabonba::String::replace(endpoint, popcode, "");
-  region = Darabonba::String::replace(region, "aliyuncs.com", "");
+  region = Darabonba::String::replace(region, _endpointSuffix.empty() ? "aliyuncs.com" : _endpointSuffix, "");
   region = Darabonba::String::replace(region, ".", "");
   if (!region.empty()) {
     return region;

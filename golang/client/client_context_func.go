@@ -1130,10 +1130,7 @@ func (client *Client) ExecuteWithCtx(ctx context.Context, params *openapiutil.Pa
 			Request:       requestContext,
 			Configuration: configurationContext,
 		}
-		attributeMap := &spi.AttributeMap{}
-		if !dara.IsNil(client.AttributeMap) {
-			attributeMap = client.AttributeMap
-		}
+		attributeMap := client.attributeMapWithEndpointSuffix()
 
 		// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)

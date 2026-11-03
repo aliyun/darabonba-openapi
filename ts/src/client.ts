@@ -26,6 +26,7 @@ export default class Client {
   _endpointRule: string;
   _endpointMap: {[key: string ]: string};
   _suffix: string;
+  _endpointSuffix: string;
   _readTimeout: number;
   _connectTimeout: number;
   _httpProxy: string;
@@ -100,6 +101,11 @@ export default class Client {
     this._endpointType = config.endpointType;
     this._network = config.network;
     this._suffix = config.suffix;
+    if ($dara.isNull(config.endpointSuffix) || !config.endpointSuffix) {
+      this._endpointSuffix = process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX;
+    } else {
+      this._endpointSuffix = config.endpointSuffix;
+    }
     this._protocol = config.protocol;
     this._method = config.method;
     this._regionId = config.regionId;
@@ -1391,10 +1397,7 @@ export default class Client {
           request: requestContext,
           configuration: configurationContext,
         });
-        let attributeMap = new $SPI.AttributeMap({ });
-        if (!$dara.isNull(this._attributeMap)) {
-          attributeMap = this._attributeMap;
-        }
+        let attributeMap = this.attributeMapWithEndpointSuffix();
 
         // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         await this._spi.modifyConfiguration(interceptorContext, attributeMap);
@@ -1674,6 +1677,28 @@ export default class Client {
    * Get accesskey id by using credential
    * @returns accesskey id
    */
+  attributeMapWithEndpointSuffix(): $SPI.AttributeMap {
+    let attributeMap = new $SPI.AttributeMap({ });
+    if (!$dara.isNull(this._attributeMap)) {
+      attributeMap = this._attributeMap;
+    }
+    if (!this._endpointSuffix) {
+      return attributeMap;
+    }
+    let keys: {[key: string]: string} = {};
+    if (attributeMap && attributeMap.key) {
+      let source = attributeMap.key;
+      for (let name of Object.keys(source)) {
+        keys[name] = source[name];
+      }
+    }
+    keys["endpointSuffix"] = this._endpointSuffix;
+    return new $SPI.AttributeMap({
+      key: keys,
+      attributes: attributeMap ? attributeMap.attributes : undefined,
+    });
+  }
+
   async getAccessKeyId(): Promise<string> {
     if ($dara.isNull(this._credential)) {
       return "";

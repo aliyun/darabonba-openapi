@@ -97,6 +97,8 @@ namespace OpenApi
 
       string _suffix;
 
+      string _endpointSuffix;
+
       int32_t _readTimeout;
 
       int32_t _connectTimeout;

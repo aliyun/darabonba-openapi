@@ -94,6 +94,8 @@ type iConfig interface {
 	GetUserAgent() *string
 	SetSuffix(v string) *Config
 	GetSuffix() *string
+	SetEndpointSuffix(v string) *Config
+	GetEndpointSuffix() *string
 	SetSocks5Proxy(v string) *Config
 	GetSocks5Proxy() *string
 	SetSocks5NetWork(v string) *Config
@@ -227,6 +229,12 @@ type Config struct {
 	//
 	// aliyun
 	Suffix *string `json:"suffix,omitempty" xml:"suffix,omitempty"`
+	// domain suffix used by generated POP endpoints
+	//
+	// example:
+	//
+	// aliyuncs.com
+	EndpointSuffix *string `json:"endpointSuffix,omitempty" xml:"endpointSuffix,omitempty"`
 	// socks5 proxy
 	Socks5Proxy *string `json:"socks5Proxy,omitempty" xml:"socks5Proxy,omitempty"`
 	// socks5 network
@@ -388,6 +396,10 @@ func (s *Config) GetSuffix() *string {
 	return s.Suffix
 }
 
+func (s *Config) GetEndpointSuffix() *string {
+	return s.EndpointSuffix
+}
+
 func (s *Config) GetSocks5Proxy() *string {
 	return s.Socks5Proxy
 }
@@ -536,6 +548,11 @@ func (s *Config) SetUserAgent(v string) *Config {
 
 func (s *Config) SetSuffix(v string) *Config {
 	s.Suffix = &v
+	return s
+}
+
+func (s *Config) SetEndpointSuffix(v string) *Config {
+	s.EndpointSuffix = &v
 	return s
 }
 

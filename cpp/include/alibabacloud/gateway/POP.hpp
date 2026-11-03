@@ -59,6 +59,10 @@ public:
   std::string getRegion(const std::string &product,
                         const std::string &endpoint);
 
+  std::string resolveEndpointSuffix(AttributeMap &attributeMap);
+
+  std::string applyEndpointSuffix(const std::string &endpoint) const;
+
   std::string buildCanonicalizedResource(const Darabonba::Http::Query &query);
 
   std::string buildCanonicalizedHeaders(const Darabonba::Http::Header &headers);
@@ -72,6 +76,8 @@ protected:
   std::string _sha256;
 
   std::string _sm3;
+
+  std::string _endpointSuffix;
 };
 } // namespace Gateway
 } // namespace AlibabaCloud

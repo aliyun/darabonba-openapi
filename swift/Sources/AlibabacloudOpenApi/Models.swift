@@ -82,6 +82,8 @@ public class Config : Tea.TeaModel {
 
     public var suffix: String?
 
+    public var endpointSuffix: String?
+
     public var socks5Proxy: String?
 
     public var socks5NetWork: String?
@@ -176,6 +178,9 @@ public class Config : Tea.TeaModel {
         }
         if self.suffix != nil {
             map["suffix"] = self.suffix!
+        }
+        if self.endpointSuffix != nil {
+            map["endpointSuffix"] = self.endpointSuffix!
         }
         if self.socks5Proxy != nil {
             map["socks5Proxy"] = self.socks5Proxy!
@@ -274,6 +279,9 @@ public class Config : Tea.TeaModel {
         }
         if let value = dict["suffix"] as? String {
             self.suffix = value
+        }
+        if let value = dict["endpointSuffix"] as? String {
+            self.endpointSuffix = value
         }
         if let value = dict["socks5Proxy"] as? String {
             self.socks5Proxy = value

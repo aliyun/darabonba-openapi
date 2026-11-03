@@ -49,6 +49,7 @@ class Client:
     _endpoint_rule: str = None
     _endpoint_map: Dict[str, str] = None
     _suffix: str = None
+    _endpoint_suffix: str = None
     _read_timeout: int = None
     _connect_timeout: int = None
     _http_proxy: str = None
@@ -114,6 +115,10 @@ class Client:
         self._endpoint_type = config.endpoint_type
         self._network = config.network
         self._suffix = config.suffix
+        if DaraCore.is_null(config.endpoint_suffix) or config.endpoint_suffix == '':
+            self._endpoint_suffix = os.environ.get('ALIBABA_CLOUD_ENDPOINT_SUFFIX')
+        else:
+            self._endpoint_suffix = config.endpoint_suffix
         self._protocol = config.protocol
         self._method = config.method
         self._region_id = config.region_id
@@ -2093,9 +2098,7 @@ class Client:
                     request = request_context,
                     configuration = configuration_context
                 )
-                attribute_map = spi_models.AttributeMap()
-                if not DaraCore.is_null(self._attribute_map):
-                    attribute_map = self._attribute_map
+                attribute_map = self._attribute_map_with_endpoint_suffix()
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 self._spi.modify_configuration(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2224,9 +2227,7 @@ class Client:
                     request = request_context,
                     configuration = configuration_context
                 )
-                attribute_map = spi_models.AttributeMap()
-                if not DaraCore.is_null(self._attribute_map):
-                    attribute_map = self._attribute_map
+                attribute_map = self._attribute_map_with_endpoint_suffix()
                 # 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                 await self._spi.modify_configuration_async(interceptor_context, attribute_map)
                 # 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -2633,6 +2634,21 @@ class Client:
         else:
             return await self.execute_async(params, request, runtime)
 
+
+    def _attribute_map_with_endpoint_suffix(self):
+        attribute_map = spi_models.AttributeMap()
+        if not DaraCore.is_null(self._attribute_map):
+            attribute_map = self._attribute_map
+        if not self._endpoint_suffix:
+            return attribute_map
+        keys = {}
+        if attribute_map is not None and not DaraCore.is_null(attribute_map.key):
+            keys.update(attribute_map.key)
+        keys['endpointSuffix'] = self._endpoint_suffix
+        return spi_models.AttributeMap(
+            key=keys,
+            attributes=None if attribute_map is None else attribute_map.attributes,
+        )
 
     def get_access_key_id(self) -> str:
         if DaraCore.is_null(self._credential):

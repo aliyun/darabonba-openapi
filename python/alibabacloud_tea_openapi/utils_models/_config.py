@@ -32,6 +32,7 @@ class Config(DaraModel):
         network: str = None,
         user_agent: str = None,
         suffix: str = None,
+        endpoint_suffix: str = None,
         socks_5proxy: str = None,
         socks_5net_work: str = None,
         endpoint_type: str = None,
@@ -83,6 +84,8 @@ class Config(DaraModel):
         self.user_agent = user_agent
         # suffix for endpoint
         self.suffix = suffix
+        # domain suffix used by generated POP endpoints
+        self.endpoint_suffix = endpoint_suffix
         # socks5 proxy
         self.socks_5proxy = socks_5proxy
         # socks5 network
@@ -158,6 +161,8 @@ class Config(DaraModel):
             result['userAgent'] = self.user_agent
         if self.suffix is not None:
             result['suffix'] = self.suffix
+        if self.endpoint_suffix is not None:
+            result['endpointSuffix'] = self.endpoint_suffix
         if self.socks_5proxy is not None:
             result['socks5Proxy'] = self.socks_5proxy
         if self.socks_5net_work is not None:
@@ -228,6 +233,8 @@ class Config(DaraModel):
             self.user_agent = m.get('userAgent')
         if m.get('suffix') is not None:
             self.suffix = m.get('suffix')
+        if m.get('endpointSuffix') is not None:
+            self.endpoint_suffix = m.get('endpointSuffix')
         if m.get('socks5Proxy') is not None:
             self.socks_5proxy = m.get('socks5Proxy')
         if m.get('socks5NetWork') is not None:

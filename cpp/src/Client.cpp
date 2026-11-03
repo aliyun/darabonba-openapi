@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <darabonba/Core.hpp>
 #include <alibabacloud/Openapi.hpp>
 #include <alibabacloud/Utils.hpp>
@@ -67,6 +68,14 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
   this->_endpointType = config.getEndpointType();
   this->_network = config.getNetwork();
   this->_suffix = config.getSuffix();
+  if (!config.hasEndpointSuffix() || config.getEndpointSuffix().empty()) {
+    const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+    if (envSuffix != nullptr) {
+      this->_endpointSuffix = envSuffix;
+    }
+  } else {
+    this->_endpointSuffix = config.getEndpointSuffix();
+  }
   this->_protocol = config.getProtocol();
   this->_method = config.getMethod();
   this->_regionId = config.getRegionId();
@@ -1172,6 +1181,14 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
       AttributeMap attributeMap = AttributeMap();
       if (!Darabonba::isNull(_attributeMap)) {
         attributeMap = _attributeMap;
+      }
+      if (!_endpointSuffix.empty()) {
+        std::map<std::string, std::string> keys;
+        if (attributeMap.hasKey()) {
+          keys = attributeMap.getKey();
+        }
+        keys["endpointSuffix"] = _endpointSuffix;
+        attributeMap.setKey(keys);
       }
 
       // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

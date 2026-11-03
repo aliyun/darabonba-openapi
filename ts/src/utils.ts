@@ -177,6 +177,14 @@ export class Config extends $tea.Model {
   suffix?: string;
   /**
    * @remarks
+   * domain suffix used by generated POP endpoints
+   * 
+   * @example
+   * aliyuncs.com
+   */
+  endpointSuffix?: string;
+  /**
+   * @remarks
    * socks5 proxy
    */
   socks5Proxy?: string;
@@ -295,6 +303,7 @@ export class Config extends $tea.Model {
       network: 'network',
       userAgent: 'userAgent',
       suffix: 'suffix',
+      endpointSuffix: 'endpointSuffix',
       socks5Proxy: 'socks5Proxy',
       socks5NetWork: 'socks5NetWork',
       endpointType: 'endpointType',
@@ -332,6 +341,7 @@ export class Config extends $tea.Model {
       network: 'string',
       userAgent: 'string',
       suffix: 'string',
+      endpointSuffix: 'string',
       socks5Proxy: 'string',
       socks5NetWork: 'string',
       endpointType: 'string',
