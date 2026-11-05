@@ -34,6 +34,16 @@ jobs:
       run: mvn test -B
     - name: Verify JaCoCo report
       run: test -f target/site/jacoco/jacoco.xml
+    - name: Require 90% diff coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
+          --base "${{ github.event.pull_request.base.sha }}" \
+          --source-root java \
+          --report target/site/jacoco/jacoco.xml \
+          --format jacoco \
+          --minimum 90
     - uses: codecov/codecov-action@v4
       with:
         files: java/target/site/jacoco/jacoco.xml

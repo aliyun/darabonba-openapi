@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <darabonba/Core.hpp>
 #include <alibabacloud/Openapi.hpp>
 #include <alibabacloud/Utils.hpp>
@@ -13,6 +14,7 @@
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/XML.hpp>
 #include <alibabacloud/gateway/SPI.hpp>
+#include <alibabacloud/gateway/POP.hpp>
 using namespace std;
 using json = nlohmann::json;
 using namespace AlibabaCloud::OpenApi;
@@ -26,6 +28,17 @@ namespace AlibabaCloud
 {
 namespace OpenApi
 {
+
+string Client::endpointForRequest(const Utils::Models::OpenApiRequest &request) {
+  string endpoint = request.hasEndpointOverride() && !request.getEndpointOverride().empty() ? request.getEndpointOverride() : _endpoint;
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  map<string, string> keys;
+  if (!Darabonba::isNull(_attributeMap) && _attributeMap.hasKey()) keys = _attributeMap.getKey();
+  if (keys["endpointSuffix"].find_first_not_of(" \t\r\n\f\v") == string::npos) keys["endpointSuffix"] = _endpointSuffix;
+  attributes.setKey(keys);
+  AlibabaCloud::Gateway::POP gateway;
+  return gateway.applyEndpointSuffix(endpoint, gateway.resolveEndpointSuffix(attributes));
+}
 
 /**
  * Init client with Config
@@ -67,6 +80,14 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
   this->_endpointType = config.getEndpointType();
   this->_network = config.getNetwork();
   this->_suffix = config.getSuffix();
+  if (!config.hasEndpointSuffix() || config.getEndpointSuffix().empty()) {
+    const char *envSuffix = std::getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+    if (envSuffix != nullptr) {
+      this->_endpointSuffix = envSuffix;
+    }
+  } else {
+    this->_endpointSuffix = config.getEndpointSuffix();
+  }
   this->_protocol = config.getProtocol();
   this->_method = config.getMethod();
   this->_regionId = config.getRegionId();
@@ -172,7 +193,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
         request.getQuery()
       ).get<map<string, string>>());
       request_.setHeaders(Darabonba::Core::merge(json({
-          {"host" , _endpoint},
+          {"host" , endpointForRequest(request)},
           {"x-acs-version" , version},
           {"x-acs-action" , action},
           {"user-agent" , Utils::Utils::getUserAgent(_userAgent)}
@@ -400,7 +421,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
 
       request_.setHeaders(Darabonba::Core::merge(json({
           {"date" , Utils::Utils::getDateUTCString()},
-          {"host" , _endpoint},
+          {"host" , endpointForRequest(request)},
           {"accept" , "application/json"},
           {"x-acs-signature-nonce" , Utils::Utils::getNonce()},
           {"x-acs-signature-method" , "HMAC-SHA1"},
@@ -637,7 +658,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
 
       request_.setHeaders(Darabonba::Core::merge(json({
           {"date" , Utils::Utils::getDateUTCString()},
-          {"host" , _endpoint},
+          {"host" , endpointForRequest(request)},
           {"accept" , "application/json"},
           {"x-acs-signature-nonce" , Utils::Utils::getNonce()},
           {"x-acs-signature-method" , "HMAC-SHA1"},
@@ -878,7 +899,7 @@ Darabonba::Json Client::doRequest(const Params &params, const OpenApiRequest &re
       ).get<map<string, string>>());
       // endpoint is setted in product client
       request_.setHeaders(Darabonba::Core::merge(json({
-          {"host" , _endpoint},
+          {"host" , endpointForRequest(request)},
           {"x-acs-version" , params.getVersion()},
           {"x-acs-action" , params.getAction()},
           {"user-agent" , Utils::Utils::getUserAgent(_userAgent)},
@@ -1164,7 +1185,7 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
       }));
       InterceptorContextConfiguration configurationContext = InterceptorContextConfiguration(json({
         {"regionId" , _regionId},
-        {"endpoint" , Darabonba::Convert::stringVal(Darabonba::defaultVal(request.getEndpointOverride(), _endpoint))},
+        {"endpoint" , endpointForRequest(request)},
         {"endpointRule" , _endpointRule},
         {"endpointMap" , _endpointMap},
         {"endpointType" , _endpointType},
@@ -1176,8 +1197,20 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
         {"configuration" , configurationContext}
       }));
       AttributeMap attributeMap = AttributeMap();
+      std::map<std::string, std::string> keys;
       if (!Darabonba::isNull(_attributeMap)) {
-        attributeMap = _attributeMap;
+        if (_attributeMap.hasAttributes()) {
+          attributeMap.setAttributes(_attributeMap.attributes());
+        }
+        if (_attributeMap.hasKey()) {
+          keys = _attributeMap.getKey();
+        }
+      }
+      if (!_endpointSuffix.empty() && keys["endpointSuffix"].find_first_not_of(" \t\r\n\f\v") == std::string::npos) {
+        keys["endpointSuffix"] = _endpointSuffix;
+      }
+      if (!keys.empty()) {
+        attributeMap.setKey(keys);
       }
 
       // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

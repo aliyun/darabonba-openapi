@@ -75,6 +75,17 @@ jobs:
           -ignore-filename-regex='\.build|Tests' \
           > coverage.lcov
 
+    - name: Require 90% diff coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
+          --base "${{ github.event.pull_request.base.sha }}" \
+          --source-root swift \
+          --report coverage.lcov \
+          --format lcov \
+          --minimum 90
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:

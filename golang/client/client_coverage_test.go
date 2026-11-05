@@ -493,6 +493,56 @@ func TestCredentialHelpersAndAccessDeniedDetail(t *testing.T) {
 	tea_util.AssertEqual(t, "from-env", tea.StringValue(envClient.UserAgent))
 }
 
+func TestEndpointSuffixConfigAndEnv(t *testing.T) {
+	os.Setenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX", "example.com")
+	defer os.Unsetenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX")
+	client, err := NewClient(&Config{
+		AccessKeyId:     tea.String("ak"),
+		AccessKeySecret: tea.String("secret"),
+		Endpoint:        tea.String("ecs.aliyuncs.com"),
+	})
+	tea_util.AssertNil(t, err)
+	tea_util.AssertEqual(t, "example.com", tea.StringValue(client.EndpointSuffix))
+	original := &spi.AttributeMap{Key: map[string]*string{"signatureTypePrefix": tea.String("ACS4-")}}
+	client.AttributeMap = original
+	mapped := client.attributeMapWithEndpointSuffix()
+	tea_util.AssertEqual(t, "example.com", tea.StringValue(mapped.Key["endpointSuffix"]))
+	tea_util.AssertEqual(t, "ACS4-", tea.StringValue(mapped.Key["signatureTypePrefix"]))
+	_, present := original.Key["endpointSuffix"]
+	tea_util.AssertEqual(t, false, present)
+	original.Attributes = map[string]interface{}{"scope": "client"}
+	mapped = client.attributeMapWithEndpointSuffix()
+	mapped.Attributes["scope"] = "changed"
+	tea_util.AssertEqual(t, "client", original.Attributes["scope"])
+	preset := &spi.AttributeMap{Key: map[string]*string{"endpointSuffix": tea.String("caller.example")}}
+	client.AttributeMap = preset
+	if client.attributeMapWithEndpointSuffix() != preset {
+		t.Fatal("caller endpointSuffix was replaced")
+	}
+
+	explicit, err := NewClient(&Config{
+		AccessKeyId:     tea.String("ak"),
+		AccessKeySecret: tea.String("secret"),
+		Endpoint:        tea.String("ecs.aliyuncs.com"),
+		EndpointSuffix:  tea.String("example.net"),
+	})
+	tea_util.AssertNil(t, err)
+	tea_util.AssertEqual(t, "example.net", tea.StringValue(explicit.EndpointSuffix))
+	mapped = explicit.attributeMapWithEndpointSuffix()
+	tea_util.AssertEqual(t, "example.net", tea.StringValue(mapped.Key["endpointSuffix"]))
+	for _, value := range []string{"", " \t\r\n", "caller.example"} {
+		original := &spi.AttributeMap{Key: map[string]*string{"endpointSuffix": tea.String(value)}}
+		explicit.AttributeMap = original
+		mapped = explicit.attributeMapWithEndpointSuffix()
+		want := "example.net"
+		if value == "caller.example" {
+			want = value
+		}
+		tea_util.AssertEqual(t, want, tea.StringValue(mapped.Key["endpointSuffix"]))
+		tea_util.AssertEqual(t, value, tea.StringValue(original.Key["endpointSuffix"]))
+	}
+}
+
 func TestErrorTypesAndSSEResponse(t *testing.T) {
 	clientErr := &ClientError{
 		StatusCode:         tea.Int(400),

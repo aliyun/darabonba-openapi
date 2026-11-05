@@ -32,6 +32,12 @@ namespace OpenApiClientUnitTests
         public string Method => _method;
         public string RegionId => _regionId;
         public string UserAgent => _userAgent;
+        public string EndpointSuffix => _endpointSuffix;
+
+        public AttributeMap BuildAttributeMap()
+        {
+            return AttributeMapWithEndpointSuffix();
+        }
         public int? ReadTimeout => _readTimeout;
         public int? ConnectTimeout => _connectTimeout;
         public string HttpProxy => _httpProxy;

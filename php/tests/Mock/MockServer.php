@@ -17,10 +17,35 @@ function send_sse($client, $id, $event, $data, $retry = 3000)
     fflush($client);
 }
 
-while ($client = @stream_socket_accept($server)) {
-    // 读取请求
-    $request = fread($client, 1024);
+while (true) {
+    $client = @stream_socket_accept($server, 5);
+    if ($client === false) {
+        continue;
+    }
+    stream_set_timeout($client, 5);
+    // TCP reads need not contain a complete HTTP header block or body.
+    $request = '';
+    while (strpos($request, "\r\n\r\n") === false) {
+        $chunk = fread($client, 4096);
+        if ($chunk === false || $chunk === '' || strlen($request) > 65536) {
+            fclose($client);
+            continue 2;
+        }
+        $request .= $chunk;
+    }
     list($headers, $body) = explode("\r\n\r\n", $request, 2);
+    $length = preg_match('/^Content-Length:\s*(\d+)/mi', $headers, $lengthMatch) ? (int)$lengthMatch[1] : 0;
+    if (stripos($headers, 'Expect: 100-continue') !== false) {
+        fwrite($client, "HTTP/1.1 100 Continue\r\n\r\n");
+    }
+    while (strlen($body) < $length) {
+        $chunk = fread($client, min(4096, $length - strlen($body)));
+        if ($chunk === false || $chunk === '') {
+            fclose($client);
+            continue 2;
+        }
+        $body .= $chunk;
+    }
     // 简单解析请求头
     $headerLines = explode("\r\n", $headers);
     $requestLine = array_shift($headerLines);
@@ -28,6 +53,10 @@ while ($client = @stream_socket_accept($server)) {
     preg_match('/\b(bodytype):[ ]*([\w\d]+)\b/i', $headers, $bodyTypeMatch);
     $bodyType = isset($bodyTypeMatch[2]) ? $bodyTypeMatch[2] : null;
     preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1.1/', $requestLine, $matches);
+    if (count($matches) < 3) {
+        fclose($client);
+        continue;
+    }
     $method = $matches[1];
     $path = $matches[2];
 
@@ -35,21 +64,26 @@ while ($client = @stream_socket_accept($server)) {
     $headerAssoc = [];
 
     foreach ($headerLines as $header) {
-        list($name, $value) = explode(": ", $header, 2);
-        $headerAssoc[strtolower($name)] = $value;
+        $pair = explode(':', $header, 2);
+        if (count($pair) === 2) {
+            $headerAssoc[strtolower($pair[0])] = trim($pair[1]);
+        }
     }
     if (substr($path, 0, 4) === '/sse') {
         $responseHeaders = "HTTP/1.1 200 OK\r\n" .
             "Content-Type: text/event-stream;charset=UTF-8\r\n" .
             "Cache-Control: no-cache\r\n" .
-            "Connection: keep-alive\r\n";
+            "Connection: close\r\n";
         foreach ($headerAssoc as $name => $value) {
+            if (in_array($name, array('content-type', 'content-length', 'transfer-encoding', 'connection', 'expect'), true)) {
+                continue;
+            }
             $responseHeaders .= $name . ": " . $value . "\r\n";
         }
         $responseHeaders .= "\r\n";
         fwrite($client, $responseHeaders);
         // 刷新缓冲区，确保头部被立刻发送
-        flush();
+        fflush($client);
 
         // 模拟发送事件流
         $count = 0;
@@ -64,7 +98,7 @@ while ($client = @stream_socket_accept($server)) {
             fwrite($client, $sseData);
 
             // 再次刷新缓冲区，以确保数据被发送
-            flush();
+            fflush($client);
 
             // 等待100毫秒
             usleep(100000);
@@ -82,12 +116,6 @@ while ($client = @stream_socket_accept($server)) {
             "Connection: close\r\n\r\n";
         fwrite($client, $responseHeaders . "Server Timeout");
     } else {
-        $headerAssoc = [];
-        foreach ($headerLines as $headerLine) {
-            list($key, $value) = explode(': ', $headerLine, 2);
-            $headerAssoc[strtolower($key)] = trim($value);
-        }
-
         // 获取路径和请求方法
         preg_match('/^(GET|POST|PUT|DELETE)\s(\/\S*)\sHTTP\/1.1/', $requestLine, $matches);
         $method = $matches[1];

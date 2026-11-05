@@ -90,6 +90,10 @@ class Config extends Model
   /**
    * @var string
    */
+  public $endpointSuffix;
+  /**
+   * @var string
+   */
   public $socks5Proxy;
   /**
    * @var string
@@ -166,6 +170,7 @@ class Config extends Model
     'network' => 'network',
     'userAgent' => 'userAgent',
     'suffix' => 'suffix',
+    'endpointSuffix' => 'endpointSuffix',
     'socks5Proxy' => 'socks5Proxy',
     'socks5NetWork' => 'socks5NetWork',
     'endpointType' => 'endpointType',
@@ -267,6 +272,10 @@ class Config extends Model
 
     if (null !== $this->suffix) {
       $res['suffix'] = $this->suffix;
+    }
+
+    if (null !== $this->endpointSuffix) {
+      $res['endpointSuffix'] = $this->endpointSuffix;
     }
 
     if (null !== $this->socks5Proxy) {
@@ -410,6 +419,10 @@ class Config extends Model
 
     if (isset($map['suffix'])) {
       $model->suffix = $map['suffix'];
+    }
+
+    if (isset($map['endpointSuffix'])) {
+      $model->endpointSuffix = $map['endpointSuffix'];
     }
 
     if (isset($map['socks5Proxy'])) {

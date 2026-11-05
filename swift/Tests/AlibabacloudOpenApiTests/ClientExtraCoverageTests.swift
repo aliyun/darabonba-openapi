@@ -1,9 +1,69 @@
 import Foundation
 import XCTest
 import TeaUtils
+import AlibabacloudGatewaySPI
 @testable import AlibabacloudOpenApi
 
 final class ClientExtraCoverageTests: XCTestCase {
+    func testRequestEndpointSuffix() throws {
+        let client = try Client(Config(["endpoint": "ecs.aliyuncs.com", "endpointSuffix": " ALIYUNCS.ALIBABA "]))
+        let request = OpenApiRequest()
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        request.endpointOverride = "oss-cn-hangzhou.aliyuncs.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "oss-cn-hangzhou.aliyuncs.alibaba")
+        request.endpointOverride = "ecs.aliyun.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyun.com")
+        request.endpointOverride = "ecs.aliyuncs.alibaba"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        client._endpointSuffix = "aliyuncs.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        client._endpointSuffix = "evil.com"
+        XCTAssertThrowsError(try client.endpointForRequest(request))
+        XCTAssertEqual(client._endpoint, "ecs.aliyuncs.com")
+    }
+
+    func testEndpointSuffix() throws {
+        let fromEnv = try Client(Config(["endpoint": "example.com"]))
+        XCTAssertEqual(fromEnv._endpointSuffix, ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"])
+        fromEnv._endpointSuffix = ""
+        XCTAssertNil(fromEnv.attributeMapWithEndpointSuffix(AlibabacloudGatewaySPI.AttributeMap([:])).key?["endpointSuffix"])
+        fromEnv._endpointSuffix = "example.com"
+        var mapped = fromEnv.attributeMapWithEndpointSuffix(AlibabacloudGatewaySPI.AttributeMap([:]))
+        XCTAssertEqual(mapped.key?["endpointSuffix"], "example.com")
+
+        let explicit = try Client(Config(["endpoint": "example.com", "endpointSuffix": "example.net"]))
+        XCTAssertEqual(explicit._endpointSuffix, "example.net")
+        let original = AlibabacloudGatewaySPI.AttributeMap([:])
+        original.key = ["signatureTypePrefix": "ACS4-"]
+        mapped = explicit.attributeMapWithEndpointSuffix(original)
+        XCTAssertEqual(mapped.key?["endpointSuffix"], "example.net")
+        XCTAssertEqual(mapped.key?["signatureTypePrefix"], "ACS4-")
+        XCTAssertNil(original.key?["endpointSuffix"])
+
+        for value in ["", " \t\r\n", "caller.example"] {
+            original.key = ["endpointSuffix": value]
+            original.attributes = ["kept": "value"]
+            mapped = explicit.attributeMapWithEndpointSuffix(original)
+            let blank = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            XCTAssertEqual(mapped.key?["endpointSuffix"], blank ? "example.net" : value)
+            XCTAssertEqual(original.key?["endpointSuffix"], value)
+            XCTAssertEqual(mapped.attributes?["kept"] as? String, "value")
+            if blank {
+                XCTAssertFalse(mapped === original)
+                mapped.attributes?["kept"] = "changed"
+                XCTAssertEqual(original.attributes?["kept"] as? String, "value")
+            } else {
+                XCTAssertTrue(mapped === original)
+            }
+        }
+
+        let config = Config(["endpointSuffix": "example.net"])
+        XCTAssertEqual(config.toMap()["endpointSuffix"] as? String, "example.net")
+        let restored = Config()
+        restored.fromMap(["endpointSuffix": "example.net"])
+        XCTAssertEqual(restored.endpointSuffix, "example.net")
+    }
+
     func testConstructorsHelpersAndModels() async throws {
         let empty = try Client(Config([
             "endpoint": "example.com"

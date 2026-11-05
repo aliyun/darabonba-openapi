@@ -31,6 +31,7 @@ type Client struct {
 	EndpointRule         *string
 	EndpointMap          map[string]*string
 	Suffix               *string
+	EndpointSuffix       *string
 	ReadTimeout          *int
 	ConnectTimeout       *int
 	HttpProxy            *string
@@ -118,6 +119,12 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 		client.UserAgent = config.UserAgent
 	}
 
+	if dara.IsNil(config.EndpointSuffix) || dara.StringValue(config.EndpointSuffix) == "" {
+		client.EndpointSuffix = dara.String(os.Getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX"))
+	} else {
+		client.EndpointSuffix = config.EndpointSuffix
+	}
+
 	client.Endpoint = config.Endpoint
 	client.EndpointType = config.EndpointType
 	client.Network = config.Network
@@ -169,6 +176,10 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 //
 // @return the response
 func (client *Client) DoRPCRequest(action *string, version *string, protocol *string, method *string, authType *string, bodyType *string, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		return nil, endpointErr
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -260,7 +271,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 		if dara.IsNil(headers) {
 			// endpoint is setted in product client
 			request_.Headers = dara.Merge(map[string]*string{
-				"host":          client.Endpoint,
+				"host":          requestEndpoint,
 				"x-acs-version": version,
 				"x-acs-action":  action,
 				"user-agent":    openapiutil.GetUserAgent(client.UserAgent),
@@ -269,7 +280,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 				request.Headers)
 		} else {
 			request_.Headers = dara.Merge(map[string]*string{
-				"host":          client.Endpoint,
+				"host":          requestEndpoint,
 				"x-acs-version": version,
 				"x-acs-action":  action,
 				"user-agent":    openapiutil.GetUserAgent(client.UserAgent),
@@ -405,6 +416,10 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 //
 // @return the response
 func (client *Client) DoROARequest(action *string, version *string, protocol *string, method *string, authType *string, pathname *string, bodyType *string, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		return nil, endpointErr
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -473,7 +488,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 
 		request_.Headers = dara.Merge(map[string]*string{
 			"date":                    openapiutil.GetDateUTCString(),
-			"host":                    client.Endpoint,
+			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
 			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
@@ -607,6 +622,10 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 //
 // @return the response
 func (client *Client) DoROARequestWithForm(action *string, version *string, protocol *string, method *string, authType *string, pathname *string, bodyType *string, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		return nil, endpointErr
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -675,7 +694,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 
 		request_.Headers = dara.Merge(map[string]*string{
 			"date":                    openapiutil.GetDateUTCString(),
-			"host":                    client.Endpoint,
+			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
 			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
@@ -808,6 +827,10 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 //
 // @return the response
 func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		return nil, endpointErr
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -935,7 +958,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 			request.Query)
 		// endpoint is setted in product client
 		request_.Headers = dara.Merge(map[string]*string{
-			"host":                  client.Endpoint,
+			"host":                  requestEndpoint,
 			"x-acs-version":         params.Version,
 			"x-acs-action":          params.Action,
 			"user-agent":            openapiutil.GetUserAgent(client.UserAgent),
@@ -1153,6 +1176,10 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 //
 // @return the response
 func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		return nil, endpointErr
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -1259,7 +1286,7 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 		}
 		configurationContext := &spi.InterceptorContextConfiguration{
 			RegionId:     client.RegionId,
-			Endpoint:     dara.String(dara.ToString(dara.Default(dara.StringValue(request.EndpointOverride), dara.StringValue(client.Endpoint)))),
+			Endpoint:     requestEndpoint,
 			EndpointRule: client.EndpointRule,
 			EndpointMap:  client.EndpointMap,
 			EndpointType: client.EndpointType,
@@ -1270,10 +1297,7 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 			Request:       requestContext,
 			Configuration: configurationContext,
 		}
-		attributeMap := &spi.AttributeMap{}
-		if !dara.IsNil(client.AttributeMap) {
-			attributeMap = client.AttributeMap
-		}
+		attributeMap := client.attributeMapWithEndpointSuffix()
 
 		// 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
 		_err = client.Spi.ModifyConfiguration(interceptorContext, attributeMap)
@@ -1359,6 +1383,11 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiutil.OpenApiRequest, runtime *dara.RuntimeOptions, _yield chan *SSEResponse, _yieldErr chan error) {
 	defer close(_yield)
 	defer close(_yieldErr)
+	requestEndpoint, endpointErr := client.endpointForRequest(request)
+	if endpointErr != nil {
+		_yieldErr <- endpointErr
+		return
+	}
 	_runtime := dara.NewRuntimeObject(map[string]interface{}{
 		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
 		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
@@ -1430,7 +1459,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 			request.Query)
 		// endpoint is setted in product client
 		request_.Headers = dara.Merge(map[string]*string{
-			"host":                  client.Endpoint,
+			"host":                  requestEndpoint,
 			"x-acs-version":         params.Version,
 			"x-acs-action":          params.Action,
 			"user-agent":            openapiutil.GetUserAgent(client.UserAgent),
@@ -1745,6 +1774,61 @@ func (client *Client) CheckConfig(config *openapiutil.Config) (_err error) {
 // set gateway client
 //
 // @param spi - .
+func (client *Client) endpointForRequest(request *openapiutil.OpenApiRequest) (*string, error) {
+	endpoint := client.Endpoint
+	if request != nil && dara.StringValue(request.EndpointOverride) != "" {
+		endpoint = request.EndpointOverride
+	}
+	attributes := client.attributeMapWithEndpointSuffix()
+	suffix := strings.ToLower(strings.TrimSpace(dara.StringValue(attributes.Key["endpointSuffix"])))
+	if suffix == "" {
+		suffix = strings.ToLower(strings.TrimSpace(os.Getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX")))
+	}
+	if suffix == "" {
+		suffix = "aliyuncs.com"
+	}
+	if suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba" {
+		return nil, &ClientError{Code: dara.String("InvalidEndpointSuffix"), Message: dara.String("endpointSuffix must be aliyuncs.com or aliyuncs.alibaba")}
+	}
+	const old = ".aliyuncs.com"
+	if suffix != "aliyuncs.com" && strings.HasSuffix(dara.StringValue(endpoint), old) {
+		return dara.String(strings.TrimSuffix(dara.StringValue(endpoint), old) + "." + suffix), nil
+	}
+	return endpoint, nil
+}
+
+func (client *Client) attributeMapWithEndpointSuffix() *spi.AttributeMap {
+	attributeMap := client.AttributeMap
+	if dara.IsNil(attributeMap) {
+		attributeMap = &spi.AttributeMap{}
+	}
+	if attributeMap.Key != nil && strings.TrimSpace(dara.StringValue(attributeMap.Key["endpointSuffix"])) != "" {
+		return attributeMap
+	}
+	suffix := dara.StringValue(client.EndpointSuffix)
+	if suffix == "" {
+		return attributeMap
+	}
+	keys := map[string]*string{}
+	if attributeMap.Key != nil {
+		for name, value := range attributeMap.Key {
+			keys[name] = value
+		}
+	}
+	keys["endpointSuffix"] = dara.String(suffix)
+	var attributes map[string]interface{}
+	if attributeMap.Attributes != nil {
+		attributes = map[string]interface{}{}
+		for name, value := range attributeMap.Attributes {
+			attributes[name] = value
+		}
+	}
+	return &spi.AttributeMap{
+		Key:        keys,
+		Attributes: attributes,
+	}
+}
+
 func (client *Client) SetGatewayClient(spi spi.ClientInterface) (_err error) {
 	client.Spi = spi
 	return _err

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using AlibabaCloud.GatewaySpi.Models;
 using AlibabaCloud.OpenApiClient.Exceptions;
 using AlibabaCloud.OpenApiClient.Models;
 using Xunit;
@@ -9,6 +11,37 @@ namespace OpenApiClientUnitTests
 {
     public class ConfigTest
     {
+        [Fact]
+        public void TestRequestEndpointSuffix()
+        {
+            var previous = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            var resolve = typeof(AlibabaCloud.OpenApiClient.Client).GetMethod("EndpointForRequest", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            try
+            {
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", null);
+                var client = new TestClient(new Config { Endpoint = "ecs.aliyuncs.com" });
+                var request = new OpenApiRequest();
+                Assert.Equal("ecs.aliyuncs.com", resolve.Invoke(client, new object[] { request }));
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", " ALIYUNCS.ALIBABA ");
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                client = new TestClient(new Config { Endpoint = "ecs.aliyuncs.com", EndpointSuffix = "aliyuncs.com" });
+                Assert.Equal("ecs.aliyuncs.com", resolve.Invoke(client, new object[] { request }));
+                client.AttributeMap = new AttributeMap { Key = new Dictionary<string, string> { { "endpointSuffix", " ALIYUNCS.ALIBABA " } } };
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "oss-cn-hangzhou.aliyuncs.com";
+                Assert.Equal("oss-cn-hangzhou.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "ecs.aliyun.com";
+                Assert.Equal("ecs.aliyun.com", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "ecs.aliyuncs.alibaba";
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                client.AttributeMap.Key["endpointSuffix"] = "evil.com";
+                var error = Assert.Throws<System.Reflection.TargetInvocationException>(() => resolve.Invoke(client, new object[] { request }));
+                Assert.IsType<ClientException>(error.InnerException);
+                Assert.Equal("ecs.aliyuncs.com", client.Endpoint);
+            }
+            finally { Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", previous); }
+        }
+
         [Fact]
         public void TestConfig()
         {
@@ -156,6 +189,67 @@ namespace OpenApiClientUnitTests
             Assert.Throws<ClientException>(() => new TestClient(null));
             var emptyConfig = new Config();
             Assert.Throws<ClientException>(() => client.CheckConfig(emptyConfig));
+        }
+
+        [Fact]
+        public void TestEndpointSuffix()
+        {
+            Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", "example.com");
+            try
+            {
+                var fromEnv = new TestClient(new Config { Endpoint = "example.com" });
+                Assert.Equal("example.com", fromEnv.EndpointSuffix);
+                var mapped = fromEnv.BuildAttributeMap();
+                Assert.Equal("example.com", mapped.Key["endpointSuffix"]);
+
+                var explicitConfig = new Config
+                {
+                    Endpoint = "example.com",
+                    EndpointSuffix = "example.net"
+                };
+                var explicitClient = new TestClient(explicitConfig);
+                Assert.Equal("example.net", explicitClient.EndpointSuffix);
+                explicitClient.AttributeMap = new AttributeMap
+                {
+                    Key = new Dictionary<string, string> { { "signatureTypePrefix", "ACS4-" } }
+                };
+                mapped = explicitClient.BuildAttributeMap();
+                Assert.Equal("example.net", mapped.Key["endpointSuffix"]);
+                Assert.Equal("ACS4-", mapped.Key["signatureTypePrefix"]);
+                Assert.False(explicitClient.AttributeMap.Key.ContainsKey("endpointSuffix"));
+
+                foreach (var callerSuffix in new[] { null, "", " \t\r\n", "caller.example" })
+                {
+                    var original = new AttributeMap
+                    {
+                        Key = new Dictionary<string, string> { { "endpointSuffix", callerSuffix } },
+                        Attributes = new Dictionary<string, object> { { "kept", "value" } }
+                    };
+                    explicitClient.AttributeMap = original;
+                    mapped = explicitClient.BuildAttributeMap();
+                    Assert.Equal(string.IsNullOrWhiteSpace(callerSuffix) ? "example.net" : callerSuffix, mapped.Key["endpointSuffix"]);
+                    Assert.Equal(callerSuffix, original.Key["endpointSuffix"]);
+                    Assert.Equal("value", mapped.Attributes["kept"]);
+                    if (string.IsNullOrWhiteSpace(callerSuffix))
+                    {
+                        Assert.NotSame(original, mapped);
+                        mapped.Attributes["kept"] = "changed";
+                        Assert.Equal("value", original.Attributes["kept"]);
+                    }
+                    else
+                    {
+                        Assert.Same(original, mapped);
+                    }
+                }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", null);
+            }
+
+            var bare = new TestClient(new Config { Endpoint = "example.com" });
+            Assert.True(string.IsNullOrEmpty(bare.EndpointSuffix));
+            Assert.Null(bare.BuildAttributeMap().Key);
         }
     }
 }

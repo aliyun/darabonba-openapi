@@ -1,14 +1,49 @@
 #include <gtest/gtest.h>
 #include <alibabacloud/Utils.hpp>
+#include <alibabacloud/gateway/POP.hpp>
 #include <darabonba/http/Request.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <string>
 #include <map>
+#include <utility>
 #include <vector>
 
 using namespace std;
 using namespace AlibabaCloud::OpenApi::Utils;
 using json = nlohmann::json;
+
+TEST(POPTest, ExplicitEndpointSuffix) {
+  AlibabaCloud::Gateway::POP client;
+  const vector<pair<string, string>> cases = {
+      {"oss-cn-hangzhou.aliyuncs.com", "oss-cn-hangzhou.aliyuncs.alibaba"},
+      {"ecs.cn-hangzhou-internal.aliyuncs.com", "ecs.cn-hangzhou-internal.aliyuncs.alibaba"},
+      {"ecs.aliyun.com", "ecs.aliyun.com"},
+      {"custom.example.com", "custom.example.com"},
+      {"ecs.aliyuncs.alibaba", "ecs.aliyuncs.alibaba"},
+      {"ecs.aliyuncs.com.example.com", "ecs.aliyuncs.com.example.com"}};
+  for (const auto &item : cases) {
+    const map<string, string> endpoints = {{"cn-hangzhou", item.first}};
+    EXPECT_EQ(item.second, client.getEndpoint("ecs", "cn-hangzhou", "regional", "", "", {}, item.first, "aliyuncs.alibaba"));
+    EXPECT_EQ(item.second, client.getEndpoint("ecs", "cn-hangzhou", "regional", "", "", endpoints, "", "aliyuncs.alibaba"));
+    EXPECT_EQ(item.second, client.getEndpoint("ecs", "cn-hangzhou", "regional", "", "", {}, item.second, "aliyuncs.alibaba"));
+    EXPECT_EQ(item.first, client.getEndpoint("ecs", "cn-hangzhou", "regional", "", "", {}, item.first, "aliyuncs.com"));
+  }
+}
+
+TEST(POPTest, EndpointSuffixValidation) {
+  AlibabaCloud::Gateway::POP client;
+  EXPECT_EQ("ecs.aliyuncs.alibaba", client.applyEndpointSuffix("ecs.aliyuncs.com", " \tALIYUNCS.ALIBABA\r\n"));
+  EXPECT_EQ("ecs.aliyuncs.com", client.applyEndpointSuffix("ecs.aliyuncs.com", "  "));
+  for (const string suffix : {"example.net", ".foo", "a/b", "host:8080"}) {
+    EXPECT_ANY_THROW(client.applyEndpointSuffix("ecs.aliyuncs.com", suffix));
+    AlibabaCloud::Gateway::Models::AttributeMap attributes;
+    attributes.setKey({{"endpointSuffix", suffix}});
+    EXPECT_ANY_THROW(client.resolveEndpointSuffix(attributes));
+  }
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  attributes.setKey({{"endpointSuffix", " ALIYUNCS.ALIBABA "}});
+  EXPECT_EQ("aliyuncs.alibaba", client.resolveEndpointSuffix(attributes));
+}
 
 // Test Convert
 TEST(UtilsTest, Convert) {  // Convert is typically used with actual model classes, not tested directly here
