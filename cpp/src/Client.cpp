@@ -266,8 +266,8 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
           }
 
           normalizeSignatureV2Header(request_.getHeaders(), false, globalHeaders, extendsHeaders, request.getHeaders());
-          string method = signatureV2Method(request_.getHeaders());
-          request_.getQuery()["SignatureMethod"] = method;
+          string signatureMethod = signatureV2Method(request_.getHeaders());
+          request_.getQuery()["SignatureMethod"] = signatureMethod;
           request_.getQuery()["SignatureVersion"] = "1.0";
           request_.getQuery()["AccessKeyId"] = accessKeyId;
           json t = nullptr;
@@ -278,7 +278,7 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
           map<string, string> signedParam = Darabonba::Core::merge(request_.getQuery(),
             Utils::Utils::query(t)
           ).get<map<string, string>>();
-          if (signedParam["SignatureMethod"] != method) throw ClientException(map<string, string>{{"code", "InvalidSignatureAlgorithm"}, {"message", "Conflicting signature V2 algorithms"}});
+          if (signedParam["SignatureMethod"] != signatureMethod) throw ClientException(map<string, string>{{"code", "InvalidSignatureAlgorithm"}, {"message", "Conflicting signature V2 algorithms"}});
           request_.getQuery()["Signature"] = Utils::Utils::getRPCSignatureWithSHA256(signedParam, request_.getMethod(), accessKeySecret);
         }
 
