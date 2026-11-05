@@ -25,6 +25,8 @@ namespace AlibabaCloud {
 namespace Gateway {
 
 namespace {
+Darabonba::Bytes assertAsBytes(const Darabonba::Json &value);
+
 std::string checkedEndpointSuffix(const std::string &value) {
   const auto first = value.find_first_not_of(" \t\r\n\f\v");
   if (first == std::string::npos) {
@@ -112,7 +114,12 @@ void POP::modifyRequest(InterceptorContext &context,
     request.setStream(std::make_shared<Darabonba::ISStream>(tmp));
     headers["content-type"] = "application/octet-stream";
   } else if (request.hasBody()) {
-    if (request.getReqBodyType() == "json") {
+    if (request.getReqBodyType() == "byte") {
+      Darabonba::Bytes byteObj = assertAsBytes(request.getBody());
+      hashedRequestPayload = Darabonba::Encode::Encoder::hexEncode(
+          Darabonba::Encode::Encoder::hash(byteObj, signatureAlgorithm));
+      request.setStream(std::make_shared<Darabonba::ISStream>(byteObj));
+    } else if (request.getReqBodyType() == "json") {
       string jsonObj = request.getBody().dump();
       hashedRequestPayload = Darabonba::Encode::Encoder::hexEncode(
           Darabonba::Encode::Encoder::hash(Darabonba::BytesUtil::toBytes(jsonObj),
@@ -239,7 +246,13 @@ void POP::modifyResponse(InterceptorContext &context,
   if (response.getStatusCode() == 204) {
     Darabonba::Stream::readAsString(response.getBody());
   } else if (request.getBodyType() == "binary") {
-    response.setBody(response.getBody());
+    Darabonba::Bytes payload = response.getBody()
+                                   ? Darabonba::Stream::readAsBytes(response.getBody())
+                                   : Darabonba::Bytes();
+    // Json cannot own an IStream. Keep the bytes in the returned body and
+    // reopen them as a stream so the payload survives execute's return.
+    response.setBody(Darabonba::Stream::toReadable(payload));
+    response.setDeserializedBody(json(payload));
   } else if (request.getBodyType() == "byte") {
     auto byt = Darabonba::Stream::readAsBytes(response.getBody());
     response.setDeserializedBody(byt);
@@ -273,6 +286,27 @@ std::string hostWithoutPort(const std::string &endpoint) {
     return endpoint;
   }
   return endpoint.substr(0, colon);
+}
+
+Darabonba::Bytes assertAsBytes(const Darabonba::Json &value) {
+  if (value.is_binary()) {
+    return value.get_binary();
+  }
+  if (value.is_array()) {
+    Darabonba::Bytes bytes;
+    for (const auto &item : value) {
+      if (!item.is_number_integer() || item.get<int>() < 0 || item.get<int>() > 255) {
+        throw ClientException(json({
+            {"code", "InvalidParameter"},
+            {"message", "The value is not a byteArray"}}));
+      }
+      bytes.push_back(static_cast<uint8_t>(item.get<int>()));
+    }
+    return bytes;
+  }
+  throw ClientException(json({
+      {"code", "InvalidParameter"},
+      {"message", "The value is not a byteArray"}}));
 }
 
 std::string hostWithoutDomain(const std::string &host, const std::string &suffix) {

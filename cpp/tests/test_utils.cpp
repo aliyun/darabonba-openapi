@@ -178,6 +178,65 @@ TEST(POPTest, ModifyResponseReadsJsonStream) {
   EXPECT_EQ(true, body["ok"].get<bool>());
 }
 
+TEST(POPTest, ModifyRequestSignsRawByteBody) {
+  using AlibabaCloud::Gateway::Models::AttributeMap;
+  using AlibabaCloud::Gateway::Models::InterceptorContext;
+  using AlibabaCloud::Gateway::Models::InterceptorContextConfiguration;
+  using AlibabaCloud::Gateway::Models::InterceptorContextRequest;
+  InterceptorContextRequest request(json({
+      {"pathname", "/"},
+      {"method", "POST"},
+      {"productId", "ecs"},
+      {"action", "Upload"},
+      {"version", "2014-05-26"},
+      {"authType", "Anonymous"},
+      {"reqBodyType", "byte"},
+      {"body", json::array({0, 65, 255})}}));
+  InterceptorContextConfiguration config(json({
+      {"endpoint", "ecs.cn-hangzhou.aliyuncs.com"},
+      {"regionId", "cn-hangzhou"}}));
+  InterceptorContext context(json({{"request", request}, {"configuration", config}}));
+  AttributeMap attributes;
+  AlibabaCloud::Gateway::POP client;
+  client.modifyRequest(context, attributes);
+
+  auto sent = Darabonba::Stream::readAsBytes(context.getRequest().getStream());
+  ASSERT_EQ(3u, sent.size());
+  EXPECT_EQ(0, sent[0]);
+  EXPECT_EQ(65, sent[1]);
+  EXPECT_EQ(255, sent[2]);
+  Darabonba::Bytes raw;
+  raw.push_back(0);
+  raw.push_back(65);
+  raw.push_back(255);
+  auto headers = context.getRequest().getHeaders();
+  EXPECT_EQ(headers.end(), headers.find("content-type"));
+  EXPECT_EQ(Darabonba::Encode::Encoder::hexEncode(
+                Darabonba::Encode::Encoder::hash(raw, "ACS4-HMAC-SHA256")),
+            headers["x-acs-content-sha256"]);
+}
+
+TEST(POPTest, ModifyResponsePassesBinaryBodyThroughExecute) {
+  json executed;
+  {
+    auto context = responseContext(
+        "binary", 200, {{"content-type", "application/octet-stream"}}, "download content");
+    AlibabaCloud::Gateway::Models::AttributeMap attributes;
+    AlibabaCloud::Gateway::POP client;
+    client.modifyResponse(context, attributes);
+    executed = json({
+        {"headers", context.getResponse().getHeaders()},
+        {"statusCode", context.getResponse().getStatusCode()},
+        {"body", context.getResponse().getDeserializedBody()}});
+  }
+
+  ASSERT_FALSE(executed["body"].is_null());
+  auto first = Darabonba::Stream::toReadable(executed["body"].get<Darabonba::Bytes>());
+  EXPECT_EQ("download content", Darabonba::Stream::readAsString(first));
+  auto second = Darabonba::Stream::toReadable(executed["body"].get<Darabonba::Bytes>());
+  EXPECT_EQ("download content", Darabonba::Stream::readAsString(second));
+}
+
 TEST(POPTest, ModifyResponseReadsStringStream) {
   auto context = responseContext(
       "string", 200, {{"content-type", "text/plain"}}, "hello");
