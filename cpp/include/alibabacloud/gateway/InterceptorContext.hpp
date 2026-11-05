@@ -599,7 +599,7 @@ namespace AlibabaCloud {
         const Darabonba::Json &getDeserializedBody() const {
           DARABONBA_GET(deserializedBody_);
         }
-        Darabonba::Json & getBody() { DARABONBA_GET(deserializedBody_) };
+        Darabonba::Json &getDeserializedBody() { DARABONBA_GET(deserializedBody_); }
 
         InterceptorContextResponse &setDeserializedBody(const Darabonba::Json &deserializedBody) {
           DARABONBA_SET_VALUE(deserializedBody_, deserializedBody);

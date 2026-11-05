@@ -4,6 +4,8 @@
 #include <alibabacloud/OpenapiException.hpp>
 #include <darabonba/http/Request.hpp>
 #include <darabonba/encode/Encoder.hpp>
+#include <darabonba/Stream.hpp>
+#include <alibabacloud/exceptions/ClientException.hpp>
 #include <string>
 #include <map>
 #include <utility>
@@ -129,6 +131,61 @@ TEST(POPTest, ModifyRequestWritesHeadersBack) {
   EXPECT_FALSE(headers["x-acs-date"].empty());
   EXPECT_FALSE(headers["x-acs-content-sha256"].empty());
   EXPECT_EQ(headers.end(), headers.find("Authorization"));
+}
+
+AlibabaCloud::Gateway::Models::InterceptorContext responseContext(
+    const string &bodyType, int64_t status,
+    const Darabonba::Http::Header &headers, const string &body) {
+  using AlibabaCloud::Gateway::Models::InterceptorContext;
+  using AlibabaCloud::Gateway::Models::InterceptorContextRequest;
+  using AlibabaCloud::Gateway::Models::InterceptorContextResponse;
+  InterceptorContextRequest request(json({{"bodyType", bodyType}}));
+  InterceptorContextResponse response;
+  response.setStatusCode(status);
+  response.setHeaders(headers);
+  response.setBody(std::make_shared<Darabonba::ISStream>(body));
+  InterceptorContext context;
+  context.setRequest(request);
+  context.setResponse(response);
+  return context;
+}
+
+TEST(POPTest, ModifyResponseReadsXmlErrorStream) {
+  auto context = responseContext(
+      "json", 400, {{"content-type", "text/xml;charset=utf-8"}},
+      "<Error><Code>InvalidAction</Code><Message>The specified action is invalid.</Message>"
+      "<RequestId>req-1</RequestId></Error>");
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  AlibabaCloud::Gateway::POP client;
+  try {
+    client.modifyResponse(context, attributes);
+    FAIL() << "expected the XML error to be raised";
+  } catch (const AlibabaCloud::OpenApi::Exceptions::ClientException &ex) {
+    EXPECT_EQ("InvalidAction", ex.code());
+    EXPECT_NE(string::npos, ex.message().find("The specified action is invalid."));
+    EXPECT_NE(string::npos, ex.message().find("req-1"));
+    EXPECT_EQ(string::npos, ex.message().find("missing the Error element"));
+  }
+}
+
+TEST(POPTest, ModifyResponseReadsJsonStream) {
+  auto context = responseContext(
+      "json", 200, {{"content-type", "application/json"}}, "{\"ok\":true}");
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  AlibabaCloud::Gateway::POP client;
+  client.modifyResponse(context, attributes);
+  json body = context.getResponse().getDeserializedBody();
+  EXPECT_EQ(true, body["ok"].get<bool>());
+}
+
+TEST(POPTest, ModifyResponseReadsStringStream) {
+  auto context = responseContext(
+      "string", 200, {{"content-type", "text/plain"}}, "hello");
+  AlibabaCloud::Gateway::Models::AttributeMap attributes;
+  AlibabaCloud::Gateway::POP client;
+  client.modifyResponse(context, attributes);
+  json body = context.getResponse().getDeserializedBody();
+  EXPECT_EQ("hello", body.get<string>());
 }
 
 // Test Convert
