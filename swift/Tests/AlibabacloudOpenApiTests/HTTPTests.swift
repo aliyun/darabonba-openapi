@@ -18,10 +18,10 @@ final class HTTPTests: XCTestCase {
             if algorithm == "v2" {
                 let target = try XCTUnwrap(request.split(separator: " ").dropFirst().first)
                 let query = try XCTUnwrap(URLComponents(string: "http://localhost\(target)")?.queryItems)
-                XCTAssertEqual(query.first { $0.name == "SignatureMethod" }?.value, "HMAC-SHA1")
+                XCTAssertEqual(query.first { $0.name == "SignatureMethod" }?.value, "HMAC-SHA256")
                 XCTAssertEqual(query.first { $0.name == "AccessKeyId" }?.value, "mock-id")
                 let signature = try XCTUnwrap(query.first { $0.name == "Signature" }?.value)
-                XCTAssertEqual(Data(base64Encoded: signature)?.count, 20)
+                XCTAssertEqual(Data(base64Encoded: signature)?.count, 32)
             } else {
                 XCTAssertNotNil(request.lowercased().range(
                     of: "authorization: acs3-hmac-sha256 credential=mock-id,signedheaders=[^\\r\\n]+,signature=[a-f0-9]{64}\\r\\n",

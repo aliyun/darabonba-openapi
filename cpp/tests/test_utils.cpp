@@ -110,6 +110,7 @@ TEST(UtilsTest, GetROASignature) {
   string signature = Utils::getROASignature(stringToSign, "secret");
   EXPECT_EQ(28, signature.length());
   EXPECT_EQ("XGXDWA78AEvx/wmfxKoVCq/afWw=", signature);
+  EXPECT_EQ("6A3H2s0DM+FzrtDz72tajIkEsT+oEYX3vHV5RBSrd9A=", Utils::getROASignatureWithSHA256(stringToSign, "secret"));
 }
 
 // Test ToForm
@@ -161,6 +162,7 @@ TEST(UtilsTest, GetRPCSignature) {
   
   string signature = Utils::getRPCSignature(signedParams, "", "accessKeySecret");
   EXPECT_EQ("jHx/oHoHNrbVfhncHEvPdHXZwHU=", signature);
+  EXPECT_EQ("M+EiKoi2ps/3aJFloGUQMVbjHc/LLXAo8mBUeCXL4g0=", Utils::getRPCSignatureWithSHA256(signedParams, "", "accessKeySecret"));
 }
 
 // Test ArrayToStringWithSpecifiedStyle
