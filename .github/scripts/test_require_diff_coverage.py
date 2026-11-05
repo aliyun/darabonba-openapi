@@ -52,6 +52,11 @@ class SourceScopeTests(unittest.TestCase):
         self.assertEqual(1, self.run_gate(
             {'ts/src/client.ts': {1}}, 'src/websocketUtils/client.ts', [(1, 1)], 'ts'))
 
+    def test_changelog_and_package_metadata_pass(self):
+        self.assertEqual(0, self.run_gate(
+            {'ts/ChangeLog.md': {1}, 'ts/package.json': {3}},
+            'src/client.ts', [(1, 1)], 'ts'))
+
     def test_go_module_path_matches_source_relative_path(self):
         self.assertEqual(0, self.run_gate(
             {'golang/client/client.go': {1}}, 'github.com/example/sdk/client/client.go', [(1, 1)], 'golang'))

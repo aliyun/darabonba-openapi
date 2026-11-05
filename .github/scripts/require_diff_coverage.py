@@ -58,6 +58,27 @@ def norm(path):
     return path.replace("\\", "/").lstrip("./")
 
 
+def is_measured_source(path, report_format):
+    """True when this format's coverage report is expected to mention the file.
+
+    Release diffs rewrite changelogs, package metadata, and version modules.
+    Those files are not in the coverage report. Requiring a match for them
+    fails a version-only pull request. A changed source file of this format
+    still has to appear in the report.
+    """
+    name = norm(path).rsplit("/", 1)[-1]
+    if name in ("AssemblyInfo.cs", "__init__.py"):
+        return False
+    suffixes = {
+        "go": (".go",),
+        "jacoco": (".java",),
+        "cobertura": (".py", ".cs"),
+        "clover": (".php",),
+        "lcov": (".ts", ".js", ".mjs", ".cjs", ".swift"),
+    }[report_format]
+    return name.endswith(suffixes)
+
+
 def is_test_path(path):
     parts = norm(path).split("/")
     name = parts[-1]
@@ -261,6 +282,11 @@ def main():
             for path, lines in changed.items()
             if path == prefix or path.startswith(prefix + "/")
         }
+    changed = {
+        path: lines
+        for path, lines in changed.items()
+        if is_measured_source(path, args.format)
+    }
     covered = load_report(report, args.format)
     total = 0
     hit = 0

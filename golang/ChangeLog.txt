@@ -1,3 +1,7 @@
+2026-11-05 Version: v2.2.5
+- Pass endpointSuffix from client config, then ALIBABA_CLOUD_ENDPOINT_SUFFIX, onto the request attribute map.
+- Leave that map unchanged when the caller already set a non-empty endpointSuffix.
+
 2024-09-23 Version: v2.0.10
 - Solve the inconsistency of credentials refresh in all methods.
 
