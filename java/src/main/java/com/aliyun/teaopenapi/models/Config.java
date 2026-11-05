@@ -171,6 +171,12 @@ public class Config extends TeaModel {
     public String suffix;
 
     /**
+     * <p>domain suffix used by generated POP endpoints</p>
+     */
+    @NameInMap("endpointSuffix")
+    public String endpointSuffix;
+
+    /**
      * <p>socks5 proxy</p>
      */
     @NameInMap("socks5Proxy")
@@ -463,6 +469,14 @@ public class Config extends TeaModel {
     }
     public String getSuffix() {
         return this.suffix;
+    }
+
+    public Config setEndpointSuffix(String endpointSuffix) {
+        this.endpointSuffix = endpointSuffix;
+        return this;
+    }
+    public String getEndpointSuffix() {
+        return this.endpointSuffix;
     }
 
     public Config setSocks5Proxy(String socks5Proxy) {

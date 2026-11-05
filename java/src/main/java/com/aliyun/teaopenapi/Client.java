@@ -30,6 +30,7 @@ public class Client {
     public String _endpointRule;
     public java.util.Map<String, String> _endpointMap;
     public String _suffix;
+    public String _endpointSuffix;
     public Integer _readTimeout;
     public Integer _connectTimeout;
     public Integer _callTimeout;
@@ -64,6 +65,27 @@ public class Client {
      * 
      * @param config config contains the necessary information to create a client
      */
+    private String endpointForRequest(OpenApiRequest request) throws Exception {
+        String endpoint = com.aliyun.teautil.Common.empty(request.endpointOverride) ? this._endpoint : request.endpointOverride;
+        String suffix = this._attributeMap != null && this._attributeMap.key != null ? this._attributeMap.key.get("endpointSuffix") : null;
+        if (suffix == null || suffix.trim().isEmpty()) suffix = this._endpointSuffix;
+        if (suffix == null || suffix.trim().isEmpty()) suffix = this.endpointSuffixFromEnv();
+        suffix = suffix == null ? "" : suffix.trim().toLowerCase(java.util.Locale.ROOT);
+        if (suffix.isEmpty()) suffix = "aliyuncs.com";
+        if (!"aliyuncs.com".equals(suffix) && !"aliyuncs.alibaba".equals(suffix)) {
+            throw new com.aliyun.tea.TeaException(com.aliyun.tea.TeaConverter.buildMap(
+                new com.aliyun.tea.TeaPair("code", "InvalidEndpointSuffix"),
+                new com.aliyun.tea.TeaPair("message", "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba")));
+        }
+        String old = ".aliyuncs.com";
+        return endpoint != null && !"aliyuncs.com".equals(suffix) && endpoint.endsWith(old)
+            ? endpoint.substring(0, endpoint.length() - old.length()) + "." + suffix : endpoint;
+    }
+
+    String endpointSuffixFromEnv() {
+        return System.getenv("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+    }
+
     public Client(com.aliyun.teaopenapi.models.Config config) throws Exception {
         if (com.aliyun.teautil.Common.isUnset(config)) {
             throw new TeaException(TeaConverter.buildMap(
@@ -106,6 +128,11 @@ public class Client {
         this._endpointType = config.endpointType;
         this._network = config.network;
         this._suffix = config.suffix;
+        if (com.aliyun.teautil.Common.empty(config.endpointSuffix)) {
+            this._endpointSuffix = this.endpointSuffixFromEnv();
+        } else {
+            this._endpointSuffix = config.endpointSuffix;
+        }
         this._protocol = config.protocol;
         this._method = config.method;
         this._regionId = config.regionId;
@@ -238,7 +265,7 @@ public class Client {
                     // endpoint is setted in product client
                     request_.headers = TeaConverter.merge(String.class,
                         TeaConverter.buildMap(
-                            new TeaPair("host", _endpoint),
+                            new TeaPair("host", this.endpointForRequest(request)),
                             new TeaPair("x-acs-version", version),
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
@@ -250,7 +277,7 @@ public class Client {
                 } else {
                     request_.headers = TeaConverter.merge(String.class,
                         TeaConverter.buildMap(
-                            new TeaPair("host", _endpoint),
+                            new TeaPair("host", this.endpointForRequest(request)),
                             new TeaPair("x-acs-version", version),
                             new TeaPair("x-acs-action", action),
                             new TeaPair("user-agent", this.getUserAgent())
@@ -504,7 +531,7 @@ public class Client {
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("accept", "application/json"),
                         new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("x-acs-signature-method", "HMAC-SHA1"),
@@ -770,7 +797,7 @@ public class Client {
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
                         new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("accept", "application/json"),
                         new TeaPair("x-acs-signature-nonce", com.aliyun.teautil.Common.getNonce()),
                         new TeaPair("x-acs-signature-method", "HMAC-SHA1"),
@@ -1039,7 +1066,7 @@ public class Client {
                 // endpoint is setted in product client
                 request_.headers = TeaConverter.merge(String.class,
                     TeaConverter.buildMap(
-                        new TeaPair("host", _endpoint),
+                        new TeaPair("host", this.endpointForRequest(request)),
                         new TeaPair("x-acs-version", params.version),
                         new TeaPair("x-acs-action", params.action),
                         new TeaPair("user-agent", this.getUserAgent()),
@@ -1360,7 +1387,7 @@ public class Client {
                 ));
                 com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration configurationContext = com.aliyun.gateway.spi.models.InterceptorContext.InterceptorContextConfiguration.build(TeaConverter.buildMap(
                     new TeaPair("regionId", _regionId),
-                    new TeaPair("endpoint", com.aliyun.teautil.Common.defaultString(request.endpointOverride, _endpoint)),
+                    new TeaPair("endpoint", this.endpointForRequest(request)),
                     new TeaPair("endpointRule", _endpointRule),
                     new TeaPair("endpointMap", _endpointMap),
                     new TeaPair("endpointType", _endpointType),
@@ -1370,9 +1397,29 @@ public class Client {
                 com.aliyun.gateway.spi.models.InterceptorContext interceptorContext = new com.aliyun.gateway.spi.models.InterceptorContext();
                 interceptorContext.request = requestContext;
                 interceptorContext.configuration = configurationContext;
-                com.aliyun.gateway.spi.models.AttributeMap attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
-                if (!com.aliyun.teautil.Common.isUnset(_attributeMap)) {
-                    attributeMap = _attributeMap;
+                com.aliyun.gateway.spi.models.AttributeMap attributeMap = _attributeMap;
+                if (com.aliyun.teautil.Common.isUnset(attributeMap)) {
+                    attributeMap = new com.aliyun.gateway.spi.models.AttributeMap();
+                }
+                String callerSuffix = null;
+                if (!com.aliyun.teautil.Common.isUnset(attributeMap.key)) {
+                    callerSuffix = attributeMap.key.get("endpointSuffix");
+                }
+                if ((callerSuffix == null || callerSuffix.trim().isEmpty()) && !com.aliyun.teautil.Common.empty(this._endpointSuffix)) {
+                    com.aliyun.gateway.spi.models.AttributeMap copied = new com.aliyun.gateway.spi.models.AttributeMap();
+                    if (!com.aliyun.teautil.Common.isUnset(attributeMap.attributes)) {
+                        java.util.Map<String, Object> copiedAttributes = new java.util.HashMap<String, Object>();
+                        for (java.util.Map.Entry<String, ?> entry : attributeMap.attributes.entrySet()) {
+                            copiedAttributes.put(entry.getKey(), entry.getValue());
+                        }
+                        copied.attributes = copiedAttributes;
+                    }
+                    copied.key = new java.util.HashMap<String, String>();
+                    if (!com.aliyun.teautil.Common.isUnset(attributeMap.key)) {
+                        copied.key.putAll(attributeMap.key);
+                    }
+                    copied.key.put("endpointSuffix", this._endpointSuffix);
+                    attributeMap = copied;
                 }
 
                 // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

@@ -28,14 +28,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    # TEMP: install tea until 1.4.3 is on Maven Central (aliyun/tea-java bump #257);
-    # remove this step after Central publish.
-    - name: Install unreleased tea
-      run: |
-        git clone -q https://github.com/aliyun/tea-java.git "$RUNNER_TEMP/tea-java"
-        git -C "$RUNNER_TEMP/tea-java" checkout -q ede3c12a6f005e634ddc39e758e3c68bdb930003
-        OPTS="-q -B install -DskipTests -Dgpg.skip -Djacoco.skip=true -Dmaven.javadoc.skip=true"
-        mvn $OPTS -f "$RUNNER_TEMP/tea-java/pom.xml"
     - name: Test
       run: mvn test -B
     - uses: codecov/codecov-action@v4
