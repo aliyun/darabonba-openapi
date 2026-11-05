@@ -10,6 +10,10 @@ English | [简体中文](README-CN.md)
 [![TypeScript CI](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml/badge.svg)](https://github.com/aliyun/darabonba-openapi/actions/workflows/ts.yml)
 [![codecov](https://codecov.io/gh/aliyun/darabonba-openapi/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/darabonba-openapi)
 
+## Signature V2 compatibility
+
+In the Java and C# clients, AccessKey and STS requests using signature V2 use HMAC-SHA256. Explicit HMAC-SHA1 signature headers or RPC query parameters are upgraded to HMAC-SHA256. The signature version is unchanged.
+
 ## Issues
 
 [Opening an Issue](https://github.com/aliyun/darabonba-openapi/issues/new), Issues not conforming to the guidelines may be closed immediately.
