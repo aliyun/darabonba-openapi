@@ -145,6 +145,8 @@ namespace OpenApi
 
       string _tlsMinVersion;
 
+      bool _ipv4Only;
+
       AlibabaCloud::Gateway::Models::AttributeMap _attributeMap;
 
       int64_t _maxIdleConns;

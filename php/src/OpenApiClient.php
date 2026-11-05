@@ -230,6 +230,11 @@ class OpenApiClient
   protected $_tlsMinVersion;
 
   /**
+   * @var boolean
+   */
+  protected $_ipv4Only;
+
+  /**
    * @var AttributeMap
    */
   protected $_attributeMap;
@@ -304,6 +309,7 @@ class OpenApiClient
     $this->_disableHttp2 = $config->disableHttp2;
     $this->_retryOptions = $config->retryOptions;
     $this->_tlsMinVersion = $config->tlsMinVersion;
+    $this->_ipv4Only = $config->ipv4Only;
   }
 
   /**
@@ -343,6 +349,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
@@ -616,6 +623,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
@@ -875,6 +883,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
@@ -1159,6 +1168,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
@@ -1467,6 +1477,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,
@@ -1621,6 +1632,7 @@ class OpenApiClient
       'socks5Proxy' => '' . ($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
       'socks5NetWork' => '' . ($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
       'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => boolval($this->_ipv4Only),
       'retryOptions' => $this->_retryOptions,
       'ignoreSSL' => $runtime->ignoreSSL,
       'tlsMinVersion' => $this->_tlsMinVersion,

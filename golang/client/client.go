@@ -56,6 +56,7 @@ type Client struct {
 	RetryOptions         *dara.RetryOptions
 	HttpClient           dara.HttpClient
 	TlsMinVersion        *string
+	Ipv4Only             *bool
 	AttributeMap         *spi.AttributeMap
 }
 
@@ -142,6 +143,7 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 	client.RetryOptions = config.RetryOptions
 	client.HttpClient = config.HttpClient
 	client.TlsMinVersion = config.TlsMinVersion
+	client.Ipv4Only = config.Ipv4Only
 	return nil
 }
 
@@ -213,6 +215,7 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
@@ -455,6 +458,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
@@ -662,6 +666,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
@@ -868,6 +873,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
@@ -913,6 +919,7 @@ func (client *Client) DoRequest(params *openapiutil.Params, request *openapiutil
 			"socks5Proxy":                dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 			"socks5NetWork":              dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 			"maxIdleConns":               dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+			"ipv4Only":                   dara.BoolValue(client.Ipv4Only),
 			"retryOptions":               client.RetryOptions,
 			"ignoreSSL":                  dara.BoolValue(runtime.IgnoreSSL),
 			"httpClient":                 client.HttpClient,
@@ -1211,6 +1218,7 @@ func (client *Client) Execute(params *openapiutil.Params, request *openapiutil.O
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,
@@ -1416,6 +1424,7 @@ func (client *Client) CallSSEApi(params *openapiutil.Params, request *openapiuti
 		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
 		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
 		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
 		"retryOptions":   client.RetryOptions,
 		"ignoreSSL":      dara.BoolValue(runtime.IgnoreSSL),
 		"httpClient":     client.HttpClient,

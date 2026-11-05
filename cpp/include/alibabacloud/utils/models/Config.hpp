@@ -53,6 +53,7 @@ namespace Models
       DARABONBA_PTR_TO_JSON(disableHttp2, disableHttp2_);
       DARABONBA_PTR_TO_JSON(retryOptions, retryOptions_);
       DARABONBA_PTR_TO_JSON(tlsMinVersion, tlsMinVersion_);
+      DARABONBA_PTR_TO_JSON(ipv4Only, ipv4Only_);
     };
     friend void from_json(const Darabonba::Json& j, Config& obj) { 
       DARABONBA_PTR_FROM_JSON(accessKeyId, accessKeyId_);
@@ -87,6 +88,7 @@ namespace Models
       DARABONBA_PTR_FROM_JSON(disableHttp2, disableHttp2_);
       DARABONBA_PTR_FROM_JSON(retryOptions, retryOptions_);
       DARABONBA_PTR_FROM_JSON(tlsMinVersion, tlsMinVersion_);
+      DARABONBA_PTR_FROM_JSON(ipv4Only, ipv4Only_);
     };
     Config() = default ;
     Config(const Config &) = default ;
@@ -106,7 +108,7 @@ namespace Models
         && this->userAgent_ == nullptr && this->suffix_ == nullptr && this->socks5Proxy_ == nullptr && this->socks5NetWork_ == nullptr && this->endpointType_ == nullptr
         && this->openPlatformEndpoint_ == nullptr && this->type_ == nullptr && this->signatureVersion_ == nullptr && this->signatureAlgorithm_ == nullptr && this->globalParameters_ == nullptr
         && this->key_ == nullptr && this->cert_ == nullptr && this->ca_ == nullptr && this->disableHttp2_ == nullptr && this->retryOptions_ == nullptr
-        && this->tlsMinVersion_ == nullptr; };
+        && this->tlsMinVersion_ == nullptr && this->ipv4Only_ == nullptr; };
     // accessKeyId Field Functions 
     bool hasAccessKeyId() const { return this->accessKeyId_ != nullptr;};
     void deleteAccessKeyId() { this->accessKeyId_ = nullptr;};
@@ -342,6 +344,13 @@ namespace Models
     inline Config& setTlsMinVersion(string tlsMinVersion) { DARABONBA_PTR_SET_VALUE(tlsMinVersion_, tlsMinVersion) };
 
 
+    // ipv4Only Field Functions 
+    bool hasIpv4Only() const { return this->ipv4Only_ != nullptr;};
+    void deleteIpv4Only() { this->ipv4Only_ = nullptr;};
+    inline bool getIpv4Only() const { DARABONBA_PTR_GET_DEFAULT(ipv4Only_, false) };
+    inline Config& setIpv4Only(bool ipv4Only) { DARABONBA_PTR_SET_VALUE(ipv4Only_, ipv4Only) };
+
+
   protected:
     // accesskey id
     shared_ptr<string> accessKeyId_ {};
@@ -409,6 +418,8 @@ namespace Models
     shared_ptr<Darabonba::Policy::RetryOptions> retryOptions_ {};
     // TLS Minimum Version
     shared_ptr<string> tlsMinVersion_ {};
+    // only use IPv4 to connect to the endpoint, AAAA records are ignored
+    shared_ptr<bool> ipv4Only_ {};
   };
 
   } // namespace Models

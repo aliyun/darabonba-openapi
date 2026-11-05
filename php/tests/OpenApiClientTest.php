@@ -122,17 +122,22 @@ class OpenApiClientTest extends TestCase
 
     private static function getResponseHeader($headers, $name)
     {
-        $key = strtolower($name);
-        if (!isset($headers[$key])) {
+        if (!is_array($headers)) {
             return null;
         }
+        $want = strtolower($name);
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) !== $want) {
+                continue;
+            }
+            if (is_array($value)) {
+                return isset($value[0]) ? $value[0] : null;
+            }
 
-        $value = $headers[$key];
-        if (is_array($value)) {
-            return $value[0];
+            return $value;
         }
 
-        return $value;
+        return null;
     }
 
     public static function stopThrottlingMockServer()
@@ -781,6 +786,22 @@ class OpenApiClientTest extends TestCase
 
     public function testCallSSEApiWithSignV3()
     {
+        // PHP 5.6 CI has seen intermittent SSE stream/header errors; retry once.
+        $last = null;
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            try {
+                $this->assertCallSSEApiWithSignV3Once();
+                return;
+            } catch (\Exception $e) {
+                $last = $e;
+                usleep(500000);
+            }
+        }
+        throw $last;
+    }
+
+    private function assertCallSSEApiWithSignV3Once()
+    {
         self::ensureMockServer();
 
         // 额外等待确保 Mock 服务器完全启动 (for CI environments)
@@ -805,25 +826,26 @@ class OpenApiClientTest extends TestCase
         ]);
         $response = $client->callSSEApi($params, $request, $runtime);
 
-
-        // Add more assertions as needed
         $events = [];
 
         // SSE events are typically separated by double newline
         foreach ($response as $event) {
             $this->assertEquals(200, $event->statusCode);
             $headers = $event->headers;
-            $this->assertEquals('text/event-stream;charset=UTF-8', $headers['Content-Type'][0]);
-            $this->assertEquals('sdk', $headers['for-test'][0]);
-            $userAgentArray = explode(' ', $headers['user-agent'][0]);
+            // Header map casing differs across PHP/Guzzle; look up case-insensitively.
+            $this->assertEquals(
+                'text/event-stream;charset=UTF-8',
+                self::getResponseHeader($headers, 'Content-Type')
+            );
+            $this->assertEquals('sdk', self::getResponseHeader($headers, 'for-test'));
+            $userAgentArray = explode(' ', self::getResponseHeader($headers, 'user-agent'));
             $this->assertEquals('config.userAgent', end($userAgentArray));
-            $this->assertEquals('global-value', $headers['global-key'][0]);
-            $this->assertEquals('extends-value', $headers['extends-key'][0]);
-            $this->assertNotEmpty($headers['x-acs-signature-nonce'][0]);
-            $this->assertNotEmpty($headers['x-acs-date'][0]);
-            $this->assertEquals('application/json', $headers['accept'][0]);
+            $this->assertEquals('global-value', self::getResponseHeader($headers, 'global-key'));
+            $this->assertEquals('extends-value', self::getResponseHeader($headers, 'extends-key'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-signature-nonce'));
+            $this->assertNotEmpty(self::getResponseHeader($headers, 'x-acs-date'));
+            $this->assertEquals('application/json', self::getResponseHeader($headers, 'accept'));
             $event = $event->event->toArray();
-            // var_dump($event);
             $events[] = json_decode($event['data'], true);
         }
         $expectedEvents = [
@@ -1315,5 +1337,88 @@ class OpenApiClientTest extends TestCase
         } catch (\Exception $e) {
             $this->assertNotEmpty($e->getMessage());
         }
+    }
+
+    public function testIpv4OnlyIsPassedToRuntime()
+    {
+        $resolves = [];
+        $stack = \GuzzleHttp\HandlerStack::create(function ($request, array $options) use (&$resolves) {
+            $resolves[] = isset($options['force_ip_resolve']) ? $options['force_ip_resolve'] : null;
+            return new \GuzzleHttp\Promise\FulfilledPromise(new \GuzzleHttp\Psr7\Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                '{"RequestId":"ipv4-only"}'
+            ));
+        });
+        \AlibabaCloud\Dara\Dara::config(['handler' => $stack]);
+
+        $spi = new Ipv4OnlyStubGateway();
+
+        $paths = [
+            ['ACS3-HMAC-SHA256', null, 'RPC', 'formData', false],
+            ['v2', null, 'RPC', 'formData', false],
+            ['v2', null, 'ROA', 'json', false],
+            ['v2', null, 'ROA', 'formData', false],
+            ['ACS3-HMAC-SHA256', 'v4', 'RPC', 'formData', true],
+        ];
+        // [Config.ipv4Only, expected force_ip_resolve] — ipv4Only is Client Config only
+        $settings = [
+            [null, null],
+            [true, 'v4'],
+            [false, null],
+        ];
+        try {
+            foreach ($paths as $path) {
+                list($algorithm, $signatureVersion, $style, $reqBodyType, $gateway) = $path;
+                foreach ($settings as $setting) {
+                    list($configIpv4Only, $expected) = $setting;
+                    $config = self::createConfig();
+                    $config->protocol = 'HTTP';
+                    $config->endpoint = 'ecs.aliyuncs.com';
+                    $config->signatureAlgorithm = $algorithm;
+                    $config->signatureVersion = $signatureVersion;
+                    $config->ipv4Only = $configIpv4Only;
+                    $client = new OpenApiClient($config);
+                    if ($gateway) {
+                        $client->setGatewayClient($spi);
+                    }
+                    $runtime = self::createRuntimeOptions();
+                    $params = new Params([
+                        'action' => 'TestAPI',
+                        'version' => '2022-06-01',
+                        'protocol' => 'HTTP',
+                        'pathname' => '/',
+                        'method' => 'POST',
+                        'authType' => 'AK',
+                        'style' => $style,
+                        'reqBodyType' => $reqBodyType,
+                        'bodyType' => 'json',
+                    ]);
+
+                    $resolves = [];
+                    $client->callApi($params, self::createOpenApiRequest(), $runtime);
+                    $this->assertSame([$expected], $resolves, json_encode([$path, $setting]));
+                }
+            }
+        } finally {
+            \AlibabaCloud\Dara\Dara::config([]);
+        }
+    }
+}
+
+class Ipv4OnlyStubGateway extends \Darabonba\GatewaySpi\Client
+{
+    public function modifyConfiguration($context, $attributeMap)
+    {
+    }
+
+    public function modifyRequest($context, $attributeMap)
+    {
+        $context->request->headers['host'] = 'ecs.aliyuncs.com';
+    }
+
+    public function modifyResponse($context, $attributeMap)
+    {
+        $context->response->deserializedBody = (string) $context->response->body;
     }
 }

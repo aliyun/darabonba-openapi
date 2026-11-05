@@ -47,6 +47,7 @@ model Config {
   disableHttp2?: boolean(description='disable HTTP/2', example='false'),
   retryOptions?: $RetryOptions(description='retry options'),
   tlsMinVersion?: string(description='TLS Minimum Version', example='TLSv1, TLSv1.1, TLSv1.2, TLSv1.3',default=''),
+  ipv4Only?: boolean(description='only use IPv4 to connect to the endpoint, AAAA records are ignored', example='false'),
 }
 
 
