@@ -5,6 +5,7 @@
 #include <darabonba/http/Request.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/Stream.hpp>
+#include <darabonba/Model.hpp>
 #include <alibabacloud/exceptions/ClientException.hpp>
 #include <string>
 #include <map>
@@ -14,6 +15,18 @@
 using namespace std;
 using namespace AlibabaCloud::OpenApi::Utils;
 using json = nlohmann::json;
+
+namespace {
+
+struct DownloadResponseModel {
+  shared_ptr<Darabonba::IStream> body_;
+  friend void from_json(const Darabonba::Json &j, DownloadResponseModel &obj) {
+    DARABONBA_FROM_JSON(body, body_);
+  }
+  shared_ptr<Darabonba::IStream> getBody() const { return body_; }
+};
+
+} // namespace
 
 TEST(POPTest, ExplicitEndpointSuffix) {
   AlibabaCloud::Gateway::POP client;
@@ -230,11 +243,13 @@ TEST(POPTest, ModifyResponsePassesBinaryBodyThroughExecute) {
         {"body", context.getResponse().getDeserializedBody()}});
   }
 
-  ASSERT_FALSE(executed["body"].is_null());
-  auto first = Darabonba::Stream::toReadable(executed["body"].get<Darabonba::Bytes>());
-  EXPECT_EQ("download content", Darabonba::Stream::readAsString(first));
-  auto second = Darabonba::Stream::toReadable(executed["body"].get<Darabonba::Bytes>());
-  EXPECT_EQ("download content", Darabonba::Stream::readAsString(second));
+  ASSERT_TRUE(executed["body"].is_binary());
+  DownloadResponseModel first = executed.get<DownloadResponseModel>();
+  ASSERT_NE(nullptr, first.getBody());
+  EXPECT_EQ("download content", Darabonba::Stream::readAsString(first.getBody()));
+  DownloadResponseModel second = executed.get<DownloadResponseModel>();
+  ASSERT_NE(nullptr, second.getBody());
+  EXPECT_EQ("download content", Darabonba::Stream::readAsString(second.getBody()));
 }
 
 TEST(POPTest, ModifyResponseReadsStringStream) {
