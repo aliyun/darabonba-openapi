@@ -5,7 +5,7 @@ import Glibc
 import Darwin
 #endif
 
-// one GET per test; add body framing only if upload tests need it.
+// Read one complete request per test.
 // A nil body echoes the received request.
 final class HTTPTestServer {
     let port: Int
@@ -54,12 +54,38 @@ final class HTTPTestServer {
             #endif
             var request = Data()
             var buffer = [UInt8](repeating: 0, count: 4096)
+            var bodyStart: Int?
+            var contentLength = 0
+            var chunked = false
             while request.count < 1_048_576 {
                 let count = recv(connection, &buffer, buffer.count, 0)
                 guard count > 0 else { return }
                 request.append(contentsOf: buffer.prefix(count))
-                if request.range(of: Data("\r\n\r\n".utf8)) != nil { break }
+                if bodyStart == nil, let end = request.range(of: Data("\r\n\r\n".utf8)) {
+                    bodyStart = end.upperBound
+                    let headers = String(decoding: request[..<end.lowerBound], as: UTF8.self)
+                    for line in headers.components(separatedBy: "\r\n").dropFirst() {
+                        let parts = line.split(separator: ":", maxSplits: 1)
+                        guard parts.count == 2 else { continue }
+                        let name = parts[0].lowercased()
+                        let value = parts[1].trimmingCharacters(in: .whitespaces)
+                        if name == "content-length" {
+                            guard let length = Int(value), length >= 0 else { return }
+                            contentLength = length
+                        } else if name == "transfer-encoding" {
+                            chunked = value.lowercased().split(separator: ",").contains { $0.trimmingCharacters(in: .whitespaces) == "chunked" }
+                        }
+                    }
+                }
+                if let start = bodyStart {
+                    if chunked {
+                        if Self.completeChunkedBody(request, from: start) { break }
+                    } else if request.count - start >= contentLength {
+                        break
+                    }
+                }
             }
+            guard let start = bodyStart, chunked ? Self.completeChunkedBody(request, from: start) : request.count - start >= contentLength else { return }
             let payload = body.map { Data($0.utf8) } ?? request
             var response = Data("HTTP/1.1 200 OK\r\nContent-Length: \(payload.count)\r\nContent-Type: application/json\r\nX-Mock: tea\r\nConnection: close\r\n\r\n".utf8)
             response.append(payload)
@@ -76,6 +102,26 @@ final class HTTPTestServer {
                 }
             }
         }
+    }
+
+    private static func completeChunkedBody(_ data: Data, from start: Int) -> Bool {
+        let newline = Data("\r\n".utf8)
+        var position = start
+        while position < data.count {
+            guard let lineEnd = data.range(of: newline, in: position..<data.count) else { return false }
+            let line = String(decoding: data[position..<lineEnd.lowerBound], as: UTF8.self)
+            guard let sizeText = line.split(separator: ";", maxSplits: 1).first,
+                  let size = Int(sizeText, radix: 16), size >= 0 else { return false }
+            position = lineEnd.upperBound
+            if size == 0 {
+                if data.count - position >= 2 && data[position..<(position + 2)] == newline { return true }
+                return data.range(of: Data("\r\n\r\n".utf8), in: position..<data.count) != nil
+            }
+            guard size <= data.count - position, data.count - position - size >= 2,
+                  data[(position + size)..<(position + size + 2)] == newline else { return false }
+            position += size + 2
+        }
+        return false
     }
 
     func stop() {
