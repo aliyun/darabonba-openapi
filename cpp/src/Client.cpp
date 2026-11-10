@@ -1228,9 +1228,10 @@ Darabonba::Json Client::execute(const Params &params, const OpenApiRequest &requ
 
       InterceptorContextResponse responseContext = InterceptorContextResponse(json({
         {"statusCode" , response_->getStatusCode()},
-        {"headers" , response_->getHeaders()},
-        {"body" , response_->getBody()}
+        {"headers" , response_->getHeaders()}
       }));
+      // The Curl response body is a live stream, so pass its shared owner directly.
+      responseContext.setBody(response_->getBody());
       interceptorContext.setResponse(responseContext);
       // 3. spi.modifyResponse(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
       _spi->modifyResponse(interceptorContext, attributeMap);
