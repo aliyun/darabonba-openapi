@@ -171,6 +171,12 @@ public class Config extends TeaModel {
     public String suffix;
 
     /**
+     * <p>domain suffix used by generated POP endpoints</p>
+     */
+    @NameInMap("endpointSuffix")
+    public String endpointSuffix;
+
+    /**
      * <p>socks5 proxy</p>
      */
     @NameInMap("socks5Proxy")
@@ -298,6 +304,15 @@ public class Config extends TeaModel {
      */
     @NameInMap("enableUsageDataCollection")
     public Boolean enableUsageDataCollection;
+
+    /**
+     * <p>only use IPv4 to connect to the endpoint, AAAA records are ignored</p>
+     * 
+     * <strong>example:</strong>
+     * <p>false</p>
+     */
+    @NameInMap("ipv4Only")
+    public Boolean ipv4Only;
 
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
@@ -456,6 +471,14 @@ public class Config extends TeaModel {
         return this.suffix;
     }
 
+    public Config setEndpointSuffix(String endpointSuffix) {
+        this.endpointSuffix = endpointSuffix;
+        return this;
+    }
+    public String getEndpointSuffix() {
+        return this.endpointSuffix;
+    }
+
     public Config setSocks5Proxy(String socks5Proxy) {
         this.socks5Proxy = socks5Proxy;
         return this;
@@ -575,6 +598,14 @@ public class Config extends TeaModel {
     }
     public Boolean getEnableUsageDataCollection() {
         return this.enableUsageDataCollection;
+    }
+
+    public Config setIpv4Only(Boolean ipv4Only) {
+        this.ipv4Only = ipv4Only;
+        return this;
+    }
+    public Boolean getIpv4Only() {
+        return this.ipv4Only;
     }
 
 }
