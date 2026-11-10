@@ -109,6 +109,11 @@ class OpenApiClient
   protected $_suffix;
 
   /**
+   * @var string
+   */
+  protected $_endpointSuffix;
+
+  /**
    * @var int
    */
   protected $_readTimeout;
@@ -288,6 +293,14 @@ class OpenApiClient
     $this->_endpointType = $config->endpointType;
     $this->_network = $config->network;
     $this->_suffix = $config->suffix;
+    if (empty($config->endpointSuffix)) {
+      $envSuffix = getenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+      if ($envSuffix !== false) {
+        $this->_endpointSuffix = $envSuffix;
+      }
+    } else {
+      $this->_endpointSuffix = $config->endpointSuffix;
+    }
     $this->_protocol = $config->protocol;
     $this->_method = $config->method;
     $this->_regionId = $config->regionId;
@@ -413,14 +426,14 @@ class OpenApiClient
         if (is_null($headers)) {
           // endpoint is setted in product client
           $_request->headers = Dara::merge([
-            'host' => $this->_endpoint,
+            'host' => $this->endpointForRequest($request),
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
           ], $globalHeaders, $extendsHeaders, $request->headers);
         } else {
           $_request->headers = Dara::merge([
-            'host' => $this->_endpoint,
+            'host' => $this->endpointForRequest($request),
             'x-acs-version' => $version,
             'x-acs-action' => $action,
             'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -680,7 +693,7 @@ class OpenApiClient
 
         $_request->headers = Dara::merge([
           'date' => Utils::getDateUTCString(),
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
           'x-acs-signature-method' => 'HMAC-SHA1',
@@ -940,7 +953,7 @@ class OpenApiClient
 
         $_request->headers = Dara::merge([
           'date' => Utils::getDateUTCString(),
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
           'x-acs-signature-method' => 'HMAC-SHA1',
@@ -1236,7 +1249,7 @@ class OpenApiClient
         $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
         // endpoint is setted in product client
         $_request->headers = Dara::merge([
-          'host' => $this->_endpoint,
+          'host' => $this->endpointForRequest($request),
           'x-acs-version' => $params->version,
           'x-acs-action' => $params->action,
           'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -1555,7 +1568,7 @@ class OpenApiClient
         ]);
         $configurationContext = new configuration([
           'regionId' => $this->_regionId,
-          'endpoint' => '' . ($request->endpointOverride ? $request->endpointOverride : $this->_endpoint),
+          'endpoint' => $this->endpointForRequest($request),
           'endpointRule' => $this->_endpointRule,
           'endpointMap' => $this->_endpointMap,
           'endpointType' => $this->_endpointType,
@@ -1566,10 +1579,7 @@ class OpenApiClient
           'request' => $requestContext,
           'configuration' => $configurationContext,
         ]);
-        $attributeMap = new AttributeMap([]);
-        if (!is_null($this->_attributeMap)) {
-          $attributeMap = $this->_attributeMap;
-        }
+        $attributeMap = $this->attributeMapWithEndpointSuffix();
 
         // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
         $this->_spi->modifyConfiguration($interceptorContext, $attributeMap);
@@ -1671,7 +1681,7 @@ class OpenApiClient
     $_request->query = Dara::merge([], $globalQueries, $extendsQueries, $request->query);
     // endpoint is setted in product client
     $_request->headers = Dara::merge([
-      'host' => $this->_endpoint,
+      'host' => $this->endpointForRequest($request),
       'x-acs-version' => $params->version,
       'x-acs-action' => $params->action,
       'user-agent' => Utils::getUserAgent($this->_userAgent),
@@ -1813,6 +1823,58 @@ class OpenApiClient
    * @returns accesskey id
    * @return string
    */
+  private function endpointForRequest($request)
+  {
+    $endpoint = $request->endpointOverride ? $request->endpointOverride : $this->_endpoint;
+    $attributes = $this->attributeMapWithEndpointSuffix();
+    $suffix = isset($attributes->key['endpointSuffix']) ? strtolower(trim($attributes->key['endpointSuffix'])) : '';
+    if ($suffix === '') {
+      $env = getenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+      $suffix = $env === false ? '' : strtolower(trim($env));
+    }
+    if ($suffix === '') { $suffix = 'aliyuncs.com'; }
+    if ($suffix !== 'aliyuncs.com' && $suffix !== 'aliyuncs.alibaba') {
+      throw new ClientException([
+        'code' => 'InvalidEndpointSuffix', 'message' => 'endpointSuffix must be aliyuncs.com or aliyuncs.alibaba',
+        'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null,
+      ]);
+    }
+    $old = '.aliyuncs.com';
+    return $endpoint && $suffix !== 'aliyuncs.com' && substr($endpoint, -strlen($old)) === $old
+      ? substr($endpoint, 0, -strlen($old)) . '.' . $suffix : $endpoint;
+  }
+
+  private function attributeMapWithEndpointSuffix()
+  {
+    $attributeMap = $this->_attributeMap;
+    if (is_null($attributeMap)) {
+      $attributeMap = new AttributeMap([]);
+    }
+    if (!is_null($attributeMap->key) && isset($attributeMap->key['endpointSuffix']) && trim($attributeMap->key['endpointSuffix']) !== '') {
+      return $attributeMap;
+    }
+    if (empty($this->_endpointSuffix)) {
+      return $attributeMap;
+    }
+    $keys = [];
+    if (!is_null($attributeMap->key)) {
+      foreach ($attributeMap->key as $name => $value) {
+        $keys[$name] = $value;
+      }
+    }
+    $keys['endpointSuffix'] = $this->_endpointSuffix;
+    $copied = new AttributeMap([]);
+    $copied->key = $keys;
+    if (!is_null($attributeMap->attributes)) {
+      $attributes = [];
+      foreach ($attributeMap->attributes as $name => $value) {
+        $attributes[$name] = $value;
+      }
+      $copied->attributes = $attributes;
+    }
+    return $copied;
+  }
+
   public function getAccessKeyId()
   {
     if (is_null($this->_credential)) {

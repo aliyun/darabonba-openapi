@@ -26,6 +26,7 @@ type @userAgent = string
 type @endpointRule = string
 type @endpointMap = map[string]string
 type @suffix = string
+type @endpointSuffix = string
 type @readTimeout = integer
 type @connectTimeout = integer
 type @httpProxy = string
@@ -118,6 +119,11 @@ init(config: OpenApiUtil.Config) {
     @userAgent = $Env.get('ALIBABA_CLOUD_USER_AGENT');
   } else {
     @userAgent = config.userAgent;
+  }
+  if ($isNull(config.endpointSuffix) || config.endpointSuffix == '') {
+    @endpointSuffix = $Env.get('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+  } else {
+    @endpointSuffix = config.endpointSuffix;
   }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
@@ -1150,6 +1156,21 @@ api execute(params: OpenApiUtil.Params, request: OpenApiUtil.OpenApiRequest, run
   var attributeMap = new SPI.AttributeMap{};
   if (!$isNull(@attributeMap)) {
     attributeMap = @attributeMap;
+  }
+  if (!$isNull(@endpointSuffix) && @endpointSuffix != '') {
+    var keys: map[string]string = {
+      endpointSuffix = @endpointSuffix
+    };
+    if (!$isNull(attributeMap.key)) {
+      keys = {
+        ...attributeMap.key,
+        endpointSuffix = @endpointSuffix
+      };
+    }
+    attributeMap = new SPI.AttributeMap{
+      key = keys,
+      attributes = attributeMap.attributes
+    };
   }
 
   // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);

@@ -78,6 +78,9 @@ func (s *ClientError) GetData() map[string]interface{} {
 }
 
 func (s *ClientError) GetName() *string {
+	if s.Name == nil {
+		return dara.String("ClientError")
+	}
 	return s.Name
 }
 

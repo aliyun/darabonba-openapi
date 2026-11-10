@@ -793,20 +793,37 @@ class OpenApiClientTest extends TestCase
         $this->assertNotEmpty($response);
     }
 
+    public function testMockServerReadsFragmentedSSERequest()
+    {
+        self::ensureMockServer();
+        $socket = stream_socket_client('tcp://127.0.0.1:8000', $errno, $errstr, 5);
+        $this->assertTrue(is_resource($socket), $errstr);
+        stream_set_timeout($socket, 5);
+        $body = '{"key":"value"}';
+        $padding = str_repeat('x', 2048);
+        $request = "POST /sse HTTP/1.1\r\nHost: 127.0.0.1:8000\r\n" .
+            "Content-Type: application/json\r\nContent-Length: " . strlen($body) . "\r\n" .
+            "for-test: sdk\r\nX-Padding: " . $padding . "\r\n\r\n" . $body;
+        try {
+            fwrite($socket, substr($request, 0, 64));
+            usleep(50000);
+            fwrite($socket, substr($request, 64));
+            $response = stream_get_contents($socket);
+        } finally {
+            fclose($socket);
+        }
+        $parts = explode("\r\n\r\n", $response, 2);
+        $this->assertCount(2, $parts);
+        $this->assertSame(1, preg_match_all('/^Content-Type:/mi', $parts[0], $matches));
+        $this->assertSame(0, preg_match('/^Content-Length:/mi', $parts[0]));
+        $this->assertTrue(strpos($parts[0], 'text/event-stream;charset=UTF-8') !== false);
+        $this->assertTrue(strpos($parts[0], $padding) !== false);
+        $this->assertSame(5, substr_count($parts[1], 'event: flow'));
+    }
+
     public function testCallSSEApiWithSignV3()
     {
-        // PHP 5.6 CI has seen intermittent SSE stream/header errors; retry once.
-        $last = null;
-        for ($attempt = 0; $attempt < 2; $attempt++) {
-            try {
-                $this->assertCallSSEApiWithSignV3Once();
-                return;
-            } catch (\Exception $e) {
-                $last = $e;
-                usleep(500000);
-            }
-        }
-        throw $last;
+        $this->assertCallSSEApiWithSignV3Once();
     }
 
     private function assertCallSSEApiWithSignV3Once()
@@ -1345,6 +1362,131 @@ class OpenApiClientTest extends TestCase
             $this->fail('expected missing credential');
         } catch (\Exception $e) {
             $this->assertNotEmpty($e->getMessage());
+        }
+    }
+
+    public function testEndpointSuffix()
+    {
+        putenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX=example.com');
+        try {
+            $fromEnv = new OpenApiClient(new Config([
+                'endpoint' => 'example.com',
+            ]));
+            $build = new \ReflectionMethod(OpenApiClient::class, 'attributeMapWithEndpointSuffix');
+            $build->setAccessible(true);
+            $mapped = $build->invoke($fromEnv);
+            $this->assertEquals('example.com', $mapped->key['endpointSuffix']);
+
+            $explicit = new OpenApiClient(new Config([
+                'endpoint' => 'example.com',
+                'endpointSuffix' => 'example.net',
+            ]));
+            $property = new \ReflectionProperty(OpenApiClient::class, '_attributeMap');
+            $property->setAccessible(true);
+            $original = new \Darabonba\GatewaySpi\Models\AttributeMap([]);
+            $original->key = array('signatureTypePrefix' => 'ACS4-');
+            $property->setValue($explicit, $original);
+            $mapped = $build->invoke($explicit);
+            $this->assertEquals('example.net', $mapped->key['endpointSuffix']);
+            $this->assertEquals('ACS4-', $mapped->key['signatureTypePrefix']);
+            $this->assertFalse(isset($original->key['endpointSuffix']));
+            foreach (array('', " \t\r\n", 'caller.example') as $value) {
+                $original->key['endpointSuffix'] = $value;
+                $original->attributes = array('kept' => 'value');
+                $mapped = $build->invoke($explicit);
+                $this->assertEquals(trim($value) === '' ? 'example.net' : $value, $mapped->key['endpointSuffix']);
+                $this->assertEquals($value, $original->key['endpointSuffix']);
+                $this->assertEquals('value', $mapped->attributes['kept']);
+                if (trim($value) === '') {
+                    $mapped->attributes['kept'] = 'changed';
+                    $this->assertEquals('value', $original->attributes['kept']);
+                    $this->assertNotSame($original, $mapped);
+                } else {
+                    $this->assertSame($original, $mapped);
+                }
+            }
+            $restored = Config::fromMap(array('endpointSuffix' => 'example.net'));
+            $this->assertEquals('example.net', $restored->endpointSuffix);
+            $this->assertEquals('example.net', $restored->toMap()['endpointSuffix']);
+        } finally {
+            putenv('ALIBABA_CLOUD_ENDPOINT_SUFFIX');
+        }
+
+        $bare = new OpenApiClient(new Config([
+            'endpoint' => 'example.com',
+        ]));
+        $build = new \ReflectionMethod(OpenApiClient::class, 'attributeMapWithEndpointSuffix');
+        $build->setAccessible(true);
+        $mapped = $build->invoke($bare);
+        $this->assertTrue($mapped->key === null || !isset($mapped->key['endpointSuffix']));
+    }
+
+    public function testEndpointSuffixAllRequestPaths()
+    {
+        $seen = [];
+        $stack = \GuzzleHttp\HandlerStack::create(function ($request, array $options) use (&$seen) {
+            $seen[] = $request->getUri()->getHost();
+            return new \GuzzleHttp\Promise\FulfilledPromise(new \GuzzleHttp\Psr7\Response(200, [], ''));
+        });
+        \AlibabaCloud\Dara\Dara::config(['handler' => $stack]);
+        try {
+            foreach (['doRPCRequest', 'doROARequest', 'doROARequestWithForm', 'doRequest', 'callApi', 'callSSEApi'] as $method) {
+                foreach ([
+                    ['ecs.aliyuncs.com', '', 'ecs.aliyuncs.alibaba'],
+                    ['ecs.aliyuncs.com', 'oss-cn-hangzhou.aliyuncs.com', 'oss-cn-hangzhou.aliyuncs.alibaba'],
+                    ['ecs.aliyun.com', '', 'ecs.aliyun.com'],
+                    ['ecs.aliyuncs.alibaba', '', 'ecs.aliyuncs.alibaba'],
+                ] as $item) {
+                    $client = new OpenApiClient(new Config(['endpoint' => $item[0], 'endpointSuffix' => 'aliyuncs.alibaba']));
+                    $request = new OpenApiRequest(['endpointOverride' => $item[1]]);
+                    $runtime = new RuntimeOptions(['autoretry' => false, 'maxAttempts' => 1]);
+                    $params = new Params(['action' => 'Test', 'version' => '2020-01-01', 'protocol' => 'HTTPS', 'method' => 'GET', 'pathname' => '/', 'authType' => 'Anonymous', 'style' => 'ROA', 'reqBodyType' => 'json', 'bodyType' => 'string']);
+                    $seen = [];
+                    if ($method === 'doRPCRequest') {
+                        $client->doRPCRequest('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', 'string', $request, $runtime);
+                    } elseif ($method === 'doROARequest' || $method === 'doROARequestWithForm') {
+                        $client->$method('Test', '2020-01-01', 'HTTPS', 'GET', 'Anonymous', '/', 'string', $request, $runtime);
+                    } elseif ($method === 'callSSEApi') {
+                        foreach ($client->callSSEApi($params, $request, $runtime) as $event) { }
+                    } else {
+                        $client->$method($params, $request, $runtime);
+                    }
+                    $this->assertSame([$item[2]], $seen, $method);
+                }
+            }
+        } finally {
+            \AlibabaCloud\Dara\Dara::config([]);
+        }
+    }
+
+    public function testRequestEndpointSuffix()
+    {
+        $resolve = new \ReflectionMethod(OpenApiClient::class, 'endpointForRequest');
+        $resolve->setAccessible(true);
+        $client = new OpenApiClient(new Config(['endpoint' => 'ecs.aliyuncs.com', 'endpointSuffix' => ' ALIYUNCS.ALIBABA ']));
+        $request = new OpenApiRequest([]);
+        $this->assertEquals('ecs.aliyuncs.alibaba', $resolve->invoke($client, $request));
+        foreach (array(
+            'oss-cn-hangzhou.aliyuncs.com' => 'oss-cn-hangzhou.aliyuncs.alibaba',
+            'ecs.aliyun.com' => 'ecs.aliyun.com',
+            'ecs.aliyuncs.alibaba' => 'ecs.aliyuncs.alibaba',
+        ) as $endpoint => $expected) {
+            $request->endpointOverride = $endpoint;
+            $this->assertEquals($expected, $resolve->invoke($client, $request));
+        }
+        $attributes = new \ReflectionProperty(OpenApiClient::class, '_attributeMap');
+        $attributes->setAccessible(true);
+        $map = new \Darabonba\GatewaySpi\Models\AttributeMap([]);
+        $map->key = array('endpointSuffix' => 'aliyuncs.com');
+        $attributes->setValue($client, $map);
+        $request->endpointOverride = '';
+        $this->assertEquals('ecs.aliyuncs.com', $resolve->invoke($client, $request));
+        $map->key['endpointSuffix'] = 'evil.com';
+        try {
+            $resolve->invoke($client, $request);
+            $this->fail('invalid endpointSuffix was accepted');
+        } catch (\Darabonba\OpenApi\Exceptions\ClientException $expected) {
+            $this->assertEquals('InvalidEndpointSuffix', $expected->code);
         }
     }
 

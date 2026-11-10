@@ -2,6 +2,7 @@
 # This file is auto-generated, don't edit it. Thanks.
 import unittest
 import asyncio
+import os
 import re
 import json
 import httpretty
@@ -2570,6 +2571,54 @@ class TestClient(unittest.TestCase):
             self.assertEqual(data, event.data)
             self.assertEqual("sse-test", event.id)
             self.assertEqual("flow", event.event)
+
+    def test_endpoint_suffix(self):
+        from alibabacloud_gateway_spi.models import AttributeMap
+        os.environ['ALIBABA_CLOUD_ENDPOINT_SUFFIX'] = 'example.com'
+        try:
+            from_env = OpenApiClient(open_api_models.Config(
+                access_key_id='ak',
+                access_key_secret='secret',
+                endpoint='example.com',
+            ))
+            self.assertEqual('example.com', from_env._endpoint_suffix)
+            mapped = from_env._attribute_map_with_endpoint_suffix()
+            self.assertEqual('example.com', mapped.key['endpointSuffix'])
+
+            explicit = OpenApiClient(open_api_models.Config(
+                access_key_id='ak',
+                access_key_secret='secret',
+                endpoint='example.com',
+                endpoint_suffix='example.net',
+            ))
+            self.assertEqual('example.net', explicit._endpoint_suffix)
+            original = AttributeMap(key={'signatureTypePrefix': 'ACS4-'})
+            explicit._attribute_map = original
+            mapped = explicit._attribute_map_with_endpoint_suffix()
+            self.assertEqual('example.net', mapped.key['endpointSuffix'])
+            self.assertEqual('ACS4-', mapped.key['signatureTypePrefix'])
+            self.assertNotIn('endpointSuffix', original.key)
+            self.assertIsNot(mapped, original)
+            preset = AttributeMap(key={'endpointSuffix': 'caller.example', 'kept': 'yes'})
+            explicit._attribute_map = preset
+            mapped = explicit._attribute_map_with_endpoint_suffix()
+            self.assertIs(mapped, preset)
+            self.assertEqual('caller.example', mapped.key['endpointSuffix'])
+            self.assertEqual('yes', mapped.key['kept'])
+            restored = open_api_models.Config()
+            restored.from_map({'endpointSuffix': 'example.net'})
+            self.assertEqual('example.net', restored.endpoint_suffix)
+            self.assertEqual('example.net', restored.to_map()['endpointSuffix'])
+        finally:
+            os.environ.pop('ALIBABA_CLOUD_ENDPOINT_SUFFIX', None)
+
+        bare = OpenApiClient(open_api_models.Config(
+            access_key_id='ak',
+            access_key_secret='secret',
+            endpoint='example.com',
+        ))
+        self.assertFalse(bare._endpoint_suffix)
+        self.assertTrue(bare._attribute_map_with_endpoint_suffix().key is None)
 
     def test_ipv4_only_runtime(self):
         captured = []

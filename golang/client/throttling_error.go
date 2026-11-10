@@ -78,6 +78,9 @@ func (s *ThrottlingError) GetAccessDeniedDetail() map[string]interface{} {
 }
 
 func (s *ThrottlingError) GetName() *string {
+	if s.Name == nil {
+		return dara.String("ThrottlingError")
+	}
 	return s.Name
 }
 

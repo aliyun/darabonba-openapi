@@ -1,3 +1,7 @@
+### 2026-11-05 Version 0.4.7
+* Pass `endpointSuffix` from client config, then `ALIBABA_CLOUD_ENDPOINT_SUFFIX`, onto the request attribute map.
+* Leave that map unchanged when the caller already set a non-empty `endpointSuffix`.
+
 ### 2026-08-12 Version 0.4.6
 * Raise cryptography upper bound to `<51.0.0` on Python >=3.9 so `cryptography` 50.0.0 (CVE-2026-69247) can be installed.
 

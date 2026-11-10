@@ -26,6 +26,7 @@ namespace AlibabaCloud.OpenApiClient
         protected string _endpointRule;
         protected Dictionary<string, string> _endpointMap;
         protected string _suffix;
+        protected string _endpointSuffix;
         protected int? _readTimeout;
         protected int? _connectTimeout;
         protected string _httpProxy;
@@ -106,6 +107,14 @@ namespace AlibabaCloud.OpenApiClient
             this._endpointType = config.EndpointType;
             this._network = config.Network;
             this._suffix = config.Suffix;
+            if (string.IsNullOrEmpty(config.EndpointSuffix))
+            {
+                this._endpointSuffix = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            }
+            else
+            {
+                this._endpointSuffix = config.EndpointSuffix;
+            }
             this._protocol = config.Protocol;
             this._method = config.Method;
             this._regionId = config.RegionId;
@@ -306,7 +315,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -322,7 +331,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -659,7 +668,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -675,7 +684,7 @@ namespace AlibabaCloud.OpenApiClient
                         (
                             new Dictionary<string, string>()
                             {
-                                {"host", _endpoint},
+                                {"host", EndpointForRequest(request)},
                                 {"x-acs-version", version},
                                 {"x-acs-action", action},
                                 {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -998,7 +1007,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1327,7 +1336,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1656,7 +1665,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -1985,7 +1994,7 @@ namespace AlibabaCloud.OpenApiClient
                         new Dictionary<string, string>()
                         {
                             {"date", Utils.GetDateUTCString()},
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"accept", "application/json"},
                             {"x-acs-signature-nonce", Utils.GetNonce()},
                             {"x-acs-signature-method", "HMAC-SHA1"},
@@ -2317,7 +2326,7 @@ namespace AlibabaCloud.OpenApiClient
                     (
                         new Dictionary<string, string>()
                         {
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"x-acs-version", params_.Version},
                             {"x-acs-action", params_.Action},
                             {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -2694,7 +2703,7 @@ namespace AlibabaCloud.OpenApiClient
                     (
                         new Dictionary<string, string>()
                         {
-                            {"host", _endpoint},
+                            {"host", EndpointForRequest(request)},
                             {"x-acs-version", params_.Version},
                             {"x-acs-action", params_.Action},
                             {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -3096,7 +3105,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
+                        Endpoint = EndpointForRequest(request),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -3108,11 +3117,7 @@ namespace AlibabaCloud.OpenApiClient
                         Request = requestContext,
                         Configuration = configurationContext,
                     };
-                    AttributeMap attributeMap = new AttributeMap();
-                    if (!_attributeMap.IsNull())
-                    {
-                        attributeMap = _attributeMap;
-                    }
+                    AttributeMap attributeMap = AttributeMapWithEndpointSuffix();
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     this._spi.ModifyConfiguration(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -3304,7 +3309,7 @@ namespace AlibabaCloud.OpenApiClient
                     InterceptorContext.InterceptorContextConfiguration configurationContext = new InterceptorContext.InterceptorContextConfiguration
                     {
                         RegionId = _regionId,
-                        Endpoint = (string)Darabonba.Core.GetDefaultValue(request.EndpointOverride, _endpoint),
+                        Endpoint = EndpointForRequest(request),
                         EndpointRule = _endpointRule,
                         EndpointMap = _endpointMap,
                         EndpointType = _endpointType,
@@ -3316,11 +3321,7 @@ namespace AlibabaCloud.OpenApiClient
                         Request = requestContext,
                         Configuration = configurationContext,
                     };
-                    AttributeMap attributeMap = new AttributeMap();
-                    if (!_attributeMap.IsNull())
-                    {
-                        attributeMap = _attributeMap;
-                    }
+                    AttributeMap attributeMap = AttributeMapWithEndpointSuffix();
                     // 1. spi.modifyConfiguration(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
                     await this._spi.ModifyConfigurationAsync(interceptorContext, attributeMap);
                     // 2. spi.modifyRequest(context: SPI.InterceptorContext, attributeMap: SPI.AttributeMap);
@@ -3431,7 +3432,7 @@ namespace AlibabaCloud.OpenApiClient
             (
                 new Dictionary<string, string>()
                 {
-                    {"host", _endpoint},
+                    {"host", EndpointForRequest(request)},
                     {"x-acs-version", params_.Version},
                     {"x-acs-action", params_.Action},
                     {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -3630,6 +3631,59 @@ namespace AlibabaCloud.OpenApiClient
             {
                 return await ExecuteAsync(params_, request, runtime);
             }
+        }
+
+        private string EndpointForRequest(OpenApiRequest request)
+        {
+            string endpoint = string.IsNullOrEmpty(request.EndpointOverride) ? _endpoint : request.EndpointOverride;
+            AttributeMap attributes = AttributeMapWithEndpointSuffix();
+            string suffix = null;
+            if (attributes.Key != null) attributes.Key.TryGetValue("endpointSuffix", out suffix);
+            if (string.IsNullOrWhiteSpace(suffix)) suffix = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
+            suffix = string.IsNullOrWhiteSpace(suffix) ? "aliyuncs.com" : suffix.Trim().ToLowerInvariant();
+            if (suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba")
+                throw new ClientException { Code = "InvalidEndpointSuffix", Message = "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba" };
+            const string old = ".aliyuncs.com";
+            return !string.IsNullOrEmpty(endpoint) && suffix != "aliyuncs.com" && endpoint.EndsWith(old, StringComparison.Ordinal)
+                ? endpoint.Substring(0, endpoint.Length - old.Length) + "." + suffix : endpoint;
+        }
+
+        protected AttributeMap AttributeMapWithEndpointSuffix()
+        {
+            AttributeMap attributeMap = new AttributeMap();
+            if (!_attributeMap.IsNull())
+            {
+                attributeMap = _attributeMap;
+            }
+            if (!attributeMap.IsNull() && attributeMap.Key != null && attributeMap.Key.ContainsKey("endpointSuffix") && !string.IsNullOrWhiteSpace(attributeMap.Key["endpointSuffix"]))
+            {
+                return attributeMap;
+            }
+            if (string.IsNullOrEmpty(this._endpointSuffix))
+            {
+                return attributeMap;
+            }
+            Dictionary<string, string> keys = new Dictionary<string, string>();
+            if (!attributeMap.IsNull() && attributeMap.Key != null)
+            {
+                foreach (KeyValuePair<string, string> item in attributeMap.Key)
+                {
+                    keys[item.Key] = item.Value;
+                }
+            }
+            keys["endpointSuffix"] = this._endpointSuffix;
+            AttributeMap copied = new AttributeMap();
+            copied.Key = keys;
+            if (!attributeMap.IsNull() && attributeMap.Attributes != null)
+            {
+                Dictionary<string, object> attributes = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, object> item in attributeMap.Attributes)
+                {
+                    attributes[item.Key] = item.Value;
+                }
+                copied.Attributes = attributes;
+            }
+            return copied;
         }
 
         /// <term><b>Description:</b></term>

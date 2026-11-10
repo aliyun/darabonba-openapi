@@ -182,6 +182,16 @@ namespace AlibabaCloud.OpenApiClient.Models
         public string Suffix { get; set; }
 
         /// <summary>
+        /// <para>domain suffix used by generated POP endpoints</para>
+        /// 
+        /// <b>Example:</b>
+        /// <para>aliyuncs.com</para>
+        /// </summary>
+        [NameInMap("endpointSuffix")]
+        [Validation(Required=false)]
+        public string EndpointSuffix { get; set; }
+
+        /// <summary>
         /// <para>socks5 proxy</para>
         /// </summary>
         [NameInMap("socks5Proxy")]

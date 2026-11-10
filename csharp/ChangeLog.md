@@ -1,3 +1,9 @@
+### 2026-11-05 Version 0.2.3
+
+- Pass `endpointSuffix` from client config, then `ALIBABA_CLOUD_ENDPOINT_SUFFIX`, onto the request attribute map.
+- Leave that map unchanged when the caller already set a non-empty `endpointSuffix`.
+- The assembly version stays `0.2.0.0`. The file version matches this package version.
+
 ### 2026-09-09 Version 0.2.2
 
 - Add StringifyMapValue and MapToFlatStyle utilities.

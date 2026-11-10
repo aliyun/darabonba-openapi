@@ -39,6 +39,7 @@ namespace Models
       DARABONBA_PTR_TO_JSON(network, network_);
       DARABONBA_PTR_TO_JSON(userAgent, userAgent_);
       DARABONBA_PTR_TO_JSON(suffix, suffix_);
+      DARABONBA_PTR_TO_JSON(endpointSuffix, endpointSuffix_);
       DARABONBA_PTR_TO_JSON(socks5Proxy, socks5Proxy_);
       DARABONBA_PTR_TO_JSON(socks5NetWork, socks5NetWork_);
       DARABONBA_PTR_TO_JSON(endpointType, endpointType_);
@@ -74,6 +75,7 @@ namespace Models
       DARABONBA_PTR_FROM_JSON(network, network_);
       DARABONBA_PTR_FROM_JSON(userAgent, userAgent_);
       DARABONBA_PTR_FROM_JSON(suffix, suffix_);
+      DARABONBA_PTR_FROM_JSON(endpointSuffix, endpointSuffix_);
       DARABONBA_PTR_FROM_JSON(socks5Proxy, socks5Proxy_);
       DARABONBA_PTR_FROM_JSON(socks5NetWork, socks5NetWork_);
       DARABONBA_PTR_FROM_JSON(endpointType, endpointType_);
@@ -105,7 +107,7 @@ namespace Models
         && this->accessKeySecret_ == nullptr && this->securityToken_ == nullptr && this->bearerToken_ == nullptr && this->protocol_ == nullptr && this->method_ == nullptr
         && this->regionId_ == nullptr && this->readTimeout_ == nullptr && this->connectTimeout_ == nullptr && this->httpProxy_ == nullptr && this->httpsProxy_ == nullptr
         && this->credential_ == nullptr && this->endpoint_ == nullptr && this->noProxy_ == nullptr && this->maxConnections_ == nullptr && this->network_ == nullptr
-        && this->userAgent_ == nullptr && this->suffix_ == nullptr && this->socks5Proxy_ == nullptr && this->socks5NetWork_ == nullptr && this->endpointType_ == nullptr
+        && this->userAgent_ == nullptr && this->suffix_ == nullptr && this->endpointSuffix_ == nullptr && this->socks5Proxy_ == nullptr && this->socks5NetWork_ == nullptr && this->endpointType_ == nullptr
         && this->openPlatformEndpoint_ == nullptr && this->type_ == nullptr && this->signatureVersion_ == nullptr && this->signatureAlgorithm_ == nullptr && this->globalParameters_ == nullptr
         && this->key_ == nullptr && this->cert_ == nullptr && this->ca_ == nullptr && this->disableHttp2_ == nullptr && this->retryOptions_ == nullptr
         && this->tlsMinVersion_ == nullptr && this->ipv4Only_ == nullptr; };
@@ -240,6 +242,13 @@ namespace Models
     void deleteSuffix() { this->suffix_ = nullptr;};
     inline string getSuffix() const { DARABONBA_PTR_GET_DEFAULT(suffix_, "") };
     inline Config& setSuffix(string suffix) { DARABONBA_PTR_SET_VALUE(suffix_, suffix) };
+
+
+    // endpointSuffix Field Functions 
+    bool hasEndpointSuffix() const { return this->endpointSuffix_ != nullptr;};
+    void deleteEndpointSuffix() { this->endpointSuffix_ = nullptr;};
+    inline string getEndpointSuffix() const { DARABONBA_PTR_GET_DEFAULT(endpointSuffix_, "") };
+    inline Config& setEndpointSuffix(string endpointSuffix) { DARABONBA_PTR_SET_VALUE(endpointSuffix_, endpointSuffix) };
 
 
     // socks5Proxy Field Functions 
@@ -390,6 +399,8 @@ namespace Models
     shared_ptr<string> userAgent_ {};
     // suffix for endpoint
     shared_ptr<string> suffix_ {};
+    // domain suffix used by generated POP endpoints
+    shared_ptr<string> endpointSuffix_ {};
     // socks5 proxy
     shared_ptr<string> socks5Proxy_ {};
     // socks5 network

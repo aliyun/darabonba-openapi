@@ -39,6 +39,19 @@ jobs:
     - name: Run tests
       run: dotnet test -f net8.0 --no-restore --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
+    - name: Require 90% diff coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        REPORT=$(find TestResults -name coverage.cobertura.xml | head -n 1)
+        test -n "$REPORT"
+        python3 "${{ github.workspace }}/.github/scripts/require_diff_coverage.py" \
+          --base "${{ github.event.pull_request.base.sha }}" \
+          --source-root csharp \
+          --report "$REPORT" \
+          --format cobertura \
+          --minimum 90
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:

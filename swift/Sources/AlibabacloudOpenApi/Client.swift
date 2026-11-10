@@ -70,6 +70,8 @@ open class Client {
 
     public var _suffix: String?
 
+    public var _endpointSuffix: String?
+
     public var _readTimeout: Int?
 
     public var _connectTimeout: Int?
@@ -152,6 +154,11 @@ open class Client {
         self._endpointType = config.endpointType
         self._network = config.network
         self._suffix = config.suffix
+        if TeaUtils.Client.isUnset(config.endpointSuffix) || (config.endpointSuffix ?? "").isEmpty {
+            self._endpointSuffix = ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"]
+        } else {
+            self._endpointSuffix = config.endpointSuffix
+        }
         self._protocol = config.protocol_
         self._method = config.method
         self._regionId = config.regionId
@@ -252,7 +259,7 @@ open class Client {
                 var headers: [String: String] = try getRpcHeaders()
                 if (!hasRpcHeaders) {
                     _request.headers = Tea.TeaConverter.merge([
-                        "host": self._endpoint ?? "",
+                        "host": try endpointForRequest(request),
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
@@ -260,7 +267,7 @@ open class Client {
                 }
                 else {
                     _request.headers = Tea.TeaConverter.merge([
-                        "host": self._endpoint ?? "",
+                        "host": try endpointForRequest(request),
                         "x-acs-version": version as! String,
                         "x-acs-action": action as! String,
                         "user-agent": getUserAgent()
@@ -449,7 +456,7 @@ open class Client {
                 }
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
-                    "host": self._endpoint ?? "",
+                    "host": try endpointForRequest(request),
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "x-acs-signature-method": "HMAC-SHA1",
@@ -642,7 +649,7 @@ open class Client {
                 }
                 _request.headers = Tea.TeaConverter.merge([
                     "date": TeaUtils.Client.getDateUTCString(),
-                    "host": self._endpoint ?? "",
+                    "host": try endpointForRequest(request),
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
                     "x-acs-signature-method": "HMAC-SHA1",
@@ -835,7 +842,7 @@ open class Client {
                 }
                 _request.query = Tea.TeaConverter.merge([:], globalQueries, extendsQueries, request.query ?? [:])
                 _request.headers = Tea.TeaConverter.merge([
-                    "host": self._endpoint ?? "",
+                    "host": try endpointForRequest(request),
                     "x-acs-version": params.version ?? "",
                     "x-acs-action": params.action ?? "",
                     "user-agent": getUserAgent(),
@@ -1083,7 +1090,7 @@ open class Client {
                 ])
                 var configurationContext: AlibabacloudGatewaySPI.InterceptorContext.Configuration = AlibabacloudGatewaySPI.InterceptorContext.Configuration([
                     "regionId": self._regionId ?? "",
-                    "endpoint": TeaUtils.Client.defaultString(request.endpointOverride, self._endpoint),
+                    "endpoint": try endpointForRequest(request),
                     "endpointRule": self._endpointRule ?? "",
                     "endpointMap": self._endpointMap ?? [:],
                     "endpointType": self._endpointType ?? "",
@@ -1094,7 +1101,7 @@ open class Client {
                     "request": requestContext as! AlibabacloudGatewaySPI.InterceptorContext.Request,
                     "configuration": configurationContext as! AlibabacloudGatewaySPI.InterceptorContext.Configuration
                 ])
-                var attributeMap: AlibabacloudGatewaySPI.AttributeMap = AlibabacloudGatewaySPI.AttributeMap([:])
+                var attributeMap: AlibabacloudGatewaySPI.AttributeMap = attributeMapWithEndpointSuffix(AlibabacloudGatewaySPI.AttributeMap([:]))
                 if let localGateway = self._spi as? LocalHTTPGateway {
                     try await localGateway.prepare(interceptorContext as! AlibabacloudGatewaySPI.InterceptorContext)
                     _request.protocol_ = "HTTP"
@@ -1110,7 +1117,7 @@ open class Client {
                         _request.body = Tea.TeaCore.toReadable("{}")
                     }
                     var headers: [String: String] = requestContext.headers ?? [:]
-                    headers["host"] = request.endpointOverride ?? self._endpoint ?? "127.0.0.1"
+                    headers["host"] = try endpointForRequest(request)
                     _request.headers = headers
                     _lastRequest = _request
                     var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
@@ -1202,6 +1209,40 @@ open class Client {
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func endpointForRequest(_ request: OpenApiRequest) throws -> String {
+        let endpoint = (request.endpointOverride?.isEmpty == false ? request.endpointOverride : self._endpoint) ?? ""
+        var suffix = (self._endpointSuffix ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if suffix.isEmpty { suffix = (ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+        if suffix.isEmpty { suffix = "aliyuncs.com" }
+        if suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba" {
+            throw Tea.ReuqestError(["code": "InvalidEndpointSuffix", "message": "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba"])
+        }
+        let old = ".aliyuncs.com"
+        return suffix != "aliyuncs.com" && endpoint.hasSuffix(old) ? String(endpoint.dropLast(old.count)) + "." + suffix : endpoint
+    }
+
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func attributeMapWithEndpointSuffix(_ attributeMap: AlibabacloudGatewaySPI.AttributeMap) -> AlibabacloudGatewaySPI.AttributeMap {
+        if let existing = attributeMap.key?["endpointSuffix"], !existing.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return attributeMap
+        }
+        guard let suffix = self._endpointSuffix, !suffix.isEmpty else {
+            return attributeMap
+        }
+        var keys = attributeMap.key ?? [:]
+        keys["endpointSuffix"] = suffix
+        let copied = AlibabacloudGatewaySPI.AttributeMap([:])
+        copied.key = keys
+        if let source = attributeMap.attributes {
+            var attributes: [String: Any] = [:]
+            for (name, value) in source {
+                attributes[name] = value
+            }
+            copied.attributes = attributes
+        }
+        return copied
+    }
+
     public func getAccessKeyId() async throws -> String {
         if (TeaUtils.Client.isUnset(self._credential)) {
             return ""
