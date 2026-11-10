@@ -16,6 +16,7 @@
 #include <set>
 #include <sstream>
 #include <unordered_set>
+#include <utility>
 
 using namespace AlibabaCloud::OpenApi::Utils;
 using namespace AlibabaCloud::OpenApi::Exceptions;
@@ -623,22 +624,28 @@ std::string POP::regionFor(const std::string &product,
 
 std::string
 POP::buildCanonicalizedResource(const Darabonba::Http::Query &query) {
-  std::vector<std::string> keys;
-  keys.reserve(query.size());
+  std::vector<std::pair<std::string, std::string>> pairs;
+  pairs.reserve(query.size());
   for (const auto &item : query) {
-    keys.push_back(item.first);
+    std::string encodedValue;
+    if (!item.second.empty()) {
+      encodedValue = Darabonba::Encode::Encoder::percentEncode(item.second);
+    }
+    pairs.emplace_back(Darabonba::Encode::Encoder::percentEncode(item.first),
+                       std::move(encodedValue));
   }
-  std::sort(keys.begin(), keys.end());
+  std::sort(pairs.begin(), pairs.end(),
+            [](const std::pair<std::string, std::string> &left,
+               const std::pair<std::string, std::string> &right) {
+              return left.first < right.first;
+            });
   std::string canonicalizedResource;
   std::string separator;
-  for (const auto &key : keys) {
+  for (const auto &item : pairs) {
     canonicalizedResource += separator;
-    canonicalizedResource += Darabonba::Encode::Encoder::percentEncode(key);
+    canonicalizedResource += item.first;
     canonicalizedResource += "=";
-    const std::string &value = query.at(key);
-    if (!value.empty()) {
-      canonicalizedResource += Darabonba::Encode::Encoder::percentEncode(value);
-    }
+    canonicalizedResource += item.second;
     separator = "&";
   }
   return canonicalizedResource;

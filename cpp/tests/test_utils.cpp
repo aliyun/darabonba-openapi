@@ -120,6 +120,10 @@ TEST(POPTest, CanonicalQueryIsSortedAndEmptySafe) {
   query["a"] = "1";
   query["c"] = "";
   EXPECT_EQ("a=1&b=2&c=", client.buildCanonicalizedResource(query));
+  Darabonba::Http::Query encoded;
+  encoded["a"] = "1";
+  encoded["中"] = "2";
+  EXPECT_EQ("%E4%B8%AD=2&a=1", client.buildCanonicalizedResource(encoded));
 }
 
 TEST(POPTest, CanonicalHeadersFoldCase) {
