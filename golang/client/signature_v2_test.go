@@ -116,7 +116,7 @@ func TestSignatureV2RpcQueryFallback(t *testing.T) {
 }
 
 func TestSignatureV2EmptyHeaderRejected(t *testing.T) {
-	for _, style := range []string{"RPC", "ROA"} {
+	for _, style := range []string{"RPC", "ROA", "ROA-form"} {
 		for _, withContext := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/context=%v", style, withContext), func(t *testing.T) {
 				config := CreateConfig()
@@ -130,10 +130,16 @@ func TestSignatureV2EmptyHeaderRejected(t *testing.T) {
 				request.Headers["X-Acs-Signature-Method"] = dara.String("")
 				request.Query["SignatureMethod"] = dara.String("HMAC-SHA1")
 				pathname := "/"
-				if style == "ROA" {
+				bodyType := "json"
+				requestStyle := style
+				if style != "RPC" {
 					pathname = "/test"
 				}
-				params := coverageParams(style, "json", "json", pathname, "AK")
+				if style == "ROA-form" {
+					requestStyle = "ROA"
+					bodyType = "formData"
+				}
+				params := coverageParams(requestStyle, bodyType, "json", pathname, "AK")
 				if withContext {
 					_, err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
 				} else {
