@@ -2,6 +2,8 @@
 #include <alibabacloud/Utils.hpp>
 #include <alibabacloud/gateway/POP.hpp>
 #include <alibabacloud/OpenapiException.hpp>
+#include <alibabacloud/credentials/Client.hpp>
+#include <alibabacloud/credentials/Model.hpp>
 #include <darabonba/http/Request.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/Stream.hpp>
@@ -64,7 +66,7 @@ TEST(POPTest, EndpointSuffixValidation) {
 TEST(POPTest, RegionFollowsGatewayRules) {
   AlibabaCloud::Gateway::POP client;
   EXPECT_EQ("center", client.getRegion("", "", ""));
-  EXPECT_EQ("cn-hangzhou", client.getRegion("", "", "cn-hangzhou"));
+  EXPECT_EQ("center", client.getRegion("", "", "cn-hangzhou"));
   EXPECT_EQ("center", client.getRegion("test", "test", ""));
   EXPECT_EQ("center", client.getRegion("test", "test.alibaba.api.com", ""));
   EXPECT_EQ("center", client.getRegion("test", "test.aliyuncs.com", ""));
@@ -73,9 +75,41 @@ TEST(POPTest, RegionFollowsGatewayRules) {
   EXPECT_EQ("cn-hangzhou", client.getRegion("test", "test.cn-hangzhou.aliyuncs.com:443", ""));
   EXPECT_EQ("cn-hangzhou", client.getRegion("test", "test-inner.cn-hangzhou.aliyuncs.com", ""));
   EXPECT_EQ("cn-hangzhou", client.getRegion("ecs", "ecs.cn-hangzhou.aliyuncs.com", ""));
-  EXPECT_EQ("cn-beijing", client.getRegion("ecs", "ecs.cn-hangzhou.aliyuncs.com", "cn-beijing"));
+  EXPECT_EQ("cn-hangzhou", client.getRegion("ecs", "ecs.cn-hangzhou.aliyuncs.com", "aliyuncs.alibaba"));
   EXPECT_EQ("cn-hangzhou", client.getRegion("ecs", "ecs.cn-hangzhou.aliyuncs.alibaba", ""));
+  EXPECT_EQ("cn-hangzhou", client.getRegion("ecs", "ecs.cn-hangzhou.aliyuncs.alibaba", "aliyuncs.alibaba"));
   EXPECT_EQ("cn-hangzhou-acdr-ut-1", client.getRegion("test", "test-inner.cn-hangzhou-acdr-ut-1.aliyuncs.com", ""));
+}
+
+TEST(POPTest, RequestRegionIdWinsOverEndpoint) {
+  using AlibabaCloud::Credentials::Client;
+  using AlibabaCloud::Credentials::Models::Config;
+  using AlibabaCloud::Gateway::Models::AttributeMap;
+  using AlibabaCloud::Gateway::Models::InterceptorContext;
+  using AlibabaCloud::Gateway::Models::InterceptorContextConfiguration;
+  using AlibabaCloud::Gateway::Models::InterceptorContextRequest;
+  Config credentialConfig;
+  credentialConfig.setType("access_key");
+  credentialConfig.setAccessKeyId("ak");
+  credentialConfig.setAccessKeySecret("secret");
+  InterceptorContextRequest request(json({
+      {"pathname", "/"},
+      {"method", "GET"},
+      {"productId", "ecs"},
+      {"action", "DescribeInstances"},
+      {"version", "2014-05-26"}}));
+  InterceptorContextConfiguration config(json({
+      {"endpoint", "ecs.cn-hangzhou.aliyuncs.com"},
+      {"regionId", "cn-beijing"}}));
+  InterceptorContext context(json({{"request", request}, {"configuration", config}}));
+  request = context.getRequest();
+  request.setCredential(Client(credentialConfig));
+  context.setRequest(request);
+  AttributeMap attributes;
+  AlibabaCloud::Gateway::POP client;
+  client.modifyRequest(context, attributes);
+  string authorization = context.getRequest().getHeaders()["Authorization"];
+  EXPECT_NE(string::npos, authorization.find("/cn-beijing/ecs/"));
 }
 
 TEST(POPTest, CanonicalQueryIsSortedAndEmptySafe) {
@@ -243,9 +277,10 @@ TEST(POPTest, ModifyResponsePassesBinaryBodyThroughExecute) {
         {"body", context.getResponse().getDeserializedBody()}});
   }
 
-  ASSERT_FALSE(executed["body"].is_binary());
-  ASSERT_TRUE(executed["body"].is_object());
-  ASSERT_TRUE(executed["body"].contains("darabonba.stream"));
+  ASSERT_TRUE(executed["body"].is_binary());
+  EXPECT_NE(std::string("download content"),
+            std::string(executed["body"].get_binary().begin(),
+                        executed["body"].get_binary().end()));
   DownloadResponseModel model = executed.get<DownloadResponseModel>();
   ASSERT_NE(nullptr, model.getBody());
   EXPECT_EQ("download content", Darabonba::Stream::readAsString(model.getBody()));

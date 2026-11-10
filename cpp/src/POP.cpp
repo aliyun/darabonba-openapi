@@ -584,8 +584,11 @@ Darabonba::Bytes POP::signingKeyWith(const std::string &signatureAlgorithm,
 
 std::string POP::getRegion(const std::string &product,
                            const std::string &endpoint,
-                           const std::string &regionId) {
-  return regionFor(product, endpoint, regionId, _endpointSuffix);
+                           const std::string &endpointSuffix) {
+  // The third argument stays the endpoint suffix. regionId is applied by the
+  // request path through regionFor, not by this public signature.
+  std::string suffix = endpointSuffix.empty() ? _endpointSuffix : endpointSuffix;
+  return regionFor(product, endpoint, "", suffix);
 }
 
 std::string POP::regionFor(const std::string &product,

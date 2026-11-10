@@ -58,7 +58,7 @@ public:
                                  const std::string &date);
 
   std::string getRegion(const std::string &product, const std::string &endpoint,
-                        const std::string &regionId = "");
+                        const std::string &endpointSuffix = "");
 
   std::string resolveEndpointSuffix(AttributeMap &attributeMap) const;
 
