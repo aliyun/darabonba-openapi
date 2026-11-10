@@ -85,7 +85,7 @@ final class SignatureV2Tests: XCTestCase {
         let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "localhost", "protocol": "http", "signatureAlgorithm": "v2"])
         let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "POST", "authType": "AK", "style": "RPC", "reqBodyType": "formData", "bodyType": "string"])
         do {
-            _ = try await Client(config).callApi(params, OpenApiRequest(["body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
+            _ = try await Client(config).callApi(params, OpenApiRequest(["headers": ["x-acs-signature-method": "HMAC-SHA256"], "body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
             XCTFail("conflicting body method was accepted")
         } catch let error as Tea.ReuqestError {
             XCTAssertEqual(error.code, "InvalidSignatureAlgorithm")
