@@ -433,7 +433,8 @@ class OpenApiClientTest extends TestCase
         $request = self::createOpenApiRequest();
         $request->headers['capture-signature'] = 'true';
         $client = new OpenApiClient($config);
-        foreach (['HMAC-SHA256'] as $signatureMethod) {
+        foreach (['HMAC-SHA256', 'HMAC-SHA1'] as $signatureMethod) {
+            $request->headers['X-Acs-Signature-Method'] = $signatureMethod;
             foreach (['RPC', 'ROA'] as $style) {
                 foreach (['json', 'formData'] as $bodyType) {
                     $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/test', 'method' => 'POST', 'authType' => 'AK', 'style' => $style, 'reqBodyType' => $bodyType, 'bodyType' => 'json']);
@@ -444,7 +445,7 @@ class OpenApiClientTest extends TestCase
         }
         $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA1';
         $captured = $client->callApi($params, $request, $runtime)['body'];
-        $this->assertCapturedV2Signature($captured, 'ROA', 'HMAC-SHA256');
+        $this->assertCapturedV2Signature($captured, 'ROA', 'HMAC-SHA1');
         $request->headers['x-acs-signature-method'] = 'HMAC-SHA256';
         try {
             $client->callApi($params, $request, $runtime);
@@ -523,18 +524,26 @@ class OpenApiClientTest extends TestCase
         $client = new OpenApiClient($config);
         $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/', 'method' => 'POST', 'authType' => 'AK', 'style' => 'RPC', 'reqBodyType' => 'formData', 'bodyType' => 'json']);
         $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
         unset($config->globalParameters->queries['SignatureMethod']);
         $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
         unset($runtime->extendsParameters->queries['SignatureMethod']);
         $request->query['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
-        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
-        $request->query['SignatureMethod'] = 'legacy';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
-        $request->query['SignatureMethod'] = '';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        unset($request->query['SignatureMethod']);
+        $request->body = ['SignatureMethod' => 'HMAC-SHA1'];
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
+        $request->body = null;
+        foreach (['legacy', ''] as $invalid) {
+            $request->query['SignatureMethod'] = $invalid;
+            try {
+                $client->callApi($params, $request, $runtime);
+                $this->fail('invalid signature method in query was accepted');
+            } catch (\Exception $error) {
+                $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
+            }
+        }
         $request->query['SignatureMethod'] = 'HMAC-SHA1';
         $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
         $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');

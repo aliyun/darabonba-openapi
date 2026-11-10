@@ -25,13 +25,16 @@ int main(int argc, char **argv) {
   if (scenario == "headerwins") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA256"}});
   if (scenario == "override") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}});
   if (scenario == "conflict") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}, {"x-acs-signature-method", "HMAC-SHA256"}});
+  if (scenario == "bodysha1" || scenario == "bodyconflict") request.setBody(Darabonba::Json{{"SignatureMethod", "HMAC-SHA1"}});
+  if (scenario == "bodyconflict") request.setHeaders({{"x-acs-signature-method", "HMAC-SHA256"}});
+  if (scenario == "invalidquery") request.setQuery({{"SignatureMethod", "invalid"}});
   if (scenario == "invalid") request.setHeaders({{"X-Acs-Signature-Method", "invalid"}});
   Darabonba::RuntimeOptions runtime;
   runtime.setAutoretry(false).setMaxAttempts(1).setReadTimeout(5000).setConnectTimeout(5000);
   try {
     Client client(config);
     const std::string auth = scenario == "anonymous" ? "Anonymous" : "AK";
-    if (style == "RPC") client.doRPCRequest("TestAction", "2022-06-01", "HTTP", "GET", auth, "json", request, runtime);
+    if (style == "RPC") client.doRPCRequest("TestAction", "2022-06-01", "HTTP", scenario == "bodysha1" || scenario == "bodyconflict" ? "POST" : "GET", auth, "json", request, runtime);
     else client.doROARequest("TestAction", "2022-06-01", "HTTP", "GET", auth, "/test", "json", request, runtime);
   } catch (const std::exception &error) {
     std::cerr << error.what() << std::endl;

@@ -26,7 +26,7 @@ final class SignatureV2Tests: XCTestCase {
                     let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/test", "method": "GET", "authType": "AK", "style": style, "reqBodyType": requestBodyType, "bodyType": "string"])
                     let result = try await Client(config).callApi(params, request, runtime)
                     let captured = try XCTUnwrap(result["body"] as? String)
-                    try verify(captured, style: style, algorithm: "HMAC-SHA256")
+                    try verify(captured, style: style, algorithm: algorithm)
                 }
             }
         }
@@ -54,11 +54,9 @@ final class SignatureV2Tests: XCTestCase {
 
     func testRpcQuerySignatureMethod() async throws {
         let cases: [([String: String], [String: String], [String: String], [String: String], String)] = [
-            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA256"),
-            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA256"),
-            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA256"),
-            (["SignatureMethod": "HMAC-SHA1"], [:], ["SignatureMethod": "legacy"], [:], "HMAC-SHA256"),
-            ([:], [:], ["SignatureMethod": ""], [:], "HMAC-SHA256"),
+            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA1"),
+            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA1"),
+            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA1"),
             ([:], [:], ["SignatureMethod": "HMAC-SHA1"], ["X-Acs-Signature-Method": "HMAC-SHA256"], "HMAC-SHA256")
         ]
         for (global, extended, query, headers, algorithm) in cases {
@@ -72,6 +70,15 @@ final class SignatureV2Tests: XCTestCase {
             let result = try await Client(config).callApi(params, OpenApiRequest(["query": query, "headers": headers]), runtime)
             try verify(try XCTUnwrap(result["body"] as? String), style: "RPC", algorithm: algorithm)
         }
+    }
+
+    func testRpcBodySignatureMethod() async throws {
+        let server = try HTTPTestServer()
+        defer { server.stop() }
+        let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "127.0.0.1:\(server.port)", "protocol": "http", "signatureAlgorithm": "v2"])
+        let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "POST", "authType": "AK", "style": "RPC", "reqBodyType": "formData", "bodyType": "string"])
+        let result = try await Client(config).callApi(params, OpenApiRequest(["body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
+        try verify(try XCTUnwrap(result["body"] as? String), style: "RPC", algorithm: "HMAC-SHA1", body: ["SignatureMethod": "HMAC-SHA1"])
     }
 
     func testRpcBodySignatureMethodConflict() async throws {
@@ -88,7 +95,7 @@ final class SignatureV2Tests: XCTestCase {
         }
     }
 
-    private func verify(_ request: String, style: String, algorithm: String) throws {
+    private func verify(_ request: String, style: String, algorithm: String, body: [String: String] = [:]) throws {
         let lines = request.components(separatedBy: "\r\n")
         let first = lines[0].split(separator: " ")
         let components = try XCTUnwrap(URLComponents(string: "http://localhost" + String(first[1])))
@@ -98,6 +105,7 @@ final class SignatureV2Tests: XCTestCase {
             XCTAssertEqual(query["SignatureMethod"], algorithm)
             var signed = query
             let signature = signed.removeValue(forKey: "Signature")
+            signed.merge(body) { _, new in new }
             var canonical = ""
             var separator = ""
             for key in signed.keys.sorted() {
@@ -105,7 +113,7 @@ final class SignatureV2Tests: XCTestCase {
                 if let value = signed[key], !value.isEmpty { canonical += encode(key) + "=" + encode(value) }
                 separator = "&"
             }
-            XCTAssertEqual(signature, try hmac("GET&%2F&" + encode(canonical), key: "secret&", algorithm: algorithm))
+            XCTAssertEqual(signature, try hmac(String(first[0]) + "&%2F&" + encode(canonical), key: "secret&", algorithm: algorithm))
         } else {
             var headers: [String: String] = [:]
             for line in lines.dropFirst() {

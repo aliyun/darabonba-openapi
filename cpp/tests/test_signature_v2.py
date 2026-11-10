@@ -13,7 +13,15 @@ class Handler(BaseHTTPRequestHandler):
     requests = queue.Queue()
 
     def do_GET(self):
-        self.requests.put((self.path, {key.lower(): value for key, value in self.headers.items()}))
+        self.requests.put(("GET", self.path, {key.lower(): value for key, value in self.headers.items()}, ""))
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(b"{}")
+
+    def do_POST(self):
+        body = self.rfile.read(int(self.headers.get("Content-Length", "0"))).decode()
+        self.requests.put(("POST", self.path, {key.lower(): value for key, value in self.headers.items()}, body))
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
@@ -28,14 +36,15 @@ def sign(message, secret, algorithm):
     return base64.b64encode(hmac.new(secret.encode(), message.encode(), digest).digest()).decode()
 
 
-def check_request(style, algorithm, path, headers):
+def check_request(style, algorithm, method, path, headers, body):
     parsed = urllib.parse.urlsplit(path)
     query = dict(urllib.parse.parse_qsl(parsed.query, keep_blank_values=True))
     if style == "RPC":
         assert query["SignatureMethod"] == algorithm
         signature = query.pop("Signature")
+        query.update(urllib.parse.parse_qsl(body, keep_blank_values=True))
         canonical = "&".join(urllib.parse.quote(k, safe="-_.~") + "=" + urllib.parse.quote(v, safe="-_.~") for k, v in sorted(query.items()))
-        expected = sign("GET&%2F&" + urllib.parse.quote(canonical, safe="-_.~"), "secret&", algorithm)
+        expected = sign(method + "&%2F&" + urllib.parse.quote(canonical, safe="-_.~"), "secret&", algorithm)
         assert signature == expected
     else:
         assert headers["x-acs-signature-method"] == algorithm
@@ -53,21 +62,25 @@ def main():
     endpoint = "127.0.0.1:" + str(server.server_port)
     try:
         for style in ("RPC", "ROA"):
-            for scenario, algorithm in (("default", "HMAC-SHA256"), ("override", "HMAC-SHA256")):
+            for scenario, algorithm in (("default", "HMAC-SHA256"), ("override", "HMAC-SHA1")):
                 subprocess.run([executable, endpoint, style, scenario], check=True, timeout=10)
-                path, headers = Handler.requests.get(timeout=5)
-                check_request(style, algorithm, path, headers)
+                method, path, headers, body = Handler.requests.get(timeout=5)
+                check_request(style, algorithm, method, path, headers, body)
             for scenario in ("conflict", "invalid"):
                 result = subprocess.run([executable, endpoint, style, scenario], timeout=10, capture_output=True)
                 assert result.returncode != 0, (style, scenario)
                 assert b"InvalidSignatureAlgorithm" in result.stderr, (style, scenario, result.stderr)
-        for scenario, algorithm in (("querysha1", "HMAC-SHA256"), ("headerwins", "HMAC-SHA256")):
+        for scenario, algorithm in (("querysha1", "HMAC-SHA1"), ("headerwins", "HMAC-SHA256"), ("bodysha1", "HMAC-SHA1")):
             subprocess.run([executable, endpoint, "RPC", scenario], check=True, timeout=10)
-            path, headers = Handler.requests.get(timeout=5)
-            check_request("RPC", algorithm, path, headers)
+            method, path, headers, body = Handler.requests.get(timeout=5)
+            check_request("RPC", algorithm, method, path, headers, body)
+        for scenario in ("bodyconflict", "invalidquery"):
+            result = subprocess.run([executable, endpoint, "RPC", scenario], timeout=10, capture_output=True)
+            assert result.returncode != 0, (scenario, result)
+            assert b"InvalidSignatureAlgorithm" in result.stderr, (scenario, result.stderr)
         for scenario in ("anonymous", "bearer"):
             subprocess.run([executable, endpoint, "ROA", scenario], check=True, timeout=10)
-            _, headers = Handler.requests.get(timeout=5)
+            _, _, headers, _ = Handler.requests.get(timeout=5)
             assert headers["x-acs-signature-method"] == "HMAC-SHA1"
     finally:
         server.shutdown()

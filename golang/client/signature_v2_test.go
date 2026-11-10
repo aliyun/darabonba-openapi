@@ -26,7 +26,7 @@ func TestSignatureV2Requests(t *testing.T) {
 					config := CreateConfig()
 					config.Protocol = dara.String("HTTP")
 					config.Endpoint = dara.String("example.com")
-					config.HttpClient = &signatureV2Verifier{t: t, style: style, method: "HMAC-SHA256"}
+					config.HttpClient = &signatureV2Verifier{t: t, style: style, method: method}
 					config.SignatureAlgorithm = dara.String("v2")
 					if method == "HMAC-SHA1" {
 						config.GlobalParameters.Headers["X-Acs-Signature-Method"] = dara.String("HMAC-SHA256")
@@ -67,13 +67,11 @@ func TestSignatureV2RpcQueryFallback(t *testing.T) {
 		name, global, runtime, query, header, want string
 		querySet                                   bool
 	}{
-		{name: "global query sha1", global: "HMAC-SHA1", want: "HMAC-SHA256"},
-		{name: "runtime overrides global", global: "HMAC-SHA256", runtime: "HMAC-SHA1", want: "HMAC-SHA256"},
-		{name: "request overrides runtime", runtime: "invalid", query: "HMAC-SHA1", want: "HMAC-SHA256"},
+		{name: "global query sha1", global: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "runtime overrides global", global: "HMAC-SHA256", runtime: "HMAC-SHA1", want: "HMAC-SHA1"},
+		{name: "request overrides runtime", runtime: "invalid", query: "HMAC-SHA1", want: "HMAC-SHA1"},
 		{name: "header sha256 overrides query", query: "HMAC-SHA1", header: "HMAC-SHA256", want: "HMAC-SHA256"},
-		{name: "header sha1 overrides query", query: "invalid", header: "HMAC-SHA1", want: "HMAC-SHA256"},
-		{name: "invalid query uses default", query: "invalid", want: "HMAC-SHA256"},
-		{name: "empty query uses default", querySet: true, want: "HMAC-SHA256"},
+		{name: "header sha1 overrides query", query: "invalid", header: "HMAC-SHA1", want: "HMAC-SHA1"},
 		{name: "default", want: "HMAC-SHA256"},
 	}
 	for _, tc := range cases {
@@ -149,6 +147,38 @@ func TestSignatureV2EmptyHeaderRejected(t *testing.T) {
 	}
 }
 
+func TestSignatureV2RpcBodyMethod(t *testing.T) {
+	for _, withContext := range []bool{false, true} {
+		config := CreateConfig()
+		config.Endpoint = dara.String("example.com")
+		config.SignatureAlgorithm = dara.String("v2")
+		config.HttpClient = &signatureV2Verifier{t: t, style: "RPC", method: "HMAC-SHA1"}
+		client, err := NewClient(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		request := CreateOpenApiRequest()
+		request.Body = map[string]interface{}{"SignatureMethod": "HMAC-SHA1"}
+		params := coverageParams("RPC", "formData", "json", "/", "AK")
+		if withContext {
+			_, err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
+		} else {
+			_, err = client.CallApi(params, request, CreateRuntimeOptions())
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestSignatureV2RpcInvalidQueryRejected(t *testing.T) {
+	for _, value := range []string{"", "invalid"} {
+		if _, err := signatureV2MethodWithFallback(map[string]*string{}, dara.String(value)); err == nil {
+			t.Fatalf("accepted %q", value)
+		}
+	}
+}
+
 func TestSignatureV2RpcBodyMethodConflict(t *testing.T) {
 	for _, withContext := range []bool{false, true} {
 		config := CreateConfig()
@@ -160,6 +190,7 @@ func TestSignatureV2RpcBodyMethodConflict(t *testing.T) {
 		}
 		request := CreateOpenApiRequest()
 		request.Body = map[string]interface{}{"SignatureMethod": "HMAC-SHA1"}
+		request.Headers["x-acs-signature-method"] = dara.String("HMAC-SHA256")
 		params := coverageParams("RPC", "formData", "json", "/", "AK")
 		if withContext {
 			_, err = client.CallApiWithCtx(context.Background(), params, request, CreateRuntimeOptions())
@@ -311,7 +342,7 @@ func TestSignatureV2HeaderPrecedenceAndConflicts(t *testing.T) {
 	request := map[string]*string{"X-ACS-SIGNATURE-METHOD": dara.String("HMAC-SHA1")}
 	headers := dara.Merge(global, runtime, request)
 	method, err := signatureV2Method(headers, global, runtime, request)
-	if err != nil || method != "HMAC-SHA256" || len(headers) != 1 || dara.StringValue(headers["x-acs-signature-method"]) != method {
+	if err != nil || method != "HMAC-SHA1" || len(headers) != 1 || dara.StringValue(headers["x-acs-signature-method"]) != method {
 		t.Fatalf("method = %q, headers = %v, error = %v", method, headers, err)
 	}
 	conflict := map[string]*string{"X-Acs-Signature-Method": dara.String("HMAC-SHA1"), "x-acs-signature-method": dara.String("HMAC-SHA256")}
@@ -320,7 +351,7 @@ func TestSignatureV2HeaderPrecedenceAndConflicts(t *testing.T) {
 	}
 	duplicate := map[string]*string{"X-Acs-Signature-Method": dara.String("HMAC-SHA1"), "x-acs-signature-method": dara.String("HMAC-SHA1")}
 	headers = dara.Merge(duplicate)
-	if method, err := signatureV2Method(headers, duplicate); err != nil || method != "HMAC-SHA256" || len(headers) != 1 {
+	if method, err := signatureV2Method(headers, duplicate); err != nil || method != "HMAC-SHA1" || len(headers) != 1 {
 		t.Fatalf("matching duplicate headers: method = %q, headers = %v, error = %v", method, headers, err)
 	}
 	if _, err := signatureV2Method(map[string]*string{}, map[string]*string{"X-Acs-Signature-Method": dara.String("unknown")}); err == nil {

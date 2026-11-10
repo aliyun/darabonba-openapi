@@ -15,7 +15,7 @@ from alibabacloud_tea_openapi.models import Config, OpenApiRequest, Params
 from alibabacloud_tea_openapi.utils import Utils
 
 
-@pytest.mark.parametrize('algorithm,digest', [(None, hashlib.sha256), ('HMAC-SHA256', hashlib.sha256), ('HMAC-SHA1', hashlib.sha256)])
+@pytest.mark.parametrize('algorithm,digest', [(None, hashlib.sha256), ('HMAC-SHA256', hashlib.sha256), ('HMAC-SHA1', hashlib.sha1)])
 @pytest.mark.parametrize('style', ['RPC', 'ROA'])
 @pytest.mark.parametrize('is_async', [False, True])
 def test_v2_signatures_and_algorithm_field(algorithm, digest, style, is_async):
@@ -46,7 +46,7 @@ def test_v2_signatures_and_algorithm_field(algorithm, digest, style, is_async):
             client.call_api(params, request, RuntimeOptions())
 
     request = captured[0]
-    expected_method = 'HMAC-SHA256'
+    expected_method = algorithm or 'HMAC-SHA256'
     if style == 'RPC':
         assert request.query['SignatureMethod'] == expected_method
         signed_params = {k: v for k, v in request.query.items() if k != 'Signature' and v is not None}
@@ -76,12 +76,12 @@ def test_header_precedence_and_conflicts():
                                              'X-Acs-Signature-Method': 'HMAC-SHA256'})
     with pytest.raises(ValueError, match='Unsupported'):
         Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-MD5'})
-    assert Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-SHA1'}) == 'HMAC-SHA256'
+    assert Client._get_v2_signature_method({}, {'x-acs-signature-method': 'HMAC-SHA1'}) == 'HMAC-SHA1'
 
 
 @pytest.mark.parametrize('override', [None, 'HMAC-SHA256'])
 @pytest.mark.parametrize('is_async', [False, True])
-def test_rpc_sha1_query_is_overridden(override, is_async):
+def test_rpc_sha1_query_and_header_precedence(override, is_async):
     client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
     params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
                     method='GET', auth_type='AK', style='RPC', body_type='none')
@@ -107,26 +107,48 @@ def test_rpc_sha1_query_is_overridden(override, is_async):
         with patch.object(DaraCore, 'do_action', side_effect=send):
             client.call_api(params, request, RuntimeOptions())
     query = captured[0].query
-    assert query['SignatureMethod'] == 'HMAC-SHA256'
+    assert query['SignatureMethod'] == (override or 'HMAC-SHA1')
     signed = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}'
                       for k, v in sorted(query.items()) if k != 'Signature' and v is not None)
-    expected_signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), hashlib.sha256).digest()).decode()
+    expected_signature = base64.b64encode(hmac.new(b'secret&', f'GET&%2F&{quote_plus(signed, safe="~")}'.encode(), hashlib.sha256 if override else hashlib.sha1).digest()).decode()
     assert query['Signature'] == expected_signature
 
 
 @pytest.mark.parametrize('is_async', [False, True])
-def test_rpc_rejects_sha1_signature_method_in_body(is_async):
+def test_rpc_sha1_signature_method_in_body(is_async):
     client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
     params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
                     method='POST', auth_type='AK', style='RPC', body_type='none', req_body_type='formData')
     request = OpenApiRequest(body={'SignatureMethod': 'HMAC-SHA1'})
+    captured = []
+    def send(req, runtime):
+        captured.append(req)
+        return SimpleNamespace(status_code=200, headers={})
+    async def send_async(req, runtime):
+        return send(req, runtime)
+    if is_async:
+        with patch.object(DaraCore, 'async_do_action', side_effect=send_async):
+            asyncio.run(client.call_api_async(params, request, RuntimeOptions()))
+    else:
+        with patch.object(DaraCore, 'do_action', side_effect=send):
+            client.call_api(params, request, RuntimeOptions())
+    query = captured[0].query
+    assert query['SignatureMethod'] == 'HMAC-SHA1'
+    signed = '&'.join(f'{quote(k, safe="~")}={quote(v, safe="~")}'
+                      for k, v in sorted(query.items()) if k != 'Signature' and v is not None)
+    expected = base64.b64encode(hmac.new(b'secret&', f'POST&%2F&{quote_plus(signed, safe="~")}'.encode(), hashlib.sha1).digest()).decode()
+    assert query['Signature'] == expected
+
+
+@pytest.mark.parametrize('is_async', [False, True])
+def test_rpc_body_conflicting_with_header_is_rejected(is_async):
+    client = Client(Config(access_key_id='id', access_key_secret='secret', endpoint='example.com', signature_algorithm='v2'))
+    params = Params(action='Action', version='2020-01-01', protocol='HTTPS', pathname='/',
+                    method='POST', auth_type='AK', style='RPC', body_type='none', req_body_type='formData')
+    request = OpenApiRequest(headers={'x-acs-signature-method': 'HMAC-SHA256'}, body={'SignatureMethod': 'HMAC-SHA1'})
     with pytest.raises(Exception, match='Unsupported'):
         if is_async:
-            loop = asyncio.new_event_loop()
-            try:
-                loop.run_until_complete(client.call_api_async(params, request, RuntimeOptions()))
-            finally:
-                loop.close()
+            asyncio.run(client.call_api_async(params, request, RuntimeOptions()))
         else:
             client.call_api(params, request, RuntimeOptions())
 

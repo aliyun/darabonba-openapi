@@ -63,9 +63,9 @@ namespace OpenApiClientUnitTests
 
         [Theory]
         [InlineData(null, false, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA1", false, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA256", true, false, "HMAC-SHA256", 32)]
-        [InlineData(null, false, true, "HMAC-SHA256", 32)]
+        [InlineData("HMAC-SHA1", false, false, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA256", true, false, "HMAC-SHA1", 20)]
+        [InlineData(null, false, true, "HMAC-SHA1", 20)]
         [InlineData("HMAC-SHA256", false, true, "HMAC-SHA256", 32)]
         public void TestCallApiForRPCWithV2Sign_AK_Form(string configuredAlgorithm, bool overrideHeader, bool overrideQuery, string expectedAlgorithm, int signatureBytes)
         {
@@ -189,8 +189,8 @@ namespace OpenApiClientUnitTests
 
         [Theory]
         [InlineData(null, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA1", false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA256", true, "HMAC-SHA256", 32)]
+        [InlineData("HMAC-SHA1", false, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA256", true, "HMAC-SHA1", 20)]
         public void TestCallApiForROAWithV2Sign_HTTPS_AK_Form(string configuredAlgorithm, bool overrideHeader, string expectedAlgorithm, int signatureBytes)
         {
             using (var server = new MockHttpServer())
@@ -302,6 +302,59 @@ namespace OpenApiClientUnitTests
             Assert.Throws<ClientException>(() => new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
         }
 
+        [Theory]
+        [InlineData("RPC")]
+        [InlineData("ROA")]
+        public async System.Threading.Tasks.Task ExplicitSha1AsyncUsesSha1Digest(string style)
+        {
+            using (var server = new MockHttpServer())
+            {
+                server.PathContent["/test"] = "json";
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.SignatureAlgorithm = "v2";
+                config.Endpoint = server.Endpoint;
+                var request = TestFixtures.CreateOpenApiRequest();
+                request.Headers["x-acs-signature-method"] = "HMAC-SHA1";
+                var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/test", Method = "POST", AuthType = "AK", Style = style, ReqBodyType = "formData", BodyType = "json" };
+                var headers = TestFixtures.GetHeaders(await new TestClient(config).CallApiAsync(parameters, request, TestFixtures.CreateRuntimeOptions()));
+                if (style == "RPC")
+                {
+                    var signaturePart = Array.Find(headers["raw-query"].Split('&'), part => part.StartsWith("Signature="));
+                    string signature = System.Net.WebUtility.UrlDecode(signaturePart.Substring("Signature=".Length));
+                    Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA1"), signature);
+                    Assert.Equal(20, Convert.FromBase64String(signature).Length);
+                }
+                else
+                {
+                    string authorization = TestFixtures.GetHeader(headers, "authorization");
+                    Assert.Equal("HMAC-SHA1", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
+                    Assert.Equal("acs ak:" + ExpectedRoaSignature(server.LastRequestHeaders, headers["raw-query"], "HMAC-SHA1"), authorization);
+                    Assert.Equal(20, Convert.FromBase64String(authorization.Substring("acs ak:".Length)).Length);
+                }
+            }
+        }
+
+        [Fact]
+        public void RpcSignatureMethodFromBodyUsesSha1Digest()
+        {
+            using (var server = new MockHttpServer())
+            {
+                var config = TestFixtures.CreateConfig();
+                config.Protocol = "HTTP";
+                config.SignatureAlgorithm = "v2";
+                config.Endpoint = server.Endpoint;
+                var request = TestFixtures.CreateOpenApiRequest();
+                request.Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
+                var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/", Method = "POST", AuthType = "AK", Style = "RPC", ReqBodyType = "formData", BodyType = "json" };
+                var headers = TestFixtures.GetHeaders(new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
+                var signaturePart = Array.Find(headers["raw-query"].Split('&'), part => part.StartsWith("Signature="));
+                string signature = System.Net.WebUtility.UrlDecode(signaturePart.Substring("Signature=".Length));
+                TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA1");
+                Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA1"), signature);
+            }
+        }
+
         [Fact]
         public void RejectSignatureMethodConflictInRpcBody()
         {
@@ -310,6 +363,7 @@ namespace OpenApiClientUnitTests
             config.Endpoint = "127.0.0.1";
             var request = TestFixtures.CreateOpenApiRequest();
             request.Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
+            request.Headers["x-acs-signature-method"] = "HMAC-SHA256";
             var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/", Method = "POST", AuthType = "AK", Style = "RPC", ReqBodyType = "formData", BodyType = "json" };
             Assert.Throws<ClientException>(() => new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
         }

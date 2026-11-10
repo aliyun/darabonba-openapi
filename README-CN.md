@@ -11,7 +11,7 @@
 
 ## 签名 V2 兼容性
 
-Python、Go、C#、C++、PHP、TypeScript 和 Swift 客户端使用签名 V2 的 AccessKey 和 STS 请求采用 HMAC-SHA256。显式设置为 HMAC-SHA1 的签名请求头或 RPC 查询参数会升级为 HMAC-SHA256。签名版本保持不变。
+Python、Go、C#、C++、PHP、TypeScript 和 Swift 客户端使用签名 V2 的 AccessKey 和 STS 请求默认采用 HMAC-SHA256，并保留显式选择 HMAC-SHA1 的能力。签名版本保持不变。
 
 ## 问题
 

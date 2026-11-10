@@ -9,7 +9,7 @@ import DarabonbaXML
 
 open class Client {
     private static func v2Method(_ headers: inout [String: String], _ sources: [[String: String]], roa: Bool, queryMethod: String? = nil) throws -> String {
-        var method = "HMAC-SHA256"
+        var method = queryMethod ?? "HMAC-SHA256"
         var explicit = false
         for source in sources {
             var value: String? = nil
@@ -21,8 +21,7 @@ open class Client {
             }
             if let value = value { method = value; explicit = true }
         }
-        if method == "HMAC-SHA1" { method = "HMAC-SHA256" }
-        guard method == "HMAC-SHA256" else {
+        guard method == "HMAC-SHA256" || method == "HMAC-SHA1" else {
             throw Tea.ReuqestError(["code": "InvalidSignatureAlgorithm", "message": "Unsupported signature V2 algorithm"])
         }
         for key in Array(headers.keys) where key.lowercased() == "x-acs-signature-method" { headers.removeValue(forKey: key) }
@@ -40,11 +39,11 @@ open class Client {
             .replacingOccurrences(of: "%7E", with: "~")
     }
 
-    private static func v2Hmac256(_ text: String, _ secret: String) throws -> String {
-        return Data(try HMAC(key: secret, variant: .sha2(.sha256)).authenticate(Array(text.utf8))).base64EncodedString()
+    private static func v2Hmac(_ text: String, _ secret: String, _ algorithm: String) throws -> String {
+        return Data(try HMAC(key: secret, variant: algorithm == "HMAC-SHA1" ? .sha1 : .sha2(.sha256)).authenticate(Array(text.utf8))).base64EncodedString()
     }
 
-    private static func v2RpcSignature256(_ params: [String: String], _ method: String, _ secret: String) throws -> String {
+    private static func v2RpcSignature(_ params: [String: String], _ method: String, _ secret: String, _ algorithm: String) throws -> String {
         if secret.isEmpty { return "" }
         var canonical = ""
         var separator = ""
@@ -53,7 +52,7 @@ open class Client {
             if let value = params[key], !value.isEmpty { canonical += v2Encode(key) + "=" + v2Encode(value) }
             separator = "&"
         }
-        return try v2Hmac256(method + "&%2F&" + v2Encode(canonical), secret + "&")
+        return try v2Hmac(method + "&%2F&" + v2Encode(canonical), secret + "&", algorithm)
     }
     public var _endpoint: String?
 
@@ -293,17 +292,18 @@ open class Client {
                         if (!TeaUtils.Client.empty(securityToken)) {
                             _request.query["SecurityToken"] = securityToken as! String;
                         }
-                        let signatureMethod = try Client.v2Method(&_request.headers, [globalHeaders, extendsHeaders, request.headers ?? [:], hasRpcHeaders ? headers : [:]], roa: false, queryMethod: _request.query["SignatureMethod"])
-                        _request.query["SignatureMethod"] = signatureMethod;
-                        _request.query["SignatureVersion"] = "1.0";
-                        _request.query["AccessKeyId"] = accessKeyId as! String;
                         var t: [String: Any]? = nil
                         if (!TeaUtils.Client.isUnset(request.body)) {
                             t = try TeaUtils.Client.assertAsMap(request.body)
                         }
-                        var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, AlibabaCloudOpenApiUtil.Client.query(t))
+                        let bodyParams = AlibabaCloudOpenApiUtil.Client.query(t)
+                        let signatureMethod = try Client.v2Method(&_request.headers, [globalHeaders, extendsHeaders, request.headers ?? [:], hasRpcHeaders ? headers : [:]], roa: false, queryMethod: _request.query["SignatureMethod"] ?? bodyParams["SignatureMethod"])
+                        _request.query["SignatureMethod"] = signatureMethod;
+                        _request.query["SignatureVersion"] = "1.0";
+                        _request.query["AccessKeyId"] = accessKeyId as! String;
+                        var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, bodyParams)
                         if signedParam["SignatureMethod"] != signatureMethod { throw Tea.ReuqestError(["code": "InvalidSignatureAlgorithm", "message": "Conflicting signature V2 algorithms"]) }
-                        _request.query["Signature"] = try Client.v2RpcSignature256(signedParam, _request.method, accessKeySecret);
+                        _request.query["Signature"] = try Client.v2RpcSignature(signedParam, _request.method, accessKeySecret, signatureMethod);
                     }
                 }
                 _lastRequest = _request
@@ -489,7 +489,7 @@ open class Client {
                         }
                         let signatureMethod = try Client.v2Method(&_request.headers, [globalHeaders, extendsHeaders, request.headers ?? [:]], roa: true)
                         var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                        let signature = try Client.v2Hmac256(stringToSign, accessKeySecret)
+                        let signature = try Client.v2Hmac(stringToSign, accessKeySecret, signatureMethod)
                         _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + signature;
                     }
                 }
@@ -683,7 +683,7 @@ open class Client {
                         }
                         let signatureMethod = try Client.v2Method(&_request.headers, [globalHeaders, extendsHeaders, request.headers ?? [:]], roa: true)
                         var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                        let signature = try Client.v2Hmac256(stringToSign, accessKeySecret)
+                        let signature = try Client.v2Hmac(stringToSign, accessKeySecret, signatureMethod)
                         _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + signature;
                     }
                 }

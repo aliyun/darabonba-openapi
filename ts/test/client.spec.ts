@@ -262,7 +262,7 @@ describe('$openapi', function () {
     server.close(done);
   });
 
-  it('upgrades SHA1 headers while signing V2 requests with SHA256', async function () {
+  it('respects explicit signature algorithms for V2 requests', async function () {
     const config = createConfig();
     config.protocol = 'HTTP';
     config.signatureAlgorithm = 'v2';
@@ -294,7 +294,11 @@ describe('$openapi', function () {
       assert.strictEqual(error.code, 'InvalidSignatureAlgorithm');
     }
     request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA1';
-    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA1');
+    for (const bodyType of ['json', 'formData']) {
+      const roa = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/test', method: 'POST', authType: 'AK', style: 'ROA', reqBodyType: bodyType, bodyType: 'json' });
+      verifyV2Signature((await client.callApi(roa, request, runtime)).headers, 'ROA', 'HMAC-SHA1');
+    }
     request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
     request.headers['x-acs-signature-method'] = 'HMAC-SHA256';
     const duplicateHeaders = (await client.callApi(params, request, runtime)).headers;
@@ -322,7 +326,7 @@ describe('$openapi', function () {
     assert.strictEqual((await client.callApi(params, request, createRuntimeOptions())).headers['x-acs-signature-method'], 'custom');
   });
 
-  it('overrides SHA1 RPC query parameters with SHA256', async function () {
+  it('respects RPC query and body algorithms with header precedence', async function () {
     const config = createConfig();
     config.protocol = 'HTTP';
     config.signatureAlgorithm = 'v2';
@@ -334,20 +338,27 @@ describe('$openapi', function () {
     const params = new $OpenApiUtil.Params({ action: 'TestAPI', version: '2022-06-01', protocol: 'HTTP', pathname: '/', method: 'POST', authType: 'AK', style: 'RPC', reqBodyType: 'formData', bodyType: 'json' });
     for (const source of [config.globalParameters.queries, runtime.extendsParameters.queries, request.query]) {
       source['SignatureMethod'] = 'HMAC-SHA1';
-      verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+      verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA1');
       delete source['SignatureMethod'];
     }
     config.globalParameters.queries['SignatureMethod'] = 'HMAC-SHA1';
     request.query['SignatureMethod'] = 'legacy';
-    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    try { await client.callApi(params, request, runtime); assert.fail('invalid method accepted'); }
+    catch (error) { assert.strictEqual(error.code, 'InvalidSignatureAlgorithm'); }
     request.query['SignatureMethod'] = '';
-    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
+    try { await client.callApi(params, request, runtime); assert.fail('empty method accepted'); }
+    catch (error) { assert.strictEqual(error.code, 'InvalidSignatureAlgorithm'); }
     request.query['SignatureMethod'] = 'HMAC-SHA1';
     request.headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
     verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA256');
     request.body = { SignatureMethod: 'HMAC-SHA1' };
     try { await client.callApi(params, request, runtime); assert.fail('SHA1 method in body was accepted'); }
     catch (error) { assert.strictEqual(error.code, 'InvalidSignatureAlgorithm'); }
+    request.body = { SignatureMethod: 'HMAC-SHA1' };
+    delete request.headers['X-Acs-Signature-Method'];
+    delete request.query['SignatureMethod'];
+    delete config.globalParameters.queries['SignatureMethod'];
+    verifyV2Signature((await client.callApi(params, request, runtime)).headers, 'RPC', 'HMAC-SHA1');
     request.body = null;
     request.headers['X-Acs-Signature-Method'] = '';
     try { await client.callApi(params, request, runtime); assert.fail('empty method accepted'); }

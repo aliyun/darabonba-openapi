@@ -12,7 +12,7 @@ English | [简体中文](README-CN.md)
 
 ## Signature V2 compatibility
 
-In the Python, Go, C#, C++, PHP, TypeScript and Swift clients, AccessKey and STS requests using signature V2 use HMAC-SHA256. Explicit HMAC-SHA1 signature headers or RPC query parameters are upgraded to HMAC-SHA256. The signature version is unchanged.
+In the Python, Go, C#, C++, PHP, TypeScript and Swift clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. An explicitly selected HMAC-SHA1 signature method remains supported. The signature version is unchanged.
 
 ## Issues
 

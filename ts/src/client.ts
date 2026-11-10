@@ -17,8 +17,8 @@ export * as websocketUtils from './websocketUtils';
 export * as WebSocketUtils from './websocketUtils';
 export * as $WebSocketUtils from './websocketUtils';
 
-function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean): string {
-  let method = 'HMAC-SHA256';
+function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key: string]: string}>, roa: boolean, fallback?: string): string {
+  let method = fallback === undefined ? 'HMAC-SHA256' : fallback;
   let explicit = false;
   for (const source of sources) {
     if (!source) continue;
@@ -35,8 +35,7 @@ function signatureMethod(headers: {[key: string]: string}, sources: Array<{[key:
     }
     if (seen) { method = value; explicit = true; }
   }
-  if (method === 'HMAC-SHA1') method = 'HMAC-SHA256';
-  if (method !== 'HMAC-SHA256') {
+  if (method !== 'HMAC-SHA1' && method !== 'HMAC-SHA256') {
     throw new $_error.ClientError({ code: 'InvalidSignatureAlgorithm', message: 'Unsupported signature V2 algorithm' });
   }
   for (const key of Object.keys(headers)) {
@@ -308,23 +307,26 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false);
-            request_.query["SignatureMethod"] = method;
-            request_.query["SignatureVersion"] = "1.0";
-            request_.query["AccessKeyId"] = accessKeyId;
             let t : {[key: string ]: any} = null;
             if (!$dara.isNull(request.body)) {
               t = request.body;
             }
-
+            const bodyParams = OpenApiUtil.query(t);
+            const fallback = request_.query['SignatureMethod'] !== undefined ? request_.query['SignatureMethod'] : bodyParams['SignatureMethod'];
+            const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers, headers], false, fallback);
+            request_.query["SignatureMethod"] = method;
+            request_.query["SignatureVersion"] = "1.0";
+            request_.query["AccessKeyId"] = accessKeyId;
             let signedParam = {
               ...request_.query,
-              ...OpenApiUtil.query(t),
+              ...bodyParams,
             };
             if (signedParam['SignatureMethod'] !== method) {
               throw new $_error.ClientError({ code: 'InvalidSignatureAlgorithm', message: 'Unsupported signature V2 algorithm' });
             }
-            request_.query["Signature"] = OpenApiUtil.getRPCSignatureWithSHA256(signedParam, request_.method, accessKeySecret);
+            request_.query["Signature"] = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret)
+              : OpenApiUtil.getRPCSignatureWithSHA256(signedParam, request_.method, accessKeySecret);
           }
 
         }
@@ -578,7 +580,9 @@ export default class Client {
 
             const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            const signature = OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            const signature = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret)
+              : OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
             request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
@@ -841,7 +845,9 @@ export default class Client {
 
             const method = signatureMethod(request_.headers, [globalHeaders, extendsHeaders, request.headers], true);
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            const signature = OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            const signature = method === 'HMAC-SHA1'
+              ? OpenApiUtil.getROASignature(stringToSign, accessKeySecret)
+              : OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
             request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
