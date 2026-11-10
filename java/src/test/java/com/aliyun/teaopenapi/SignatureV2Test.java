@@ -62,20 +62,27 @@ public class SignatureV2Test {
         Map<String, String> params = query(request);
         Assert.assertEquals(expected, params.get("SignatureMethod"));
         String actual = params.remove("Signature");
+        String body = request.getBodyAsString();
+        if (body != null && !body.isEmpty()) {
+            for (String part : body.split("&")) {
+                String[] pair = part.split("=", 2);
+                params.put(java.net.URLDecoder.decode(pair[0], "UTF-8"), pair.length > 1 ? java.net.URLDecoder.decode(pair[1], "UTF-8") : "");
+            }
+        }
         StringBuilder canonical = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             if (entry.getValue().length() == 0) continue;
             if (canonical.length() > 0) canonical.append('&');
             canonical.append(encode(entry.getKey())).append('=').append(encode(entry.getValue()));
         }
-        Assert.assertEquals(sign("GET&%2F&" + encode(canonical.toString()), "secret&", expected), actual);
+        Assert.assertEquals(sign(request.getMethod().getName() + "&%2F&" + encode(canonical.toString()), "secret&", expected), actual);
     }
 
     @Test public void rpcAndRoaUseMatchingAlgorithms() throws Exception {
         stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
         for (String style : new String[] { "RPC", "ROA" }) {
             for (String requested : new String[] { "HMAC-SHA256", "HMAC-SHA1" }) {
-                String expected = "HMAC-SHA256";
+                String expected = requested;
                 wireMock.resetRequests();
                 Config config = ClientTest.createConfig();
                 config.protocol = "HTTP";
@@ -112,7 +119,7 @@ public class SignatureV2Test {
         }
     }
 
-    @Test public void rpcQuerySignatureMethodIsUpgraded() throws Exception {
+    @Test public void rpcQuerySignatureMethodIsPreserved() throws Exception {
         stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
         for (String scenario : new String[] { "global", "extended", "request", "header", "other", "empty" }) {
             wireMock.resetRequests();
@@ -132,9 +139,18 @@ public class SignatureV2Test {
             if ("header".equals(scenario)) request.headers.put("X-Acs-Signature-Method", "HMAC-SHA256");
             if ("other".equals(scenario)) request.query.put("SignatureMethod", "unsupported");
             if ("empty".equals(scenario)) request.query.put("SignatureMethod", "");
+            if ("other".equals(scenario) || "empty".equals(scenario)) {
+                try {
+                    new Client(config).doRPCRequest("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime);
+                    Assert.fail("Invalid algorithm should be rejected");
+                } catch (TeaException error) {
+                    Assert.assertEquals("InvalidSignatureAlgorithm", error.getCode());
+                }
+                continue;
+            }
             new Client(config).doRPCRequest("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime);
             LoggedRequest captured = wireMock.findAll(getRequestedFor(urlPathEqualTo("/"))).get(0);
-            assertRpcSignature(captured, "HMAC-SHA256");
+            assertRpcSignature(captured, "header".equals(scenario) ? "HMAC-SHA256" : "HMAC-SHA1");
         }
     }
 
@@ -153,6 +169,20 @@ public class SignatureV2Test {
         }
     }
 
+    @Test public void rpcBodySignatureMethodUsesSha1() throws Exception {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        OpenApiRequest request = new OpenApiRequest();
+        Map<String, Object> body = new HashMap<String, Object>();
+        body.put("SignatureMethod", "HMAC-SHA1");
+        request.body = body;
+        new Client(config).doRPCRequest("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, ClientTest.createRuntimeOptions());
+        LoggedRequest captured = wireMock.findAll(postRequestedFor(urlPathEqualTo("/"))).get(0);
+        assertRpcSignature(captured, "HMAC-SHA1");
+    }
+
     @Test public void rpcBodyCannotOverrideSignatureMethod() throws Exception {
         Config config = ClientTest.createConfig();
         config.endpoint = "localhost:" + wireMock.port();
@@ -160,6 +190,8 @@ public class SignatureV2Test {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("SignatureMethod", "HMAC-SHA1");
         request.body = body;
+        request.headers = new HashMap<String, String>();
+        request.headers.put("x-acs-signature-method", "HMAC-SHA256");
         try {
             new Client(config).doRPCRequest("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, ClientTest.createRuntimeOptions());
             Assert.fail("Conflicting body signature method should be rejected");

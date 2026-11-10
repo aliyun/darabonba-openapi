@@ -51,23 +51,23 @@ public class SignatureV2Tests
 
     [Theory]
     [InlineData("RPC", null, null, "HMAC-SHA256")]
-    [InlineData("RPC", "HMAC-SHA1", null, "HMAC-SHA256")]
-    [InlineData("RPC", null, "HMAC-SHA1", "HMAC-SHA256")]
+    [InlineData("RPC", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPC", null, "HMAC-SHA1", "HMAC-SHA1")]
     [InlineData("RPC", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
-    [InlineData("RPC", null, "unsupported", "HMAC-SHA256")]
-    [InlineData("RPC", null, "", "HMAC-SHA256")]
     [InlineData("ROA", null, null, "HMAC-SHA256")]
-    [InlineData("ROA", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("ROA", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPCBody", null, null, "HMAC-SHA1")]
+    [InlineData("RPCBodyAsync", null, null, "HMAC-SHA1")]
     [InlineData("RPCAsync", null, null, "HMAC-SHA256")]
-    [InlineData("RPCAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
-    [InlineData("RPCAsync", null, "HMAC-SHA1", "HMAC-SHA256")]
+    [InlineData("RPCAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
+    [InlineData("RPCAsync", null, "HMAC-SHA1", "HMAC-SHA1")]
     [InlineData("RPCAsync", "HMAC-SHA256", "HMAC-SHA1", "HMAC-SHA256")]
     [InlineData("ROAAsync", null, null, "HMAC-SHA256")]
-    [InlineData("ROAAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("ROAAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
     [InlineData("ROAForm", null, null, "HMAC-SHA256")]
-    [InlineData("ROAForm", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("ROAForm", "HMAC-SHA1", null, "HMAC-SHA1")]
     [InlineData("ROAFormAsync", null, null, "HMAC-SHA256")]
-    [InlineData("ROAFormAsync", "HMAC-SHA1", null, "HMAC-SHA256")]
+    [InlineData("ROAFormAsync", "HMAC-SHA1", null, "HMAC-SHA1")]
     public void ActualRequestsUseSelectedSignature(string style, string overrideHeader, string queryAlgorithm, string expected)
     {
         var socket = new TcpListener(IPAddress.Loopback, 0);
@@ -83,17 +83,19 @@ public class SignatureV2Tests
                 var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 foreach (string key in context.Request.Headers.AllKeys) headers[key] = context.Request.Headers[key];
                 var query = context.Request.Url.Query;
+                var body = new System.IO.StreamReader(context.Request.InputStream).ReadToEnd();
                 byte[] response = Encoding.UTF8.GetBytes("{}");
                 context.Response.ContentType = "application/json";
                 context.Response.OutputStream.Write(response, 0, response.Length);
                 context.Response.Close();
-                return Tuple.Create(query, headers);
+                return Tuple.Create(query, headers, body);
             });
             var config = new Config { Endpoint = "127.0.0.1:" + port, Protocol = "HTTP", AccessKeyId = "ak", AccessKeySecret = "secret" };
             var request = new OpenApiRequest { Headers = new Dictionary<string, string>(), Query = new Dictionary<string, string>() };
             request.Query["中文 +/%~"] = "空 格+/%*~雪";
             request.Query["Empty"] = "";
             if (queryAlgorithm != null) request.Query["SignatureMethod"] = queryAlgorithm;
+            if (style.StartsWith("RPCBody", StringComparison.Ordinal)) request.Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
             if (overrideHeader != null)
             {
                 config.GlobalParameters = new GlobalParameters { Headers = new Dictionary<string, string> { { "x-acs-signature-method", overrideHeader == "HMAC-SHA1" ? "HMAC-SHA256" : "HMAC-SHA1" } } };
@@ -101,7 +103,9 @@ public class SignatureV2Tests
             }
             var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
             var client = new Client(config);
-            if (style == "RPC") client.DoRPCRequest("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime);
+            if (style == "RPCBody") client.DoRPCRequest("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, runtime);
+            else if (style == "RPCBodyAsync") client.DoRPCRequestAsync("Test", "2022-06-01", "HTTP", "POST", "AK", "json", request, runtime).GetAwaiter().GetResult();
+            else if (style == "RPC") client.DoRPCRequest("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime);
             else if (style == "RPCAsync") client.DoRPCRequestAsync("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime).GetAwaiter().GetResult();
             else if (style == "ROA") client.DoROARequest("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, runtime);
             else if (style == "ROAAsync") client.DoROARequestAsync("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, runtime).GetAwaiter().GetResult();
@@ -115,8 +119,10 @@ public class SignatureV2Tests
                 Assert.Equal(expected, parameters["SignatureMethod"]);
                 string signature = parameters["Signature"];
                 parameters.Remove("Signature");
+                foreach (var pair in Query(received.Result.Item3)) parameters[pair.Key] = pair.Value;
                 string canonical = string.Join("&", parameters.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => Uri.EscapeDataString(pair.Key) + "=" + Uri.EscapeDataString(pair.Value)));
-                Assert.Equal(Sign("GET&%2F&" + Uri.EscapeDataString(canonical), "secret&", expected), signature);
+                string method = style.StartsWith("RPCBody", StringComparison.Ordinal) ? "POST" : "GET";
+                Assert.Equal(Sign(method + "&%2F&" + Uri.EscapeDataString(canonical), "secret&", expected), signature);
             }
             else
             {
@@ -147,12 +153,24 @@ public class SignatureV2Tests
     }
 
     [Theory]
+    [InlineData("unsupported")]
+    [InlineData("")]
+    public void InvalidRpcSignatureMethodIsRejected(string method)
+    {
+        var config = new Config { Endpoint = "127.0.0.1", Protocol = "HTTP", AccessKeyId = "ak", AccessKeySecret = "secret" };
+        var request = new OpenApiRequest { Query = new Dictionary<string, string> { { "SignatureMethod", method } } };
+        var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
+        var error = Assert.Throws<Tea.TeaException>(() => new Client(config).DoRPCRequest("Test", "2022-06-01", "HTTP", "GET", "AK", "json", request, runtime));
+        Assert.Contains("Unsupported signature V2 algorithm", error.Message);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void RpcBodyCannotOverrideSignatureMethod(bool async)
     {
         var config = new Config { Endpoint = "127.0.0.1", Protocol = "HTTP", AccessKeyId = "ak", AccessKeySecret = "secret" };
-        var request = new OpenApiRequest { Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } } };
+        var request = new OpenApiRequest { Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } }, Headers = new Dictionary<string, string> { { "x-acs-signature-method", "HMAC-SHA256" } } };
         var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
         var client = new Client(config);
         var error = Assert.Throws<Tea.TeaException>(() => {

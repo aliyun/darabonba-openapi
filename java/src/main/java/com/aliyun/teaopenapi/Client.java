@@ -42,7 +42,7 @@ public class Client {
     }
 
     @SafeVarargs
-    private static String configureSignatureV2Header(java.util.Map<String, String> target, boolean required, java.util.Map<String, String>... sources) {
+    private static String configureSignatureV2Header(java.util.Map<String, String> target, boolean required, String fallback, java.util.Map<String, String>... sources) {
         String value = null;
         boolean found = false;
         for (java.util.Map<String, String> source : sources) {
@@ -61,9 +61,8 @@ public class Client {
                 }
             }
         }
-        String method = found ? value : "HMAC-SHA256";
-        if ("HMAC-SHA1".equals(method)) method = "HMAC-SHA256";
-        if (!"HMAC-SHA256".equals(method)) {
+        String method = found ? value : fallback;
+        if (!"HMAC-SHA256".equals(method) && !"HMAC-SHA1".equals(method)) {
             throw new TeaException(TeaConverter.buildMap(new TeaPair("code", "InvalidSignatureAlgorithm"), new TeaPair("message", "Unsupported signature V2 algorithm")));
         }
         java.util.Iterator<String> keys = target.keySet().iterator();
@@ -74,7 +73,8 @@ public class Client {
         return method;
     }
 
-    private static String signV2Sha256(String text, String secret) throws Exception {
+    private static String signV2(String text, String secret, String signatureMethod) throws Exception {
+        if ("HMAC-SHA1".equals(signatureMethod)) return com.aliyun.openapiutil.Client.getROASignature(text, secret);
         if (secret == null || secret.length() == 0) return secret;
         java.lang.reflect.Method util = signatureV2Method("getROASignatureWithSHA256", String.class, String.class);
         if (util != null) return invokeSignatureV2(util, text, secret);
@@ -83,7 +83,8 @@ public class Client {
         return org.apache.commons.codec.binary.Base64.encodeBase64String(mac.doFinal(text.getBytes("UTF-8")));
     }
 
-    private static String signRpcV2Sha256(java.util.Map<String, String> parameters, String method, String secret) throws Exception {
+    private static String signRpcV2(java.util.Map<String, String> parameters, String method, String secret, String signatureMethod) throws Exception {
+        if ("HMAC-SHA1".equals(signatureMethod)) return com.aliyun.openapiutil.Client.getRPCSignature(parameters, method, secret);
         if (parameters == null || secret == null || secret.length() == 0) return secret;
         java.lang.reflect.Method util = signatureV2Method("getRPCSignatureWithSHA256", java.util.Map.class, String.class, String.class);
         if (util != null) return invokeSignatureV2(util, parameters, method, secret);
@@ -96,7 +97,7 @@ public class Client {
             query.append('&').append(com.aliyun.openapiutil.Client.percentEncode(key)).append('=').append(com.aliyun.openapiutil.Client.percentEncode(value));
         }
         String text = method + "&" + com.aliyun.openapiutil.Client.percentEncode("/") + "&" + com.aliyun.openapiutil.Client.percentEncode(query.substring(1));
-        return signV2Sha256(text, secret + "&");
+        return signV2(text, secret + "&", signatureMethod);
     }
 
     public String _endpoint;
@@ -381,23 +382,25 @@ public class Client {
                             request_.query.put("SecurityToken", securityToken);
                         }
 
-                        String signatureMethod = configureSignatureV2Header(request_.headers, false, globalHeaders, extendsHeaders, request.headers, headers);
-                        request_.query.put("SignatureMethod", signatureMethod);
-                        request_.query.put("SignatureVersion", "1.0");
-                        request_.query.put("AccessKeyId", accessKeyId);
                         java.util.Map<String, Object> t = null;
                         if (!com.aliyun.teautil.Common.isUnset(request.body)) {
                             t = com.aliyun.teautil.Common.assertAsMap(request.body);
                         }
+                        java.util.Map<String, String> bodyParams = com.aliyun.openapiutil.Client.query(t);
+                        String fallback = request_.query.containsKey("SignatureMethod") ? request_.query.get("SignatureMethod") : bodyParams.containsKey("SignatureMethod") ? bodyParams.get("SignatureMethod") : "HMAC-SHA256";
+                        String signatureMethod = configureSignatureV2Header(request_.headers, false, fallback, globalHeaders, extendsHeaders, request.headers, headers);
+                        request_.query.put("SignatureMethod", signatureMethod);
+                        request_.query.put("SignatureVersion", "1.0");
+                        request_.query.put("AccessKeyId", accessKeyId);
 
                         java.util.Map<String, String> signedParam = TeaConverter.merge(String.class,
                             request_.query,
-                            com.aliyun.openapiutil.Client.query(t)
+                            bodyParams
                         );
                         if (!signatureMethod.equals(signedParam.get("SignatureMethod"))) {
                             throw new TeaException(TeaConverter.buildMap(new TeaPair("code", "InvalidSignatureAlgorithm"), new TeaPair("message", "Unsupported signature V2 algorithm")));
                         }
-                        request_.query.put("Signature", signRpcV2Sha256(signedParam, request_.method, accessKeySecret));
+                        request_.query.put("Signature", signRpcV2(signedParam, request_.method, accessKeySecret, signatureMethod));
                     }
 
                 }
@@ -649,9 +652,9 @@ public class Client {
                             request_.headers.put("x-acs-security-token", securityToken);
                         }
 
-                        String signatureMethod = configureSignatureV2Header(request_.headers, true, globalHeaders, extendsHeaders, request.headers);
+                        String signatureMethod = configureSignatureV2Header(request_.headers, true, "HMAC-SHA256", globalHeaders, extendsHeaders, request.headers);
                         String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
-                        String signature = signV2Sha256(stringToSign, accessKeySecret);
+                        String signature = signV2(stringToSign, accessKeySecret, signatureMethod);
                         request_.headers.put("authorization", "acs " + accessKeyId + ":" + signature);
                     }
 
@@ -917,9 +920,9 @@ public class Client {
                             request_.headers.put("x-acs-security-token", securityToken);
                         }
 
-                        String signatureMethod = configureSignatureV2Header(request_.headers, true, globalHeaders, extendsHeaders, request.headers);
+                        String signatureMethod = configureSignatureV2Header(request_.headers, true, "HMAC-SHA256", globalHeaders, extendsHeaders, request.headers);
                         String stringToSign = com.aliyun.openapiutil.Client.getStringToSign(request_);
-                        String signature = signV2Sha256(stringToSign, accessKeySecret);
+                        String signature = signV2(stringToSign, accessKeySecret, signatureMethod);
                         request_.headers.put("authorization", "acs " + accessKeyId + ":" + signature);
                     }
 
