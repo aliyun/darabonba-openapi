@@ -58,6 +58,9 @@ func (s *AlibabaCloudError) GetAccessDeniedDetail() map[string]interface{} {
 }
 
 func (s *AlibabaCloudError) GetName() *string {
+	if s.Name == nil {
+		return dara.String("AlibabaCloudError")
+	}
 	return s.Name
 }
 

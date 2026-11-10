@@ -82,6 +82,9 @@ func (s *ServerError) GetAccessDeniedDetail() map[string]interface{} {
 }
 
 func (s *ServerError) GetName() *string {
+	if s.Name == nil {
+		return dara.String("ServerError")
+	}
 	return s.Name
 }
 
