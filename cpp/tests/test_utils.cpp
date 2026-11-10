@@ -243,13 +243,12 @@ TEST(POPTest, ModifyResponsePassesBinaryBodyThroughExecute) {
         {"body", context.getResponse().getDeserializedBody()}});
   }
 
-  ASSERT_TRUE(executed["body"].is_binary());
-  DownloadResponseModel first = executed.get<DownloadResponseModel>();
-  ASSERT_NE(nullptr, first.getBody());
-  EXPECT_EQ("download content", Darabonba::Stream::readAsString(first.getBody()));
-  DownloadResponseModel second = executed.get<DownloadResponseModel>();
-  ASSERT_NE(nullptr, second.getBody());
-  EXPECT_EQ("download content", Darabonba::Stream::readAsString(second.getBody()));
+  ASSERT_FALSE(executed["body"].is_binary());
+  ASSERT_TRUE(executed["body"].is_object());
+  ASSERT_TRUE(executed["body"].contains("darabonba.stream"));
+  DownloadResponseModel model = executed.get<DownloadResponseModel>();
+  ASSERT_NE(nullptr, model.getBody());
+  EXPECT_EQ("download content", Darabonba::Stream::readAsString(model.getBody()));
 }
 
 TEST(POPTest, ModifyResponseReadsStringStream) {

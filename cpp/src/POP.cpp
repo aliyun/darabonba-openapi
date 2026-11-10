@@ -246,13 +246,8 @@ void POP::modifyResponse(InterceptorContext &context,
   if (response.getStatusCode() == 204) {
     Darabonba::Stream::readAsString(response.getBody());
   } else if (request.getBodyType() == "binary") {
-    Darabonba::Bytes payload = response.getBody()
-                                   ? Darabonba::Stream::readAsBytes(response.getBody())
-                                   : Darabonba::Bytes();
-    // Json cannot own an IStream. Keep the bytes in the returned body and
-    // reopen them as a stream so the payload survives execute's return.
-    response.setBody(Darabonba::Stream::toReadable(payload));
-    response.setDeserializedBody(json(payload));
+    // Hand the still-readable body to the product model. Do not buffer it.
+    response.setDeserializedBody(Darabonba::Stream::retain(response.getBody()));
   } else if (request.getBodyType() == "byte") {
     auto byt = Darabonba::Stream::readAsBytes(response.getBody());
     response.setDeserializedBody(byt);

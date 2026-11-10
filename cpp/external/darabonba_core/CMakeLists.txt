@@ -1,4 +1,5 @@
-find_package(darabonba_core QUIET)
+# 1.0.2 retains a live binary stream and reports a stalled read as an error.
+find_package(darabonba_core 1.0.2 QUIET)
 
 if(darabonba_core_FOUND)
   message(STATUS "Found darabonba_core version ${darabonba_core_VERSION}")
