@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   OpenApiRequest request;
   if (scenario == "querysha1" || scenario == "headerwins") request.setQuery({{"SignatureMethod", "HMAC-SHA1"}});
   if (scenario == "headerwins") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA256"}});
-  if (scenario == "override") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}});
+  if (scenario == "override") request.setHeaders({{"x-acs-signature-method", "HMAC-SHA1"}});
   if (scenario == "conflict") request.setHeaders({{"X-Acs-Signature-Method", "HMAC-SHA1"}, {"x-acs-signature-method", "HMAC-SHA256"}});
   if (scenario == "bodysha1" || scenario == "bodyconflict") request.setBody(Darabonba::Json{{"SignatureMethod", "HMAC-SHA1"}});
   if (scenario == "bodyconflict") request.setHeaders({{"x-acs-signature-method", "HMAC-SHA256"}});

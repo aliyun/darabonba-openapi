@@ -154,44 +154,6 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 	return nil
 }
 
-func signatureV2Method(headers map[string]*string, sources ...map[string]*string) (string, error) {
-	return signatureV2MethodWithFallback(headers, nil, sources...)
-}
-
-func signatureV2MethodWithFallback(headers map[string]*string, fallback *string, sources ...map[string]*string) (string, error) {
-	method := ""
-	found := false
-	for i := len(sources) - 1; i >= 0 && !found; i-- {
-		for name, value := range sources[i] {
-			if strings.EqualFold(name, "x-acs-signature-method") {
-				if found && method != dara.StringValue(value) {
-					return "", &ClientError{Code: dara.String("InvalidSignatureAlgorithm"), Message: dara.String("Conflicting signature V2 algorithms")}
-				}
-				method, found = dara.StringValue(value), true
-			}
-		}
-	}
-	if !found {
-		method = "HMAC-SHA256"
-		if fallback != nil {
-			method = dara.StringValue(fallback)
-		}
-	}
-	if method != "HMAC-SHA1" && method != "HMAC-SHA256" {
-		return "", &ClientError{Code: dara.String("InvalidSignatureAlgorithm"), Message: dara.String("Unsupported signature V2 algorithm")}
-	}
-	for name := range headers {
-		if strings.EqualFold(name, "x-acs-signature-method") {
-			delete(headers, name)
-			found = true
-		}
-	}
-	if found {
-		headers["x-acs-signature-method"] = dara.String(method)
-	}
-	return method, nil
-}
-
 // Description:
 //
 // # Encapsulate the request and invoke the network
@@ -386,26 +348,11 @@ func (client *Client) DoRPCRequest(action *string, version *string, protocol *st
 					t = dara.ToMap(request.Body)
 				}
 				bodyParams := openapiutil.Query(t)
-				fallback, present := request_.Query["SignatureMethod"]
-				if !present {
-					fallback = bodyParams["SignatureMethod"]
-				}
-				signatureMethod, err := signatureV2MethodWithFallback(request_.Headers, fallback, globalHeaders, extendsHeaders, request.Headers, headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Query["SignatureMethod"] = dara.String(signatureMethod)
+				request_.Query["SignatureMethod"] = dara.String("HMAC-SHA256")
 				request_.Query["SignatureVersion"] = dara.String("1.0")
 				request_.Query["AccessKeyId"] = dara.String(accessKeyId)
 				signedParam := dara.Merge(request_.Query, bodyParams)
-				if dara.StringValue(signedParam["SignatureMethod"]) != signatureMethod {
-					return _result, &ClientError{Code: dara.String("InvalidSignatureAlgorithm"), Message: dara.String("Conflicting signature V2 algorithms")}
-				}
-				if signatureMethod == "HMAC-SHA1" {
-					request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, dara.String(accessKeySecret))
-				} else {
-					request_.Query["Signature"] = openapiutil.GetRPCSignatureWithSHA256(signedParam, request_.Method, dara.String(accessKeySecret))
-				}
+				request_.Query["Signature"] = openapiutil.GetRPCSignatureWithSHA256(signedParam, request_.Method, dara.String(accessKeySecret))
 			}
 
 		}
@@ -543,7 +490,7 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -610,16 +557,8 @@ func (client *Client) DoROARequest(action *string, version *string, protocol *st
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				signatureMethod, err := signatureV2Method(request_.Headers, globalHeaders, extendsHeaders, request.Headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Headers["x-acs-signature-method"] = dara.String(signatureMethod)
 				stringToSign := openapiutil.GetStringToSign(request_)
 				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
-				if signatureMethod == "HMAC-SHA1" {
-					signature = openapiutil.GetROASignature(stringToSign, dara.String(accessKeySecret))
-				}
 				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 
@@ -758,7 +697,7 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -826,16 +765,8 @@ func (client *Client) DoROARequestWithForm(action *string, version *string, prot
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				signatureMethod, err := signatureV2Method(request_.Headers, globalHeaders, extendsHeaders, request.Headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Headers["x-acs-signature-method"] = dara.String(signatureMethod)
 				stringToSign := openapiutil.GetStringToSign(request_)
 				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
-				if signatureMethod == "HMAC-SHA1" {
-					signature = openapiutil.GetROASignature(stringToSign, dara.String(accessKeySecret))
-				}
 				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 

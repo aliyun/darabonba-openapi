@@ -207,26 +207,11 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 					t = dara.ToMap(request.Body)
 				}
 				bodyParams := openapiutil.Query(t)
-				fallback, present := request_.Query["SignatureMethod"]
-				if !present {
-					fallback = bodyParams["SignatureMethod"]
-				}
-				signatureMethod, err := signatureV2MethodWithFallback(request_.Headers, fallback, globalHeaders, extendsHeaders, request.Headers, headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Query["SignatureMethod"] = dara.String(signatureMethod)
+				request_.Query["SignatureMethod"] = dara.String("HMAC-SHA256")
 				request_.Query["SignatureVersion"] = dara.String("1.0")
 				request_.Query["AccessKeyId"] = dara.String(accessKeyId)
 				signedParam := dara.Merge(request_.Query, bodyParams)
-				if dara.StringValue(signedParam["SignatureMethod"]) != signatureMethod {
-					return _result, &ClientError{Code: dara.String("InvalidSignatureAlgorithm"), Message: dara.String("Conflicting signature V2 algorithms")}
-				}
-				if signatureMethod == "HMAC-SHA1" {
-					request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, dara.String(accessKeySecret))
-				} else {
-					request_.Query["Signature"] = openapiutil.GetRPCSignatureWithSHA256(signedParam, request_.Method, dara.String(accessKeySecret))
-				}
+				request_.Query["Signature"] = openapiutil.GetRPCSignatureWithSHA256(signedParam, request_.Method, dara.String(accessKeySecret))
 			}
 
 		}
@@ -364,7 +349,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -431,16 +416,8 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				signatureMethod, err := signatureV2Method(request_.Headers, globalHeaders, extendsHeaders, request.Headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Headers["x-acs-signature-method"] = dara.String(signatureMethod)
 				stringToSign := openapiutil.GetStringToSign(request_)
 				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
-				if signatureMethod == "HMAC-SHA1" {
-					signature = openapiutil.GetROASignature(stringToSign, dara.String(accessKeySecret))
-				}
 				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 
@@ -579,7 +556,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -647,16 +624,8 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				signatureMethod, err := signatureV2Method(request_.Headers, globalHeaders, extendsHeaders, request.Headers)
-				if err != nil {
-					return _result, err
-				}
-				request_.Headers["x-acs-signature-method"] = dara.String(signatureMethod)
 				stringToSign := openapiutil.GetStringToSign(request_)
 				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
-				if signatureMethod == "HMAC-SHA1" {
-					signature = openapiutil.GetROASignature(stringToSign, dara.String(accessKeySecret))
-				}
 				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 

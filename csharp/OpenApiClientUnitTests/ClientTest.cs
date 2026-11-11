@@ -63,9 +63,9 @@ namespace OpenApiClientUnitTests
 
         [Theory]
         [InlineData(null, false, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA1", false, false, "HMAC-SHA1", 20)]
-        [InlineData("HMAC-SHA256", true, false, "HMAC-SHA1", 20)]
-        [InlineData(null, false, true, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA1", false, false, "HMAC-SHA256", 32)]
+        [InlineData("HMAC-SHA256", true, false, "HMAC-SHA256", 32)]
+        [InlineData(null, false, true, "HMAC-SHA256", 32)]
         [InlineData("HMAC-SHA256", false, true, "HMAC-SHA256", 32)]
         public void TestCallApiForRPCWithV2Sign_AK_Form(string configuredAlgorithm, bool overrideHeader, bool overrideQuery, string expectedAlgorithm, int signatureBytes)
         {
@@ -79,7 +79,7 @@ namespace OpenApiClientUnitTests
                 var runtime = TestFixtures.CreateRuntimeOptions();
                 var client = new TestClient(config);
                 var request = TestFixtures.CreateOpenApiRequest();
-                if (overrideHeader) request.Headers["X-Acs-Signature-Method"] = "HMAC-SHA1";
+                if (overrideHeader) request.Headers["x-acs-signature-method"] = "HMAC-SHA1";
                 if (overrideQuery) request.Query["SignatureMethod"] = "HMAC-SHA1";
                 var parameters = new Params
                 {
@@ -189,8 +189,8 @@ namespace OpenApiClientUnitTests
 
         [Theory]
         [InlineData(null, false, "HMAC-SHA256", 32)]
-        [InlineData("HMAC-SHA1", false, "HMAC-SHA1", 20)]
-        [InlineData("HMAC-SHA256", true, "HMAC-SHA1", 20)]
+        [InlineData("HMAC-SHA1", false, "HMAC-SHA256", 32)]
+        [InlineData("HMAC-SHA256", true, "HMAC-SHA256", 32)]
         public void TestCallApiForROAWithV2Sign_HTTPS_AK_Form(string configuredAlgorithm, bool overrideHeader, string expectedAlgorithm, int signatureBytes)
         {
             using (var server = new MockHttpServer())
@@ -204,7 +204,7 @@ namespace OpenApiClientUnitTests
                 var runtime = TestFixtures.CreateRuntimeOptions();
                 var client = new TestClient(config);
                 var request = TestFixtures.CreateOpenApiRequest();
-                if (overrideHeader) request.Headers["X-Acs-Signature-Method"] = "HMAC-SHA1";
+                if (overrideHeader) request.Headers["x-acs-signature-method"] = "HMAC-SHA1";
                 var parameters = new Params
                 {
                     Action = "TestAPI",
@@ -227,7 +227,7 @@ namespace OpenApiClientUnitTests
                 Assert.Contains("acs ak:", TestFixtures.GetHeader(headers, "authorization"));
                 Assert.Equal("sdk", TestFixtures.GetHeader(headers, "for-test"));
                 Assert.Equal("application/json", TestFixtures.GetHeader(headers, "accept"));
-                Assert.Equal(expectedAlgorithm, TestFixtures.GetHeader(headers, "x-acs-signature-method"));
+                Assert.Equal(overrideHeader ? "HMAC-SHA1" : configuredAlgorithm ?? "HMAC-SHA256", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
                 Assert.Equal(signatureBytes, Convert.FromBase64String(TestFixtures.GetHeader(headers, "authorization").Substring("acs ak:".Length)).Length);
                 Assert.Equal("acs ak:" + ExpectedRoaSignature(server.LastRequestHeaders, headers["raw-query"], expectedAlgorithm), TestFixtures.GetHeader(headers, "authorization"));
                 Assert.Equal("ak", TestFixtures.GetHeader(headers, "x-acs-accesskey-id"));
@@ -248,7 +248,7 @@ namespace OpenApiClientUnitTests
                 headers = TestFixtures.GetHeaders(result);
                 Assert.Equal("token", headers["x-acs-bearer-token"]);
                 Assert.Equal("BEARERTOKEN", headers["x-acs-signature-type"]);
-                if (!overrideHeader) Assert.Equal("HMAC-SHA1", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
+                if (!overrideHeader) Assert.Equal("HMAC-SHA256", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
 
                 config = TestFixtures.CreateAnonymousConfig();
                 config.Protocol = "HTTP";
@@ -290,22 +290,7 @@ namespace OpenApiClientUnitTests
         [Theory]
         [InlineData("RPC")]
         [InlineData("ROA")]
-        public void RejectConflictingSignatureMethodHeaders(string style)
-        {
-            var config = TestFixtures.CreateConfig();
-            config.SignatureAlgorithm = "v2";
-            config.Endpoint = "127.0.0.1";
-            var request = TestFixtures.CreateOpenApiRequest();
-            request.Headers["x-acs-signature-method"] = "HMAC-SHA1";
-            request.Headers["X-Acs-Signature-Method"] = "HMAC-SHA256";
-            var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/", Method = "GET", AuthType = "AK", Style = style, ReqBodyType = "json", BodyType = "json" };
-            Assert.Throws<ClientException>(() => new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
-        }
-
-        [Theory]
-        [InlineData("RPC")]
-        [InlineData("ROA")]
-        public async System.Threading.Tasks.Task ExplicitSha1AsyncUsesSha1Digest(string style)
+        public async System.Threading.Tasks.Task Sha1HeaderAsyncUsesSha256Digest(string style)
         {
             using (var server = new MockHttpServer())
             {
@@ -320,24 +305,24 @@ namespace OpenApiClientUnitTests
                 var headers = TestFixtures.GetHeaders(await new TestClient(config).CallApiAsync(parameters, request, TestFixtures.CreateRuntimeOptions()));
                 if (style == "RPC")
                 {
-                    TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA1");
+                    TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA256");
                     var signaturePart = Array.Find(headers["raw-query"].Split('&'), part => part.StartsWith("Signature="));
                     string signature = System.Net.WebUtility.UrlDecode(signaturePart.Substring("Signature=".Length));
-                    Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA1"), signature);
-                    Assert.Equal(20, Convert.FromBase64String(signature).Length);
+                    Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA256"), signature);
+                    Assert.Equal(32, Convert.FromBase64String(signature).Length);
                 }
                 else
                 {
                     string authorization = TestFixtures.GetHeader(headers, "authorization");
                     Assert.Equal("HMAC-SHA1", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
-                    Assert.Equal("acs ak:" + ExpectedRoaSignature(server.LastRequestHeaders, headers["raw-query"], "HMAC-SHA1"), authorization);
-                    Assert.Equal(20, Convert.FromBase64String(authorization.Substring("acs ak:".Length)).Length);
+                    Assert.Equal("acs ak:" + ExpectedRoaSignature(server.LastRequestHeaders, headers["raw-query"], "HMAC-SHA256"), authorization);
+                    Assert.Equal(32, Convert.FromBase64String(authorization.Substring("acs ak:".Length)).Length);
                 }
             }
         }
 
         [Fact]
-        public void RpcSignatureMethodFromBodyUsesSha1Digest()
+        public void RpcBodySignatureMethodIsPreservedAndUsesSha256()
         {
             using (var server = new MockHttpServer())
             {
@@ -346,27 +331,17 @@ namespace OpenApiClientUnitTests
                 config.SignatureAlgorithm = "v2";
                 config.Endpoint = server.Endpoint;
                 var request = TestFixtures.CreateOpenApiRequest();
-                request.Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
+                var body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
+                request.Body = body;
                 var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/", Method = "POST", AuthType = "AK", Style = "RPC", ReqBodyType = "formData", BodyType = "json" };
                 var headers = TestFixtures.GetHeaders(new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
+                TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA256");
+                Assert.Equal("SignatureMethod=HMAC-SHA1", headers["raw-body"]);
+                Assert.Equal("HMAC-SHA1", body["SignatureMethod"]);
                 var signaturePart = Array.Find(headers["raw-query"].Split('&'), part => part.StartsWith("Signature="));
                 string signature = System.Net.WebUtility.UrlDecode(signaturePart.Substring("Signature=".Length));
-                TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA1");
-                Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA1"), signature);
+                Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA256"), signature);
             }
-        }
-
-        [Fact]
-        public void RejectSignatureMethodConflictInRpcBody()
-        {
-            var config = TestFixtures.CreateConfig();
-            config.SignatureAlgorithm = "v2";
-            config.Endpoint = "127.0.0.1";
-            var request = TestFixtures.CreateOpenApiRequest();
-            request.Body = new Dictionary<string, object> { { "SignatureMethod", "HMAC-SHA1" } };
-            request.Headers["x-acs-signature-method"] = "HMAC-SHA256";
-            var parameters = new Params { Action = "TestAPI", Version = "2022-06-01", Protocol = "HTTP", Pathname = "/", Method = "POST", AuthType = "AK", Style = "RPC", ReqBodyType = "formData", BodyType = "json" };
-            Assert.Throws<ClientException>(() => new TestClient(config).CallApi(parameters, request, TestFixtures.CreateRuntimeOptions()));
         }
 
         [Fact]
@@ -398,7 +373,7 @@ namespace OpenApiClientUnitTests
                 var result = client.CallApi(parameters, request, runtime);
                 var headers = TestFixtures.GetHeaders(result);
                 Assert.Equal("{\"key1\":\"value\",\"key2\":1,\"key3\":true}", headers["raw-body"]);
-                Assert.Equal("HMAC-SHA1", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
+                Assert.Equal("HMAC-SHA256", TestFixtures.GetHeader(headers, "x-acs-signature-method"));
                 Assert.Equal(RequestId, headers["x-acs-request-id"]);
                 Assert.Equal(200, TestFixtures.GetStatusCode(result));
             }

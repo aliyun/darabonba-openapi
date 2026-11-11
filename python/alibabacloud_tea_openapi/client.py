@@ -142,42 +142,6 @@ class Client:
         self._tls_min_version = config.tls_min_version
         self._ipv4_only = config.ipv4_only
 
-    @staticmethod
-    def _get_v2_signature_method(headers, *header_groups, fallback=None):
-        algorithm = 'HMAC-SHA256' if fallback is None else fallback
-        found = False
-        for group in header_groups:
-            values = [value for key, value in (group or {}).items()
-                      if key.lower() == 'x-acs-signature-method']
-            if len(set(values)) > 1:
-                raise ValueError('Conflicting signature V2 algorithm headers')
-            if values and not found:
-                algorithm, found = values[0], True
-        if algorithm not in ('HMAC-SHA1', 'HMAC-SHA256'):
-            raise ValueError('Unsupported signature V2 algorithm')
-        for key in list(headers):
-            if key.lower() == 'x-acs-signature-method':
-                del headers[key]
-        if found:
-            headers['x-acs-signature-method'] = algorithm
-        return algorithm
-
-    @staticmethod
-    def _get_v2_rpc_signature(signed_params, method, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return Utils.get_rpcsignature(signed_params, method, secret)
-        if algorithm == 'HMAC-SHA256':
-            return Utils.get_rpcsignature_with_sha256(signed_params, method, secret)
-        raise ValueError('Unsupported signature V2 algorithm')
-
-    @staticmethod
-    def _get_v2_roa_signature(string_to_sign, secret, algorithm):
-        if algorithm == 'HMAC-SHA1':
-            return Utils.get_roasignature(string_to_sign, secret)
-        if algorithm == 'HMAC-SHA256':
-            return Utils.get_roasignature_with_sha256(string_to_sign, secret)
-        raise ValueError('Unsupported signature V2 algorithm')
-
     """
      * @remarks
      * Encapsulate the request and invoke the network
@@ -313,17 +277,11 @@ class Client:
                         if not DaraCore.is_null(request.body):
                             t = request.body
                         body_params = Utils.query(t)
-                        fallback = _request.query.get('SignatureMethod')
-                        if fallback is None:
-                            fallback = body_params.get('SignatureMethod')
-                        algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers, fallback=fallback)
-                        _request.query["SignatureMethod"] = algorithm
+                        _request.query["SignatureMethod"] = 'HMAC-SHA256'
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id
                         signed_param = DaraCore.merge({}, _request.query, body_params)
-                        if signed_param.get('SignatureMethod') != algorithm:
-                            raise ValueError('Unsupported signature V2 algorithm')
-                        _request.query["Signature"] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
+                        _request.query["Signature"] = Utils.get_rpcsignature_with_sha256(signed_param, _request.method, access_key_secret)
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -540,17 +498,11 @@ class Client:
                         if not DaraCore.is_null(request.body):
                             t = request.body
                         body_params = Utils.query(t)
-                        fallback = _request.query.get('SignatureMethod')
-                        if fallback is None:
-                            fallback = body_params.get('SignatureMethod')
-                        algorithm = self._get_v2_signature_method(_request.headers, headers, request.headers, extends_headers, global_headers, fallback=fallback)
-                        _request.query["SignatureMethod"] = algorithm
+                        _request.query["SignatureMethod"] = 'HMAC-SHA256'
                         _request.query["SignatureVersion"] = '1.0'
                         _request.query["AccessKeyId"] = access_key_id
                         signed_param = DaraCore.merge({}, _request.query, body_params)
-                        if signed_param.get('SignatureMethod') != algorithm:
-                            raise ValueError('Unsupported signature V2 algorithm')
-                        _request.query["Signature"] = self._get_v2_rpc_signature(signed_param, _request.method, access_key_secret, algorithm)
+                        _request.query["Signature"] = Utils.get_rpcsignature_with_sha256(signed_param, _request.method, access_key_secret)
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)
@@ -730,7 +682,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -767,10 +719,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -940,7 +890,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -977,10 +927,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)
@@ -1165,7 +1113,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -1203,10 +1151,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -1375,7 +1321,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -1413,10 +1359,8 @@ class Client:
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
-                        algorithm = self._get_v2_signature_method(_request.headers, request.headers, extends_headers, global_headers)
-                        _request.headers['x-acs-signature-method'] = algorithm
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{self._get_v2_roa_signature(string_to_sign, access_key_secret, algorithm)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)

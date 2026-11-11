@@ -11,22 +11,22 @@ import CryptoSwift
 
 final class SignatureV2Tests: XCTestCase {
     func testV2AlgorithmsAndHeaders() async throws {
-        for algorithm in ["HMAC-SHA256", "HMAC-SHA1"] {
+        for requestedAlgorithm in ["HMAC-SHA256", "HMAC-SHA1"] {
             for style in ["RPC", "ROA"] {
                 for requestBodyType in ["json", "formData"] {
                     let server = try HTTPTestServer()
                     defer { server.stop() }
                     let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "securityToken": "token", "endpoint": "127.0.0.1:\(server.port)", "protocol": "http", "signatureAlgorithm": "v2"])
-                    let global = algorithm == "HMAC-SHA1" ? ["x-acs-signature-method": "HMAC-SHA256"] : [:]
+                    let global = requestedAlgorithm == "HMAC-SHA1" ? ["x-acs-signature-method": "HMAC-SHA256"] : [:]
                     config.globalParameters = GlobalParameters(["headers": global])
                     let runtime = RuntimeOptions(["autoretry": false])
                     runtime.extendsParameters = ExtendsParameters(["headers": global])
-                    let headers = algorithm == "HMAC-SHA1" ? ["X-Acs-Signature-Method": "HMAC-SHA1", "x-acs-signature-method": "HMAC-SHA1"] : [:]
+                    let headers = requestedAlgorithm == "HMAC-SHA1" ? ["x-acs-signature-method": "HMAC-SHA1"] : [:]
                     let request = OpenApiRequest(["headers": headers, "query": ["special": "中文/%!~ +@", "empty": ""]])
                     let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/test", "method": "GET", "authType": "AK", "style": style, "reqBodyType": requestBodyType, "bodyType": "string"])
                     let result = try await Client(config).callApi(params, request, runtime)
                     let captured = try XCTUnwrap(result["body"] as? String)
-                    try verify(captured, style: style, algorithm: algorithm)
+                    try verify(captured, style: style, algorithm: "HMAC-SHA256", expectedHeader: requestedAlgorithm == "HMAC-SHA1" ? "HMAC-SHA1" : "HMAC-SHA256")
                 }
             }
         }
@@ -42,21 +42,14 @@ final class SignatureV2Tests: XCTestCase {
             let request = try XCTUnwrap(result["body"] as? String)
             XCTAssertTrue(request.lowercased().contains("x-acs-signature-method: custom\r\n"))
         }
-        let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "localhost", "protocol": "http", "signatureAlgorithm": "v2"])
-        let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "GET", "authType": "AK", "style": "RPC", "reqBodyType": "json", "bodyType": "string"])
-        for headers in [["X-Acs-Signature-Method": "bad"], ["X-Acs-Signature-Method": ""], ["X-Acs-Signature-Method": "HMAC-SHA1", "x-acs-signature-method": "HMAC-SHA256"]] {
-            do {
-                _ = try await Client(config).callApi(params, OpenApiRequest(["headers": headers]), RuntimeOptions(["autoretry": false]))
-                XCTFail("invalid method was accepted")
-            } catch { XCTAssertFalse(String(describing: error).contains("secret")) }
-        }
+
     }
 
     func testRpcQuerySignatureMethod() async throws {
         let cases: [([String: String], [String: String], [String: String], [String: String], String)] = [
-            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA1"),
-            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA1"),
-            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA1"),
+            (["SignatureMethod": "HMAC-SHA1"], [:], [:], [:], "HMAC-SHA256"),
+            ([:], ["SignatureMethod": "HMAC-SHA1"], [:], [:], "HMAC-SHA256"),
+            ([:], [:], ["SignatureMethod": "HMAC-SHA1"], [:], "HMAC-SHA256"),
             ([:], [:], ["SignatureMethod": "HMAC-SHA1"], ["X-Acs-Signature-Method": "HMAC-SHA256"], "HMAC-SHA256")
         ]
         for (global, extended, query, headers, algorithm) in cases {
@@ -72,30 +65,21 @@ final class SignatureV2Tests: XCTestCase {
         }
     }
 
-    func testRpcBodySignatureMethod() async throws {
+    func testRpcBodySignatureMethodPreservedWithSha256() async throws {
         let server = try HTTPTestServer()
         defer { server.stop() }
         let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "127.0.0.1:\(server.port)", "protocol": "http", "signatureAlgorithm": "v2"])
         let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "POST", "authType": "AK", "style": "RPC", "reqBodyType": "formData", "bodyType": "string"])
-        let result = try await Client(config).callApi(params, OpenApiRequest(["body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
-        try verify(try XCTUnwrap(result["body"] as? String), style: "RPC", algorithm: "HMAC-SHA1", body: ["SignatureMethod": "HMAC-SHA1"])
+        let input = ["SignatureMethod": "HMAC-SHA1"]
+        let result = try await Client(config).callApi(params, OpenApiRequest(["body": input]), RuntimeOptions(["autoretry": false]))
+        let request = try XCTUnwrap(result["body"] as? String)
+        let transmittedBody = try XCTUnwrap(request.components(separatedBy: "\r\n\r\n").last)
+        XCTAssertTrue(transmittedBody.contains("SignatureMethod=HMAC-SHA1"))
+        XCTAssertEqual(input["SignatureMethod"], "HMAC-SHA1")
+        try verify(request, style: "RPC", algorithm: "HMAC-SHA256", body: ["SignatureMethod": "HMAC-SHA1"])
     }
 
-    func testRpcBodySignatureMethodConflict() async throws {
-        let config = Config(["accessKeyId": "ak", "accessKeySecret": "secret", "endpoint": "localhost", "protocol": "http", "signatureAlgorithm": "v2"])
-        let params = Params(["action": "TestAPI", "version": "2022-06-01", "protocol": "http", "pathname": "/", "method": "POST", "authType": "AK", "style": "RPC", "reqBodyType": "formData", "bodyType": "string"])
-        do {
-            _ = try await Client(config).callApi(params, OpenApiRequest(["headers": ["x-acs-signature-method": "HMAC-SHA256"], "body": ["SignatureMethod": "HMAC-SHA1"]]), RuntimeOptions(["autoretry": false]))
-            XCTFail("conflicting body method was accepted")
-        } catch let error as Tea.ReuqestError {
-            XCTAssertEqual(error.code, "InvalidSignatureAlgorithm")
-            XCTAssertEqual(error.message, "Conflicting signature V2 algorithms")
-        } catch {
-            XCTFail("unexpected error: \(error)")
-        }
-    }
-
-    private func verify(_ request: String, style: String, algorithm: String, body: [String: String] = [:]) throws {
+    private func verify(_ request: String, style: String, algorithm: String, body: [String: String] = [:], expectedHeader: String? = nil) throws {
         let lines = request.components(separatedBy: "\r\n")
         let first = lines[0].split(separator: " ")
         let components = try XCTUnwrap(URLComponents(string: "http://localhost" + String(first[1])))
@@ -120,7 +104,7 @@ final class SignatureV2Tests: XCTestCase {
                 let pair = line.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
                 if pair.count == 2 { headers[String(pair[0]).lowercased()] = String(pair[1]).trimmingCharacters(in: .whitespaces) }
             }
-            XCTAssertEqual(headers["x-acs-signature-method"], algorithm)
+            XCTAssertEqual(headers["x-acs-signature-method"], expectedHeader ?? algorithm)
             let canonicalHeaders = headers.keys.filter { $0.hasPrefix("x-acs-") }.sorted().map { $0 + ":" + (headers[$0] ?? "") + "\n" }.joined()
             let resource = components.path + (query.isEmpty ? "" : "?" + query.keys.sorted().map { key in query[key]!.isEmpty ? key : key + "=" + query[key]! }.joined(separator: "&"))
             let signed = ["GET", headers["accept"] ?? "", headers["content-md5"] ?? "", headers["content-type"] ?? "", headers["date"] ?? ""].joined(separator: "\n") + "\n" + canonicalHeaders + resource

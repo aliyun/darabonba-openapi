@@ -436,36 +436,19 @@ class OpenApiClientTest extends TestCase
         $request->headers['capture-signature'] = 'true';
         $client = new OpenApiClient($config);
         foreach (['HMAC-SHA256', 'HMAC-SHA1'] as $signatureMethod) {
-            $request->headers['X-Acs-Signature-Method'] = $signatureMethod;
+            $request->headers['x-acs-signature-method'] = $signatureMethod;
             foreach (['RPC', 'ROA'] as $style) {
                 foreach (['json', 'formData'] as $bodyType) {
                     $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/test', 'method' => 'POST', 'authType' => 'AK', 'style' => $style, 'reqBodyType' => $bodyType, 'bodyType' => 'json']);
                     $captured = $client->callApi($params, $request, $runtime)['body'];
-                    $this->assertCapturedV2Signature($captured, $style, $signatureMethod);
+                    $this->assertCapturedV2Signature($captured, $style, 'HMAC-SHA256', $signatureMethod);
                 }
             }
         }
-        $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA1';
-        $captured = $client->callApi($params, $request, $runtime)['body'];
-        $this->assertCapturedV2Signature($captured, 'ROA', 'HMAC-SHA1');
-        $request->headers['x-acs-signature-method'] = 'HMAC-SHA256';
-        try {
-            $client->callApi($params, $request, $runtime);
-            $this->fail('conflicting signature methods were accepted');
-        } catch (\Exception $error) {
-            $this->assertTrue(strpos($error->getMessage(), 'Conflicting signature V2 algorithms') !== false);
-        }
-        unset($request->headers['x-acs-signature-method']);
-        $request->headers['X-Acs-Signature-Method'] = 'unsupported';
-        try {
-            $client->callApi($params, $request, $runtime);
-            $this->fail('invalid signature method was accepted');
-        } catch (\Exception $error) {
-            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
-        }
+
     }
 
-    private function assertCapturedV2Signature($captured, $style, $signatureMethod)
+    private function assertCapturedV2Signature($captured, $style, $signatureMethod, $headerMethod = null)
     {
         $parts = parse_url($captured['path']);
         parse_str(isset($parts['query']) ? $parts['query'] : '', $query);
@@ -483,7 +466,7 @@ class OpenApiClientTest extends TestCase
             $this->assertEquals(base64_encode(hash_hmac($digest, $stringToSign, 'secret&', true)), $signature);
         } else {
             $headers = $captured['headers'];
-            $this->assertEquals($signatureMethod, $headers['x-acs-signature-method']);
+            $this->assertEquals($headerMethod ?? $signatureMethod, $headers['x-acs-signature-method']);
             $canonicalHeaders = [];
             foreach ($headers as $key => $value) if (strpos($key, 'x-acs-') === 0) $canonicalHeaders[$key] = $key . ':' . trim($value) . "\n";
             ksort($canonicalHeaders, SORT_STRING);
@@ -525,45 +508,19 @@ class OpenApiClientTest extends TestCase
         $request->headers['capture-signature'] = 'true';
         $client = new OpenApiClient($config);
         $params = new Params(['action' => 'TestAPI', 'version' => '2022-06-01', 'protocol' => 'HTTP', 'pathname' => '/', 'method' => 'POST', 'authType' => 'AK', 'style' => 'RPC', 'reqBodyType' => 'formData', 'bodyType' => 'json']);
-        $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
-        unset($config->globalParameters->queries['SignatureMethod']);
-        $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
-        unset($runtime->extendsParameters->queries['SignatureMethod']);
-        $request->query['SignatureMethod'] = 'HMAC-SHA1';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
-        unset($request->query['SignatureMethod']);
+        foreach (['global', 'runtime', 'request'] as $source) {
+            if ($source === 'global') $config->globalParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+            if ($source === 'runtime') $runtime->extendsParameters->queries['SignatureMethod'] = 'HMAC-SHA1';
+            if ($source === 'request') $request->query['SignatureMethod'] = 'HMAC-SHA1';
+            $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
+            unset($config->globalParameters->queries['SignatureMethod'], $runtime->extendsParameters->queries['SignatureMethod'], $request->query['SignatureMethod']);
+        }
         $request->body = ['SignatureMethod' => 'HMAC-SHA1'];
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA1');
-        $request->body = null;
-        foreach (['legacy', ''] as $invalid) {
-            $request->query['SignatureMethod'] = $invalid;
-            try {
-                $client->callApi($params, $request, $runtime);
-                $this->fail('invalid signature method in query was accepted');
-            } catch (\Exception $error) {
-                $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
-            }
-        }
-        $request->query['SignatureMethod'] = 'HMAC-SHA1';
-        $request->headers['X-Acs-Signature-Method'] = 'HMAC-SHA256';
-        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
-        $request->body = ['SignatureMethod' => 'HMAC-SHA1'];
-        try {
-            $client->callApi($params, $request, $runtime);
-            $this->fail('SHA1 signature method in body was accepted');
-        } catch (\Exception $error) {
-            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
-        }
-        $request->body = null;
-        $request->headers['X-Acs-Signature-Method'] = '';
-        try {
-            $client->callApi($params, $request, $runtime);
-            $this->fail('empty signature method was accepted');
-        } catch (\Exception $error) {
-            $this->assertTrue(strpos($error->getMessage(), 'Unsupported signature V2 algorithm') !== false);
-        }
+        $captured = $client->callApi($params, $request, $runtime)['body'];
+        $this->assertCapturedV2Signature($captured, 'RPC', 'HMAC-SHA256');
+        parse_str($captured['body'], $body);
+        $this->assertEquals('HMAC-SHA1', $body['SignatureMethod']);
+        $this->assertEquals('HMAC-SHA1', $request->body['SignatureMethod']);
     }
 
     public function testCallApiForRPCWithV2Sign_Anonymous_JSON()
