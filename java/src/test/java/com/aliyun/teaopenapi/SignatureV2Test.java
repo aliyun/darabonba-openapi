@@ -161,4 +161,89 @@ public class SignatureV2Test {
         Assert.assertTrue(captured.getBodyAsString().contains("SignatureMethod=HMAC-SHA1"));
     }
 
+    @Test public void roaNonAkPreservesDefaultAndUserHeaders() throws Exception {
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
+        for (String style : new String[] { "ROA", "ROA-form" }) {
+            for (String auth : new String[] { "Anonymous", "Bearer" }) {
+                for (String header : new String[] { null, "user-value" }) {
+                    wireMock.resetRequests();
+                    Config config = "Bearer".equals(auth) ? ClientTest.createBearerTokenConfig() : ClientTest.createConfig();
+                    config.protocol = "HTTP";
+                    config.endpoint = "localhost:" + wireMock.port();
+                    OpenApiRequest request = new OpenApiRequest();
+                    request.headers = new HashMap<String, String>();
+                    if (header != null) request.headers.put("x-acs-signature-method", header);
+                    Client client = new Client(config);
+                    if ("ROA".equals(style)) client.doROARequest("Test", "2022-06-01", "HTTP", "GET", "Bearer".equals(auth) ? "AK" : "Anonymous", "/test", "json", request, ClientTest.createRuntimeOptions());
+                    else client.doROARequestWithForm("Test", "2022-06-01", "HTTP", "GET", "Bearer".equals(auth) ? "AK" : "Anonymous", "/test", "json", request, ClientTest.createRuntimeOptions());
+                    LoggedRequest captured = wireMock.findAll(getRequestedFor(urlPathEqualTo("/test"))).get(0);
+                    Assert.assertEquals(header == null ? "HMAC-SHA1" : header, captured.getHeader("x-acs-signature-method"));
+                    Assert.assertNull(captured.getHeader("authorization"));
+                }
+            }
+        }
+    }
+
+    @Test public void roaAkPreservesGlobalAndRuntimeHeaders() throws Exception {
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
+        for (String style : new String[] { "ROA", "ROA-form" }) {
+            for (String source : new String[] { "global", "runtime" }) {
+                wireMock.resetRequests();
+                Config config = ClientTest.createConfig();
+                config.protocol = "HTTP";
+                config.endpoint = "localhost:" + wireMock.port();
+                RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+                if ("global".equals(source)) config.globalParameters.headers.put("x-acs-signature-method", "user-value");
+                else runtime.extendsParameters.headers.put("x-acs-signature-method", "user-value");
+                Client client = new Client(config);
+                if ("ROA".equals(style)) client.doROARequest("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", new OpenApiRequest(), runtime);
+                else client.doROARequestWithForm("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", new OpenApiRequest(), runtime);
+                LoggedRequest captured = wireMock.findAll(getRequestedFor(urlPathEqualTo("/test"))).get(0);
+                Assert.assertEquals("user-value", captured.getHeader("x-acs-signature-method"));
+                Assert.assertTrue(captured.getHeader("authorization").startsWith("acs ak:"));
+            }
+        }
+    }
+
+    @Test public void roaAkKeepsHeaderKeyCaseInMergedRequest() throws Exception {
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")));
+        final Map<String, String> capturedHeaders = new HashMap<String, String>();
+        Config config = ClientTest.createConfig();
+        config.protocol = "HTTP";
+        config.endpoint = "localhost:" + wireMock.port();
+        Client client = new Client(config);
+        client.addRequestInterceptor((context, attributes) -> {
+            capturedHeaders.clear();
+            capturedHeaders.putAll(context.teaRequest().headers);
+            return context.teaRequest();
+        });
+        OpenApiRequest request = new OpenApiRequest();
+        request.headers = new HashMap<String, String>();
+        request.headers.put("X-Acs-Signature-Method", "HMAC-SHA1");
+        for (String style : new String[] { "ROA", "ROA-form" }) {
+            if ("ROA".equals(style)) client.doROARequest("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, ClientTest.createRuntimeOptions());
+            else client.doROARequestWithForm("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, ClientTest.createRuntimeOptions());
+            Assert.assertEquals("HMAC-SHA256", capturedHeaders.get("x-acs-signature-method"));
+            Assert.assertEquals("HMAC-SHA1", capturedHeaders.get("X-Acs-Signature-Method"));
+        }
+        for (String source : new String[] { "global", "runtime", "request", "tree" }) {
+            for (String style : new String[] { "ROA", "ROA-form" }) {
+                RuntimeOptions runtime = ClientTest.createRuntimeOptions();
+                request.headers = new HashMap<String, String>();
+                config.globalParameters.headers.remove("x-acs-signature-method");
+                if ("global".equals(source)) config.globalParameters.headers.put("x-acs-signature-method", null);
+                else if ("runtime".equals(source)) runtime.extendsParameters.headers.put("x-acs-signature-method", null);
+                else if ("request".equals(source)) request.headers.put("x-acs-signature-method", null);
+                else {
+                    request.headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+                    request.headers.put("X-Acs-Signature-Method", "HMAC-SHA1");
+                }
+                if ("ROA".equals(style)) client.doROARequest("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, runtime);
+                else client.doROARequestWithForm("Test", "2022-06-01", "HTTP", "GET", "AK", "/test", "json", request, runtime);
+                Assert.assertEquals("HMAC-SHA256", capturedHeaders.get("x-acs-signature-method"));
+                if ("tree".equals(source)) Assert.assertEquals("HMAC-SHA1", capturedHeaders.get("X-Acs-Signature-Method"));
+            }
+        }
+    }
+
 }

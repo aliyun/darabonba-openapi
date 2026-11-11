@@ -137,9 +137,17 @@ public class SignatureV2Tests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void NonHmacRoaUsesUpgradedDefault(bool bearer)
+    [InlineData(false, false, false, null)]
+    [InlineData(false, false, true, null)]
+    [InlineData(false, true, false, null)]
+    [InlineData(false, true, true, null)]
+    [InlineData(true, false, false, null)]
+    [InlineData(true, false, true, null)]
+    [InlineData(true, true, false, null)]
+    [InlineData(true, true, true, null)]
+    [InlineData(false, false, false, "custom")]
+    [InlineData(true, true, true, "custom")]
+    public void NonHmacRoaPreservesOriginalDefault(bool bearer, bool form, bool async, string overrideHeader)
     {
         var socket = new TcpListener(IPAddress.Loopback, 0);
         socket.Start();
@@ -161,9 +169,16 @@ public class SignatureV2Tests
             var config = new Config { Endpoint = "127.0.0.1:" + port, Protocol = "HTTP" };
             if (bearer) config.BearerToken = "token";
             var runtime = new RuntimeOptions { Autoretry = false, MaxAttempts = 1 };
-            new Client(config).DoROARequest("Test", "2022-06-01", "HTTP", "GET", bearer ? "AK" : "Anonymous", "/test", "json", new OpenApiRequest(), runtime);
+            var request = new OpenApiRequest();
+            if (overrideHeader != null) request.Headers = new Dictionary<string, string> { { "x-acs-signature-method", overrideHeader } };
+            var client = new Client(config);
+            string auth = bearer ? "AK" : "Anonymous";
+            if (form && async) client.DoROARequestWithFormAsync("Test", "2022-06-01", "HTTP", "GET", auth, "/test", "json", request, runtime).GetAwaiter().GetResult();
+            else if (form) client.DoROARequestWithForm("Test", "2022-06-01", "HTTP", "GET", auth, "/test", "json", request, runtime);
+            else if (async) client.DoROARequestAsync("Test", "2022-06-01", "HTTP", "GET", auth, "/test", "json", request, runtime).GetAwaiter().GetResult();
+            else client.DoROARequest("Test", "2022-06-01", "HTTP", "GET", auth, "/test", "json", request, runtime);
             Assert.True(received.Wait(TimeSpan.FromSeconds(5)));
-            Assert.Equal("HMAC-SHA256", received.Result);
+            Assert.Equal(overrideHeader ?? "HMAC-SHA1", received.Result);
         }
     }
 }
