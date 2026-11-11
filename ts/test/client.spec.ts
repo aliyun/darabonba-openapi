@@ -785,7 +785,7 @@ describe('$openapi', function () {
     assert.ok(headers["x-acs-signature-nonce"].length > 0);
     assert.ok(headers["date"].length > 0);
     assert.strictEqual(headers["accept"], "application/json");
-    assert.strictEqual(headers["x-acs-signature-method"], "HMAC-SHA1");
+    assert.strictEqual(headers["x-acs-signature-method"], "HMAC-SHA256");
     assert.strictEqual(headers["x-acs-signature-version"], "1.0");
 
     let body = result["body"];

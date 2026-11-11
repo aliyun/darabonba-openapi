@@ -73,10 +73,44 @@ final class SignatureV2Tests: XCTestCase {
         let input = ["SignatureMethod": "HMAC-SHA1"]
         let result = try await Client(config).callApi(params, OpenApiRequest(["body": input]), RuntimeOptions(["autoretry": false]))
         let request = try XCTUnwrap(result["body"] as? String)
-        let transmittedBody = try XCTUnwrap(request.components(separatedBy: "\r\n\r\n").last)
+        let transmittedBody = try requestBody(request)
         XCTAssertTrue(transmittedBody.contains("SignatureMethod=HMAC-SHA1"))
         XCTAssertEqual(input["SignatureMethod"], "HMAC-SHA1")
         try verify(request, style: "RPC", algorithm: "HMAC-SHA256", body: ["SignatureMethod": "HMAC-SHA1"])
+    }
+
+    func testRequestBodyParsesChunkedAndContentLength() throws {
+        let chunked = "POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n9\r\nSignature\r\na\r\nMethod=HMA\r\n6\r\nC-SHA1\r\n0\r\n\r\n"
+        XCTAssertEqual(try requestBody(chunked), "SignatureMethod=HMAC-SHA1")
+        let unchunked = "POST / HTTP/1.1\r\nContent-Length: 3\r\n\r\nabc"
+        XCTAssertEqual(try requestBody(unchunked), "abc")
+    }
+
+    private func requestBody(_ request: String) throws -> String {
+        let boundary = try XCTUnwrap(request.range(of: "\r\n\r\n"))
+        let header = request[..<boundary.lowerBound].lowercased()
+        let body = Data(request[boundary.upperBound...].utf8)
+        guard header.contains("transfer-encoding: chunked") else { return String(decoding: body, as: UTF8.self) }
+        let newline = Data("\r\n".utf8)
+        var position = 0
+        var decoded = Data()
+        while position < body.count {
+            let lineEnd = try XCTUnwrap(body.range(of: newline, in: position..<body.count))
+            let line = String(decoding: body[position..<lineEnd.lowerBound], as: UTF8.self)
+            let sizeText = try XCTUnwrap(line.split(separator: ";", maxSplits: 1).first)
+            let size = try XCTUnwrap(Int(sizeText, radix: 16))
+            guard size >= 0 else { throw NSError(domain: "InvalidChunkedBody", code: 4) }
+            position = lineEnd.upperBound
+            if size == 0 { return String(decoding: decoded, as: UTF8.self) }
+            guard size <= body.count - position, body.count - position - size >= 2 else {
+                throw NSError(domain: "InvalidChunkedBody", code: 1)
+            }
+            decoded.append(body[position..<(position + size)])
+            position += size
+            guard body[position..<(position + 2)] == newline else { throw NSError(domain: "InvalidChunkedBody", code: 2) }
+            position += 2
+        }
+        throw NSError(domain: "InvalidChunkedBody", code: 3)
     }
 
     private func verify(_ request: String, style: String, algorithm: String, body: [String: String] = [:], expectedHeader: String? = nil) throws {

@@ -872,7 +872,7 @@ func TestCallApiForROAWithV2Sign_Anonymous_JSON(t *testing.T) {
 	tea_util.AssertNotNil(t, headers["date"])
 	tea_util.AssertEqual(t, "application/json", headers["accept"])
 	tea_util.AssertNotNil(t, headers["x-acs-signature-nonce"])
-	tea_util.AssertEqual(t, "HMAC-SHA1", headers["x-acs-signature-method"])
+	tea_util.AssertEqual(t, "HMAC-SHA256", headers["x-acs-signature-method"])
 	tea_util.AssertEqual(t, "1.0", headers["x-acs-signature-version"])
 	tea_util.AssertEqual(t, "2022-06-01", headers["x-acs-version"])
 	tea_util.AssertEqual(t, "TestAPI", headers["x-acs-action"])
