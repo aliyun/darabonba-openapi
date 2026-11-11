@@ -630,7 +630,7 @@ public class ClientTest {
                 .withHeader("host", matching("localhost:[0-9]+"))
                 .withHeader("accept", equalTo("application/json"))
                 .withHeader("x-acs-signature-nonce", matching(".+"))
-                .withHeader("x-acs-signature-method", equalTo("HMAC-SHA1"))
+                .withHeader("x-acs-signature-method", equalTo("HMAC-SHA256"))
                 .withHeader("x-acs-signature-version", equalTo("1.0"))
                 .withHeader("x-acs-version", equalTo("2022-06-01"))
                 .withHeader("x-acs-action", equalTo("TestAPI"))
