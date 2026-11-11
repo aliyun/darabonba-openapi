@@ -12,7 +12,7 @@ English | [简体中文](README-CN.md)
 
 ## Signature V2 compatibility
 
-In the Java and C# clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. An explicitly selected HMAC-SHA1 or HMAC-SHA256 algorithm is preserved. The signature version is unchanged.
+In the Java and C# clients, AccessKey and STS requests using signature V2 default to HMAC-SHA256. The signature version is unchanged.
 
 ## Issues
 

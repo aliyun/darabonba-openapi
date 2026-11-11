@@ -11,7 +11,7 @@
 
 ## 签名 V2 兼容性
 
-Java 和 C# 客户端使用签名 V2 的 AccessKey 和 STS 请求默认采用 HMAC-SHA256。显式指定 HMAC-SHA1 或 HMAC-SHA256 时保留用户选择。签名版本保持不变。
+Java 和 C# 客户端使用签名 V2 的 AccessKey 和 STS 请求默认采用 HMAC-SHA256。签名版本保持不变。
 
 ## 问题
 
