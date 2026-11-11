@@ -320,6 +320,7 @@ namespace OpenApiClientUnitTests
                 var headers = TestFixtures.GetHeaders(await new TestClient(config).CallApiAsync(parameters, request, TestFixtures.CreateRuntimeOptions()));
                 if (style == "RPC")
                 {
+                    TestFixtures.AssertQueryContains(headers["raw-query"], "SignatureMethod=HMAC-SHA1");
                     var signaturePart = Array.Find(headers["raw-query"].Split('&'), part => part.StartsWith("Signature="));
                     string signature = System.Net.WebUtility.UrlDecode(signaturePart.Substring("Signature=".Length));
                     Assert.Equal(ExpectedRpcSignature(headers["raw-query"], headers["raw-body"], "HMAC-SHA1"), signature);

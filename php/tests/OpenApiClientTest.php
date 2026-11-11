@@ -418,6 +418,8 @@ class OpenApiClientTest extends TestCase
         if (is_array($response) && isset($response['AppId'])) {
             $this->assertEquals('test', $response['AppId']);
         }
+        $request->headers['capture-signature'] = 'true';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'RPC', 'HMAC-SHA256');
     }
 
     public function testV2SignatureAlgorithms()
@@ -616,6 +618,8 @@ class OpenApiClientTest extends TestCase
         if (is_array($response) && isset($response['AppId'])) {
             $this->assertEquals('test', $response['AppId']);
         }
+        $request->headers['capture-signature'] = 'true';
+        $this->assertCapturedV2Signature($client->callApi($params, $request, $runtime)['body'], 'ROA', 'HMAC-SHA256');
     }
 
     public function testCallApiForROAWithV2Sign_Anonymous_JSON()

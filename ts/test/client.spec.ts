@@ -132,6 +132,7 @@ function verifyV2Signature(headers: any, style: string, method: string): void {
   const algorithm = method === 'HMAC-SHA1' ? 'sha1' : 'sha256';
   const query = new URLSearchParams(headers['raw-query'] || '');
   if (style === 'RPC') {
+    assert.strictEqual(query.get('SignatureMethod'), method);
     const signature = query.get('Signature');
     query.delete('Signature');
     const body = new URLSearchParams(headers['raw-body'] || '');
@@ -142,6 +143,7 @@ function verifyV2Signature(headers: any, style: string, method: string): void {
     const signed = headers['http-method'] + '&%2F&' + percent(canonical);
     assert.strictEqual(signature, crypto.createHmac(algorithm, 'secret&').update(signed).digest('base64'));
   } else {
+    assert.strictEqual(headers['x-acs-signature-method'], method);
     const canonicalHeaders = Object.keys(headers).filter(key => key.startsWith('x-acs-') && key !== 'x-acs-request-id').sort()
       .map(key => key + ':' + String(headers[key]).trim() + '\n').join('');
     const keys: string[] = [];
