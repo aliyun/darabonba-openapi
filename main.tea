@@ -39,6 +39,7 @@ type @productId = string
 type @maxIdleConns = integer
 type @endpointType = string
 type @openPlatformEndpoint = string
+type @ossPrivateUrl = string
 type @credential = Credential
 type @signatureVersion = string
 type @signatureAlgorithm = string
@@ -127,6 +128,7 @@ init(config: OpenApiUtil.Config) {
   }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
+  @ossPrivateUrl = config.ossPrivateUrl;
   @network = config.network;
   @suffix = config.suffix;
   @protocol = config.protocol;
@@ -1479,6 +1481,82 @@ function getRpcHeaders() throws : map[string] string {
   var headers: map[string] string = @headers;
   @headers = null;
   return headers;
+}
+
+/**
+ * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+ */
+function getOSSPrivateUrl(runtime: $RuntimeOptions): string {
+  if (!$isNull(runtime.ossPrivateUrl) && runtime.ossPrivateUrl != '') {
+    return runtime.ossPrivateUrl;
+  }
+  return @ossPrivateUrl;
+}
+
+/**
+ * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+ */
+api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, form: object, runtime: $RuntimeOptions): object {
+  var url = $URL.parse(ossPrivateUrl);
+  if ((url.host() == '') || ((url.protocol() != 'http') && (url.protocol() != 'https')) || (url.auth() != '') || (url.search() != '') || (url.hash() != '')) {
+    throw new Client {
+      code = 'InvalidOSSPrivateUrl',
+      message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+    };
+  }
+  var pathname = url.pathname();
+  if (pathname == '') {
+    pathname = '/';
+  }
+  if (pathname.hasSuffix('/')) {
+    pathname = `${pathname}${bucketName}/`;
+  } else {
+    pathname = `${pathname}/${bucketName}/`;
+  }
+  var boundary = $Form.getBoundary();
+  __request.protocol = url.protocol();
+  __request.method = 'POST';
+  __request.pathname = pathname;
+  __request.headers = {
+    host = url.host(),
+    date = OpenApiUtil.getDateUTCString(),
+    user-agent = OpenApiUtil.getUserAgent(@userAgent),
+    content-type = `multipart/form-data; boundary=${boundary}`
+  };
+  __request.body = $Form.toFileForm(form, boundary);
+} returns {
+  var bodyStr = $Stream.readAsString(__response.body);
+  if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
+    var respMap = $XML.parseXml(bodyStr, null);
+    var err = $object(respMap.Error);
+    throw new Client {
+      code = $string(err.Code),
+      message = $string(err.Message),
+      data = {
+        httpCode = __response.statusCode,
+        requestId = $string(err.RequestId),
+        hostId = $string(err.HostId)
+      }
+    };
+  }
+  return $XML.parseXml(bodyStr, null);
+} runtime {
+  key = $string($default(runtime.key, @key)),
+  cert = $string($default(runtime.cert, @cert)),
+  ca = $string($default(runtime.ca, @ca)),
+  readTimeout = $number($default(runtime.readTimeout, @readTimeout)),
+  connectTimeout = $number($default(runtime.connectTimeout, @connectTimeout)),
+  httpProxy = $string($default(runtime.httpProxy, @httpProxy)),
+  httpsProxy = $string($default(runtime.httpsProxy, @httpsProxy)),
+  noProxy = $string($default(runtime.noProxy, @noProxy)),
+  socks5Proxy = $string($default(runtime.socks5Proxy, @socks5Proxy)),
+  socks5NetWork = $string($default(runtime.socks5NetWork, @socks5NetWork)),
+  maxIdleConns = $number($default(runtime.maxIdleConns, @maxIdleConns)),
+  ipv4Only = @ipv4Only,
+  retryOptions = @retryOptions,
+  ignoreSSL = $boolean($default(runtime.ignoreSSL, false)),
+  disableHttp2 = $boolean($default(@disableHttp2, false)),
+  tlsMinVersion = @tlsMinVersion
 }
 
 function getAccessDeniedDetail(err: map[string] any): map[string] any {

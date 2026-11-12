@@ -44,6 +44,7 @@ type Client struct {
 	MaxIdleConns         *int
 	EndpointType         *string
 	OpenPlatformEndpoint *string
+	OssPrivateUrl        *string
 	Credential           credential.Credential
 	SignatureVersion     *string
 	SignatureAlgorithm   *string
@@ -126,6 +127,7 @@ func (client *Client) Init(config *openapiutil.Config) (_err error) {
 	}
 
 	client.Endpoint = config.Endpoint
+	client.OssPrivateUrl = config.OssPrivateUrl
 	client.EndpointType = config.EndpointType
 	client.Network = config.Network
 	client.Suffix = config.Suffix
@@ -1851,6 +1853,122 @@ func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
 	headers := client.Headers
 	client.Headers = nil
 	_result = headers
+	return _result, _err
+}
+
+// 解析 OSS 私网地址，Runtime 非空配置优先于 Config。
+func (client *Client) GetOSSPrivateUrl(runtime *dara.RuntimeOptions) (_result *string) {
+	if !dara.IsNil(runtime.OssPrivateUrl) && dara.StringValue(runtime.OssPrivateUrl) != "" {
+		_result = runtime.OssPrivateUrl
+		return _result
+	}
+	_result = client.OssPrivateUrl
+	return _result
+}
+
+// 通过 OSS PrivateLink 上传文件，使用 Path-style 寻址。
+func (client *Client) PostOSSObjectWithURL(ossPrivateUrl *string, bucketName *string, form map[string]interface{}, runtime *dara.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	_runtime := dara.NewRuntimeObject(map[string]interface{}{
+		"key":            dara.ToString(dara.Default(dara.StringValue(runtime.Key), dara.StringValue(client.Key))),
+		"cert":           dara.ToString(dara.Default(dara.StringValue(runtime.Cert), dara.StringValue(client.Cert))),
+		"ca":             dara.ToString(dara.Default(dara.StringValue(runtime.Ca), dara.StringValue(client.Ca))),
+		"readTimeout":    dara.ForceInt(dara.Default(dara.IntValue(runtime.ReadTimeout), dara.IntValue(client.ReadTimeout))),
+		"connectTimeout": dara.ForceInt(dara.Default(dara.IntValue(runtime.ConnectTimeout), dara.IntValue(client.ConnectTimeout))),
+		"httpProxy":      dara.ToString(dara.Default(dara.StringValue(runtime.HttpProxy), dara.StringValue(client.HttpProxy))),
+		"httpsProxy":     dara.ToString(dara.Default(dara.StringValue(runtime.HttpsProxy), dara.StringValue(client.HttpsProxy))),
+		"noProxy":        dara.ToString(dara.Default(dara.StringValue(runtime.NoProxy), dara.StringValue(client.NoProxy))),
+		"socks5Proxy":    dara.ToString(dara.Default(dara.StringValue(runtime.Socks5Proxy), dara.StringValue(client.Socks5Proxy))),
+		"socks5NetWork":  dara.ToString(dara.Default(dara.StringValue(runtime.Socks5NetWork), dara.StringValue(client.Socks5NetWork))),
+		"maxIdleConns":   dara.ForceInt(dara.Default(dara.IntValue(runtime.MaxIdleConns), dara.IntValue(client.MaxIdleConns))),
+		"ipv4Only":       dara.BoolValue(client.Ipv4Only),
+		"retryOptions":   client.RetryOptions,
+		"ignoreSSL":      dara.ForceBoolean(dara.Default(dara.BoolValue(runtime.IgnoreSSL), false)),
+		"disableHttp2":   dara.ForceBoolean(dara.Default(dara.BoolValue(client.DisableHttp2), false)),
+		"tlsMinVersion":  dara.StringValue(client.TlsMinVersion),
+	})
+	var retryPolicyContext *dara.RetryPolicyContext
+	var request_ *dara.Request
+	var response_ *dara.Response
+	var _resultErr error
+	retriesAttempted := int(0)
+	retryPolicyContext = &dara.RetryPolicyContext{RetriesAttempted: retriesAttempted}
+	_result = make(map[string]interface{})
+	for dara.ShouldRetry(_runtime.RetryOptions, retryPolicyContext) {
+		_resultErr = nil
+		dara.Sleep(dara.GetBackoffDelay(_runtime.RetryOptions, retryPolicyContext))
+		request_ = dara.NewRequest()
+		url, _err := dara.ParseURL(dara.StringValue(ossPrivateUrl))
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{RetriesAttempted: retriesAttempted, HttpRequest: request_, HttpResponse: response_, Exception: _err}
+			_resultErr = _err
+			continue
+		}
+		if (url.Host() == "") || ((url.Protocol() != "http") && (url.Protocol() != "https")) || (url.Auth() != "") || (url.Search() != "") || (url.Hash() != "") {
+			_err = &ClientError{Code: dara.String("InvalidOSSPrivateUrl"), Message: dara.String("ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment")}
+			if dara.BoolValue(client.DisableSDKError) != true {
+				_err = dara.TeaSDKError(_err)
+			}
+			return _result, _err
+		}
+		pathname := url.Pathname()
+		if pathname == "" {
+			pathname = "/"
+		}
+		if strings.HasSuffix(pathname, "/") {
+			pathname = pathname + dara.StringValue(bucketName) + "/"
+		} else {
+			pathname = pathname + "/" + dara.StringValue(bucketName) + "/"
+		}
+		boundary := dara.GetBoundary()
+		request_.Protocol = dara.String(url.Protocol())
+		request_.Method = dara.String("POST")
+		request_.Pathname = dara.String(pathname)
+		request_.Headers = map[string]*string{
+			"host":         dara.String(url.Host()),
+			"date":         openapiutil.GetDateUTCString(),
+			"user-agent":   openapiutil.GetUserAgent(client.UserAgent),
+			"content-type": dara.String("multipart/form-data; boundary=" + boundary),
+		}
+		request_.Body = dara.ToFileForm(form, boundary)
+		response_, _err = dara.DoRequest(request_, _runtime)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{RetriesAttempted: retriesAttempted, HttpRequest: request_, HttpResponse: response_, Exception: _err}
+			_resultErr = _err
+			continue
+		}
+		_result, _err = postOSSObjectWithURL_opResponse(response_)
+		if _err != nil {
+			retriesAttempted++
+			retryPolicyContext = &dara.RetryPolicyContext{RetriesAttempted: retriesAttempted, HttpRequest: request_, HttpResponse: response_, Exception: _err}
+			_resultErr = _err
+			continue
+		}
+		return _result, _err
+	}
+	if dara.BoolValue(client.DisableSDKError) != true {
+		_resultErr = dara.TeaSDKError(_resultErr)
+	}
+	return _result, _resultErr
+}
+
+func postOSSObjectWithURL_opResponse(response_ *dara.Response) (_result map[string]interface{}, _err error) {
+	bodyStr, _err := dara.ReadAsString(response_.Body)
+	if _err != nil {
+		return _result, _err
+	}
+	if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 600) {
+		respMap := dara.ParseXml(bodyStr, nil)
+		err := dara.ToMap(respMap["Error"])
+		_err = &ClientError{
+			Code:    dara.String(dara.ToString(err["Code"])),
+			Message: dara.String(dara.ToString(err["Message"])),
+			Data:    map[string]interface{}{"httpCode": dara.IntValue(response_.StatusCode), "requestId": dara.ToString(err["RequestId"]), "hostId": dara.ToString(err["HostId"])},
+		}
+		return _result, _err
+	}
+	_result = dara.ParseXml(bodyStr, nil)
 	return _result, _err
 }
 
