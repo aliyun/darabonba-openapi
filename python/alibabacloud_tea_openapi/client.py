@@ -273,14 +273,15 @@ class Client:
                         security_token = credential_model.security_token
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
-                        _request.query["SignatureMethod"] = 'HMAC-SHA1'
-                        _request.query["SignatureVersion"] = '1.0'
-                        _request.query["AccessKeyId"] = access_key_id
                         t = None
                         if not DaraCore.is_null(request.body):
                             t = request.body
-                        signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
-                        _request.query["Signature"] = Utils.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                        body_params = Utils.query(t)
+                        _request.query["SignatureMethod"] = 'HMAC-SHA256'
+                        _request.query["SignatureVersion"] = '1.0'
+                        _request.query["AccessKeyId"] = access_key_id
+                        signed_param = DaraCore.merge({}, _request.query, body_params)
+                        _request.query["Signature"] = Utils.get_rpcsignature_with_sha256(signed_param, _request.method, access_key_secret)
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -493,14 +494,15 @@ class Client:
                         security_token = credential_model.security_token
                         if not DaraCore.is_null(security_token) and security_token != '':
                             _request.query["SecurityToken"] = security_token
-                        _request.query["SignatureMethod"] = 'HMAC-SHA1'
-                        _request.query["SignatureVersion"] = '1.0'
-                        _request.query["AccessKeyId"] = access_key_id
                         t = None
                         if not DaraCore.is_null(request.body):
                             t = request.body
-                        signed_param = DaraCore.merge({}, _request.query, Utils.query(t))
-                        _request.query["Signature"] = Utils.get_rpcsignature(signed_param, _request.method, access_key_secret)
+                        body_params = Utils.query(t)
+                        _request.query["SignatureMethod"] = 'HMAC-SHA256'
+                        _request.query["SignatureVersion"] = '1.0'
+                        _request.query["AccessKeyId"] = access_key_id
+                        signed_param = DaraCore.merge({}, _request.query, body_params)
+                        _request.query["Signature"] = Utils.get_rpcsignature_with_sha256(signed_param, _request.method, access_key_secret)
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)
@@ -680,7 +682,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -718,7 +720,7 @@ class Client:
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -888,7 +890,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -926,7 +928,7 @@ class Client:
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)
@@ -1111,7 +1113,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -1150,7 +1152,7 @@ class Client:
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = DaraCore.do_action(_request, _runtime)
@@ -1319,7 +1321,7 @@ class Client:
                     'host': self._endpoint_for_request(request),
                     'accept': 'application/json',
                     'x-acs-signature-nonce': Utils.get_nonce(),
-                    'x-acs-signature-method': 'HMAC-SHA1',
+                    'x-acs-signature-method': 'HMAC-SHA256',
                     'x-acs-signature-version': '1.0',
                     'x-acs-version': version,
                     'x-acs-action': action,
@@ -1358,7 +1360,7 @@ class Client:
                             _request.headers["x-acs-accesskey-id"] = access_key_id
                             _request.headers["x-acs-security-token"] = security_token
                         string_to_sign = Utils.get_string_to_sign(_request)
-                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature(string_to_sign, access_key_secret)}'
+                        _request.headers["authorization"] = f'acs {access_key_id}:{Utils.get_roasignature_with_sha256(string_to_sign, access_key_secret)}'
 
                 _last_request = _request
                 _response = await DaraCore.async_do_action(_request, _runtime)

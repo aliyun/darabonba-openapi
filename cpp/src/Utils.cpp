@@ -312,17 +312,25 @@ string Utils::getStringToSign(const Darabonba::Http::Request &request) {
  * @param secret accesskey secret
  * @return the signature
  */
-string Utils::getROASignature(const string &stringToSign, const string &secret) {
-  unsigned char hashData[SHA_DIGEST_LENGTH];
+static string hmacSignature(const string &stringToSign, const string &secret, const EVP_MD *digest) {
+  unsigned char hashData[EVP_MAX_MD_SIZE];
   unsigned int hashLen;
   
-  HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.length()),
+  HMAC(digest, secret.c_str(), static_cast<int>(secret.length()),
        reinterpret_cast<const unsigned char*>(stringToSign.c_str()),
        static_cast<int>(stringToSign.length()), hashData, &hashLen);
   
   Darabonba::Bytes bytes;
   bytes.assign(hashData, hashData + hashLen);
   return Darabonba::Encode::Encoder::base64EncodeToString(bytes);
+}
+
+string Utils::getROASignature(const string &stringToSign, const string &secret) {
+  return hmacSignature(stringToSign, secret, EVP_sha1());
+}
+
+string Utils::getROASignatureWithSHA256(const string &stringToSign, const string &secret) {
+  return hmacSignature(stringToSign, secret, EVP_sha256());
 }
 
 /**
@@ -406,7 +414,7 @@ map<string, string> Utils::query(const Darabonba::Json &filter) {
  * @param secret AccessKeySecret
  * @return the signature
  */
-string Utils::getRPCSignature(const map<string, string> &signedParams, const string &method, const string &secret) {
+static string getRPCSignatureWithDigest(const map<string, string> &signedParams, const string &method, const string &secret, const EVP_MD *digest) {
   // Sort parameters
   vector<pair<string, string>> sortedParams(signedParams.begin(), signedParams.end());
   sort(sortedParams.begin(), sortedParams.end());
@@ -423,18 +431,15 @@ string Utils::getRPCSignature(const map<string, string> &signedParams, const str
   string canonicalized = oss.str();
   string stringToSign = method + "&" + urlEncode("/") + "&" + urlEncode(canonicalized);
   
-  // HMAC-SHA1 signature
-  string key = secret + "&";
-  unsigned char hashData[SHA_DIGEST_LENGTH];
-  unsigned int hashLen;
-  
-  HMAC(EVP_sha1(), key.c_str(), static_cast<int>(key.length()),
-       reinterpret_cast<const unsigned char*>(stringToSign.c_str()),
-       static_cast<int>(stringToSign.length()), hashData, &hashLen);
-  
-  Darabonba::Bytes bytes;
-  bytes.assign(hashData, hashData + hashLen);
-  return Darabonba::Encode::Encoder::base64EncodeToString(bytes);
+  return hmacSignature(stringToSign, secret + "&", digest);
+}
+
+string Utils::getRPCSignature(const map<string, string> &signedParams, const string &method, const string &secret) {
+  return getRPCSignatureWithDigest(signedParams, method, secret, EVP_sha1());
+}
+
+string Utils::getRPCSignatureWithSHA256(const map<string, string> &signedParams, const string &method, const string &secret) {
+  return getRPCSignatureWithDigest(signedParams, method, secret, EVP_sha256());
 }
 
 /**

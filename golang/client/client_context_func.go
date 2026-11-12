@@ -202,17 +202,16 @@ func (client *Client) DoRPCRequestWithCtx(ctx context.Context, action *string, v
 					request_.Query["SecurityToken"] = dara.String(securityToken)
 				}
 
-				request_.Query["SignatureMethod"] = dara.String("HMAC-SHA1")
-				request_.Query["SignatureVersion"] = dara.String("1.0")
-				request_.Query["AccessKeyId"] = dara.String(accessKeyId)
 				var t map[string]interface{}
 				if !dara.IsNil(request.Body) {
 					t = dara.ToMap(request.Body)
 				}
-
-				signedParam := dara.Merge(request_.Query,
-					openapiutil.Query(t))
-				request_.Query["Signature"] = openapiutil.GetRPCSignature(signedParam, request_.Method, dara.String(accessKeySecret))
+				bodyParams := openapiutil.Query(t)
+				request_.Query["SignatureMethod"] = dara.String("HMAC-SHA256")
+				request_.Query["SignatureVersion"] = dara.String("1.0")
+				request_.Query["AccessKeyId"] = dara.String(accessKeyId)
+				signedParam := dara.Merge(request_.Query, bodyParams)
+				request_.Query["Signature"] = openapiutil.GetRPCSignatureWithSHA256(signedParam, request_.Method, dara.String(accessKeySecret))
 			}
 
 		}
@@ -350,7 +349,7 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -417,8 +416,9 @@ func (client *Client) DoROARequestWithCtx(ctx context.Context, action *string, v
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				stringToSign := dara.StringValue(openapiutil.GetStringToSign(request_))
-				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(openapiutil.GetROASignature(dara.String(stringToSign), dara.String(accessKeySecret))))
+				stringToSign := openapiutil.GetStringToSign(request_)
+				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
+				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 
 		}
@@ -556,7 +556,7 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 			"host":                    requestEndpoint,
 			"accept":                  dara.String("application/json"),
 			"x-acs-signature-nonce":   openapiutil.GetNonce(),
-			"x-acs-signature-method":  dara.String("HMAC-SHA1"),
+			"x-acs-signature-method":  dara.String("HMAC-SHA256"),
 			"x-acs-signature-version": dara.String("1.0"),
 			"x-acs-version":           version,
 			"x-acs-action":            action,
@@ -624,8 +624,9 @@ func (client *Client) DoROAFormRequestWithCtx(ctx context.Context, action *strin
 					request_.Headers["x-acs-security-token"] = dara.String(securityToken)
 				}
 
-				stringToSign := dara.StringValue(openapiutil.GetStringToSign(request_))
-				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(openapiutil.GetROASignature(dara.String(stringToSign), dara.String(accessKeySecret))))
+				stringToSign := openapiutil.GetStringToSign(request_)
+				signature := openapiutil.GetROASignatureWithSHA256(stringToSign, dara.String(accessKeySecret))
+				request_.Headers["authorization"] = dara.String("acs " + accessKeyId + ":" + dara.StringValue(signature))
 			}
 
 		}
