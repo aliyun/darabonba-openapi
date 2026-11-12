@@ -38,6 +38,7 @@ model Config {
   socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
   endpointType?: string(description='endpoint type',example='internal',default=''),
   openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
+  ossPrivateUrl?: string(description='OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先',example='https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com'),
   type?: string(description='credential type',example='access_key',default='',deprecated=true),
   signatureVersion?: string(description='Signature Version',example='v1',default=''),
   signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
