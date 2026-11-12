@@ -77,11 +77,57 @@ public:
   std::shared_ptr<std::map<std::string, std::string>> ptr_;
 
 protected:
+  std::string _signatureTypePrefix;
+
+  std::string _signPrefix;
+
   std::string _sha256;
 
   std::string _sm3;
 
   std::string _endpointSuffix;
+
+private:
+  struct RequestSignature {
+    std::string signPrefix;
+    std::string sha256;
+    std::string sm3;
+  };
+
+  RequestSignature requestSignature(const AttributeMap &attributeMap) const;
+
+  std::string
+  authorizationWith(const std::string &pathname, const std::string &method,
+                    const Darabonba::Http::Query &query,
+                    const Darabonba::Http::Header &headers,
+                    const std::string &signatureAlgorithm,
+                    const std::string &payload, const std::string &ak,
+                    const Darabonba::Bytes &signingkey,
+                    const std::string &product, const std::string &region,
+                    const std::string &date, const RequestSignature &names);
+
+  std::string signatureWith(const std::string &pathname,
+                            const std::string &method,
+                            const Darabonba::Http::Query &query,
+                            const Darabonba::Http::Header &headers,
+                            const std::string &signatureAlgorithm,
+                            const std::string &payload,
+                            const Darabonba::Bytes &signingkey,
+                            const RequestSignature &names);
+
+  Darabonba::Bytes signingKeyWith(const std::string &signatureAlgorithm,
+                                  const std::string &secret,
+                                  const std::string &product,
+                                  const std::string &region,
+                                  const std::string &date,
+                                  const RequestSignature &names);
+
+  void
+  validateSignedHeaders(const std::vector<std::string> &signedHeaders) const;
+
+  std::string regionFor(const std::string &product, const std::string &endpoint,
+                        const std::string &regionId,
+                        const std::string &endpointSuffix) const;
 };
 } // namespace Gateway
 } // namespace AlibabaCloud
