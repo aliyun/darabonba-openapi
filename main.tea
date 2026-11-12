@@ -7,6 +7,9 @@ import Credential;
 import OpenApiUtil;
 import SPI;
 import XML;
+import URL;
+import String;
+import FileForm;
 
 type @endpoint = string
 type @regionId = string
@@ -28,6 +31,7 @@ type @productId = string
 type @maxIdleConns = integer
 type @endpointType = string
 type @openPlatformEndpoint = string
+type @ossPrivateUrl = string
 type @credential = Credential
 type @signatureVersion = string
 type @signatureAlgorithm = string
@@ -74,6 +78,7 @@ model Config {
   socks5NetWork?: string(description='socks5 network',example='TCP',default=''),
   endpointType?: string(description='endpoint type',example='internal',default=''),
   openPlatformEndpoint?: string(description='OpenPlatform endpoint',example='openplatform.aliyuncs.com',default=''),
+  ossPrivateUrl?: string(description='OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先',example='https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com'),
   type?: string(description='credential type',example='access_key',default='',deprecated=true),
   signatureVersion?: string(description='Signature Version',example='v1',default=''),
   signatureAlgorithm?: string(description='Signature Algorithm',example='ACS3-HMAC-SHA256',default=''),
@@ -129,6 +134,7 @@ init(config: Config) {
   }
   @endpoint = config.endpoint;
   @endpointType = config.endpointType;
+  @ossPrivateUrl = config.ossPrivateUrl;
   @network = config.network;
   @suffix = config.suffix;
   @protocol = config.protocol;
@@ -1193,6 +1199,111 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
   },
   ignoreSSL = runtime.ignoreSSL,
   disableHttp2 = defaultAny(@disableHttp2, false),
+  tlsMinVersion = @tlsMinVersion
+}
+
+/**
+ * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+ */
+function getOSSPrivateUrl(runtime: Util.RuntimeOptions): string {
+  return Util.defaultString(runtime.ossPrivateUrl, @ossPrivateUrl);
+}
+
+/**
+ * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+ */
+api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, data: object, runtime: Util.RuntimeOptions): object {
+  var url = new URL.Url{};
+  try {
+    url = URL.parseUrl(ossPrivateUrl);
+  } catch (err) {
+    throw {
+      code = 'InvalidOSSPrivateUrl',
+      message = 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+    };
+  }
+  var invalidProtocol = !Util.equalString(url.scheme, 'http') && !Util.equalString(url.scheme, 'https');
+  var hasAuth = false;
+  if (!Util.isUnset(url.auth)) {
+    hasAuth = !Util.empty(url.auth.username) || !Util.empty(url.auth.password);
+  }
+  if (Util.isUnset(url.host) || Util.empty(url.host.hostname) || invalidProtocol || hasAuth || !Util.empty(url.hash)) {
+    throw {
+      code = 'InvalidOSSPrivateUrl',
+      message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+    };
+  }
+  var host = url.host.hostname;
+  if (!Util.empty(url.host.port) && !Util.equalString(url.host.port, '-1')) {
+    host = `${host}:${url.host.port}`;
+  }
+  var pathname = '/';
+  if (!Util.isUnset(url.path)) {
+    if (!Util.empty(url.path.search)) {
+      throw {
+        code = 'InvalidOSSPrivateUrl',
+        message = 'ossPrivateUrl must not contain a query'
+      };
+    }
+    pathname = Util.defaultString(url.path.pathname, '/');
+  }
+  if (String.hasSuffix(pathname, '/')) {
+    pathname = `${pathname}${bucketName}/`;
+  } else {
+    pathname = `${pathname}/${bucketName}/`;
+  }
+  var form = Util.assertAsMap(data);
+  var boundary = FileForm.getBoundary();
+  __request.protocol = url.scheme;
+  __request.method = 'POST';
+  __request.pathname = pathname;
+  __request.headers = {
+    host = host,
+    date = Util.getDateUTCString(),
+    user-agent = getUserAgent(),
+    content-type = `multipart/form-data; boundary=${boundary}`
+  };
+  __request.body = FileForm.toFileForm(form, boundary);
+} returns {
+  var bodyStr = Util.readAsString(__response.body);
+  if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
+    var respMap = XML.parseXml(bodyStr, null);
+    var err = Util.assertAsMap(respMap.Error);
+    throw {
+      code = err.Code,
+      message = err.Message,
+      data = {
+        httpCode = __response.statusCode,
+        requestId = err.RequestId,
+        hostId = err.HostId
+      }
+    };
+  }
+  return XML.parseXml(bodyStr, null);
+} runtime {
+  timeouted = 'retry',
+  key = Util.defaultString(runtime.key, @key),
+  cert = Util.defaultString(runtime.cert, @cert),
+  ca = Util.defaultString(runtime.ca, @ca),
+  readTimeout = Util.defaultNumber(runtime.readTimeout, @readTimeout),
+  connectTimeout = Util.defaultNumber(runtime.connectTimeout, @connectTimeout),
+  httpProxy = Util.defaultString(runtime.httpProxy, @httpProxy),
+  httpsProxy = Util.defaultString(runtime.httpsProxy, @httpsProxy),
+  noProxy = Util.defaultString(runtime.noProxy, @noProxy),
+  socks5Proxy = Util.defaultString(runtime.socks5Proxy, @socks5Proxy),
+  socks5NetWork = Util.defaultString(runtime.socks5NetWork, @socks5NetWork),
+  maxIdleConns = Util.defaultNumber(runtime.maxIdleConns, @maxIdleConns),
+  ipv4Only = @ipv4Only,
+  retry = {
+    retryable = runtime.autoretry,
+    maxAttempts = Util.defaultNumber(runtime.maxAttempts, 3)
+  },
+  backoff = {
+    policy = Util.defaultString(runtime.backoffPolicy, 'no'),
+    period = Util.defaultNumber(runtime.backoffPeriod, 1)
+  },
+  ignoreSSL = defaultAny(runtime.ignoreSSL, false),
+  disableHttp2 = @disableHttp2,
   tlsMinVersion = @tlsMinVersion
 }
 

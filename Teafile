@@ -14,7 +14,10 @@
     "OpenApiUtil": "alibabacloud:OpenApiUtil:*",
     "Credential": "alibabacloud:Credential:*",
     "SPI": "alibabacloud:GatewaySPI:*",
-    "XML": "darabonba:XML:*"
+    "XML": "darabonba:XML:*",
+    "URL": "darabonba:URL:*",
+    "String": "darabonba:String:*",
+    "FileForm": "darabonba:FileForm:*"
   },
   "releases": {
     "ts": "@alicloud/openapi-client:^0.4.15",
