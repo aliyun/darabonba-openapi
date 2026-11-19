@@ -20,10 +20,12 @@ from darabonba.exceptions import DaraException, UnretryableException
 from darabonba.policy.retry import RetryOptions, RetryPolicyContext
 from darabonba.request import DaraRequest
 from darabonba.runtime import RuntimeOptions
+from darabonba.url import Url as DaraURL
 from darabonba.utils.bytes import Bytes as DaraBytes
 from darabonba.utils.form import Form as DaraForm
 from darabonba.utils.stream import Stream as DaraStream
 from darabonba.utils.xml import XML as DaraXML
+
 from darabonba.websocket import (
     get_web_socket_enable_reconnect,
     get_web_socket_handshake_timeout,
@@ -62,6 +64,7 @@ class Client:
     _max_idle_conns: int = None
     _endpoint_type: str = None
     _open_platform_endpoint: str = None
+    _oss_private_url: str = None
     _credential: CredentialClient = None
     _signature_version: str = None
     _signature_algorithm: str = None
@@ -114,6 +117,7 @@ class Client:
 
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
+        self._oss_private_url = config.oss_private_url
         self._network = config.network
         self._suffix = config.suffix
         if DaraCore.is_null(config.endpoint_suffix) or config.endpoint_suffix == '':
@@ -2599,6 +2603,222 @@ class Client:
                 continue
         raise UnretryableException(_context)
 
+    """
+     * @remarks
+     * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+    """
+    def post_ossobject_with_url(
+        self,
+        oss_private_url: str,
+        bucket_name: str,
+        form: dict,
+        runtime: RuntimeOptions,
+    ) -> dict:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': bool(runtime.ignore_ssl or False),
+            'disableHttp2': bool(self._disable_http_2 or False),
+            'tlsMinVersion': self._tls_min_version,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                url = DaraURL('http://localhost')
+                url_host = ''
+                try :
+                    url = DaraURL.parse(oss_private_url)
+                    url_host = url.host()
+                except Exception as err :
+                    raise main_exceptions.ClientException(
+                        code = 'InvalidOSSPrivateUrl',
+                        message = 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+                    )
+                # 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                if DaraCore.is_null(url_host) or (url_host == '') or ((url.protocol() != 'http') and (url.protocol() != 'https')) or '@' in oss_private_url or '?' in oss_private_url or '#' in oss_private_url:
+                    raise main_exceptions.ClientException(
+                        code = 'InvalidOSSPrivateUrl',
+                        message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+                    )
+                pathname = url.pathname()
+                if pathname == '':
+                    pathname = '/'
+                if pathname.endswith('/'):
+                    pathname = f'{pathname}{bucket_name}/'
+                else:
+                    pathname = f'{pathname}/{bucket_name}/'
+
+                boundary = DaraForm.get_boundary()
+                _request.protocol = url.protocol()
+                _request.method = 'POST'
+                _request.pathname = pathname
+                _request.headers = {
+                    'host': url_host,
+                    'date': Utils.get_date_utcstring(),
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'content-type': f'multipart/form-data; boundary={boundary}'
+                }
+                _request.body = DaraForm.to_file_form(form, boundary)
+                _last_request = _request
+                _response = DaraCore.do_action(_request, _runtime)
+                _last_response = _response
+                body_str = DaraStream.read_as_string(_response.body)
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    resp_map = DaraXML.parse_xml(body_str, None)
+                    # 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                    err = resp_map
+                    err_node = resp_map.get('Error')
+                    if not DaraCore.is_null(err_node):
+                        err = err_node
+                    raise main_exceptions.ClientException(
+                        code = str(err.get("Code")),
+                        message = str(err.get("Message")),
+                        status_code = _response.status_code,
+                        data = {
+                            'httpCode': _response.status_code,
+                            'requestId': str(err.get("RequestId")),
+                            'hostId': str(err.get("HostId"))
+                        }
+                    )
+                return DaraXML.parse_xml(body_str, None)
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
+    async def post_ossobject_with_url_async(
+        self,
+        oss_private_url: str,
+        bucket_name: str,
+        form: dict,
+        runtime: RuntimeOptions,
+    ) -> dict:
+        _runtime = {
+            'key': runtime.key or self._key,
+            'cert': runtime.cert or self._cert,
+            'ca': runtime.ca or self._ca,
+            'readTimeout': DaraCore.to_number(runtime.read_timeout or self._read_timeout),
+            'connectTimeout': DaraCore.to_number(runtime.connect_timeout or self._connect_timeout),
+            'httpProxy': runtime.http_proxy or self._http_proxy,
+            'httpsProxy': runtime.https_proxy or self._https_proxy,
+            'noProxy': runtime.no_proxy or self._no_proxy,
+            'socks5Proxy': runtime.socks_5proxy or self._socks_5proxy,
+            'socks5NetWork': runtime.socks_5net_work or self._socks_5net_work,
+            'maxIdleConns': DaraCore.to_number(runtime.max_idle_conns or self._max_idle_conns),
+            'ipv4Only': bool(self._ipv4_only),
+            'retryOptions': self._retry_options,
+            'ignoreSSL': bool(runtime.ignore_ssl or False),
+            'disableHttp2': bool(self._disable_http_2 or False),
+            'tlsMinVersion': self._tls_min_version,
+        }
+        _last_request = None
+        _last_response = None
+        _retries_attempted = 0
+        _context = RetryPolicyContext(
+            retries_attempted= _retries_attempted
+        )
+        while DaraCore.should_retry(_runtime.get('retryOptions'), _context):
+            if _retries_attempted > 0:
+                _backoff_time = DaraCore.get_backoff_time(_runtime.get('retryOptions'), _context)
+                if _backoff_time > 0:
+                    DaraCore.sleep(_backoff_time)
+            _retries_attempted = _retries_attempted + 1
+            try:
+                _request = DaraRequest()
+                url = DaraURL('http://localhost')
+                url_host = ''
+                try :
+                    url = DaraURL.parse(oss_private_url)
+                    url_host = url.host()
+                except Exception as err :
+                    raise main_exceptions.ClientException(
+                        code = 'InvalidOSSPrivateUrl',
+                        message = 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+                    )
+                # 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                if DaraCore.is_null(url_host) or (url_host == '') or ((url.protocol() != 'http') and (url.protocol() != 'https')) or '@' in oss_private_url or '?' in oss_private_url or '#' in oss_private_url:
+                    raise main_exceptions.ClientException(
+                        code = 'InvalidOSSPrivateUrl',
+                        message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+                    )
+                pathname = url.pathname()
+                if pathname == '':
+                    pathname = '/'
+                if pathname.endswith('/'):
+                    pathname = f'{pathname}{bucket_name}/'
+                else:
+                    pathname = f'{pathname}/{bucket_name}/'
+
+                boundary = DaraForm.get_boundary()
+                _request.protocol = url.protocol()
+                _request.method = 'POST'
+                _request.pathname = pathname
+                _request.headers = {
+                    'host': url_host,
+                    'date': Utils.get_date_utcstring(),
+                    'user-agent': Utils.get_user_agent(self._user_agent),
+                    'content-type': f'multipart/form-data; boundary={boundary}'
+                }
+                _request.body = DaraForm.to_file_form(form, boundary)
+                _last_request = _request
+                _response = await DaraCore.async_do_action(_request, _runtime)
+                _last_response = _response
+                body_str = await DaraStream.read_as_string_async(_response.body)
+                if (_response.status_code >= 400) and (_response.status_code < 600):
+                    resp_map = DaraXML.parse_xml(body_str, None)
+                    # 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                    err = resp_map
+                    err_node = resp_map.get('Error')
+                    if not DaraCore.is_null(err_node):
+                        err = err_node
+                    raise main_exceptions.ClientException(
+                        code = str(err.get("Code")),
+                        message = str(err.get("Message")),
+                        status_code = _response.status_code,
+                        data = {
+                            'httpCode': _response.status_code,
+                            'requestId': str(err.get("RequestId")),
+                            'hostId': str(err.get("HostId"))
+                        }
+                    )
+                return DaraXML.parse_xml(body_str, None)
+            except Exception as e:
+                _context = RetryPolicyContext(
+                    retries_attempted= _retries_attempted,
+                    http_request = _last_request,
+                    http_response = _last_response,
+                    exception = e
+                )
+                continue
+        raise UnretryableException(_context)
+
     def call_api(
         self,
         params: open_api_util_models.Params,
@@ -2780,6 +3000,14 @@ class Client:
         if DaraCore.is_null(input_value):
             return default_value
         return input_value
+
+    def get_ossprivate_url(
+        self,
+        runtime: RuntimeOptions,
+    ) -> str:
+        if not DaraCore.is_null(runtime.oss_private_url) and runtime.oss_private_url != '':
+            return runtime.oss_private_url
+        return self._oss_private_url
 
     def get_access_denied_detail(
         self,

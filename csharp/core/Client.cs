@@ -39,6 +39,7 @@ namespace AlibabaCloud.OpenApiClient
         protected int? _maxIdleConns;
         protected string _endpointType;
         protected string _openPlatformEndpoint;
+        protected string _ossPrivateUrl;
         protected CredentialClient _credential;
         protected string _signatureVersion;
         protected string _signatureAlgorithm;
@@ -52,6 +53,7 @@ namespace AlibabaCloud.OpenApiClient
         protected Darabonba.RetryPolicy.RetryOptions _retryOptions;
         protected string _tlsMinVersion;
         protected AttributeMap _attributeMap;
+        protected bool? _ipv4Only;
 
         /// <term><b>Description:</b></term>
         /// <description>
@@ -105,6 +107,7 @@ namespace AlibabaCloud.OpenApiClient
             }
             this._endpoint = config.Endpoint;
             this._endpointType = config.EndpointType;
+            this._ossPrivateUrl = config.OssPrivateUrl;
             this._network = config.Network;
             this._suffix = config.Suffix;
             if (string.IsNullOrEmpty(config.EndpointSuffix))
@@ -136,6 +139,7 @@ namespace AlibabaCloud.OpenApiClient
             this._disableHttp2 = config.DisableHttp2;
             this._retryOptions = config.RetryOptions;
             this._tlsMinVersion = config.TlsMinVersion;
+            this._ipv4Only = config.Ipv4Only;
         }
 
         /// <term><b>Description:</b></term>
@@ -3302,6 +3306,7 @@ namespace AlibabaCloud.OpenApiClient
             throw Darabonba.Core.ThrowException(_retryPolicyContext);
         }
 
+
         public IEnumerable<SSEResponse> CallSSEApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             Dictionary<string, object> runtime_ = new Dictionary<string, object>
@@ -3317,6 +3322,7 @@ namespace AlibabaCloud.OpenApiClient
                 {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
                 {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
                 {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
+                {"ipv4Only", (bool?)_ipv4Only},
                 {"retryOptions", _retryOptions},
                 {"ignoreSSL", runtime.IgnoreSSL},
                 {"tlsMinVersion", _tlsMinVersion},
@@ -3365,7 +3371,7 @@ namespace AlibabaCloud.OpenApiClient
             (
                 new Dictionary<string, string>()
                 {
-                    {"host", EndpointForRequest(request)},
+                    {"host", _endpoint},
                     {"x-acs-version", params_.Version},
                     {"x-acs-action", params_.Action},
                     {"user-agent", Utils.GetUserAgent(_userAgent)},
@@ -3478,8 +3484,8 @@ namespace AlibabaCloud.OpenApiClient
                 {
                     {"code", "" + Darabonba.Core.GetDefaultValue(err.Get("Code"), err.Get("code"))},
                     {"message", "code: " + response_.StatusCode + ", " + Darabonba.Core.GetDefaultValue(err.Get("Message"), err.Get("message")) + " request id: " + Darabonba.Core.GetDefaultValue(err.Get("RequestId"), err.Get("requestId"))},
-                    {"data", err},
                     {"detail", "" + Darabonba.Core.GetDefaultValue(err.Get("Detail"), err.Get("detail"))},
+                    {"data", err},
                     {"description", "" + Darabonba.Core.GetDefaultValue(err.Get("Description"), err.Get("description"))},
                     {"accessDeniedDetail", Darabonba.Core.GetDefaultValue(err.Get("AccessDeniedDetail"), err.Get("accessDeniedDetail"))},
                 });
@@ -3495,7 +3501,298 @@ namespace AlibabaCloud.OpenApiClient
                 };
             }
         }
-        
+
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。</para>
+        /// </description>
+        protected Dictionary<string, object> PostOSSObjectWithURL(string ossPrivateUrl, string bucketName, Dictionary<string, object> form, Darabonba.Models.RuntimeOptions runtime)
+        {
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
+                {"ipv4Only", _ipv4Only},
+                {"retryOptions", _retryOptions},
+                {"ignoreSSL", (bool?)Darabonba.Core.GetDefaultValue(runtime.IgnoreSSL, false)},
+                {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
+                {"tlsMinVersion", _tlsMinVersion},
+            };
+
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retriesAttempted = 0;
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
+            {
+                RetriesAttempted = _retriesAttempted
+            };
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            {
+                if (_retriesAttempted > 0)
+                {
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    if (backoffTime > 0)
+                    {
+                        Thread.Sleep(backoffTime);
+                    }
+                }
+                try
+                {
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    Darabonba.URL url = new Darabonba.URL("http://localhost");
+                    string urlHost = "";
+                    try
+                    {
+                        url = Darabonba.URL.Parse(ossPrivateUrl);
+                        urlHost = url.Host();
+                    }
+                    catch (Exception)
+                    {
+                        throw new ClientException
+                        {
+                            Code = "InvalidOSSPrivateUrl",
+                            Message = "ossPrivateUrl must be a valid HTTP(S) endpoint",
+                        };
+                    }
+                    // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                    if (urlHost == null || (urlHost == "") || ((url.Protocol() != "http") && (url.Protocol() != "https")) || ossPrivateUrl.Contains("@") || ossPrivateUrl.Contains("?") || ossPrivateUrl.Contains("#"))
+                    {
+                        throw new ClientException
+                        {
+                            Code = "InvalidOSSPrivateUrl",
+                            Message = "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment",
+                        };
+                    }
+                    string pathname = url.Pathname();
+                    if (pathname == "")
+                    {
+                        pathname = "/";
+                    }
+                    if (pathname.EndsWith("/"))
+                    {
+                        pathname = "" + pathname + bucketName + "/";
+                    }
+                    else
+                    {
+                        pathname = "" + pathname + "/" + bucketName + "/";
+                    }
+                    string boundary = Darabonba.Utils.FormUtils.GetBoundary();
+                    request_.Protocol = url.Protocol();
+                    request_.Method = "POST";
+                    request_.Pathname = pathname;
+                    request_.Headers = new Dictionary<string, string>
+                    {
+                        {"host", urlHost},
+                        {"date", Utils.GetDateUTCString()},
+                        {"user-agent", Utils.GetUserAgent(_userAgent)},
+                        {"content-type", "multipart/form-data; boundary=" + boundary},
+                    };
+                    request_.Body = Darabonba.Utils.FormUtils.ToFileForm(form, boundary);
+                    _lastRequest = request_;
+                    Darabonba.Response response_ = Darabonba.Core.DoAction(request_, runtime_);
+                    _lastResponse = response_;
+
+                    string bodyStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                    if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
+                    {
+                        Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(bodyStr, null);
+                        // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                        Dictionary<string, object> err = respMap;
+                        object errNode = respMap.Get("Error");
+                        if (errNode != null)
+                        {
+                            err = (Dictionary<string, object>)errNode;
+                        }
+                        throw new ClientException
+                        {
+                            Code = (string)err.Get("Code"),
+                            Message = (string)err.Get("Message"),
+                            StatusCode = response_.StatusCode,
+                            Data = new Dictionary<string, object>
+                            {
+                                {"httpCode", response_.StatusCode},
+                                {"requestId", (string)err.Get("RequestId")},
+                                {"hostId", (string)err.Get("HostId")},
+                            },
+                        };
+                    }
+                    return Darabonba.Utils.XmlUtils.ParseXml(bodyStr, null);
+                }
+                catch (Exception e)
+                {
+                    _retriesAttempted++;
+                    _lastException = e;
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
+                    {
+                        RetriesAttempted = _retriesAttempted,
+                        Request = _lastRequest,
+                        Response = _lastResponse,
+                        Exception = _lastException
+                    };
+                }
+            }
+
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。</para>
+        /// </description>
+        protected async Task<Dictionary<string, object>> PostOSSObjectWithURLAsync(string ossPrivateUrl, string bucketName, Dictionary<string, object> form, Darabonba.Models.RuntimeOptions runtime)
+        {
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"key", (string)Darabonba.Core.GetDefaultValue(runtime.Key, _key)},
+                {"cert", (string)Darabonba.Core.GetDefaultValue(runtime.Cert, _cert)},
+                {"ca", (string)Darabonba.Core.GetDefaultValue(runtime.Ca, _ca)},
+                {"readTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ReadTimeout, _readTimeout))},
+                {"connectTimeout", (int?)(Darabonba.Core.GetDefaultValue(runtime.ConnectTimeout, _connectTimeout))},
+                {"httpProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", (string)Darabonba.Core.GetDefaultValue(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", (string)Darabonba.Core.GetDefaultValue(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", (string)Darabonba.Core.GetDefaultValue(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", (int?)(Darabonba.Core.GetDefaultValue(runtime.MaxIdleConns, _maxIdleConns))},
+                {"ipv4Only", _ipv4Only},
+                {"retryOptions", _retryOptions},
+                {"ignoreSSL", (bool?)Darabonba.Core.GetDefaultValue(runtime.IgnoreSSL, false)},
+                {"disableHttp2", (bool?)Darabonba.Core.GetDefaultValue(_disableHttp2, false)},
+                {"tlsMinVersion", _tlsMinVersion},
+            };
+
+            Darabonba.RetryPolicy.RetryPolicyContext _retryPolicyContext = null;
+            Darabonba.Request _lastRequest = null;
+            Darabonba.Response _lastResponse = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retriesAttempted = 0;
+            _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
+            {
+                RetriesAttempted = _retriesAttempted
+            };
+            while (Darabonba.Core.ShouldRetry((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext))
+            {
+                if (_retriesAttempted > 0)
+                {
+                    int backoffTime = Darabonba.Core.GetBackoffDelay((Darabonba.RetryPolicy.RetryOptions)runtime_["retryOptions"], _retryPolicyContext);
+                    if (backoffTime > 0)
+                    {
+                        await Task.Delay(backoffTime);
+                    }
+                }
+                try
+                {
+                    Darabonba.Request request_ = new Darabonba.Request();
+                    Darabonba.URL url = new Darabonba.URL("http://localhost");
+                    string urlHost = "";
+                    try
+                    {
+                        url = Darabonba.URL.Parse(ossPrivateUrl);
+                        urlHost = url.Host();
+                    }
+                    catch (Exception)
+                    {
+                        throw new ClientException
+                        {
+                            Code = "InvalidOSSPrivateUrl",
+                            Message = "ossPrivateUrl must be a valid HTTP(S) endpoint",
+                        };
+                    }
+                    // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                    if (urlHost == null || (urlHost == "") || ((url.Protocol() != "http") && (url.Protocol() != "https")) || ossPrivateUrl.Contains("@") || ossPrivateUrl.Contains("?") || ossPrivateUrl.Contains("#"))
+                    {
+                        throw new ClientException
+                        {
+                            Code = "InvalidOSSPrivateUrl",
+                            Message = "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment",
+                        };
+                    }
+                    string pathname = url.Pathname();
+                    if (pathname == "")
+                    {
+                        pathname = "/";
+                    }
+                    if (pathname.EndsWith("/"))
+                    {
+                        pathname = "" + pathname + bucketName + "/";
+                    }
+                    else
+                    {
+                        pathname = "" + pathname + "/" + bucketName + "/";
+                    }
+                    string boundary = Darabonba.Utils.FormUtils.GetBoundary();
+                    request_.Protocol = url.Protocol();
+                    request_.Method = "POST";
+                    request_.Pathname = pathname;
+                    request_.Headers = new Dictionary<string, string>
+                    {
+                        {"host", urlHost},
+                        {"date", Utils.GetDateUTCString()},
+                        {"user-agent", Utils.GetUserAgent(_userAgent)},
+                        {"content-type", "multipart/form-data; boundary=" + boundary},
+                    };
+                    request_.Body = Darabonba.Utils.FormUtils.ToFileForm(form, boundary);
+                    _lastRequest = request_;
+                    Darabonba.Response response_ = await Darabonba.Core.DoActionAsync(request_, runtime_);
+                    _lastResponse = response_;
+
+                    string bodyStr = Darabonba.Utils.StreamUtils.ReadAsString(response_.Body);
+                    if ((response_.StatusCode >= 400) && (response_.StatusCode < 600))
+                    {
+                        Dictionary<string, object> respMap = Darabonba.Utils.XmlUtils.ParseXml(bodyStr, null);
+                        // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                        Dictionary<string, object> err = respMap;
+                        object errNode = respMap.Get("Error");
+                        if (errNode != null)
+                        {
+                            err = (Dictionary<string, object>)errNode;
+                        }
+                        throw new ClientException
+                        {
+                            Code = (string)err.Get("Code"),
+                            Message = (string)err.Get("Message"),
+                            StatusCode = response_.StatusCode,
+                            Data = new Dictionary<string, object>
+                            {
+                                {"httpCode", response_.StatusCode},
+                                {"requestId", (string)err.Get("RequestId")},
+                                {"hostId", (string)err.Get("HostId")},
+                            },
+                        };
+                    }
+                    return Darabonba.Utils.XmlUtils.ParseXml(bodyStr, null);
+                }
+                catch (Exception e)
+                {
+                    _retriesAttempted++;
+                    _lastException = e;
+                    _retryPolicyContext = new Darabonba.RetryPolicy.RetryPolicyContext
+                    {
+                        RetriesAttempted = _retriesAttempted,
+                        Request = _lastRequest,
+                        Response = _lastResponse,
+                        Exception = _lastException
+                    };
+                }
+            }
+
+            throw Darabonba.Core.ThrowException(_retryPolicyContext);
+        }
+
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, Darabonba.Models.RuntimeOptions runtime)
         {
             if (params_.IsNull())
@@ -3854,6 +4151,19 @@ namespace AlibabaCloud.OpenApiClient
             Dictionary<string, string> headers = _headers;
             this._headers = null;
             return headers;
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。</para>
+        /// </description>
+        protected string GetOSSPrivateUrl(Darabonba.Models.RuntimeOptions runtime)
+        {
+            if (!string.IsNullOrEmpty(runtime.OssPrivateUrl))
+            {
+                return runtime.OssPrivateUrl;
+            }
+            return _ossPrivateUrl;
         }
 
         public Dictionary<string, object> GetAccessDeniedDetail(Dictionary<string, object> err)

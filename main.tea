@@ -1497,8 +1497,19 @@ function getOSSPrivateUrl(runtime: $RuntimeOptions): string {
  * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
  */
 api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, form: object, runtime: $RuntimeOptions): object {
-  var url = $URL.parse(ossPrivateUrl);
-  if ((url.host() == '') || ((url.protocol() != 'http') && (url.protocol() != 'https')) || (url.auth() != '') || (url.search() != '') || (url.hash() != '')) {
+  var url = new $URL('http://localhost');
+  var urlHost = '';
+  try {
+    url = $URL.parse(ossPrivateUrl);
+    urlHost = url.host();
+  } catch (err) {
+    throw new Client {
+      code = 'InvalidOSSPrivateUrl',
+      message = 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+    };
+  }
+  // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+  if ($isNull(urlHost) || (urlHost == '') || ((url.protocol() != 'http') && (url.protocol() != 'https')) || ossPrivateUrl.contains('@') || ossPrivateUrl.contains('?') || ossPrivateUrl.contains('#')) {
     throw new Client {
       code = 'InvalidOSSPrivateUrl',
       message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
@@ -1518,7 +1529,7 @@ api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, form: object
   __request.method = 'POST';
   __request.pathname = pathname;
   __request.headers = {
-    host = url.host(),
+    host = urlHost,
     date = OpenApiUtil.getDateUTCString(),
     user-agent = OpenApiUtil.getUserAgent(@userAgent),
     content-type = `multipart/form-data; boundary=${boundary}`
@@ -1528,10 +1539,15 @@ api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, form: object
   var bodyStr = $Stream.readAsString(__response.body);
   if ((__response.statusCode >= 400) && (__response.statusCode < 600)) {
     var respMap = $XML.parseXml(bodyStr, null);
-    var err = $object(respMap.Error);
+    // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+    var err : map[string]any = respMap;
+    if (!$isNull(respMap.Error)) {
+      err = $object(respMap.Error);
+    }
     throw new Client {
       code = $string(err.Code),
       message = $string(err.Message),
+      statusCode = __response.statusCode,
       data = {
         httpCode = __response.statusCode,
         requestId = $string(err.RequestId),

@@ -174,13 +174,13 @@ func TestOSSPrivateURLError(t *testing.T) {
 	client.DisableSDKError = dara.Bool(true)
 	_, err = client.PostOSSObjectWithURL(dara.String(server.URL), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions))
 	var apiErr *ClientError
-	if !errors.As(err, &apiErr) || dara.StringValue(apiErr.Code) != "AccessDenied" || apiErr.Data["httpCode"] != 403 || apiErr.Data["requestId"] != "req-id" || apiErr.Data["hostId"] != "host-id" {
+	if !errors.As(err, &apiErr) || dara.StringValue(apiErr.Code) != "AccessDenied" || dara.IntValue(apiErr.StatusCode) != 403 || apiErr.Data["httpCode"] != 403 || apiErr.Data["requestId"] != "req-id" || apiErr.Data["hostId"] != "host-id" {
 		t.Fatalf("OSS XML 错误: %#v", err)
 	}
-	for _, endpoint := range []string{"ftp://example.com", "http://user@example.com", "http://example.com/?a=b", "http://example.com/#fragment", "example.com"} {
+	for _, endpoint := range []string{"", "example.com", "ftp://example.com", "http://user@example.com", "http://user:password@example.com", "http://@example.com", "http://example.com/?a=b", "http://example.com?", "http://example.com/#fragment", "http://example.com#", "http://example.com:bad", "http://[invalid"} {
 		_, err := client.PostOSSObjectWithURL(dara.String(endpoint), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions))
-		if err == nil {
-			t.Errorf("应拒绝无效地址: %s", endpoint)
+		if !errors.As(err, &apiErr) || dara.StringValue(apiErr.Code) != "InvalidOSSPrivateUrl" {
+			t.Errorf("应拒绝无效地址: %s，实际错误: %v", endpoint, err)
 		}
 	}
 }

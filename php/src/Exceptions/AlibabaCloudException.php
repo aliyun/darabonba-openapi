@@ -39,12 +39,12 @@ class AlibabaCloudException extends DaraException
       $map['errCode'] = $map['code'];
     }
     parent::__construct($map);
-    $this->statusCode = $map['statusCode'];
-    $this->code = $map['code'];
-    $this->message = $map['message'];
+    $this->statusCode = isset($map['statusCode']) ? $map['statusCode'] : 0;
+    $this->code = isset($map['code']) ? $map['code'] : '';
+    $this->message = isset($map['message']) ? $map['message'] : '';
     $this->detail = isset($map['detail']) ? $map['detail'] : null;
-    $this->description = $map['description'];
-    $this->requestId = $map['requestId'];
+    $this->description = isset($map['description']) ? $map['description'] : null;
+    $this->requestId = isset($map['requestId']) ? $map['requestId'] : null;
   }
 
   /**

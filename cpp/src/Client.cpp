@@ -13,6 +13,7 @@
 #include <darabonba/Bytes.hpp>
 #include <darabonba/encode/Encoder.hpp>
 #include <darabonba/XML.hpp>
+#include <darabonba/http/URL.hpp>
 #include <alibabacloud/gateway/SPI.hpp>
 #include <alibabacloud/gateway/POP.hpp>
 using namespace std;
@@ -111,6 +112,7 @@ AlibabaCloud::OpenApi::Client::Client(AlibabaCloud::OpenApi::Utils::Models::Conf
   this->_retryOptions = config.getRetryOptions();
   this->_tlsMinVersion = config.getTlsMinVersion();
   this->_ipv4Only = config.getIpv4Only();
+  this->_ossPrivateUrl = config.getOssPrivateUrl();
 }
 
 
@@ -1376,6 +1378,130 @@ json Client::getAccessDeniedDetail(const json &err) {
   }
 
   return accessDeniedDetail;
+}
+
+
+Darabonba::Json Client::postOSSObjectWithURL(const string &ossPrivateUrl, const string &bucketName, const Darabonba::Json &form, const Darabonba::RuntimeOptions &runtime) {
+  Darabonba::RuntimeOptions runtime_(json({
+    {"key", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getKey(), _key))},
+    {"cert", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getCert(), _cert))},
+    {"ca", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getCa(), _ca))},
+    {"readTimeout", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getReadTimeout(), _readTimeout))},
+    {"connectTimeout", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getConnectTimeout(), _connectTimeout))},
+    {"httpProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getHttpProxy(), _httpProxy))},
+    {"httpsProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getHttpsProxy(), _httpsProxy))},
+    {"noProxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getNoProxy(), _noProxy))},
+    {"socks5Proxy", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5Proxy(), _socks5Proxy))},
+    {"socks5NetWork", Darabonba::Convert::stringVal(Darabonba::defaultVal(runtime.getSocks5NetWork(), _socks5NetWork))},
+    {"maxIdleConns", Darabonba::Convert::int64Val(Darabonba::defaultVal(runtime.getMaxIdleConns(), _maxIdleConns))},
+    {"ipv4Only", _ipv4Only},
+    {"retryOptions", _retryOptions},
+    {"ignoreSSL", Darabonba::Convert::boolVal(Darabonba::defaultVal(runtime.getIgnoreSSL(), false))},
+    {"disableHttp2", Darabonba::Convert::boolVal(Darabonba::defaultVal(_disableHttp2, false))},
+    {"tlsMinVersion", _tlsMinVersion}
+    }));
+
+  std::exception_ptr _lastExceptionPtr;
+  int _retriesAttempted = 0;
+  Darabonba::Policy::RetryPolicyContext _context = json({
+    {"retriesAttempted" , _retriesAttempted}
+  });
+  while (Darabonba::shouldRetry(runtime_.getRetryOptions(), _context)) {
+    if (_retriesAttempted > 0) {
+      int _backoffTime = Darabonba::getBackoffTime(runtime_.getRetryOptions(), _context);
+      if (_backoffTime > 0) {
+        Darabonba::sleep(_backoffTime);
+      }
+    }
+    _retriesAttempted++;
+    try {
+      Darabonba::Http::Request request_ = Darabonba::Http::Request();
+      Darabonba::Http::URL url;
+      string urlHost;
+      try {
+        url = Darabonba::Http::URL::parse(ossPrivateUrl);
+        urlHost = url.getHost();
+      } catch (const std::exception& err) {
+        throw ClientException(json({
+          {"code" , "InvalidOSSPrivateUrl"},
+          {"message" , "ossPrivateUrl must be a valid HTTP(S) endpoint"}
+        }).get<map<string, string>>());
+      }
+      // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+      if (urlHost.empty() || (url.getScheme() != "http" && url.getScheme() != "https") || ossPrivateUrl.find('@') != string::npos || ossPrivateUrl.find('?') != string::npos || ossPrivateUrl.find('#') != string::npos) {
+        throw ClientException(json({
+          {"code" , "InvalidOSSPrivateUrl"},
+          {"message" , "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"}
+        }).get<map<string, string>>());
+      }
+
+      string pathname = url.getPathName();
+      if (pathname == "") {
+        pathname = "/";
+      }
+
+      if (Darabonba::String::hasSuffix(pathname, "/")) {
+        pathname = DARA_STRING_TEMPLATE("" , pathname , bucketName , "/");
+      } else {
+        pathname = DARA_STRING_TEMPLATE("" , pathname , "/" , bucketName , "/");
+      }
+
+      string boundary = Darabonba::Http::Form::getBoundary();
+      request_.setProtocol(url.getScheme());
+      request_.setMethod("POST");
+      request_.setPathname(pathname);
+      request_.setHeaders(json({
+        {"host" , urlHost},
+        {"date" , Utils::Utils::getDateUTCString()},
+        {"user-agent" , Utils::Utils::getUserAgent(_userAgent)},
+        {"content-type" , DARA_STRING_TEMPLATE("multipart/form-data; boundary=" , boundary)}
+      }).get<map<string, string>>());
+      request_.setBody(Darabonba::Http::Form::toFileForm(form, boundary));
+      auto futureResp_ = Darabonba::Core::doAction(request_, runtime_);
+      shared_ptr<Darabonba::Http::MCurlResponse> response_ = futureResp_.get();
+
+      string bodyStr = Darabonba::Stream::readAsString(response_->getBody());
+      if ((response_->getStatusCode() >= 400) && (response_->getStatusCode() < 600)) {
+        json respMap = Darabonba::XML::parseXml(bodyStr, nullptr);
+        // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+        json err = respMap;
+        if (respMap.contains("Error") && !respMap["Error"].is_null()) {
+          err = respMap["Error"];
+        }
+        throw ClientException(json({
+          {"code" , Darabonba::Convert::stringVal(err.value("Code", Darabonba::Json()))},
+          {"message" , Darabonba::Convert::stringVal(err.value("Message", Darabonba::Json()))},
+          {"statusCode" , response_->getStatusCode()},
+          {"data" , json({
+            {"httpCode" , response_->getStatusCode()},
+            {"requestId" , Darabonba::Convert::stringVal(err.value("RequestId", Darabonba::Json()))},
+            {"hostId" , Darabonba::Convert::stringVal(err.value("HostId", Darabonba::Json()))}
+          })}
+        }));
+      }
+
+      return Darabonba::XML::parseXml(bodyStr, nullptr);
+    } catch (const Darabonba::DaraException& ex) {
+      _lastExceptionPtr = std::current_exception();
+      _context = Darabonba::Policy::RetryPolicyContext(json({
+        {"retriesAttempted" , _retriesAttempted},
+        {"exception" , ex},
+      }));
+      continue;
+    }
+  }
+
+  std::rethrow_exception(_lastExceptionPtr);
+}
+
+/**
+ * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+ */
+string Client::getOSSPrivateUrl(const Darabonba::RuntimeOptions &runtime) {
+  if (!runtime.getOssPrivateUrl().empty()) {
+    return runtime.getOssPrivateUrl();
+  }
+  return _ossPrivateUrl;
 }
 } // namespace AlibabaCloud
 } // namespace OpenApi

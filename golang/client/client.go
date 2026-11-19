@@ -1859,8 +1859,7 @@ func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
 // 解析 OSS 私网地址，Runtime 非空配置优先于 Config。
 func (client *Client) GetOSSPrivateUrl(runtime *dara.RuntimeOptions) (_result *string) {
 	if !dara.IsNil(runtime.OssPrivateUrl) && dara.StringValue(runtime.OssPrivateUrl) != "" {
-		_result = runtime.OssPrivateUrl
-		return _result
+		return runtime.OssPrivateUrl
 	}
 	_result = client.OssPrivateUrl
 	return _result
@@ -1899,12 +1898,15 @@ func (client *Client) PostOSSObjectWithURL(ossPrivateUrl *string, bucketName *st
 		request_ = dara.NewRequest()
 		url, _err := dara.ParseURL(dara.StringValue(ossPrivateUrl))
 		if _err != nil {
-			retriesAttempted++
-			retryPolicyContext = &dara.RetryPolicyContext{RetriesAttempted: retriesAttempted, HttpRequest: request_, HttpResponse: response_, Exception: _err}
-			_resultErr = _err
-			continue
+			_err = &ClientError{Code: dara.String("InvalidOSSPrivateUrl"), Message: dara.String("ossPrivateUrl must be a valid HTTP(S) endpoint")}
+			if dara.BoolValue(client.DisableSDKError) != true {
+				_err = dara.TeaSDKError(_err)
+			}
+			return _result, _err
 		}
-		if (url.Host() == "") || ((url.Protocol() != "http") && (url.Protocol() != "https")) || (url.Auth() != "") || (url.Search() != "") || (url.Hash() != "") {
+		urlHost := url.Host()
+		// 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+		if (urlHost == "") || ((url.Protocol() != "http") && (url.Protocol() != "https")) || strings.Contains(dara.StringValue(ossPrivateUrl), "@") || strings.Contains(dara.StringValue(ossPrivateUrl), "?") || strings.Contains(dara.StringValue(ossPrivateUrl), "#") {
 			_err = &ClientError{Code: dara.String("InvalidOSSPrivateUrl"), Message: dara.String("ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment")}
 			if dara.BoolValue(client.DisableSDKError) != true {
 				_err = dara.TeaSDKError(_err)
@@ -1925,7 +1927,7 @@ func (client *Client) PostOSSObjectWithURL(ossPrivateUrl *string, bucketName *st
 		request_.Method = dara.String("POST")
 		request_.Pathname = dara.String(pathname)
 		request_.Headers = map[string]*string{
-			"host":         dara.String(url.Host()),
+			"host":         dara.String(urlHost),
 			"date":         openapiutil.GetDateUTCString(),
 			"user-agent":   openapiutil.GetUserAgent(client.UserAgent),
 			"content-type": dara.String("multipart/form-data; boundary=" + boundary),
@@ -1960,11 +1962,16 @@ func postOSSObjectWithURL_opResponse(response_ *dara.Response) (_result map[stri
 	}
 	if (dara.IntValue(response_.StatusCode) >= 400) && (dara.IntValue(response_.StatusCode) < 600) {
 		respMap := dara.ParseXml(bodyStr, nil)
-		err := dara.ToMap(respMap["Error"])
+		// 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+		err := respMap
+		if !dara.IsNil(respMap["Error"]) {
+			err = dara.ToMap(respMap["Error"])
+		}
 		_err = &ClientError{
-			Code:    dara.String(dara.ToString(err["Code"])),
-			Message: dara.String(dara.ToString(err["Message"])),
-			Data:    map[string]interface{}{"httpCode": dara.IntValue(response_.StatusCode), "requestId": dara.ToString(err["RequestId"]), "hostId": dara.ToString(err["HostId"])},
+			Code:       dara.String(dara.ToString(err["Code"])),
+			Message:    dara.String(dara.ToString(err["Message"])),
+			StatusCode: response_.StatusCode,
+			Data:       map[string]interface{}{"httpCode": dara.IntValue(response_.StatusCode), "requestId": dara.ToString(err["RequestId"]), "hostId": dara.ToString(err["HostId"])},
 		}
 		return _result, _err
 	}

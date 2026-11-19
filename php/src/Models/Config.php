@@ -110,6 +110,10 @@ class Config extends Model
   /**
    * @var string
    */
+  public $ossPrivateUrl;
+  /**
+   * @var string
+   */
   public $type;
   /**
    * @var string
@@ -175,6 +179,7 @@ class Config extends Model
     'socks5NetWork' => 'socks5NetWork',
     'endpointType' => 'endpointType',
     'openPlatformEndpoint' => 'openPlatformEndpoint',
+    'ossPrivateUrl' => 'ossPrivateUrl',
     'type' => 'type',
     'signatureVersion' => 'signatureVersion',
     'signatureAlgorithm' => 'signatureAlgorithm',
@@ -292,6 +297,10 @@ class Config extends Model
 
     if (null !== $this->openPlatformEndpoint) {
       $res['openPlatformEndpoint'] = $this->openPlatformEndpoint;
+    }
+
+    if (null !== $this->ossPrivateUrl) {
+      $res['ossPrivateUrl'] = $this->ossPrivateUrl;
     }
 
     if (null !== $this->type) {
@@ -439,6 +448,10 @@ class Config extends Model
 
     if (isset($map['openPlatformEndpoint'])) {
       $model->openPlatformEndpoint = $map['openPlatformEndpoint'];
+    }
+
+    if (isset($map['ossPrivateUrl'])) {
+      $model->ossPrivateUrl = $map['ossPrivateUrl'];
     }
 
     if (isset($map['type'])) {

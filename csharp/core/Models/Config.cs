@@ -228,6 +228,16 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public string OpenPlatformEndpoint { get; set; }
 
+        /// <summary>
+        /// <para>OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先</para>
+        ///
+        /// <b>Example:</b>
+        /// <para><a href="https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com">https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com</a></para>
+        /// </summary>
+        [NameInMap("ossPrivateUrl")]
+        [Validation(Required=false)]
+        public string OssPrivateUrl { get; set; }
+
         /// <term><b>Obsolete</b></term>
         /// 
         /// <summary>
@@ -326,6 +336,13 @@ namespace AlibabaCloud.OpenApiClient.Models
         [NameInMap("tlsMinVersion")]
         [Validation(Required=false)]
         public string TlsMinVersion { get; set; }
+
+        /// <summary>
+        /// <para>only use IPv4 to connect to the endpoint, AAAA records are ignored</para>
+        /// </summary>
+        [NameInMap("ipv4Only")]
+        [Validation(Required=false)]
+        public bool? Ipv4Only { get; set; }
 
     }
 }

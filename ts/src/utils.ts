@@ -214,6 +214,14 @@ export class Config extends $tea.Model {
   openPlatformEndpoint?: string;
   /**
    * @remarks
+   * OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先
+   *
+   * @example
+   * https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com
+   */
+  ossPrivateUrl?: string;
+  /**
+   * @remarks
    * credential type
    * 
    * @example
@@ -316,6 +324,7 @@ export class Config extends $tea.Model {
       socks5NetWork: 'socks5NetWork',
       endpointType: 'endpointType',
       openPlatformEndpoint: 'openPlatformEndpoint',
+      ossPrivateUrl: 'ossPrivateUrl',
       type: 'type',
       signatureVersion: 'signatureVersion',
       signatureAlgorithm: 'signatureAlgorithm',
@@ -355,6 +364,7 @@ export class Config extends $tea.Model {
       socks5NetWork: 'string',
       endpointType: 'string',
       openPlatformEndpoint: 'string',
+      ossPrivateUrl: 'string',
       type: 'string',
       signatureVersion: 'string',
       signatureAlgorithm: 'string',

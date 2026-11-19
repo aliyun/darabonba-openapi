@@ -39,6 +39,7 @@ export default class Client {
   _maxIdleConns: number;
   _endpointType: string;
   _openPlatformEndpoint: string;
+  _ossPrivateUrl: string;
   _credential: Credential;
   _signatureVersion: string;
   _signatureAlgorithm: string;
@@ -100,6 +101,7 @@ export default class Client {
 
     this._endpoint = config.endpoint;
     this._endpointType = config.endpointType;
+    this._ossPrivateUrl = config.ossPrivateUrl;
     this._network = config.network;
     this._suffix = config.suffix;
     if ($dara.isNull(config.endpointSuffix) || !config.endpointSuffix) {
@@ -1657,6 +1659,127 @@ export default class Client {
     throw $dara.newUnretryableError(_context);
   }
 
+  /**
+   * @remarks
+   * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+   */
+  protected async postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, form: {[key: string]: any}, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
+    let _runtime: { [key: string]: any } = {
+      key: runtime.key || this._key,
+      cert: runtime.cert || this._cert,
+      ca: runtime.ca || this._ca,
+      readTimeout: runtime.readTimeout || this._readTimeout,
+      connectTimeout: runtime.connectTimeout || this._connectTimeout,
+      httpProxy: runtime.httpProxy || this._httpProxy,
+      httpsProxy: runtime.httpsProxy || this._httpsProxy,
+      noProxy: runtime.noProxy || this._noProxy,
+      socks5Proxy: runtime.socks5Proxy || this._socks5Proxy,
+      socks5NetWork: runtime.socks5NetWork || this._socks5NetWork,
+      maxIdleConns: runtime.maxIdleConns || this._maxIdleConns,
+      ipv4Only: this._ipv4Only,
+      retryOptions: this._retryOptions,
+      ignoreSSL: runtime.ignoreSSL || false,
+      disableHttp2: this._disableHttp2 || false,
+      tlsMinVersion: this._tlsMinVersion,
+    }
+
+    let _retriesAttempted = 0;
+    let _lastRequest = null, _lastResponse = null;
+    let _context = new $dara.RetryPolicyContext({
+      retriesAttempted: _retriesAttempted,
+    });
+    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+      if (_retriesAttempted > 0) {
+        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+        if (_backoffTime > 0) {
+          await $dara.sleep(_backoffTime);
+        }
+      }
+
+      _retriesAttempted = _retriesAttempted + 1;
+      try {
+        let request_ = new $dara.Request();
+        let url = new $dara.URL("http://localhost");
+        let urlHost = "";
+        try {
+          url = $dara.URL.parse(ossPrivateUrl);
+          urlHost = url.host();
+        } catch (__err) {
+          throw new $_error.ClientError({
+            code: "InvalidOSSPrivateUrl",
+            message: "ossPrivateUrl must be a valid HTTP(S) endpoint",
+          });
+        }
+        // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+        if ($dara.isNull(urlHost) || (urlHost == "") || ((url.protocol() != "http") && (url.protocol() != "https")) || ossPrivateUrl.includes("@") || ossPrivateUrl.includes("?") || ossPrivateUrl.includes("#")) {
+          throw new $_error.ClientError({
+            code: "InvalidOSSPrivateUrl",
+            message: "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment",
+          });
+        }
+
+        let pathname = url.pathname();
+        if (pathname == "") {
+          pathname = "/";
+        }
+
+        if (pathname.endsWith("/")) {
+          pathname = `${pathname}${bucketName}/`;
+        } else {
+          pathname = `${pathname}/${bucketName}/`;
+        }
+
+        let boundary = $dara.Form.getBoundary();
+        request_.protocol = url.protocol();
+        request_.method = "POST";
+        request_.pathname = pathname;
+        request_.headers = {
+          host: urlHost,
+          date: OpenApiUtil.getDateUTCString(),
+          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
+          'content-type': `multipart/form-data; boundary=${boundary}`,
+        };
+        request_.body = $dara.Form.toFileForm(form, boundary);
+        _lastRequest = request_;
+        let response_ = await $dara.doAction(request_, _runtime);
+        _lastResponse = response_;
+
+        let bodyStr = await $dara.Stream.readAsString(response_.body);
+        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+          let respMap = $dara.XML.parseXml(bodyStr, null);
+          // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+          let err = respMap;
+          let errNode = respMap["Error"];
+          if (!$dara.isNull(errNode)) {
+            err = errNode;
+          }
+          throw new $_error.ClientError({
+            code: String(err["Code"]),
+            message: String(err["Message"]),
+            statusCode: response_.statusCode,
+            data: {
+              httpCode: response_.statusCode,
+              requestId: String(err["RequestId"]),
+              hostId: String(err["HostId"]),
+            },
+          });
+        }
+
+        return $dara.XML.parseXml(bodyStr, null);
+      } catch (ex) {
+        _context = new $dara.RetryPolicyContext({
+          retriesAttempted : _retriesAttempted,
+          httpRequest : _lastRequest,
+          httpResponse : _lastResponse,
+          exception : ex,
+        });
+        continue;
+      }
+    }
+
+    throw $dara.newUnretryableError(_context);
+  }
+
   async callApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {
     if ($dara.isNull(params)) {
       throw new $_error.ClientError({
@@ -1842,6 +1965,18 @@ export default class Client {
     let headers : {[key: string ]: string} = this._headers;
     this._headers = null;
     return headers;
+  }
+
+  /**
+   * @remarks
+   * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+   */
+  protected getOSSPrivateUrl(runtime: $dara.RuntimeOptions): string {
+    if (!$dara.isNull(runtime.ossPrivateUrl) && runtime.ossPrivateUrl != "") {
+      return runtime.ossPrivateUrl;
+    }
+
+    return this._ossPrivateUrl;
   }
 
   getAccessDeniedDetail(err: {[key: string ]: any}): {[key: string ]: any} {
