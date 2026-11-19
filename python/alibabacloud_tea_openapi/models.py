@@ -67,6 +67,7 @@ class Config(TeaModel):
         socks_5net_work: str = None,
         endpoint_type: str = None,
         open_platform_endpoint: str = None,
+        oss_private_url: str = None,
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
@@ -122,6 +123,8 @@ class Config(TeaModel):
         self.endpoint_type = endpoint_type
         # OpenPlatform endpoint
         self.open_platform_endpoint = open_platform_endpoint
+        # OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先
+        self.oss_private_url = oss_private_url
         # credential type
         self.type = type
         # Signature Version
@@ -197,6 +200,8 @@ class Config(TeaModel):
             result['endpointType'] = self.endpoint_type
         if self.open_platform_endpoint is not None:
             result['openPlatformEndpoint'] = self.open_platform_endpoint
+        if self.oss_private_url is not None:
+            result['ossPrivateUrl'] = self.oss_private_url
         if self.type is not None:
             result['type'] = self.type
         if self.signature_version is not None:
@@ -265,6 +270,8 @@ class Config(TeaModel):
             self.endpoint_type = m.get('endpointType')
         if m.get('openPlatformEndpoint') is not None:
             self.open_platform_endpoint = m.get('openPlatformEndpoint')
+        if m.get('ossPrivateUrl') is not None:
+            self.oss_private_url = m.get('ossPrivateUrl')
         if m.get('type') is not None:
             self.type = m.get('type')
         if m.get('signatureVersion') is not None:

@@ -1206,7 +1206,10 @@ api execute(params: Params, request: OpenApiRequest, runtime: Util.RuntimeOption
  * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
  */
 function getOSSPrivateUrl(runtime: Util.RuntimeOptions): string {
-  return Util.defaultString(runtime.ossPrivateUrl, @ossPrivateUrl);
+  if (!Util.empty(runtime.ossPrivateUrl)) {
+    return runtime.ossPrivateUrl;
+  }
+  return @ossPrivateUrl;
 }
 
 /**
@@ -1223,11 +1226,8 @@ api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, data: object
     };
   }
   var invalidProtocol = !Util.equalString(url.scheme, 'http') && !Util.equalString(url.scheme, 'https');
-  var hasAuth = false;
-  if (!Util.isUnset(url.auth)) {
-    hasAuth = !Util.empty(url.auth.username) || !Util.empty(url.auth.password);
-  }
-  if (Util.isUnset(url.host) || Util.empty(url.host.hostname) || invalidProtocol || hasAuth || !Util.empty(url.hash)) {
+  // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+  if (Util.isUnset(url.host) || Util.empty(url.host.hostname) || invalidProtocol || String.contains(ossPrivateUrl, '@') || String.contains(ossPrivateUrl, '?') || String.contains(ossPrivateUrl, '#')) {
     throw {
       code = 'InvalidOSSPrivateUrl',
       message = 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
@@ -1239,12 +1239,6 @@ api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, data: object
   }
   var pathname = '/';
   if (!Util.isUnset(url.path)) {
-    if (!Util.empty(url.path.search)) {
-      throw {
-        code = 'InvalidOSSPrivateUrl',
-        message = 'ossPrivateUrl must not contain a query'
-      };
-    }
     pathname = Util.defaultString(url.path.pathname, '/');
   }
   if (String.hasSuffix(pathname, '/')) {
@@ -1268,7 +1262,13 @@ api postOSSObjectWithURL(ossPrivateUrl: string, bucketName: string, data: object
   var bodyStr = Util.readAsString(__response.body);
   if (Util.is4xx(__response.statusCode) || Util.is5xx(__response.statusCode)) {
     var respMap = XML.parseXml(bodyStr, null);
-    var err = Util.assertAsMap(respMap.Error);
+    // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+    var err = respMap;
+    // 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+    var errNode = respMap.Error;
+    if (!Util.isUnset(errNode)) {
+      err = Util.assertAsMap(errNode);
+    }
     throw {
       code = err.Code,
       message = err.Message,

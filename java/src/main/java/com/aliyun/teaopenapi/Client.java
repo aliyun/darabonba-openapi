@@ -1500,12 +1500,16 @@ public class Client {
     }
 
     /** 解析 OSS 私网地址，Runtime 非空配置优先于 Config。 */
-    public String getOSSPrivateUrl(com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
-        return com.aliyun.teautil.Common.defaultString(runtime.ossPrivateUrl, _ossPrivateUrl);
+    protected String getOSSPrivateUrl(com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        if (!com.aliyun.teautil.Common.empty(runtime.ossPrivateUrl)) {
+            return runtime.ossPrivateUrl;
+        }
+
+        return _ossPrivateUrl;
     }
 
     /** 通过 OSS PrivateLink 上传文件，使用 Path-style 寻址。 */
-    public java.util.Map<String, ?> postOSSObjectWithURL(String ossPrivateUrl, String bucketName, java.util.Map<String, ?> data, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+    protected java.util.Map<String, ?> postOSSObjectWithURL(String ossPrivateUrl, String bucketName, java.util.Map<String, ?> data, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
         java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
             new TeaPair("timeouted", "retry"),
             new TeaPair("key", com.aliyun.teautil.Common.defaultString(runtime.key, _key)),
@@ -1563,12 +1567,8 @@ public class Client {
                     ));
                 }
                 Boolean invalidProtocol = !com.aliyun.teautil.Common.equalString(url.scheme, "http") && !com.aliyun.teautil.Common.equalString(url.scheme, "https");
-                Boolean hasAuth = false;
-                if (!com.aliyun.teautil.Common.isUnset(url.auth)) {
-                    hasAuth = !com.aliyun.teautil.Common.empty(url.auth.username) || !com.aliyun.teautil.Common.empty(url.auth.password);
-                }
-
-                if (com.aliyun.teautil.Common.isUnset(url.host) || com.aliyun.teautil.Common.empty(url.host.hostname) || invalidProtocol || hasAuth || !com.aliyun.teautil.Common.empty(url.hash)) {
+                // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                if (com.aliyun.teautil.Common.isUnset(url.host) || com.aliyun.teautil.Common.empty(url.host.hostname) || invalidProtocol || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "@") || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "?") || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "#")) {
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", "InvalidOSSPrivateUrl"),
                         new TeaPair("message", "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment")
@@ -1582,13 +1582,6 @@ public class Client {
 
                 String pathname = "/";
                 if (!com.aliyun.teautil.Common.isUnset(url.path)) {
-                    if (!com.aliyun.teautil.Common.empty(url.path.search)) {
-                        throw new TeaException(TeaConverter.buildMap(
-                            new TeaPair("code", "InvalidOSSPrivateUrl"),
-                            new TeaPair("message", "ossPrivateUrl must not contain a query")
-                        ));
-                    }
-
                     pathname = com.aliyun.teautil.Common.defaultString(url.path.pathname, "/");
                 }
 
@@ -1616,7 +1609,14 @@ public class Client {
                 String bodyStr = com.aliyun.teautil.Common.readAsString(response_.body);
                 if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
                     java.util.Map<String, Object> respMap = com.aliyun.teaxml.Client.parseXml(bodyStr, null);
-                    java.util.Map<String, Object> err = com.aliyun.teautil.Common.assertAsMap(respMap.get("Error"));
+                    // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                    java.util.Map<String, Object> err = respMap;
+                    // 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+                    Object errNode = respMap.get("Error");
+                    if (!com.aliyun.teautil.Common.isUnset(errNode)) {
+                        err = com.aliyun.teautil.Common.assertAsMap(errNode);
+                    }
+
                     throw new TeaException(TeaConverter.buildMap(
                         new TeaPair("code", err.get("Code")),
                         new TeaPair("message", err.get("Message")),

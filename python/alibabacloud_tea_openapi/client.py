@@ -16,6 +16,10 @@ from alibabacloud_credentials import models as credential_models
 from alibabacloud_tea_util import models as util_models
 from alibabacloud_openapi_util.client import Client as OpenApiUtilClient
 from alibabacloud_tea_xml.client import Client as XMLClient
+from alibabacloud_url import models as url_models
+from alibabacloud_url.client import Client as URLClient
+from alibabacloud_darabonba_string.client import Client as StringClient
+from alibabacloud_tea_fileform.client import Client as FileFormClient
 
 
 class Client:
@@ -42,6 +46,7 @@ class Client:
     _max_idle_conns: int = None
     _endpoint_type: str = None
     _open_platform_endpoint: str = None
+    _oss_private_url: str = None
     _credential: CredentialClient = None
     _signature_version: str = None
     _signature_algorithm: str = None
@@ -91,6 +96,7 @@ class Client:
             self._credential = config.credential
         self._endpoint = config.endpoint
         self._endpoint_type = config.endpoint_type
+        self._oss_private_url = config.oss_private_url
         self._network = config.network
         self._suffix = config.suffix
         self._protocol = config.protocol
@@ -2085,6 +2091,232 @@ class Client:
                 raise e
         raise UnretryableException(_last_request, _last_exception)
 
+    def post_ossobject_with_url(
+        self,
+        oss_private_url: str,
+        bucket_name: str,
+        data: dict,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        """
+        通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+        """
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'key': UtilClient.default_string(runtime.key, self._key),
+            'cert': UtilClient.default_string(runtime.cert, self._cert),
+            'ca': UtilClient.default_string(runtime.ca, self._ca),
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': self.default_any(runtime.ignore_ssl, False),
+            'disableHttp2': self._disable_http_2,
+            'tlsMinVersion': self._tls_min_version
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                url = url_models.Url()
+                try:
+                    url = URLClient.parse_url(oss_private_url)
+                except Exception as err:
+                    raise TeaException({
+                        'code': 'InvalidOSSPrivateUrl',
+                        'message': 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+                    })
+                invalid_protocol = not UtilClient.equal_string(url.scheme, 'http') and not UtilClient.equal_string(url.scheme, 'https')
+                # 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                if UtilClient.is_unset(url.host) or UtilClient.empty(url.host.hostname) or invalid_protocol or StringClient.contains(oss_private_url, '@') or StringClient.contains(oss_private_url, '?') or StringClient.contains(oss_private_url, '#'):
+                    raise TeaException({
+                        'code': 'InvalidOSSPrivateUrl',
+                        'message': 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+                    })
+                host = url.host.hostname
+                if not UtilClient.empty(url.host.port) and not UtilClient.equal_string(url.host.port, '-1'):
+                    host = f'{host}:{url.host.port}'
+                pathname = '/'
+                if not UtilClient.is_unset(url.path):
+                    pathname = UtilClient.default_string(url.path.pathname, '/')
+                if StringClient.has_suffix(pathname, '/'):
+                    pathname = f'{pathname}{bucket_name}/'
+                else:
+                    pathname = f'{pathname}/{bucket_name}/'
+                form = UtilClient.assert_as_map(data)
+                boundary = FileFormClient.get_boundary()
+                _request.protocol = url.scheme
+                _request.method = 'POST'
+                _request.pathname = pathname
+                _request.headers = {
+                    'host': host,
+                    'date': UtilClient.get_date_utcstring(),
+                    'user-agent': self.get_user_agent(),
+                    'content-type': f'multipart/form-data; boundary={boundary}'
+                }
+                _request.body = FileFormClient.to_file_form(form, boundary)
+                _last_request = _request
+                _response = TeaCore.do_action(_request, _runtime)
+                body_str = UtilClient.read_as_string(_response.body)
+                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                    resp_map = XMLClient.parse_xml(body_str, None)
+                    # 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                    err = resp_map
+                    # 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+                    err_node = resp_map.get('Error')
+                    if not UtilClient.is_unset(err_node):
+                        err = UtilClient.assert_as_map(err_node)
+                    raise TeaException({
+                        'code': err.get('Code'),
+                        'message': err.get('Message'),
+                        'data': {
+                            'httpCode': _response.status_code,
+                            'requestId': err.get('RequestId'),
+                            'hostId': err.get('HostId')
+                        }
+                    })
+                return XMLClient.parse_xml(body_str, None)
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+        raise UnretryableException(_last_request, _last_exception)
+
+    async def post_ossobject_with_url_async(
+        self,
+        oss_private_url: str,
+        bucket_name: str,
+        data: dict,
+        runtime: util_models.RuntimeOptions,
+    ) -> dict:
+        """
+        通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+        """
+        runtime.validate()
+        _runtime = {
+            'timeouted': 'retry',
+            'key': UtilClient.default_string(runtime.key, self._key),
+            'cert': UtilClient.default_string(runtime.cert, self._cert),
+            'ca': UtilClient.default_string(runtime.ca, self._ca),
+            'readTimeout': UtilClient.default_number(runtime.read_timeout, self._read_timeout),
+            'connectTimeout': UtilClient.default_number(runtime.connect_timeout, self._connect_timeout),
+            'httpProxy': UtilClient.default_string(runtime.http_proxy, self._http_proxy),
+            'httpsProxy': UtilClient.default_string(runtime.https_proxy, self._https_proxy),
+            'noProxy': UtilClient.default_string(runtime.no_proxy, self._no_proxy),
+            'socks5Proxy': UtilClient.default_string(runtime.socks_5proxy, self._socks_5proxy),
+            'socks5NetWork': UtilClient.default_string(runtime.socks_5net_work, self._socks_5net_work),
+            'maxIdleConns': UtilClient.default_number(runtime.max_idle_conns, self._max_idle_conns),
+            'retry': {
+                'retryable': runtime.autoretry,
+                'maxAttempts': UtilClient.default_number(runtime.max_attempts, 3)
+            },
+            'backoff': {
+                'policy': UtilClient.default_string(runtime.backoff_policy, 'no'),
+                'period': UtilClient.default_number(runtime.backoff_period, 1)
+            },
+            'ignoreSSL': self.default_any(runtime.ignore_ssl, False),
+            'disableHttp2': self._disable_http_2,
+            'tlsMinVersion': self._tls_min_version
+        }
+        _last_request = None
+        _last_exception = None
+        _now = time.time()
+        _retry_times = 0
+        while TeaCore.allow_retry(_runtime.get('retry'), _retry_times, _now):
+            if _retry_times > 0:
+                _backoff_time = TeaCore.get_backoff_time(_runtime.get('backoff'), _retry_times)
+                if _backoff_time > 0:
+                    TeaCore.sleep(_backoff_time)
+            _retry_times = _retry_times + 1
+            try:
+                _request = TeaRequest()
+                url = url_models.Url()
+                try:
+                    url = URLClient.parse_url(oss_private_url)
+                except Exception as err:
+                    raise TeaException({
+                        'code': 'InvalidOSSPrivateUrl',
+                        'message': 'ossPrivateUrl must be a valid HTTP(S) endpoint'
+                    })
+                invalid_protocol = not UtilClient.equal_string(url.scheme, 'http') and not UtilClient.equal_string(url.scheme, 'https')
+                # 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                if UtilClient.is_unset(url.host) or UtilClient.empty(url.host.hostname) or invalid_protocol or StringClient.contains(oss_private_url, '@') or StringClient.contains(oss_private_url, '?') or StringClient.contains(oss_private_url, '#'):
+                    raise TeaException({
+                        'code': 'InvalidOSSPrivateUrl',
+                        'message': 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment'
+                    })
+                host = url.host.hostname
+                if not UtilClient.empty(url.host.port) and not UtilClient.equal_string(url.host.port, '-1'):
+                    host = f'{host}:{url.host.port}'
+                pathname = '/'
+                if not UtilClient.is_unset(url.path):
+                    pathname = UtilClient.default_string(url.path.pathname, '/')
+                if StringClient.has_suffix(pathname, '/'):
+                    pathname = f'{pathname}{bucket_name}/'
+                else:
+                    pathname = f'{pathname}/{bucket_name}/'
+                form = UtilClient.assert_as_map(data)
+                boundary = FileFormClient.get_boundary()
+                _request.protocol = url.scheme
+                _request.method = 'POST'
+                _request.pathname = pathname
+                _request.headers = {
+                    'host': host,
+                    'date': UtilClient.get_date_utcstring(),
+                    'user-agent': self.get_user_agent(),
+                    'content-type': f'multipart/form-data; boundary={boundary}'
+                }
+                _request.body = FileFormClient.to_file_form(form, boundary)
+                _last_request = _request
+                _response = await TeaCore.async_do_action(_request, _runtime)
+                body_str = await UtilClient.read_as_string_async(_response.body)
+                if UtilClient.is_4xx(_response.status_code) or UtilClient.is_5xx(_response.status_code):
+                    resp_map = XMLClient.parse_xml(body_str, None)
+                    # 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                    err = resp_map
+                    # 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+                    err_node = resp_map.get('Error')
+                    if not UtilClient.is_unset(err_node):
+                        err = UtilClient.assert_as_map(err_node)
+                    raise TeaException({
+                        'code': err.get('Code'),
+                        'message': err.get('Message'),
+                        'data': {
+                            'httpCode': _response.status_code,
+                            'requestId': err.get('RequestId'),
+                            'hostId': err.get('HostId')
+                        }
+                    })
+                return XMLClient.parse_xml(body_str, None)
+            except Exception as e:
+                if TeaCore.is_retryable(e):
+                    _last_exception = e
+                    continue
+                raise e
+        raise UnretryableException(_last_request, _last_exception)
+
     def call_api(
         self,
         params: open_api_models.Params,
@@ -2130,6 +2362,17 @@ class Client:
                 return await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, request, runtime)
         else:
             return await self.execute_async(params, request, runtime)
+
+    def get_ossprivate_url(
+        self,
+        runtime: util_models.RuntimeOptions,
+    ) -> str:
+        """
+        解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+        """
+        if not UtilClient.empty(runtime.oss_private_url):
+            return runtime.oss_private_url
+        return self._oss_private_url
 
     def get_user_agent(self) -> str:
         """

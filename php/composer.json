@@ -15,7 +15,10 @@
     "alibabacloud/credentials": "^1.2.3",
     "alibabacloud/openapi-util": "^0.1.10|^0.2.1",
     "alibabacloud/gateway-spi": "^1",
-    "alibabacloud/tea-xml": "^0.2"
+    "alibabacloud/tea-xml": "^0.2",
+    "alibabacloud/darabonba-url": "^0.1.0",
+    "alibabacloud/darabonba-string": "^0.1.16",
+    "alibabacloud/tea-fileform": "^0.3.0"
   },
   "autoload": {
     "psr-4": {

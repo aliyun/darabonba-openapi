@@ -115,6 +115,9 @@ class Config extends Model
         if (null !== $this->openPlatformEndpoint) {
             $res['openPlatformEndpoint'] = $this->openPlatformEndpoint;
         }
+        if (null !== $this->ossPrivateUrl) {
+            $res['ossPrivateUrl'] = $this->ossPrivateUrl;
+        }
         if (null !== $this->type) {
             $res['type'] = $this->type;
         }
@@ -219,6 +222,9 @@ class Config extends Model
         }
         if (isset($map['openPlatformEndpoint'])) {
             $model->openPlatformEndpoint = $map['openPlatformEndpoint'];
+        }
+        if (isset($map['ossPrivateUrl'])) {
+            $model->ossPrivateUrl = $map['ossPrivateUrl'];
         }
         if (isset($map['type'])) {
             $model->type = $map['type'];
@@ -402,6 +408,13 @@ class Config extends Model
      * @var string
      */
     public $openPlatformEndpoint;
+
+    /**
+     * @description OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先
+     * @example https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com
+     * @var string
+     */
+    public $ossPrivateUrl;
 
     /**
      * @description credential type

@@ -35,6 +35,7 @@ namespace AlibabaCloud.OpenApiClient
         protected int? _maxIdleConns;
         protected string _endpointType;
         protected string _openPlatformEndpoint;
+        protected string _ossPrivateUrl;
         protected Aliyun.Credentials.Client _credential;
         protected string _signatureVersion;
         protected string _signatureAlgorithm;
@@ -101,6 +102,7 @@ namespace AlibabaCloud.OpenApiClient
             }
             this._endpoint = config.Endpoint;
             this._endpointType = config.EndpointType;
+            this._ossPrivateUrl = config.OssPrivateUrl;
             this._network = config.Network;
             this._suffix = config.Suffix;
             this._protocol = config.Protocol;
@@ -3022,6 +3024,330 @@ namespace AlibabaCloud.OpenApiClient
             throw new TeaUnretryableException(_lastRequest, _lastException);
         }
 
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。</para>
+        /// </description>
+        protected Dictionary<string, object> PostOSSObjectWithURL(string ossPrivateUrl, string bucketName, Dictionary<string, object> data, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"key", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Key, _key)},
+                {"cert", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Cert, _cert)},
+                {"ca", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Ca, _ca)},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", DefaultAny(runtime.IgnoreSSL, false)},
+                {"disableHttp2", _disableHttp2},
+                {"tlsMinVersion", _tlsMinVersion},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    AlibabaCloud.TeaUrl.Models.Url url = new AlibabaCloud.TeaUrl.Models.Url();
+                    try
+                    {
+                        url = AlibabaCloud.TeaUrl.UrlClient.ParseUrl(ossPrivateUrl);
+                    }
+                    catch (TeaException err)
+                    {
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be a valid HTTP(S) endpoint"},
+                        });
+                    }
+                    catch (Exception _err)
+                    {
+                        TeaException err = new TeaException(new Dictionary<string, object>
+                        {
+                            { "message", _err.Message }
+                        });
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be a valid HTTP(S) endpoint"},
+                        });
+                    }
+                    bool? invalidProtocol = !AlibabaCloud.TeaUtil.Common.EqualString(url.Scheme, "http") && !AlibabaCloud.TeaUtil.Common.EqualString(url.Scheme, "https");
+                    // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                    if (AlibabaCloud.TeaUtil.Common.IsUnset(url.Host) || AlibabaCloud.TeaUtil.Common.Empty(url.Host.Hostname) || invalidProtocol.Value || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "@") || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "?") || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "#"))
+                    {
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"},
+                        });
+                    }
+                    string host = url.Host.Hostname;
+                    if (!AlibabaCloud.TeaUtil.Common.Empty(url.Host.Port) && !AlibabaCloud.TeaUtil.Common.EqualString(url.Host.Port, "-1"))
+                    {
+                        host = "" + host + ":" + url.Host.Port;
+                    }
+                    string pathname = "/";
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(url.Path))
+                    {
+                        pathname = AlibabaCloud.TeaUtil.Common.DefaultString(url.Path.Pathname, "/");
+                    }
+                    if (AlibabaCloud.DarabonbaString.StringUtil.HasSuffix(pathname, "/"))
+                    {
+                        pathname = "" + pathname + bucketName + "/";
+                    }
+                    else
+                    {
+                        pathname = "" + pathname + "/" + bucketName + "/";
+                    }
+                    Dictionary<string, object> form = AlibabaCloud.TeaUtil.Common.AssertAsMap(data);
+                    string boundary = AlibabaCloud.SDK.TeaFileform.Client.GetBoundary();
+                    request_.Protocol = url.Scheme;
+                    request_.Method = "POST";
+                    request_.Pathname = pathname;
+                    request_.Headers = new Dictionary<string, string>
+                    {
+                        {"host", host},
+                        {"date", AlibabaCloud.TeaUtil.Common.GetDateUTCString()},
+                        {"user-agent", GetUserAgent()},
+                        {"content-type", "multipart/form-data; boundary=" + boundary},
+                    };
+                    request_.Body = AlibabaCloud.SDK.TeaFileform.Client.ToFileForm(form, boundary);
+                    _lastRequest = request_;
+                    TeaResponse response_ = TeaCore.DoAction(request_, runtime_);
+
+                    string bodyStr = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                    if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
+                    {
+                        Dictionary<string, object> respMap = AlibabaCloud.TeaXML.Client.ParseXml(bodyStr, null);
+                        // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                        Dictionary<string, object> err = respMap;
+                        // 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+                        object errNode = respMap.Get("Error");
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(errNode))
+                        {
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(errNode);
+                        }
+                        throw new TeaException(new Dictionary<string, object>
+                        {
+                            {"code", err.Get("Code")},
+                            {"message", err.Get("Message")},
+                            {"data", new Dictionary<string, object>
+                            {
+                                {"httpCode", response_.StatusCode},
+                                {"requestId", err.Get("RequestId")},
+                                {"hostId", err.Get("HostId")},
+                            }},
+                        });
+                    }
+                    return AlibabaCloud.TeaXML.Client.ParseXml(bodyStr, null);
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。</para>
+        /// </description>
+        protected async Task<Dictionary<string, object>> PostOSSObjectWithURLAsync(string ossPrivateUrl, string bucketName, Dictionary<string, object> data, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            Dictionary<string, object> runtime_ = new Dictionary<string, object>
+            {
+                {"timeouted", "retry"},
+                {"key", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Key, _key)},
+                {"cert", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Cert, _cert)},
+                {"ca", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Ca, _ca)},
+                {"readTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ReadTimeout, _readTimeout)},
+                {"connectTimeout", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.ConnectTimeout, _connectTimeout)},
+                {"httpProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpProxy, _httpProxy)},
+                {"httpsProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.HttpsProxy, _httpsProxy)},
+                {"noProxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.NoProxy, _noProxy)},
+                {"socks5Proxy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Socks5Proxy, _socks5Proxy)},
+                {"socks5NetWork", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.Socks5NetWork, _socks5NetWork)},
+                {"maxIdleConns", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxIdleConns, _maxIdleConns)},
+                {"retry", new Dictionary<string, object>
+                {
+                    {"retryable", runtime.Autoretry},
+                    {"maxAttempts", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.MaxAttempts, 3)},
+                }},
+                {"backoff", new Dictionary<string, object>
+                {
+                    {"policy", AlibabaCloud.TeaUtil.Common.DefaultString(runtime.BackoffPolicy, "no")},
+                    {"period", AlibabaCloud.TeaUtil.Common.DefaultNumber(runtime.BackoffPeriod, 1)},
+                }},
+                {"ignoreSSL", DefaultAny(runtime.IgnoreSSL, false)},
+                {"disableHttp2", _disableHttp2},
+                {"tlsMinVersion", _tlsMinVersion},
+            };
+
+            TeaRequest _lastRequest = null;
+            Exception _lastException = null;
+            long _now = System.DateTime.Now.Millisecond;
+            int _retryTimes = 0;
+            while (TeaCore.AllowRetry((IDictionary) runtime_["retry"], _retryTimes, _now))
+            {
+                if (_retryTimes > 0)
+                {
+                    int backoffTime = TeaCore.GetBackoffTime((IDictionary)runtime_["backoff"], _retryTimes);
+                    if (backoffTime > 0)
+                    {
+                        TeaCore.Sleep(backoffTime);
+                    }
+                }
+                _retryTimes = _retryTimes + 1;
+                try
+                {
+                    TeaRequest request_ = new TeaRequest();
+                    AlibabaCloud.TeaUrl.Models.Url url = new AlibabaCloud.TeaUrl.Models.Url();
+                    try
+                    {
+                        url = AlibabaCloud.TeaUrl.UrlClient.ParseUrl(ossPrivateUrl);
+                    }
+                    catch (TeaException err)
+                    {
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be a valid HTTP(S) endpoint"},
+                        });
+                    }
+                    catch (Exception _err)
+                    {
+                        TeaException err = new TeaException(new Dictionary<string, object>
+                        {
+                            { "message", _err.Message }
+                        });
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be a valid HTTP(S) endpoint"},
+                        });
+                    }
+                    bool? invalidProtocol = !AlibabaCloud.TeaUtil.Common.EqualString(url.Scheme, "http") && !AlibabaCloud.TeaUtil.Common.EqualString(url.Scheme, "https");
+                    // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+                    if (AlibabaCloud.TeaUtil.Common.IsUnset(url.Host) || AlibabaCloud.TeaUtil.Common.Empty(url.Host.Hostname) || invalidProtocol.Value || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "@") || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "?") || AlibabaCloud.DarabonbaString.StringUtil.Contains(ossPrivateUrl, "#"))
+                    {
+                        throw new TeaException(new Dictionary<string, string>
+                        {
+                            {"code", "InvalidOSSPrivateUrl"},
+                            {"message", "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"},
+                        });
+                    }
+                    string host = url.Host.Hostname;
+                    if (!AlibabaCloud.TeaUtil.Common.Empty(url.Host.Port) && !AlibabaCloud.TeaUtil.Common.EqualString(url.Host.Port, "-1"))
+                    {
+                        host = "" + host + ":" + url.Host.Port;
+                    }
+                    string pathname = "/";
+                    if (!AlibabaCloud.TeaUtil.Common.IsUnset(url.Path))
+                    {
+                        pathname = AlibabaCloud.TeaUtil.Common.DefaultString(url.Path.Pathname, "/");
+                    }
+                    if (AlibabaCloud.DarabonbaString.StringUtil.HasSuffix(pathname, "/"))
+                    {
+                        pathname = "" + pathname + bucketName + "/";
+                    }
+                    else
+                    {
+                        pathname = "" + pathname + "/" + bucketName + "/";
+                    }
+                    Dictionary<string, object> form = AlibabaCloud.TeaUtil.Common.AssertAsMap(data);
+                    string boundary = AlibabaCloud.SDK.TeaFileform.Client.GetBoundary();
+                    request_.Protocol = url.Scheme;
+                    request_.Method = "POST";
+                    request_.Pathname = pathname;
+                    request_.Headers = new Dictionary<string, string>
+                    {
+                        {"host", host},
+                        {"date", AlibabaCloud.TeaUtil.Common.GetDateUTCString()},
+                        {"user-agent", GetUserAgent()},
+                        {"content-type", "multipart/form-data; boundary=" + boundary},
+                    };
+                    request_.Body = AlibabaCloud.SDK.TeaFileform.Client.ToFileForm(form, boundary);
+                    _lastRequest = request_;
+                    TeaResponse response_ = await TeaCore.DoActionAsync(request_, runtime_);
+
+                    string bodyStr = AlibabaCloud.TeaUtil.Common.ReadAsString(response_.Body);
+                    if (AlibabaCloud.TeaUtil.Common.Is4xx(response_.StatusCode) || AlibabaCloud.TeaUtil.Common.Is5xx(response_.StatusCode))
+                    {
+                        Dictionary<string, object> respMap = AlibabaCloud.TeaXML.Client.ParseXml(bodyStr, null);
+                        // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+                        Dictionary<string, object> err = respMap;
+                        // 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
+                        object errNode = respMap.Get("Error");
+                        if (!AlibabaCloud.TeaUtil.Common.IsUnset(errNode))
+                        {
+                            err = AlibabaCloud.TeaUtil.Common.AssertAsMap(errNode);
+                        }
+                        throw new TeaException(new Dictionary<string, object>
+                        {
+                            {"code", err.Get("Code")},
+                            {"message", err.Get("Message")},
+                            {"data", new Dictionary<string, object>
+                            {
+                                {"httpCode", response_.StatusCode},
+                                {"requestId", err.Get("RequestId")},
+                                {"hostId", err.Get("HostId")},
+                            }},
+                        });
+                    }
+                    return AlibabaCloud.TeaXML.Client.ParseXml(bodyStr, null);
+                }
+                catch (Exception e)
+                {
+                    if (TeaCore.IsRetryable(e))
+                    {
+                        _lastException = e;
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            throw new TeaUnretryableException(_lastRequest, _lastException);
+        }
+
         public Dictionary<string, object> CallApi(Params params_, OpenApiRequest request, AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
         {
             if (AlibabaCloud.TeaUtil.Common.IsUnset(params_))
@@ -3090,6 +3416,19 @@ namespace AlibabaCloud.OpenApiClient
             {
                 return await ExecuteAsync(params_, request, runtime);
             }
+        }
+
+        /// <term><b>Description:</b></term>
+        /// <description>
+        /// <para>解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。</para>
+        /// </description>
+        protected string GetOSSPrivateUrl(AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime)
+        {
+            if (!AlibabaCloud.TeaUtil.Common.Empty(runtime.OssPrivateUrl))
+            {
+                return runtime.OssPrivateUrl;
+            }
+            return _ossPrivateUrl;
         }
 
         /// <term><b>Description:</b></term>
