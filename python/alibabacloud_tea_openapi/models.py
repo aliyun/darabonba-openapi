@@ -67,7 +67,6 @@ class Config(TeaModel):
         socks_5net_work: str = None,
         endpoint_type: str = None,
         open_platform_endpoint: str = None,
-        oss_private_url: str = None,
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
@@ -78,6 +77,7 @@ class Config(TeaModel):
         disable_http_2: bool = None,
         tls_min_version: str = None,
         enable_usage_data_collection: bool = None,
+        oss_private_url: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
