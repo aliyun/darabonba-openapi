@@ -37,7 +37,6 @@ class Config(DaraModel):
         socks_5net_work: str = None,
         endpoint_type: str = None,
         open_platform_endpoint: str = None,
-        oss_private_url: str = None,
         type: str = None,
         signature_version: str = None,
         signature_algorithm: str = None,
@@ -49,6 +48,7 @@ class Config(DaraModel):
         retry_options: RetryOptions = None,
         tls_min_version: str = None,
         ipv4_only: bool = None,
+        oss_private_url: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id

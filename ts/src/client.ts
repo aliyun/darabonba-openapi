@@ -3,6 +3,10 @@ import * as $dara from '@darabonba/typescript';
 import OpenApiUtil, * as $OpenApiUtil from './utils';
 import Credential, * as $Credential from '@alicloud/credentials';
 import SPI, * as $SPI from '@alicloud/gateway-spi';
+import * as fs from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { pipeline } from 'stream';
 
 
 export * as $OpenApiUtil from './utils';
@@ -1688,96 +1692,153 @@ export default class Client {
     let _context = new $dara.RetryPolicyContext({
       retriesAttempted: _retriesAttempted,
     });
-    while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
-      if (_retriesAttempted > 0) {
-        let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
-        if (_backoffTime > 0) {
-          await $dara.sleep(_backoffTime);
+    // 任意 Readable 无法倒带；仅启用重试时建立权限受限的磁盘副本。
+    let uploadDirectory: string;
+    let uploadPath: string;
+    let uploadBoundary: string;
+    let uploadReady = false;
+    let uploadError: any;
+    try {
+      while ($dara.shouldRetry(_runtime['retryOptions'], _context)) {
+        if (_retriesAttempted > 0) {
+          let _backoffTime = $dara.getBackoffDelay(_runtime['retryOptions'], _context);
+          if (_backoffTime > 0) {
+            await $dara.sleep(_backoffTime);
+          }
+        }
+
+        _retriesAttempted = _retriesAttempted + 1;
+        let uploadStream: fs.ReadStream;
+        let uploadClosed: Promise<void>;
+        try {
+          let request_ = new $dara.Request();
+          let url = new $dara.URL("http://localhost");
+          let urlHost = "";
+          try {
+            url = $dara.URL.parse(ossPrivateUrl);
+            urlHost = url.host();
+          } catch (__err) {
+            throw new $_error.ClientError({
+              code: "InvalidOSSPrivateUrl",
+              message: "ossPrivateUrl must be a valid HTTP(S) endpoint",
+            });
+          }
+          // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+          if ($dara.isNull(urlHost) || (urlHost == "") || ((url.protocol() != "http") && (url.protocol() != "https")) || ossPrivateUrl.includes("@") || ossPrivateUrl.includes("?") || ossPrivateUrl.includes("#")) {
+            throw new $_error.ClientError({
+              code: "InvalidOSSPrivateUrl",
+              message: "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment",
+            });
+          }
+
+          let pathname = url.pathname();
+          if (pathname == "") {
+            pathname = "/";
+          }
+
+          if (pathname.endsWith("/")) {
+            pathname = `${pathname}${bucketName}/`;
+          } else {
+            pathname = `${pathname}/${bucketName}/`;
+          }
+
+          let boundary = uploadBoundary || $dara.Form.getBoundary();
+          request_.protocol = url.protocol();
+          request_.method = "POST";
+          request_.pathname = pathname;
+          request_.headers = {
+            host: urlHost,
+            date: OpenApiUtil.getDateUTCString(),
+            'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
+            'content-type': `multipart/form-data; boundary=${boundary}`,
+          };
+          if (_runtime.retryOptions && _runtime.retryOptions.retryable) {
+            if (!uploadReady) {
+              // URL 校验先于读取文件。pipeline 与 Form 背压避免在内存缓存整个上传。
+              uploadDirectory = await fs.promises.mkdtemp(join(tmpdir(), 'alicloud-oss-pvl-'));
+              uploadPath = join(uploadDirectory, 'multipart');
+              uploadBoundary = boundary;
+              await new Promise<void>((resolve, reject) => {
+                pipeline($dara.Form.toFileForm(form, boundary),
+                  fs.createWriteStream(uploadPath, { flags: 'wx', mode: 0o600 }),
+                  error => error ? reject(error) : resolve());
+              });
+              uploadReady = true;
+            }
+            uploadStream = fs.createReadStream(uploadPath);
+            uploadClosed = new Promise<void>(resolve => uploadStream.once('close', () => resolve()));
+            request_.body = uploadStream;
+          } else {
+            request_.body = $dara.Form.toFileForm(form, boundary);
+          }
+          _lastRequest = request_;
+          let response_ = await $dara.doAction(request_, _runtime);
+          _lastResponse = response_;
+
+          let bodyStr = await $dara.Stream.readAsString(response_.body);
+          if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
+            let respMap = $dara.XML.parseXml(bodyStr, null);
+            // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+            let err = respMap;
+            let errNode = respMap["Error"];
+            if (!$dara.isNull(errNode)) {
+              err = errNode;
+            }
+            throw new $_error.ClientError({
+              code: String(err["Code"]),
+              message: String(err["Message"]),
+              statusCode: response_.statusCode,
+              data: {
+                httpCode: response_.statusCode,
+                requestId: String(err["RequestId"]),
+                hostId: String(err["HostId"]),
+              },
+            });
+          }
+
+          return $dara.XML.parseXml(bodyStr, null);
+        } catch (ex) {
+          // 未完成副本时文件源可能已消耗，禁止把残缺内容作为重试请求发送。
+          if (uploadDirectory && !uploadReady) { throw ex; }
+          _context = new $dara.RetryPolicyContext({
+            retriesAttempted : _retriesAttempted,
+            httpRequest : _lastRequest,
+            httpResponse : _lastResponse,
+            exception : ex,
+          });
+          continue;
+        } finally {
+          if (uploadStream) {
+            uploadStream.destroy();
+            await uploadClosed;
+          }
         }
       }
 
-      _retriesAttempted = _retriesAttempted + 1;
+      throw $dara.newUnretryableError(_context);
+    } catch (error) {
+      uploadError = error;
+      throw error;
+    } finally {
+      // 等待每轮文件句柄关闭后再清理，兼容 Windows，成功和失败均不留副本。
       try {
-        let request_ = new $dara.Request();
-        let url = new $dara.URL("http://localhost");
-        let urlHost = "";
-        try {
-          url = $dara.URL.parse(ossPrivateUrl);
-          urlHost = url.host();
-        } catch (__err) {
-          throw new $_error.ClientError({
-            code: "InvalidOSSPrivateUrl",
-            message: "ossPrivateUrl must be a valid HTTP(S) endpoint",
-          });
-        }
-        // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
-        if ($dara.isNull(urlHost) || (urlHost == "") || ((url.protocol() != "http") && (url.protocol() != "https")) || ossPrivateUrl.includes("@") || ossPrivateUrl.includes("?") || ossPrivateUrl.includes("#")) {
-          throw new $_error.ClientError({
-            code: "InvalidOSSPrivateUrl",
-            message: "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment",
-          });
-        }
-
-        let pathname = url.pathname();
-        if (pathname == "") {
-          pathname = "/";
-        }
-
-        if (pathname.endsWith("/")) {
-          pathname = `${pathname}${bucketName}/`;
-        } else {
-          pathname = `${pathname}/${bucketName}/`;
-        }
-
-        let boundary = $dara.Form.getBoundary();
-        request_.protocol = url.protocol();
-        request_.method = "POST";
-        request_.pathname = pathname;
-        request_.headers = {
-          host: urlHost,
-          date: OpenApiUtil.getDateUTCString(),
-          'user-agent': OpenApiUtil.getUserAgent(this._userAgent),
-          'content-type': `multipart/form-data; boundary=${boundary}`,
-        };
-        request_.body = $dara.Form.toFileForm(form, boundary);
-        _lastRequest = request_;
-        let response_ = await $dara.doAction(request_, _runtime);
-        _lastResponse = response_;
-
-        let bodyStr = await $dara.Stream.readAsString(response_.body);
-        if ((response_.statusCode >= 400) && (response_.statusCode < 600)) {
-          let respMap = $dara.XML.parseXml(bodyStr, null);
-          // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
-          let err = respMap;
-          let errNode = respMap["Error"];
-          if (!$dara.isNull(errNode)) {
-            err = errNode;
+        if (uploadDirectory) {
+          try {
+            await fs.promises.unlink(uploadPath);
+          } catch (error) {
+            if (error.code !== 'ENOENT') { throw error; }
           }
-          throw new $_error.ClientError({
-            code: String(err["Code"]),
-            message: String(err["Message"]),
-            statusCode: response_.statusCode,
-            data: {
-              httpCode: response_.statusCode,
-              requestId: String(err["RequestId"]),
-              hostId: String(err["HostId"]),
-            },
-          });
+          await fs.promises.rmdir(uploadDirectory);
         }
-
-        return $dara.XML.parseXml(bodyStr, null);
-      } catch (ex) {
-        _context = new $dara.RetryPolicyContext({
-          retriesAttempted : _retriesAttempted,
-          httpRequest : _lastRequest,
-          httpResponse : _lastResponse,
-          exception : ex,
-        });
-        continue;
+      } catch (cleanupError) {
+        // 清理错误不能掩盖原始 OSS/文件错误；同时保留清理失败的诊断信息。
+        if (uploadError) {
+          uploadError.cleanupError = cleanupError;
+          throw uploadError;
+        }
+        throw cleanupError;
       }
     }
-
-    throw $dara.newUnretryableError(_context);
   }
 
   async callApi(params: $OpenApiUtil.Params, request: $OpenApiUtil.OpenApiRequest, runtime: $dara.RuntimeOptions): Promise<{[key: string]: any}> {

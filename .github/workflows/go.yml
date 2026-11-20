@@ -22,13 +22,25 @@ jobs:
 
     steps:
     - name: Set up Go 1.x
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
+    # tea-util PR 380 的 Go 产物是 tea-utils/v2 模块，固定到已核对的源码。
+    - name: Checkout PrivateLink runtime (tea-util PR 380)
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        repository: Chiosin/tea-util
+        ref: 491a1a0fb95acf6593059c5d81867b888f238ea1
+        path: .ci-runtime/tea-util
+        persist-credentials: false
+    - name: Use fixed PrivateLink runtime
+      if: github.event_name == 'pull_request'
+      run: go mod edit -replace=github.com/alibabacloud-go/tea-utils/v2=../.ci-runtime/tea-util/golang
     - name: Export Env
       run: export GO111MODULE=on
     - name: Build

@@ -42,6 +42,8 @@
     </PackageReference>
     <PackageReference Include="Aliyun.Credentials" Version="1.5.2"/>
     <PackageReference Include="AlibabaCloud.GatewaySpi" Version="0.0.3"/>
-    <PackageReference Include="Darabonba" Version="1.0.1"/>
+    <!-- 仅 CI 显式传入源码工程时替换运行时，默认发布依赖不变。 -->
+    <PackageReference Include="Darabonba" Version="1.0.1" Condition="'$(DarabonbaSourceProject)' == ''"/>
+    <ProjectReference Include="$(DarabonbaSourceProject)" Condition="'$(DarabonbaSourceProject)' != ''"/>
   </ItemGroup>
 </Project>

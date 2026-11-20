@@ -27,6 +27,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Checkout PrivateLink runtime (darabonba PHP PR 23)
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        repository: Chiosin/darabonba-php
+        ref: 938e265d6b641f3f8200ae4e2a4193d310d1303f
+        path: .ci-runtime/php
+        persist-credentials: false
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -41,12 +50,19 @@ jobs:
 
     - name: Cache Composer packages
       id: composer-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: vendor
         key: ${{ runner.os }}-php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php-versions }}-
+
+    # 显式使用 CI 开发版本别名，不修改仓库中的发布依赖或冒充已发布包。
+    - name: Use fixed PrivateLink runtime
+      if: github.event_name == 'pull_request'
+      run: |
+        composer config repositories.pvl-runtime '{"type":"path","url":"../.ci-runtime/php","options":{"symlink":false,"versions":{"alibabacloud/darabonba":"dev-oss-private-url"}}}'
+        composer require 'alibabacloud/darabonba:dev-oss-private-url as 1.0.7' --no-update
 
     - name: Install dependencies
       run: |
@@ -108,6 +124,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Checkout PrivateLink runtime (darabonba PHP PR 23)
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        repository: Chiosin/darabonba-php
+        ref: 938e265d6b641f3f8200ae4e2a4193d310d1303f
+        path: .ci-runtime/php
+        persist-credentials: false
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -115,6 +140,13 @@ jobs:
         extensions: mbstring, intl
         coverage: none
         tools: composer:v2, phpstan
+
+    # 显式使用 CI 开发版本别名，不修改仓库中的发布依赖或冒充已发布包。
+    - name: Use fixed PrivateLink runtime
+      if: github.event_name == 'pull_request'
+      run: |
+        composer config repositories.pvl-runtime '{"type":"path","url":"../.ci-runtime/php","options":{"symlink":false,"versions":{"alibabacloud/darabonba":"dev-oss-private-url"}}}'
+        composer require 'alibabacloud/darabonba:dev-oss-private-url as 1.0.7' --no-update
 
     - name: Install dependencies
       run: |
@@ -144,12 +176,28 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Checkout PrivateLink runtime (darabonba PHP PR 23)
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        repository: Chiosin/darabonba-php
+        ref: 938e265d6b641f3f8200ae4e2a4193d310d1303f
+        path: .ci-runtime/php
+        persist-credentials: false
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
         extensions: mbstring, intl
         coverage: xdebug
+
+    # 显式使用 CI 开发版本别名，不修改仓库中的发布依赖或冒充已发布包。
+    - name: Use fixed PrivateLink runtime
+      if: github.event_name == 'pull_request'
+      run: |
+        composer config repositories.pvl-runtime '{"type":"path","url":"../.ci-runtime/php","options":{"symlink":false,"versions":{"alibabacloud/darabonba":"dev-oss-private-url"}}}'
+        composer require 'alibabacloud/darabonba:dev-oss-private-url as 1.0.7' --no-update
 
     - name: Install dependencies
       run: |

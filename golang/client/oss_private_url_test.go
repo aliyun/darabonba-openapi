@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	"github.com/alibabacloud-go/tea/dara"
+	"github.com/alibabacloud-go/tea/tea"
 )
 
 func pvlForm() map[string]interface{} {
@@ -64,7 +66,7 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		data, err := io.ReadAll(part)
+		data, err := ioutil.ReadAll(part)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -113,7 +115,7 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 							t.Error(err)
 							return
 						}
-						data, err := io.ReadAll(part)
+						data, err := ioutil.ReadAll(part)
 						if err != nil {
 							t.Error(err)
 							return
@@ -162,7 +164,7 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 
 func TestOSSPrivateURLError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(io.Discard, r.Body)
+		_, _ = ioutil.ReadAll(r.Body)
 		w.WriteHeader(403)
 		io.WriteString(w, "<Error><Code>AccessDenied</Code><Message>denied</Message><RequestId>req-id</RequestId><HostId>host-id</HostId></Error>")
 	}))
@@ -170,6 +172,22 @@ func TestOSSPrivateURLError(t *testing.T) {
 	client, err := NewClient(new(openapiutil.Config))
 	if err != nil {
 		t.Fatal(err)
+	}
+	// 默认兼容包装也必须保留 OSS 状态与标识。
+	_, err = client.PostOSSObjectWithURL(dara.String(server.URL), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions))
+	var sdkErr *tea.SDKError
+	if !errors.As(err, &sdkErr) || dara.StringValue(sdkErr.Code) != "AccessDenied" || dara.IntValue(sdkErr.StatusCode) != 403 {
+		t.Fatalf("SDKError 包装: %#v", err)
+	}
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(dara.StringValue(sdkErr.Data)), &data); err != nil || data["requestId"] != "req-id" || data["hostId"] != "host-id" || data["httpCode"] != float64(403) {
+		t.Fatalf("SDKError 数据: %#v %v", data, err)
+	}
+	for _, endpoint := range []string{"http://[invalid", "ftp://example.com", "http://example.com?"} {
+		_, err = client.PostOSSObjectWithURL(dara.String(endpoint), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions))
+		if !errors.As(err, &sdkErr) || dara.StringValue(sdkErr.Code) != "InvalidOSSPrivateUrl" {
+			t.Fatalf("非法地址的 SDKError 包装: %q %#v", endpoint, err)
+		}
 	}
 	client.DisableSDKError = dara.Bool(true)
 	_, err = client.PostOSSObjectWithURL(dara.String(server.URL), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions))
@@ -182,5 +200,36 @@ func TestOSSPrivateURLError(t *testing.T) {
 		if !errors.As(err, &apiErr) || dara.StringValue(apiErr.Code) != "InvalidOSSPrivateUrl" {
 			t.Errorf("应拒绝无效地址: %s，实际错误: %v", endpoint, err)
 		}
+	}
+}
+
+func TestOSSPrivateURLTransportFailure(t *testing.T) {
+	// 使用已关闭的回环网关，验证真实 DoRequest 失败，不访问公网。
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	server.Close()
+	for _, disableSDKError := range []bool{false, true} {
+		client, err := NewClient(new(openapiutil.Config))
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.DisableSDKError = dara.Bool(disableSDKError)
+		result, err := client.PostOSSObjectWithURL(dara.String(server.URL), dara.String("test-bucket"), pvlForm(), new(dara.RuntimeOptions).SetReadTimeout(200).SetConnectTimeout(200))
+		if err == nil || !strings.Contains(err.Error(), "connection refused") || len(result) != 0 {
+			t.Fatalf("应保留传输失败: %#v %v", result, err)
+		}
+	}
+}
+
+type pvlFailingBody struct{ err error }
+
+func (r *pvlFailingBody) Read(p []byte) (int, error) { return 0, r.err }
+func (r *pvlFailingBody) Close() error               { return nil }
+
+func TestOSSPrivateURLResponseReadFailure(t *testing.T) {
+	// 直接覆盖生产响应处理边界，读取失败不能被误解析成成功 XML。
+	want := errors.New("测试响应读取失败")
+	result, err := postOSSObjectWithURL_opResponse(&dara.Response{StatusCode: dara.Int(201), Body: &pvlFailingBody{err: want}})
+	if !errors.Is(err, want) || result != nil {
+		t.Fatalf("应保留读取错误: %#v %v", result, err)
 	}
 }

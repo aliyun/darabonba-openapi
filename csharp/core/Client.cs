@@ -3371,7 +3371,7 @@ namespace AlibabaCloud.OpenApiClient
             (
                 new Dictionary<string, string>()
                 {
-                    {"host", _endpoint},
+                    {"host", EndpointForRequest(request)},
                     {"x-acs-version", params_.Version},
                     {"x-acs-action", params_.Action},
                     {"user-agent", Utils.GetUserAgent(_userAgent)},

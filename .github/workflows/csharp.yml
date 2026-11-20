@@ -20,6 +20,20 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # 前置运行时未发布，仅 PR 从固定源码验证。
+    - name: Checkout PrivateLink runtime (tea-csharp PR 154)
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v4
+      with:
+        repository: Chiosin/tea-csharp
+        ref: 36d5111fc5e43c1c5026ddac8baefecd4d23a3ef
+        path: .ci-runtime/csharp
+        persist-credentials: false
+
+    - name: Use fixed PrivateLink runtime
+      if: github.event_name == 'pull_request'
+      run: echo "DarabonbaSourceProject=${{ github.workspace }}/.ci-runtime/csharp/Darabonba/Darabonba.csproj" >> "$GITHUB_ENV"
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
