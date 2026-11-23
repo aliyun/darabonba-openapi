@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -58,6 +59,7 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 	// PVL 必须保持原序列化结果；现有序列化器会在文件尾追加 CRLF，此问题不在本次改造范围内。
 	baseline := multipart.NewReader(dara.ToFileForm(pvlForm(), "baseline"), "baseline")
 	var expectedPayload []byte
+	var expectedFilename string
 	for {
 		part, err := baseline.NextPart()
 		if err == io.EOF {
@@ -71,10 +73,15 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 			t.Fatal(err)
 		}
 		if part.FormName() == "file" {
+			_, params, err := mime.ParseMediaType(part.Header.Get("Content-Disposition"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			expectedFilename = params["filename"]
 			expectedPayload = data
 		}
 	}
-	if !bytes.HasPrefix(expectedPayload, []byte{0, 1, 255, 10}) {
+	if expectedFilename != "dir/file.bin" || !bytes.HasPrefix(expectedPayload, []byte{0, 1, 255, 10}) {
 		t.Fatal("原上传序列化器未保留文件内容")
 	}
 	for _, tls := range []bool{false, true} {
@@ -121,8 +128,14 @@ func TestOSSPrivateURLUpload(t *testing.T) {
 							return
 						}
 						if part.FormName() == "file" {
-							if part.FileName() != "file.bin" || !bytes.Equal(data, expectedPayload) {
-								t.Errorf("文件不一致: %q %v", part.FileName(), data)
+							// Go 1.17 起 FileName() 会去掉目录；按原始 header 比较上传前后文件名。
+							_, params, err := mime.ParseMediaType(part.Header.Get("Content-Disposition"))
+							if err != nil {
+								t.Error(err)
+								return
+							}
+							if params["filename"] != expectedFilename || !bytes.Equal(data, expectedPayload) {
+								t.Errorf("文件不一致: %q %v", params["filename"], data)
 							}
 						} else {
 							fields[part.FormName()] = string(data)

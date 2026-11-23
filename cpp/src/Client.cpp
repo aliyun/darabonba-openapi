@@ -1421,7 +1421,7 @@ Darabonba::Json Client::postOSSObjectWithURL(const string &ossPrivateUrl, const 
       try {
         url = Darabonba::Http::URL::parse(ossPrivateUrl);
         urlHost = url.getHost();
-      } catch (const std::exception& err) {
+      } catch (const std::exception&) {
         throw ClientException(json({
           {"code" , "InvalidOSSPrivateUrl"},
           {"message" , "ossPrivateUrl must be a valid HTTP(S) endpoint"}

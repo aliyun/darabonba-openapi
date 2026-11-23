@@ -42,7 +42,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: Chiosin/tea-cpp
-        ref: 2e242a312491fbbcc1c5b0bfb96d99928e14f019
+        ref: edf3157795ca663dddf488b4e871743b613b4386
         path: .ci-runtime/cpp
         persist-credentials: false
 

@@ -140,15 +140,6 @@ public class Config extends TeaModel {
     public String openPlatformEndpoint;
 
     /**
-     * <p>OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先</p>
-     *
-     * <strong>example:</strong>
-     * <p><a href="https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com">https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com</a></p>
-     */
-    @NameInMap("ossPrivateUrl")
-    public String ossPrivateUrl;
-
-    /**
      * <p>credential type</p>
      */
     @NameInMap("type")
@@ -376,14 +367,6 @@ public class Config extends TeaModel {
     }
     public String getOpenPlatformEndpoint() {
         return this.openPlatformEndpoint;
-    }
-
-    public Config setOssPrivateUrl(String ossPrivateUrl) {
-        this.ossPrivateUrl = ossPrivateUrl;
-        return this;
-    }
-    public String getOssPrivateUrl() {
-        return this.ossPrivateUrl;
     }
 
     public Config setType(String type) {

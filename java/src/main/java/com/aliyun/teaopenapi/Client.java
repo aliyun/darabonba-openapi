@@ -32,7 +32,6 @@ public class Client {
     public Integer _maxIdleConns;
     public String _endpointType;
     public String _openPlatformEndpoint;
-    public String _ossPrivateUrl;
     public com.aliyun.credentials.Client _credential;
     public String _signatureVersion;
     public String _signatureAlgorithm;
@@ -81,7 +80,6 @@ public class Client {
 
         this._endpoint = config.endpoint;
         this._endpointType = config.endpointType;
-        this._ossPrivateUrl = config.ossPrivateUrl;
         this._network = config.network;
         this._suffix = config.suffix;
         this._protocol = config.protocol;
@@ -1202,152 +1200,6 @@ public class Client {
                     new TeaPair("statusCode", interceptorContext.response.statusCode),
                     new TeaPair("body", interceptorContext.response.deserializedBody)
                 );
-            } catch (Exception e) {
-                if (Tea.isRetryable(e)) {
-                    _lastException = e;
-                    continue;
-                }
-                throw e;
-            }
-        }
-        throw new TeaUnretryableException(_lastRequest, _lastException);
-    }
-
-    /**
-     * <b>description</b> :
-     * <p>解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。</p>
-     */
-    protected String getOSSPrivateUrl(com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
-        if (!com.aliyun.teautil.Common.empty(runtime.ossPrivateUrl)) {
-            return runtime.ossPrivateUrl;
-        }
-
-        return _ossPrivateUrl;
-    }
-
-    /**
-     * <b>description</b> :
-     * <p>通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。</p>
-     */
-    protected java.util.Map<String, ?> postOSSObjectWithURL(String ossPrivateUrl, String bucketName, java.util.Map<String, ?> data, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
-        java.util.Map<String, Object> runtime_ = TeaConverter.buildMap(
-            new TeaPair("timeouted", "retry"),
-            new TeaPair("key", com.aliyun.teautil.Common.defaultString(runtime.key, _key)),
-            new TeaPair("cert", com.aliyun.teautil.Common.defaultString(runtime.cert, _cert)),
-            new TeaPair("ca", com.aliyun.teautil.Common.defaultString(runtime.ca, _ca)),
-            new TeaPair("readTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.readTimeout, _readTimeout)),
-            new TeaPair("connectTimeout", com.aliyun.teautil.Common.defaultNumber(runtime.connectTimeout, _connectTimeout)),
-            new TeaPair("httpProxy", com.aliyun.teautil.Common.defaultString(runtime.httpProxy, _httpProxy)),
-            new TeaPair("httpsProxy", com.aliyun.teautil.Common.defaultString(runtime.httpsProxy, _httpsProxy)),
-            new TeaPair("noProxy", com.aliyun.teautil.Common.defaultString(runtime.noProxy, _noProxy)),
-            new TeaPair("socks5Proxy", com.aliyun.teautil.Common.defaultString(runtime.socks5Proxy, _socks5Proxy)),
-            new TeaPair("socks5NetWork", com.aliyun.teautil.Common.defaultString(runtime.socks5NetWork, _socks5NetWork)),
-            new TeaPair("maxIdleConns", com.aliyun.teautil.Common.defaultNumber(runtime.maxIdleConns, _maxIdleConns)),
-            new TeaPair("retry", TeaConverter.buildMap(
-                new TeaPair("retryable", runtime.autoretry),
-                new TeaPair("maxAttempts", com.aliyun.teautil.Common.defaultNumber(runtime.maxAttempts, 3))
-            )),
-            new TeaPair("backoff", TeaConverter.buildMap(
-                new TeaPair("policy", com.aliyun.teautil.Common.defaultString(runtime.backoffPolicy, "no")),
-                new TeaPair("period", com.aliyun.teautil.Common.defaultNumber(runtime.backoffPeriod, 1))
-            )),
-            new TeaPair("ignoreSSL", Client.defaultAny(runtime.ignoreSSL, false)),
-            new TeaPair("disableHttp2", Client.defaultAny(_disableHttp2, false))
-        );
-
-        TeaRequest _lastRequest = null;
-        Exception _lastException = null;
-        long _now = System.currentTimeMillis();
-        int _retryTimes = 0;
-        while (Tea.allowRetry((java.util.Map<String, Object>) runtime_.get("retry"), _retryTimes, _now)) {
-            if (_retryTimes > 0) {
-                int backoffTime = Tea.getBackoffTime(runtime_.get("backoff"), _retryTimes);
-                if (backoffTime > 0) {
-                    Tea.sleep(backoffTime);
-                }
-            }
-            _retryTimes = _retryTimes + 1;
-            try {
-                TeaRequest request_ = new TeaRequest();
-                com.aliyun.teaurl.models.Url url = new com.aliyun.teaurl.models.Url();
-                try {
-                    url = com.aliyun.teaurl.Client.parseUrl(ossPrivateUrl);
-                } catch (TeaException err) {
-                    throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "InvalidOSSPrivateUrl"),
-                        new TeaPair("message", "ossPrivateUrl must be a valid HTTP(S) endpoint")
-                    ));
-                } catch (Exception _err) {
-                    TeaException err = new TeaException(_err.getMessage(), _err);
-                    throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "InvalidOSSPrivateUrl"),
-                        new TeaPair("message", "ossPrivateUrl must be a valid HTTP(S) endpoint")
-                    ));
-                }
-                Boolean invalidProtocol = !com.aliyun.teautil.Common.equalString(url.scheme, "http") && !com.aliyun.teautil.Common.equalString(url.scheme, "https");
-                // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
-                if (com.aliyun.teautil.Common.isUnset(url.host) || com.aliyun.teautil.Common.empty(url.host.hostname) || invalidProtocol || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "@") || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "?") || com.aliyun.darabonbastring.Client.contains(ossPrivateUrl, "#")) {
-                    throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", "InvalidOSSPrivateUrl"),
-                        new TeaPair("message", "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment")
-                    ));
-                }
-
-                String host = url.host.hostname;
-                if (!com.aliyun.teautil.Common.empty(url.host.port) && !com.aliyun.teautil.Common.equalString(url.host.port, "-1")) {
-                    host = "" + host + ":" + url.host.port + "";
-                }
-
-                String pathname = "/";
-                if (!com.aliyun.teautil.Common.isUnset(url.path)) {
-                    pathname = com.aliyun.teautil.Common.defaultString(url.path.pathname, "/");
-                }
-
-                if (com.aliyun.darabonbastring.Client.hasSuffix(pathname, "/")) {
-                    pathname = "" + pathname + "" + bucketName + "/";
-                } else {
-                    pathname = "" + pathname + "/" + bucketName + "/";
-                }
-
-                java.util.Map<String, Object> form = com.aliyun.teautil.Common.assertAsMap(data);
-                String boundary = com.aliyun.fileform.Client.getBoundary();
-                request_.protocol = url.scheme;
-                request_.method = "POST";
-                request_.pathname = pathname;
-                request_.headers = TeaConverter.buildMap(
-                    new TeaPair("host", host),
-                    new TeaPair("date", com.aliyun.teautil.Common.getDateUTCString()),
-                    new TeaPair("user-agent", this.getUserAgent()),
-                    new TeaPair("content-type", "multipart/form-data; boundary=" + boundary + "")
-                );
-                request_.body = com.aliyun.fileform.Client.toFileForm(form, boundary);
-                _lastRequest = request_;
-                TeaResponse response_ = Tea.doAction(request_, runtime_, interceptorChain);
-
-                String bodyStr = com.aliyun.teautil.Common.readAsString(response_.body);
-                if (com.aliyun.teautil.Common.is4xx(response_.statusCode) || com.aliyun.teautil.Common.is5xx(response_.statusCode)) {
-                    java.util.Map<String, Object> respMap = com.aliyun.teaxml.Client.parseXml(bodyStr, null);
-                    // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
-                    java.util.Map<String, Object> err = respMap;
-                    Object errNode = respMap.get("Error");
-                    if (!com.aliyun.teautil.Common.isUnset(errNode)) {
-                        err = com.aliyun.teautil.Common.assertAsMap(errNode);
-                    }
-
-                    // TeaException 只从 data 中读取 statusCode，对应 DSL 异常上的 statusCode。
-                    throw new TeaException(TeaConverter.buildMap(
-                        new TeaPair("code", err.get("Code")),
-                        new TeaPair("message", err.get("Message")),
-                        new TeaPair("data", TeaConverter.buildMap(
-                            new TeaPair("httpCode", response_.statusCode),
-                            new TeaPair("requestId", err.get("RequestId")),
-                            new TeaPair("hostId", err.get("HostId")),
-                            new TeaPair("statusCode", response_.statusCode)
-                        ))
-                    ));
-                }
-
-                return com.aliyun.teaxml.Client.parseXml(bodyStr, null);
             } catch (Exception e) {
                 if (Tea.isRetryable(e)) {
                     _lastException = e;
