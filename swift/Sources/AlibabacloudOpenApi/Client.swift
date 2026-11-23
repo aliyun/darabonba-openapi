@@ -5,6 +5,7 @@ import AlibabaCloudCredentials
 import AlibabaCloudOpenApiUtil
 import AlibabacloudGatewaySPI
 import DarabonbaXML
+import TeaFileForm
 
 open class Client {
     public var _endpoint: String?
@@ -48,6 +49,8 @@ open class Client {
     public var _endpointType: String?
 
     public var _openPlatformEndpoint: String?
+
+    public var _ossPrivateUrl: String?
 
     public var _credential: AlibabaCloudCredentials.Client?
 
@@ -105,6 +108,7 @@ open class Client {
         }
         self._endpoint = config.endpoint
         self._endpointType = config.endpointType
+        self._ossPrivateUrl = config.ossPrivateUrl
         self._network = config.network
         self._suffix = config.suffix
         if TeaUtils.Client.isUnset(config.endpointSuffix) || (config.endpointSuffix ?? "").isEmpty {
@@ -1122,6 +1126,79 @@ open class Client {
         throw Tea.UnretryableError(_lastRequest, _lastException)
     }
 
+    /// 供跨模块产品 Client 子类调用的 OSS PrivateLink 文件上传辅助方法。
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func postOSSObjectWithURL(_ ossPrivateUrl: String, _ bucketName: String, _ data: [String: Any], _ runtime: TeaUtils.RuntimeOptions) async throws -> [String: Any] {
+        try runtime.validate()
+        var _runtime: [String: Any] = [
+            "timeouted": "retry",
+            "key": TeaUtils.Client.defaultString(runtime.key, self._key),
+            "cert": TeaUtils.Client.defaultString(runtime.cert, self._cert),
+            "ca": TeaUtils.Client.defaultString(runtime.ca, self._ca),
+            "readTimeout": TeaUtils.Client.defaultNumber(runtime.readTimeout, self._readTimeout),
+            "connectTimeout": TeaUtils.Client.defaultNumber(runtime.connectTimeout, self._connectTimeout),
+            "httpProxy": TeaUtils.Client.defaultString(runtime.httpProxy, self._httpProxy),
+            "httpsProxy": TeaUtils.Client.defaultString(runtime.httpsProxy, self._httpsProxy),
+            "noProxy": TeaUtils.Client.defaultString(runtime.noProxy, self._noProxy),
+            "socks5Proxy": TeaUtils.Client.defaultString(runtime.socks5Proxy, self._socks5Proxy),
+            "socks5NetWork": TeaUtils.Client.defaultString(runtime.socks5NetWork, self._socks5NetWork),
+            "maxIdleConns": TeaUtils.Client.defaultNumber(runtime.maxIdleConns, self._maxIdleConns),
+            "retry": [
+                "retryable": Client.defaultAny(runtime.autoretry, false),
+                "maxAttempts": TeaUtils.Client.defaultNumber(runtime.maxAttempts, 3)
+            ],
+            "backoff": [
+                "policy": TeaUtils.Client.defaultString(runtime.backoffPolicy, "no"),
+                "period": TeaUtils.Client.defaultNumber(runtime.backoffPeriod, 1)
+            ],
+            "ignoreSSL": Client.defaultAny(runtime.ignoreSSL, false),
+            "disableHttp2": Client.defaultAny(self._disableHttp2, false),
+            "tlsMinVersion": self._tlsMinVersion ?? ""
+        ]
+        var _lastRequest: Tea.TeaRequest? = nil
+        var _lastException: Tea.TeaError? = nil
+        var _now: Int32 = Tea.TeaCore.timeNow()
+        var _retryTimes: Int32 = 0
+        while (Tea.TeaCore.allowRetry(_runtime["retry"], _retryTimes, _now)) {
+            if (_retryTimes > 0) {
+                var _backoffTime: Int32 = Tea.TeaCore.getBackoffTime(_runtime["backoff"], _retryTimes)
+                if (_backoffTime > 0) {
+                    try await Tea.TeaCore.sleepAsync(_backoffTime)
+                }
+            }
+            _retryTimes = _retryTimes + 1
+            do {
+                let _request = try createOSSPrivateRequest(ossPrivateUrl, bucketName, data)
+                _lastRequest = _request
+                var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
+                var bodyStr: String = try await TeaUtils.Client.readAsString(_response.body)
+                if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
+                    let respMap = DarabonbaXML.Client.parseXml(bodyStr, nil)
+                    let err = respMap["Error"] as? [String: Any] ?? respMap
+                    throw Tea.ClientError([
+                        "code": err["Code"] as? String ?? "",
+                        "message": err["Message"] as? String ?? "",
+                        "statusCode": Int(_response.statusCode),
+                        "data": [
+                            "httpCode": _response.statusCode,
+                            "requestId": err["RequestId"] as? String ?? "",
+                            "hostId": err["HostId"] as? String ?? ""
+                        ]
+                    ])
+                }
+                return DarabonbaXML.Client.parseXml(bodyStr, nil)
+            }
+            catch {
+                if (Tea.TeaCore.isRetryable(error)) {
+                    _lastException = error as! Tea.RetryableError
+                    continue
+                }
+                throw error
+            }
+        }
+        throw Tea.UnretryableError(_lastRequest, _lastException)
+    }
+
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func callApi(_ params: Params, _ request: OpenApiRequest, _ runtime: TeaUtils.RuntimeOptions) async throws -> [String: Any] {
         if (TeaUtils.Client.isUnset(params)) {
@@ -1147,6 +1224,53 @@ open class Client {
         else {
             return try await execute(params as! Params, request as! OpenApiRequest, runtime as! TeaUtils.RuntimeOptions)
         }
+    }
+
+    /// 单次请求 RuntimeOptions 非空时优先，否则回退 Config；未配置时返回空字符串。
+    public func getOSSPrivateUrl(_ runtime: TeaUtils.RuntimeOptions) -> String {
+        if let url = runtime.ossPrivateUrl, !url.isEmpty {
+            return url
+        }
+        return self._ossPrivateUrl ?? ""
+    }
+
+    func createOSSPrivateRequest(_ rawUrl: String, _ bucketName: String, _ data: [String: Any]) throws -> Tea.TeaRequest {
+        // 按原始地址检查，避免解析器将空 userinfo、? 或 # 归一化。
+        guard !rawUrl.contains("@"), !rawUrl.contains("?"), !rawUrl.contains("#"),
+              let url = URLComponents(string: rawUrl),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              rawUrl.lowercased().hasPrefix(scheme + "://"),
+              let urlHost = url.host, !urlHost.isEmpty,
+              urlHost.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+              url.url != nil else {
+            throw Tea.ClientError([
+                "code": "InvalidOSSPrivateUrl",
+                "message": "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"
+            ])
+        }
+        var host = urlHost
+        if host.contains(":"), !host.hasPrefix("[") {
+            host = "[" + host + "]"
+        }
+        if let port = url.port {
+            host += ":" + String(port)
+        }
+        var pathname = url.percentEncodedPath
+        if pathname.isEmpty { pathname = "/" }
+        pathname += (pathname.hasSuffix("/") ? "" : "/") + bucketName + "/"
+        let boundary = TeaFileForm.Client.getBoundary()
+        let request = Tea.TeaRequest()
+        request.protocol_ = scheme
+        request.method = "POST"
+        request.pathname = pathname
+        request.headers = [
+            "host": host,
+            "date": TeaUtils.Client.getDateUTCString(),
+            "user-agent": getUserAgent(),
+            "content-type": "multipart/form-data; boundary=" + boundary
+        ]
+        request.body = TeaFileForm.Client.toFileForm(data, boundary)
+        return request
     }
 
     public func getUserAgent() -> String {

@@ -5,14 +5,15 @@ import Glibc
 import Darwin
 #endif
 
-// one GET per test; add body framing only if upload tests need it.
-// A nil body echoes the received request.
+// 支持一个 HTTP 请求及完整 Content-Length/chunked 请求体。
+// 未指定响应体时回显收到的请求。
 final class HTTPTestServer {
     let port: Int
     private var listener: Int32
     private let finished = DispatchGroup()
 
-    init(body: String? = nil) throws {
+    init(body: String? = nil, statusCode: Int = 200, contentType: String = "application/json",
+         onRequest: ((String, Data) -> Void)? = nil) throws {
         #if os(Linux)
         let fd = socket(AF_INET, Int32(SOCK_STREAM.rawValue), 0)
         #else
@@ -58,10 +59,13 @@ final class HTTPTestServer {
                 let count = recv(connection, &buffer, buffer.count, 0)
                 guard count > 0 else { return }
                 request.append(contentsOf: buffer.prefix(count))
-                if request.range(of: Data("\r\n\r\n".utf8)) != nil { break }
+                if let (headers, content) = Self.parseRequest(request) {
+                    onRequest?(headers, content)
+                    break
+                }
             }
             let payload = body.map { Data($0.utf8) } ?? request
-            var response = Data("HTTP/1.1 200 OK\r\nContent-Length: \(payload.count)\r\nContent-Type: application/json\r\nX-Mock: tea\r\nConnection: close\r\n\r\n".utf8)
+            var response = Data("HTTP/1.1 \(statusCode) Mock\r\nContent-Length: \(payload.count)\r\nContent-Type: \(contentType)\r\nX-Mock: tea\r\nConnection: close\r\n\r\n".utf8)
             response.append(payload)
             response.withUnsafeBytes { bytes in
                 var sent = 0
@@ -76,6 +80,34 @@ final class HTTPTestServer {
                 }
             }
         }
+    }
+
+    private static func parseRequest(_ request: Data) -> (String, Data)? {
+        let separator = Data("\r\n\r\n".utf8)
+        guard let headerEnd = request.range(of: separator),
+              let headers = String(data: request[..<headerEnd.lowerBound], encoding: .utf8) else { return nil }
+        let fields = headers.components(separatedBy: "\r\n").dropFirst()
+        let chunked = fields.contains { $0.lowercased().hasPrefix("transfer-encoding:") && $0.lowercased().contains("chunked") }
+        if !chunked {
+            let length = fields.first { $0.lowercased().hasPrefix("content-length:") }
+                .flatMap { Int($0.split(separator: ":", maxSplits: 1)[1].trimmingCharacters(in: .whitespaces)) } ?? 0
+            guard request.count >= headerEnd.upperBound + length else { return nil }
+            return (headers, Data(request[headerEnd.upperBound..<(headerEnd.upperBound + length)]))
+        }
+        var cursor = headerEnd.upperBound
+        var content = Data()
+        let crlf = Data("\r\n".utf8)
+        while cursor < request.count {
+            guard let end = request.range(of: crlf, in: cursor..<request.count),
+                  let line = String(data: request[cursor..<end.lowerBound], encoding: .utf8),
+                  let length = Int(line.components(separatedBy: ";")[0], radix: 16) else { return nil }
+            cursor = end.upperBound
+            guard request.count >= cursor + length + 2 else { return nil }
+            if length == 0 { return (headers, content) }
+            content.append(request[cursor..<(cursor + length)])
+            cursor += length + 2
+        }
+        return nil
     }
 
     func stop() {
