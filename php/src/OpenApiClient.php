@@ -12,9 +12,6 @@ use AlibabaCloud\Tea\Tea;
 use AlibabaCloud\Tea\Request;
 use AlibabaCloud\OpenApiUtil\OpenApiUtilClient;
 use AlibabaCloud\Tea\XML\XML;
-use Darabonba\Url\Client as DarabonbaUrlClient;
-use AlibabaCloud\Darabonba\String\StringUtil;
-use AlibabaCloud\Tea\FileForm\FileForm;
 use Darabonba\GatewaySpi\Client;
 
 use AlibabaCloud\Credentials\Credential\Config;
@@ -25,7 +22,6 @@ use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
 use Darabonba\GatewaySpi\Models\AttributeMap;
 use Darabonba\GatewaySpi\Models\InterceptorContext\response;
-use Darabonba\Url\Models\Url;
 
 /**
  * This is for OpenApi SDK
@@ -71,8 +67,6 @@ class OpenApiClient
   protected $_endpointType;
 
   protected $_openPlatformEndpoint;
-
-  protected $_ossPrivateUrl;
 
   protected $_credential;
 
@@ -136,7 +130,6 @@ class OpenApiClient
     }
     $this->_endpoint = $config->endpoint;
     $this->_endpointType = $config->endpointType;
-    $this->_ossPrivateUrl = $config->ossPrivateUrl;
     $this->_network = $config->network;
     $this->_suffix = $config->suffix;
     $this->_protocol = $config->protocol;
@@ -1232,141 +1225,6 @@ class OpenApiClient
   }
 
   /**
-   * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
-   * @param string $ossPrivateUrl
-   * @param string $bucketName
-   * @param mixed[] $data
-   * @param RuntimeOptions $runtime
-   * @return array
-   * @throws TeaError
-   * @throws Exception
-   * @throws TeaUnableRetryError
-   */
-  protected function postOSSObjectWithURL($ossPrivateUrl, $bucketName, $data, $runtime)
-  {
-    $runtime->validate();
-    $_runtime = [
-      "timeouted" => "retry",
-      "key" => Utils::defaultString($runtime->key, $this->_key),
-      "cert" => Utils::defaultString($runtime->cert, $this->_cert),
-      "ca" => Utils::defaultString($runtime->ca, $this->_ca),
-      "readTimeout" => Utils::defaultNumber($runtime->readTimeout, $this->_readTimeout),
-      "connectTimeout" => Utils::defaultNumber($runtime->connectTimeout, $this->_connectTimeout),
-      "httpProxy" => Utils::defaultString($runtime->httpProxy, $this->_httpProxy),
-      "httpsProxy" => Utils::defaultString($runtime->httpsProxy, $this->_httpsProxy),
-      "noProxy" => Utils::defaultString($runtime->noProxy, $this->_noProxy),
-      "socks5Proxy" => Utils::defaultString($runtime->socks5Proxy, $this->_socks5Proxy),
-      "socks5NetWork" => Utils::defaultString($runtime->socks5NetWork, $this->_socks5NetWork),
-      "maxIdleConns" => Utils::defaultNumber($runtime->maxIdleConns, $this->_maxIdleConns),
-      "retry" => [
-        "retryable" => $runtime->autoretry,
-        "maxAttempts" => Utils::defaultNumber($runtime->maxAttempts, 3)
-      ],
-      "backoff" => [
-        "policy" => Utils::defaultString($runtime->backoffPolicy, "no"),
-        "period" => Utils::defaultNumber($runtime->backoffPeriod, 1)
-      ],
-      "ignoreSSL" => self::defaultAny($runtime->ignoreSSL, false),
-      "disableHttp2" => $this->_disableHttp2,
-      "tlsMinVersion" => $this->_tlsMinVersion
-    ];
-    $_lastRequest = null;
-    $_lastException = null;
-    $_now = time();
-    $_retryTimes = 0;
-    while (Tea::allowRetry(@$_runtime["retry"], $_retryTimes, $_now)) {
-      if ($_retryTimes > 0) {
-        $_backoffTime = Tea::getBackoffTime(@$_runtime["backoff"], $_retryTimes);
-        if ($_backoffTime > 0) {
-          Tea::sleep($_backoffTime);
-        }
-      }
-      $_retryTimes = $_retryTimes + 1;
-      try {
-        $_request = new Request();
-        $url = new Url([]);
-        try {
-          $url = DarabonbaUrlClient::parseUrl($ossPrivateUrl);
-        } catch (Exception $err) {
-          if (!($err instanceof TeaError)) {
-            $err = new TeaError([], $err->getMessage(), $err->getCode(), $err);
-          }
-          throw new TeaError([
-            "code" => "InvalidOSSPrivateUrl",
-            "message" => "ossPrivateUrl must be a valid HTTP(S) endpoint"
-          ]);
-        }
-        $invalidProtocol = !Utils::equalString($url->scheme, "http") && !Utils::equalString($url->scheme, "https");
-        // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
-        if (Utils::isUnset($url->host) || Utils::empty_($url->host->hostname) || $invalidProtocol || StringUtil::contains($ossPrivateUrl, "@") || StringUtil::contains($ossPrivateUrl, "?") || StringUtil::contains($ossPrivateUrl, "#")) {
-          throw new TeaError([
-            "code" => "InvalidOSSPrivateUrl",
-            "message" => "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"
-          ]);
-        }
-        $host = $url->host->hostname;
-        if (!Utils::empty_($url->host->port) && !Utils::equalString($url->host->port, "-1")) {
-          $host = "" . $host . ":" . $url->host->port . "";
-        }
-        $pathname = "/";
-        if (!Utils::isUnset($url->path)) {
-          $pathname = Utils::defaultString($url->path->pathname, "/");
-        }
-        if (StringUtil::hasSuffix($pathname, "/")) {
-          $pathname = "" . $pathname . "" . $bucketName . "/";
-        } else {
-          $pathname = "" . $pathname . "/" . $bucketName . "/";
-        }
-        $form = Utils::assertAsMap($data);
-        $boundary = FileForm::getBoundary();
-        $_request->protocol = $url->scheme;
-        $_request->method = "POST";
-        $_request->pathname = $pathname;
-        $_request->headers = [
-          "host" => $host,
-          "date" => Utils::getDateUTCString(),
-          "user-agent" => $this->getUserAgent(),
-          "content-type" => "multipart/form-data; boundary=" . $boundary . ""
-        ];
-        $_request->body = FileForm::toFileForm($form, $boundary);
-        $_lastRequest = $_request;
-        $_response = Tea::send($_request, $_runtime);
-        $bodyStr = Utils::readAsString($_response->body);
-        if (Utils::is4xx($_response->statusCode) || Utils::is5xx($_response->statusCode)) {
-          $respMap = XML::parseXml($bodyStr, null);
-          // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
-          $err = $respMap;
-          // 先取出节点再判空，PHP 的 isUnset 为引用传参，不能直接传入数组下标表达式。
-          $errNode = @$respMap["Error"];
-          if (!Utils::isUnset($errNode)) {
-            $err = Utils::assertAsMap($errNode);
-          }
-          throw new TeaError([
-            "code" => @$err["Code"],
-            "message" => @$err["Message"],
-            "data" => [
-              "httpCode" => $_response->statusCode,
-              "requestId" => @$err["RequestId"],
-              "hostId" => @$err["HostId"]
-            ]
-          ]);
-        }
-        return XML::parseXml($bodyStr, null);
-      } catch (Exception $e) {
-        if (!($e instanceof TeaError)) {
-          $e = new TeaError([], $e->getMessage(), $e->getCode(), $e);
-        }
-        if (Tea::isRetryable($e)) {
-          $_lastException = $e;
-          continue;
-        }
-        throw $e;
-      }
-    }
-    throw new TeaUnableRetryError($_lastRequest, $_lastException);
-  }
-
-  /**
    * @param Params $params
    * @param OpenApiRequest $request
    * @param RuntimeOptions $runtime
@@ -1394,19 +1252,6 @@ class OpenApiClient
     } else {
       return $this->execute($params, $request, $runtime);
     }
-  }
-
-  /**
-   * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
-   * @param RuntimeOptions $runtime
-   * @return string
-   */
-  protected function getOSSPrivateUrl($runtime)
-  {
-    if (!Utils::empty_($runtime->ossPrivateUrl)) {
-      return $runtime->ossPrivateUrl;
-    }
-    return $this->_ossPrivateUrl;
   }
 
   /**
