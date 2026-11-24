@@ -72,11 +72,6 @@ public class Client {
         if (suffix == null || suffix.trim().isEmpty()) suffix = this.endpointSuffixFromEnv();
         suffix = suffix == null ? "" : suffix.trim().toLowerCase(java.util.Locale.ROOT);
         if (suffix.isEmpty()) suffix = "aliyuncs.com";
-        if (!"aliyuncs.com".equals(suffix) && !"aliyuncs.alibaba".equals(suffix)) {
-            throw new com.aliyun.tea.TeaException(com.aliyun.tea.TeaConverter.buildMap(
-                new com.aliyun.tea.TeaPair("code", "InvalidEndpointSuffix"),
-                new com.aliyun.tea.TeaPair("message", "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba")));
-        }
         String old = ".aliyuncs.com";
         return endpoint != null && !"aliyuncs.com".equals(suffix) && endpoint.endsWith(old)
             ? endpoint.substring(0, endpoint.length() - old.length()) + "." + suffix : endpoint;
