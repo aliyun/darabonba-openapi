@@ -1155,7 +1155,14 @@ open class Client {
             "disableHttp2": Client.defaultAny(self._disableHttp2, false),
             "tlsMinVersion": self._tlsMinVersion ?? ""
         ]
-        var _lastRequest: Tea.TeaRequest? = nil
+        let boundary = TeaFileForm.Client.getBoundary()
+        let request = try createOSSPrivateRequest(ossPrivateUrl, bucketName, boundary)
+        let fileManager = FileManager.default
+        let directory = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        defer { try? fileManager.removeItem(at: directory) }
+        let bodyFile = directory.appendingPathComponent("multipart")
+        request.headers["content-length"] = String(try writeOSSPrivateMultipartForm(data, boundary, to: bodyFile))
         var _lastException: Tea.TeaError? = nil
         var _now: Int32 = Tea.TeaCore.timeNow()
         var _retryTimes: Int32 = 0
@@ -1168,13 +1175,16 @@ open class Client {
             }
             _retryTimes = _retryTimes + 1
             do {
-                let _request = try createOSSPrivateRequest(ossPrivateUrl, bucketName, data)
-                _lastRequest = _request
-                var _response: Tea.TeaResponse = try await Tea.TeaCore.doAction(_request, _runtime)
-                var bodyStr: String = try await TeaUtils.Client.readAsString(_response.body)
+                guard let stream = InputStream(url: bodyFile) else {
+                    throw Tea.TeaError("Could not open the OSS multipart body")
+                }
+                request.body = stream
+                let _response = try await Tea.TeaCore.doAction(request, _runtime)
+                let bodyStr = try await TeaUtils.Client.readAsString(_response.body)
+                let xml = DarabonbaXML.Client.parseXml(bodyStr, nil)
+                let fields = xml.count == 1 ? (xml.values.first as? [String: Any] ?? xml) : xml
                 if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
-                    let respMap = DarabonbaXML.Client.parseXml(bodyStr, nil)
-                    let err = respMap["Error"] as? [String: Any] ?? respMap
+                    let err = fields["Error"] as? [String: Any] ?? fields
                     throw Tea.ReuqestError([
                         "code": err["Code"] as? String ?? "",
                         "message": err["Message"] as? String ?? "",
@@ -1186,7 +1196,7 @@ open class Client {
                         ]
                     ])
                 }
-                return DarabonbaXML.Client.parseXml(bodyStr, nil)
+                return fields
             }
             catch {
                 if (Tea.TeaCore.isRetryable(error)) {
@@ -1196,7 +1206,7 @@ open class Client {
                 throw error
             }
         }
-        throw Tea.UnretryableError(_lastRequest, _lastException)
+        throw Tea.UnretryableError(request, _lastException)
     }
 
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1234,7 +1244,7 @@ open class Client {
         return self._ossPrivateUrl ?? ""
     }
 
-    func createOSSPrivateRequest(_ rawUrl: String, _ bucketName: String, _ data: [String: Any]) throws -> Tea.TeaRequest {
+    func createOSSPrivateRequest(_ rawUrl: String, _ bucketName: String, _ boundary: String) throws -> Tea.TeaRequest {
         // 按原始地址检查，避免解析器将空 userinfo、? 或 # 归一化。
         guard !rawUrl.contains("@"), !rawUrl.contains("?"), !rawUrl.contains("#"),
               let url = URLComponents(string: rawUrl),
@@ -1258,7 +1268,6 @@ open class Client {
         var pathname = url.percentEncodedPath
         if pathname.isEmpty { pathname = "/" }
         pathname += (pathname.hasSuffix("/") ? "" : "/") + bucketName + "/"
-        let boundary = TeaFileForm.Client.getBoundary()
         let request = Tea.TeaRequest()
         request.protocol_ = scheme
         request.method = "POST"
@@ -1269,7 +1278,6 @@ open class Client {
             "user-agent": getUserAgent(),
             "content-type": "multipart/form-data; boundary=" + boundary
         ]
-        request.body = TeaFileForm.Client.toFileForm(data, boundary)
         return request
     }
 

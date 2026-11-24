@@ -6,7 +6,7 @@ import TeaFileForm
 @testable import AlibabacloudOpenApi
 
 final class OSSPrivateUrlTests: XCTestCase {
-    private let binary = Data((0..<8193).map { UInt8($0 % 256) })
+    private let binary = Data((0..<131073).map { UInt8($0 % 256) })
 
     func testConfigAndRuntimePriority() throws {
         let unset = Config()
@@ -36,7 +36,7 @@ final class OSSPrivateUrlTests: XCTestCase {
             ("https://oss-private.example/prefix", "https", "oss-private.example", "/prefix/bucket/"),
             ("http://[::1]:8080/a%20b", "http", "[::1]:8080", "/a%20b/bucket/")
         ] {
-            let request = try client.createOSSPrivateRequest(url, "bucket", [:])
+            let request = try client.createOSSPrivateRequest(url, "bucket", "test-boundary")
             XCTAssertEqual(request.protocol_, scheme)
             XCTAssertEqual(request.method, "POST")
             XCTAssertEqual(request.headers["host"], host)
@@ -63,8 +63,8 @@ final class OSSPrivateUrlTests: XCTestCase {
     }
 
     func testHTTPUploadPreservesMultipartBinaryWithDefaultOptions() async throws {
-        let received = expectation(description: "收到完整 multipart 上传")
         let expectedBinary = binary
+        // The server checks the full body before sending the response awaited below.
         let server = try HTTPTestServer(body: "<Upload><ETag>mock-etag</ETag></Upload>", contentType: "application/xml") { headers, content in
             XCTAssertTrue(headers.hasPrefix("POST /prefix/bucket/ HTTP/1.1"))
             XCTAssertTrue(headers.lowercased().contains("host: 127.0.0.1:"))
@@ -73,22 +73,23 @@ final class OSSPrivateUrlTests: XCTestCase {
             XCTAssertFalse(boundary.isEmpty)
             XCTAssertTrue(content.starts(with: Data("--\(boundary)\r\n".utf8)))
             XCTAssertTrue(content.suffix(Data("--\(boundary)--\r\n".utf8).count).elementsEqual(Data("--\(boundary)--\r\n".utf8)))
-            XCTAssertNotNil(content.range(of: Data("name=\"key\"\r\n\r\nobject.bin\r\n".utf8)))
-            XCTAssertNotNil(content.range(of: Data("filename=\"dir/file.bin\"".utf8)))
+            let keyPart = try? XCTUnwrap(content.range(of: Data("name=\"key\"\r\n\r\nobject.bin\r\n".utf8)))
+            let filePart = try? XCTUnwrap(content.range(of: Data("name=\"file\"; filename=\"dir/file.bin\"".utf8)))
+            if let keyPart = keyPart, let filePart = filePart {
+                XCTAssertLessThan(keyPart.lowerBound, filePart.lowerBound)
+            }
             let marker = Data("Content-Type: application/octet-stream\r\n\r\n".utf8)
             if let start = content.range(of: marker), let end = content.range(of: Data("\r\n--\(boundary)".utf8), in: start.upperBound..<content.count) {
                 XCTAssertEqual(Data(content[start.upperBound..<end.lowerBound]), expectedBinary)
             } else {
                 XCTFail("未收到完整二进制文件字段")
             }
-            received.fulfill()
         }
         defer { server.stop() }
         let client = try Client(Config(["ossPrivateUrl": "http://127.0.0.1:\(server.port)/prefix", "readTimeout": 2000]))
         let file = FileField(["filename": "dir/file.bin", "contentType": "application/octet-stream", "content": InputStream(data: binary)])
         let response = try await client.postOSSObjectWithURL(client.getOSSPrivateUrl(RuntimeOptions()), "bucket", ["key": "object.bin", "file": file], RuntimeOptions())
         XCTAssertEqual(response["ETag"] as? String, "mock-etag")
-        await fulfillment(of: [received], timeout: 3)
     }
 
     func testXMLRootAndNestedErrorsPreserveDetails() async throws {
