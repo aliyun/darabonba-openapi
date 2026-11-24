@@ -1,3 +1,9 @@
+### 2026-11-24 Version 0.2.4
+
+- Allow any domain as `endpointSuffix`. Do not reject values other than `aliyuncs.com` or `aliyuncs.alibaba`.
+- Support OSS PrivateLink file upload.
+- The assembly version stays `0.2.0.0`. The file version matches this package version.
+
 ### 2026-11-05 Version 0.2.3
 
 - Pass `endpointSuffix` from client config, then `ALIBABA_CLOUD_ENDPOINT_SUFFIX`, onto the request attribute map.
