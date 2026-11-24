@@ -1338,12 +1338,7 @@ class OpenApiClientTest extends TestCase
         $request->endpointOverride = '';
         $this->assertEquals('ecs.aliyuncs.com', $resolve->invoke($client, $request));
         $map->key['endpointSuffix'] = 'evil.com';
-        try {
-            $resolve->invoke($client, $request);
-            $this->fail('invalid endpointSuffix was accepted');
-        } catch (\Darabonba\OpenApi\Exceptions\ClientException $expected) {
-            $this->assertEquals('InvalidEndpointSuffix', $expected->code);
-        }
+        $this->assertEquals('ecs.evil.com', $resolve->invoke($client, $request));
     }
 
     public function testIpv4OnlyIsPassedToRuntime()

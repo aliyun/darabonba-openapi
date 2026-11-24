@@ -1787,9 +1787,6 @@ func (client *Client) endpointForRequest(request *openapiutil.OpenApiRequest) (*
 	if suffix == "" {
 		suffix = "aliyuncs.com"
 	}
-	if suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba" {
-		return nil, &ClientError{Code: dara.String("InvalidEndpointSuffix"), Message: dara.String("endpointSuffix must be aliyuncs.com or aliyuncs.alibaba")}
-	}
 	const old = ".aliyuncs.com"
 	if suffix != "aliyuncs.com" && strings.HasSuffix(dara.StringValue(endpoint), old) {
 		return dara.String(strings.TrimSuffix(dara.StringValue(endpoint), old) + "." + suffix), nil

@@ -5,7 +5,7 @@ import * as Models from '../src/utils';
 import * as dara from '@darabonba/typescript';
 
 describe('endpoint suffix request paths', () => {
-  it('keeps suffix priority, normalizes values and rejects invalid values', () => {
+  it('keeps suffix priority, normalizes values and allows custom suffixes', () => {
     const previous = process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX;
     try {
       delete process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX;
@@ -21,7 +21,7 @@ describe('endpoint suffix request paths', () => {
       (client as any)._attributeMap.key.endpointSuffix = '  ';
       assert.strictEqual(resolve(), 'ecs.aliyuncs.com');
       (client as any)._attributeMap.key.endpointSuffix = 'evil.com';
-      assert.throws(resolve, /endpointSuffix/);
+      assert.strictEqual(resolve(), 'ecs.evil.com');
       (client as any)._attributeMap = null;
       client._endpointSuffix = '';
       process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX = '  ';

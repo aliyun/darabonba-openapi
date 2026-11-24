@@ -2656,8 +2656,6 @@ class Client:
         if not suffix:
             suffix = os.environ.get('ALIBABA_CLOUD_ENDPOINT_SUFFIX', '').strip().lower()
         suffix = suffix or 'aliyuncs.com'
-        if suffix not in ('aliyuncs.com', 'aliyuncs.alibaba'):
-            raise main_exceptions.ClientException(code='InvalidEndpointSuffix', message='endpointSuffix must be aliyuncs.com or aliyuncs.alibaba')
         old = '.aliyuncs.com'
         if endpoint and suffix != 'aliyuncs.com' and endpoint.endswith(old):
             return endpoint[:-len(old)] + '.' + suffix

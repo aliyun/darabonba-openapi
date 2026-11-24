@@ -1693,9 +1693,6 @@ export default class Client {
     let suffix = ((attributes.key && attributes.key.endpointSuffix) || '').trim().toLowerCase();
     if (!suffix) suffix = (process.env.ALIBABA_CLOUD_ENDPOINT_SUFFIX || '').trim().toLowerCase();
     if (!suffix) suffix = 'aliyuncs.com';
-    if (suffix !== 'aliyuncs.com' && suffix !== 'aliyuncs.alibaba') {
-      throw new $_error.ClientError({ code: 'InvalidEndpointSuffix', message: 'endpointSuffix must be aliyuncs.com or aliyuncs.alibaba' });
-    }
     const old = '.aliyuncs.com';
     return endpoint && suffix !== 'aliyuncs.com' && endpoint.endsWith(old)
       ? endpoint.substring(0, endpoint.length - old.length) + '.' + suffix : endpoint;

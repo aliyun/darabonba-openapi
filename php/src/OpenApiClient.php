@@ -1796,12 +1796,6 @@ class OpenApiClient
       $suffix = $env === false ? '' : strtolower(trim($env));
     }
     if ($suffix === '') { $suffix = 'aliyuncs.com'; }
-    if ($suffix !== 'aliyuncs.com' && $suffix !== 'aliyuncs.alibaba') {
-      throw new ClientException([
-        'code' => 'InvalidEndpointSuffix', 'message' => 'endpointSuffix must be aliyuncs.com or aliyuncs.alibaba',
-        'statusCode' => null, 'description' => null, 'requestId' => null, 'accessDeniedDetail' => null,
-      ]);
-    }
     $old = '.aliyuncs.com';
     return $endpoint && $suffix !== 'aliyuncs.com' && substr($endpoint, -strlen($old)) === $old
       ? substr($endpoint, 0, -strlen($old)) . '.' . $suffix : $endpoint;
