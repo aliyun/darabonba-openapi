@@ -1,3 +1,7 @@
+### 2026-11-24 Version 0.1.17
+
+- Support OSS PrivateLink file upload.
+
 ### 2024-09-23 Version 0.1.12
 
 - Solve the inconsistency of credentials refresh in all methods.
