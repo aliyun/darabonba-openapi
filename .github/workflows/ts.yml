@@ -23,33 +23,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    # 公开 1.0.6 缺少字段及原始 URL 校验，仅 PR 验证固定前置源码。
-    - name: Checkout PrivateLink runtime (tea-typescript PR 81)
-      if: github.event_name == 'pull_request'
-      uses: actions/checkout@v4
-      with:
-        repository: Chiosin/tea-typescript
-        ref: 7eb3b3717ec5d003380619338b0d8b355a6beadd
-        path: .ci-runtime/typescript
-        persist-credentials: false
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
-    - name: Build and install fixed PrivateLink runtime
-      if: github.event_name == 'pull_request'
-      run: |
-        RUNTIME="${{ github.workspace }}/.ci-runtime/typescript"
-        npm --prefix "$RUNTIME" install --ignore-scripts --no-package-lock
-        # 源码所用类型声明需要 TS 4.8+，固定可编译的版本，保留原 tsconfig。
-        npm --prefix "$RUNTIME" install --no-save --ignore-scripts --no-package-lock typescript@4.9.5
-        npm --prefix "$RUNTIME" run build
-        # 使用与运行时匹配的编译期声明；仅修改 runner，不改变发布依赖。
-        npm install --no-save --no-package-lock "$RUNTIME" typescript@4.9.5 @types/node@20.11.10 @types/ws@8.5.14
-    - name: Build SDK against fixed runtime
-      if: github.event_name == 'pull_request'
-      run: npm run build
     - run: npm run test-cov
     - name: Require 90% diff coverage
       if: github.event_name == 'pull_request'
