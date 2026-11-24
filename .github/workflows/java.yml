@@ -24,31 +24,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Checkout PrivateLink runtime (tea-util PR 380)
-      if: github.event_name == 'pull_request'
-      uses: actions/checkout@v4
-      with:
-        repository: Chiosin/tea-util
-        ref: 491a1a0fb95acf6593059c5d81867b888f238ea1
-        path: .ci-runtime/tea-util
-        persist-credentials: false
     - name: Set up java
       uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version: ${{ matrix.java }}
-    # 构建前置源码并保留其测试；仅安装唯一 CI 版本到本机，不执行发布。
-    - name: Build fixed PrivateLink runtime
-      if: github.event_name == 'pull_request'
-      run: |
-        RUNTIME="${{ github.workspace }}/.ci-runtime/tea-util/java"
-        VERSION=0.2.28-oss-private-url-491a1a0
-        mvn -f "$RUNTIME/pom.xml" org.codehaus.mojo:versions-maven-plugin:2.16.2:set -B -DnewVersion="$VERSION" -DgenerateBackupPoms=false
-        mvn -f "$RUNTIME/pom.xml" package -B
-        mvn org.apache.maven.plugins:maven-install-plugin:3.1.2:install-file -B -Dfile="$RUNTIME/target/tea-util-$VERSION.jar" -DpomFile="$RUNTIME/pom.xml"
-        echo "TEA_UTIL_VERSION=$VERSION" >> "$GITHUB_ENV"
     - name: Test
-      run: mvn test -B "-Dtea-util.version=${TEA_UTIL_VERSION:-0.2.28}"
+      run: mvn test -B
     - uses: codecov/codecov-action@v4
       with:
         flags: java # optional

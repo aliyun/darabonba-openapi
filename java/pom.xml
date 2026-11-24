@@ -45,15 +45,11 @@
     <developerConnection>scm:git:git@github.com:aliyun/darabonba-openapi.git</developerConnection>
     <url>https://github.com/aliyun/darabonba-openapi</url>
   </scm>
-  <properties>
-    <!-- 仅 CI 覆盖固定前置源码版本，默认发布依赖不变。 -->
-    <tea-util.version>0.2.28</tea-util.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>com.aliyun</groupId>
       <artifactId>tea-util</artifactId>
-      <version>${tea-util.version}</version>
+      <version>0.2.29</version>
     </dependency>
     <dependency>
       <groupId>com.aliyun</groupId>
