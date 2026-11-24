@@ -1,7 +1,7 @@
 {
   "scope": "alibabacloud",
   "name": "OpenApi",
-  "version": "0.3.25",
+  "version": "0.3.26",
   "main": "./main.tea",
   "maintainers": [
     {
@@ -22,8 +22,8 @@
   "releases": {
     "ts": "@alicloud/openapi-client:^0.4.15",
     "go": "github.com/alibabacloud-go/darabonba-openapi/v2/client:v2.0.12",
-    "csharp": "AlibabaCloud.OpenApiClient:0.1.16",
-    "java": "com.aliyun:tea-openapi:0.3.20",
+    "csharp": "AlibabaCloud.OpenApiClient:0.1.17",
+    "java": "com.aliyun:tea-openapi:0.3.21",
     "php": "alibabacloud/darabonba-openapi:^0.2.16",
     "python": "alibabacloud_tea_openapi:0.3.16",
     "python2": "alibabacloud_tea_openapi_py2:0.1.8",
@@ -104,7 +104,8 @@
   },
   "releaselog": {
     "changelog": [
-      "Solve the inconsistency of credentials refresh in all methods."
+      "Allow any domain as endpointSuffix on 1.x Java.",
+      "Support OSS PrivateLink file upload for 1.x Java and C#."
     ],
     "compatible": true
   }
