@@ -113,7 +113,8 @@ namespace OpenApiClientUnitTests
                 {
                     new RetryCondition
                     {
-                        MaxAttempts = 2,
+                        // MaxAttempts 包含首次请求；三次请求对应两次重试。
+                        MaxAttempts = 3,
                         ErrorCode = new List<string> { "Throttling", "Throttling.User", "Throttling.Api" },
                         MaxDelayTimeMillis = 60000
                     }

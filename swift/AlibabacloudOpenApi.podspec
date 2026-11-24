@@ -18,11 +18,12 @@ Pod::Spec.new do |spec|
   spec.tvos.deployment_target    = '13.0'
 
   spec.dependency 'Tea',  '~> 1.1.0'
-  spec.dependency 'TeaUtils',  '~> 1.1.0'
+  spec.dependency 'TeaUtils',  '~> 1.1.1'
   spec.dependency 'AlibabaCloudCredentials',  '~> 1.0.3'
   spec.dependency 'AlibabaCloudOpenApiUtil',  '~> 1.0.3'
   spec.dependency 'AlibabacloudGatewaySPI',  '~> 0.0.3'
   spec.dependency 'DarabonbaXML',  '~> 1.0.4'
+  spec.dependency 'TeaFileForm',  '~> 1.0.4'
 
   spec.swift_version='5.6'
 end

@@ -1,3 +1,4 @@
+import inspect
 import unittest
 from io import BytesIO
 from alibabacloud_tea_openapi.models import GlobalParameters, Config, OpenApiRequest, Params
@@ -38,6 +39,55 @@ class TestGlobalParameters(unittest.TestCase):
 
 
 class TestConfig(unittest.TestCase):
+    # 固定本次 PR 前的顺序，不能从新签名推导，否则会掩盖位置参数错位。
+    LEGACY_PARAMETERS = (
+        'access_key_id', 'access_key_secret', 'security_token', 'bearer_token',
+        'protocol', 'method', 'region_id', 'read_timeout', 'connect_timeout',
+        'http_proxy', 'https_proxy', 'credential', 'endpoint', 'no_proxy',
+        'max_idle_conns', 'network', 'user_agent', 'suffix', 'endpoint_suffix',
+        'socks_5proxy', 'socks_5net_work', 'endpoint_type', 'open_platform_endpoint',
+        'type', 'signature_version', 'signature_algorithm', 'global_parameters',
+        'key', 'cert', 'ca', 'disable_http_2', 'retry_options', 'tls_min_version',
+        'ipv4_only',
+    )
+
+    def test_legacy_positional_parameters(self):
+        parameters = inspect.signature(Config).parameters
+        self.assertEqual(list(self.LEGACY_PARAMETERS) + ['oss_private_url'], list(parameters))
+        values = [object() for _ in self.LEGACY_PARAMETERS]
+        # 覆盖所有旧位置参数前缀，并验证新字段可与旧位置参数混用。
+        for count in range(len(values) + 1):
+            with self.subTest(count=count):
+                config = Config(*values[:count])
+                for index, name in enumerate(self.LEGACY_PARAMETERS):
+                    self.assertIs(getattr(config, name), values[index] if index < count else None)
+                self.assertIsNone(config.oss_private_url)
+                configured = Config(*values[:count], oss_private_url='https://pvl.example')
+                self.assertEqual('https://pvl.example', configured.oss_private_url)
+                for index, name in enumerate(self.LEGACY_PARAMETERS):
+                    self.assertIs(getattr(configured, name), values[index] if index < count else None)
+
+    def test_positional_signature_settings_reach_client(self):
+        from alibabacloud_tea_openapi.client import Client
+        values = [None] * len(self.LEGACY_PARAMETERS)
+        for name, value in [('type', 'access_key'), ('signature_version', 'v4'),
+                            ('signature_algorithm', 'ACS3-HMAC-SHA256')]:
+            values[self.LEGACY_PARAMETERS.index(name)] = value
+        config = Config(*values)
+        self.assertEqual('access_key', config.type)
+        client = Client(config)
+        self.assertEqual('v4', client._signature_version)
+        self.assertEqual('ACS3-HMAC-SHA256', client._signature_algorithm)
+        self.assertIsNone(client._oss_private_url)
+
+    def test_oss_private_url_constructor_and_mapping(self):
+        self.assertNotIn('ossPrivateUrl', Config().to_map())
+        for endpoint in ['', 'https://pvl.example/proxy']:
+            config = Config(*([None] * len(self.LEGACY_PARAMETERS) + [endpoint]))
+            self.assertEqual(endpoint, config.oss_private_url)
+            self.assertEqual(endpoint, config.to_map()['ossPrivateUrl'])
+            self.assertEqual(endpoint, Config().from_map(config.to_map()).oss_private_url)
+            self.assertEqual(config.to_map(), Config(oss_private_url=endpoint).to_map())
 
     def setUp(self):
         self.global_params = GlobalParameters()

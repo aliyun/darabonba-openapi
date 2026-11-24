@@ -104,6 +104,8 @@ type iConfig interface {
 	GetEndpointType() *string
 	SetOpenPlatformEndpoint(v string) *Config
 	GetOpenPlatformEndpoint() *string
+	SetOssPrivateUrl(v string) *Config
+	GetOssPrivateUrl() *string
 	SetType(v string) *Config
 	GetType() *string
 	SetSignatureVersion(v string) *Config
@@ -257,6 +259,8 @@ type Config struct {
 	//
 	// openplatform.aliyuncs.com
 	OpenPlatformEndpoint *string `json:"openPlatformEndpoint,omitempty" xml:"openPlatformEndpoint,omitempty"`
+	// OSS PrivateLink 上传地址（含协议），Runtime 非空配置优先。
+	OssPrivateUrl *string `json:"ossPrivateUrl,omitempty" xml:"ossPrivateUrl,omitempty"`
 	// Deprecated
 	//
 	// credential type
@@ -424,6 +428,10 @@ func (s *Config) GetOpenPlatformEndpoint() *string {
 	return s.OpenPlatformEndpoint
 }
 
+func (s *Config) GetOssPrivateUrl() *string {
+	return s.OssPrivateUrl
+}
+
 func (s *Config) GetType() *string {
 	return s.Type
 }
@@ -585,6 +593,11 @@ func (s *Config) SetEndpointType(v string) *Config {
 
 func (s *Config) SetOpenPlatformEndpoint(v string) *Config {
 	s.OpenPlatformEndpoint = &v
+	return s
+}
+
+func (s *Config) SetOssPrivateUrl(v string) *Config {
+	s.OssPrivateUrl = &v
 	return s
 }
 

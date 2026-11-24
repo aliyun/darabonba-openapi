@@ -14,7 +14,7 @@ class ClientException extends AlibabaCloudException
   public function __construct($map)
   {
     parent::__construct($map);
-    $this->accessDeniedDetail = $map['accessDeniedDetail'];
+    $this->accessDeniedDetail = isset($map['accessDeniedDetail']) ? $map['accessDeniedDetail'] : null;
   }
 
   /**

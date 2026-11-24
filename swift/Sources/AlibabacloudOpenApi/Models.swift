@@ -92,6 +92,9 @@ public class Config : Tea.TeaModel {
 
     public var openPlatformEndpoint: String?
 
+    /// OSS PrivateLink 上传地址，单次请求 RuntimeOptions 非空时优先。
+    public var ossPrivateUrl: String?
+
     public var type: String?
 
     public var signatureVersion: String?
@@ -194,6 +197,9 @@ public class Config : Tea.TeaModel {
         if self.openPlatformEndpoint != nil {
             map["openPlatformEndpoint"] = self.openPlatformEndpoint!
         }
+        if self.ossPrivateUrl != nil {
+            map["ossPrivateUrl"] = self.ossPrivateUrl!
+        }
         if self.type != nil {
             map["type"] = self.type!
         }
@@ -294,6 +300,9 @@ public class Config : Tea.TeaModel {
         }
         if let value = dict["openPlatformEndpoint"] as? String {
             self.openPlatformEndpoint = value
+        }
+        if let value = dict["ossPrivateUrl"] as? String {
+            self.ossPrivateUrl = value
         }
         if let value = dict["type"] as? String {
             self.type = value

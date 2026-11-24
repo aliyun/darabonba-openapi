@@ -48,6 +48,7 @@ class Config(DaraModel):
         retry_options: RetryOptions = None,
         tls_min_version: str = None,
         ipv4_only: bool = None,
+        oss_private_url: str = None,
     ):
         # accesskey id
         self.access_key_id = access_key_id
@@ -95,6 +96,8 @@ class Config(DaraModel):
         self.endpoint_type = endpoint_type
         # OpenPlatform endpoint
         self.open_platform_endpoint = open_platform_endpoint
+        # OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先
+        self.oss_private_url = oss_private_url
         # credential type
         self.type = type
         # Signature Version
@@ -172,12 +175,19 @@ class Config(DaraModel):
             result['socks5NetWork'] = self.socks_5net_work
         if self.endpoint_type is not None:
             result['endpointType'] = self.endpoint_type
+
         if self.open_platform_endpoint is not None:
             result['openPlatformEndpoint'] = self.open_platform_endpoint
+
+        if self.oss_private_url is not None:
+            result['ossPrivateUrl'] = self.oss_private_url
+
         if self.type is not None:
             result['type'] = self.type
+
         if self.signature_version is not None:
             result['signatureVersion'] = self.signature_version
+
         if self.signature_algorithm is not None:
             result['signatureAlgorithm'] = self.signature_algorithm
         if self.global_parameters is not None:
@@ -246,12 +256,19 @@ class Config(DaraModel):
             self.socks_5net_work = m.get('socks5NetWork')
         if m.get('endpointType') is not None:
             self.endpoint_type = m.get('endpointType')
+
         if m.get('openPlatformEndpoint') is not None:
             self.open_platform_endpoint = m.get('openPlatformEndpoint')
+
+        if m.get('ossPrivateUrl') is not None:
+            self.oss_private_url = m.get('ossPrivateUrl')
+
         if m.get('type') is not None:
             self.type = m.get('type')
+
         if m.get('signatureVersion') is not None:
             self.signature_version = m.get('signatureVersion')
+
         if m.get('signatureAlgorithm') is not None:
             self.signature_algorithm = m.get('signatureAlgorithm')
         if m.get('globalParameters') is not None:

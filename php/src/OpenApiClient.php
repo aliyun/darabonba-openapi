@@ -31,6 +31,7 @@ use Darabonba\GatewaySpi\Models\InterceptorContext\configuration;
 use Darabonba\GatewaySpi\Models\InterceptorContext;
 use Darabonba\GatewaySpi\Models\InterceptorContext\response;
 use Darabonba\OpenApi\Models\SSEResponse;
+use AlibabaCloud\Dara\Url;
 use Darabonba\OpenApi\WebsocketUtils\Handler as WebSocketStreamHandler;
 use Darabonba\OpenApi\WebsocketUtils\Client as WebSocketClientWrapper;
 use AlibabaCloud\Dara\WebSocketUtil;
@@ -145,6 +146,11 @@ class OpenApiClient
    * @var string
    */
   protected $_openPlatformEndpoint;
+
+  /**
+   * @var string
+   */
+  protected $_ossPrivateUrl;
 
   /**
    * @var Credential
@@ -264,6 +270,7 @@ class OpenApiClient
 
     $this->_endpoint = $config->endpoint;
     $this->_endpointType = $config->endpointType;
+    $this->_ossPrivateUrl = $config->ossPrivateUrl;
     $this->_network = $config->network;
     $this->_suffix = $config->suffix;
     if (empty($config->endpointSuffix)) {
@@ -1751,6 +1758,133 @@ class OpenApiClient
   }
 
   /**
+   * @remarks
+   * 通过 OSS PrivateLink 上传文件；Host 不拼接 Bucket，Bucket 放入 URL 路径。
+   * @param string $ossPrivateUrl
+   * @param string $bucketName
+   * @param mixed[] $form
+   * @param RuntimeOptions $runtime
+   * @return mixed[]
+   */
+  protected function postOSSObjectWithURL($ossPrivateUrl, $bucketName, $form, $runtime)
+  {
+    $_runtime = [
+      'key' => ''.($runtime->key ? $runtime->key : $this->_key),
+      'cert' => ''.($runtime->cert ? $runtime->cert : $this->_cert),
+      'ca' => ''.($runtime->ca ? $runtime->ca : $this->_ca),
+      'readTimeout' => (($runtime->readTimeout ? $runtime->readTimeout : $this->_readTimeout) + 0),
+      'connectTimeout' => (($runtime->connectTimeout ? $runtime->connectTimeout : $this->_connectTimeout) + 0),
+      'httpProxy' => ''.($runtime->httpProxy ? $runtime->httpProxy : $this->_httpProxy),
+      'httpsProxy' => ''.($runtime->httpsProxy ? $runtime->httpsProxy : $this->_httpsProxy),
+      'noProxy' => ''.($runtime->noProxy ? $runtime->noProxy : $this->_noProxy),
+      'socks5Proxy' => ''.($runtime->socks5Proxy ? $runtime->socks5Proxy : $this->_socks5Proxy),
+      'socks5NetWork' => ''.($runtime->socks5NetWork ? $runtime->socks5NetWork : $this->_socks5NetWork),
+      'maxIdleConns' => (($runtime->maxIdleConns ? $runtime->maxIdleConns : $this->_maxIdleConns) + 0),
+      'ipv4Only' => $this->_ipv4Only,
+      'retryOptions' => $this->_retryOptions,
+      'ignoreSSL' => boolval(($runtime->ignoreSSL ? $runtime->ignoreSSL : false)),
+      'disableHttp2' => boolval(($this->_disableHttp2 ? $this->_disableHttp2 : false)),
+      'tlsMinVersion' => $this->_tlsMinVersion,
+    ];
+
+    $_retriesAttempted = 0;
+    $_lastRequest = null;
+    $_lastResponse = null;
+    $_context = new RetryPolicyContext([
+      'retriesAttempted' => $_retriesAttempted,
+    ]);
+    while (Dara::shouldRetry($_runtime['retryOptions'], $_context)) {
+      if ($_retriesAttempted > 0) {
+        $_backoffTime = Dara::getBackoffDelay($_runtime['retryOptions'], $_context);
+        if ($_backoffTime > 0) {
+          Dara::sleep($_backoffTime);
+        }
+      }
+
+      $_retriesAttempted++;
+      try {
+        $_request = new Request();
+        $url = new Url('http://localhost');
+        $urlHost = '';
+        try {
+          $url = Url::parse($ossPrivateUrl);
+          $urlHost = $url->host();
+        } catch (DaraException $err) {
+          throw new ClientException([
+            'code' => 'InvalidOSSPrivateUrl',
+            'message' => 'ossPrivateUrl must be a valid HTTP(S) endpoint',
+          ]);
+        }
+        // 各语言 URL 解析器对空 userinfo、末尾 ? 和 # 的表示不一致，统一按原始地址拦截。
+        if (is_null($urlHost) || ($urlHost == '') || (($url->protocol() != 'http') && ($url->protocol() != 'https')) || strpos($ossPrivateUrl, '@') !== false || strpos($ossPrivateUrl, '?') !== false || strpos($ossPrivateUrl, '#') !== false) {
+          throw new ClientException([
+            'code' => 'InvalidOSSPrivateUrl',
+            'message' => 'ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment',
+          ]);
+        }
+
+        $pathname = $url->pathname();
+        if ($pathname == '') {
+          $pathname = '/';
+        }
+
+        if (StringUtil::hasSuffix($pathname, '/')) {
+          $pathname = '' . $pathname . '' . $bucketName . '/';
+        } else {
+          $pathname = '' . $pathname . '/' . $bucketName . '/';
+        }
+
+        $boundary = FormUtil::getBoundary();
+        $_request->protocol = $url->protocol();
+        $_request->method = 'POST';
+        $_request->pathname = $pathname;
+        $_request->headers = [
+          'host' => $urlHost,
+          'date' => Utils::getDateUTCString(),
+          'user-agent' => Utils::getUserAgent($this->_userAgent),
+          'content-type' => 'multipart/form-data; boundary=' . $boundary . '',
+        ];
+        $_request->body = FormUtil::toFileForm($form, $boundary);
+        $_lastRequest = $_request;
+        $_response = Dara::send($_request, $_runtime);
+        $_lastResponse = $_response;
+
+        $bodyStr = StreamUtil::readAsString($_response->body);
+        if (($_response->statusCode >= 400) && ($_response->statusCode < 600)) {
+          $respMap = XML::parseXml($bodyStr, null);
+          // 部分语言的 XML 解析结果不保留根节点 Error，两种结构均需兼容。
+          $err = $respMap;
+          if (!is_null(@$respMap['Error'])) {
+            $err = $respMap['Error'];
+          }
+          throw new ClientException([
+            'code' => ''.@$err['Code'],
+            'message' => ''.@$err['Message'],
+            'statusCode' => $_response->statusCode,
+            'data' => [
+              'httpCode' => $_response->statusCode,
+              'requestId' => ''.@$err['RequestId'],
+              'hostId' => ''.@$err['HostId'],
+            ],
+          ]);
+        }
+
+        return XML::parseXml($bodyStr, null);
+      } catch (DaraException $e) {
+        $_context = new RetryPolicyContext([
+          'retriesAttempted' => $_retriesAttempted,
+          'lastRequest' => $_lastRequest,
+          'lastResponse' => $_lastResponse,
+          'exception' => $e,
+        ]);
+        continue;
+      }
+    }
+
+    throw new DaraUnableRetryException($_context);
+  }
+
+  /**
    * @param Params $params
    * @param OpenApiRequest $request
    * @param RuntimeOptions $runtime
@@ -1960,6 +2094,21 @@ class OpenApiClient
     $headers = $this->_headers;
     $this->_headers = null;
     return $headers;
+  }
+
+  /**
+   * @remarks
+   * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+   * @param RuntimeOptions $runtime
+   * @return string
+   */
+  protected function getOSSPrivateUrl($runtime)
+  {
+    if (!is_null($runtime->ossPrivateUrl) && $runtime->ossPrivateUrl != '') {
+      return $runtime->ossPrivateUrl;
+    }
+
+    return $this->_ossPrivateUrl;
   }
 
   /**

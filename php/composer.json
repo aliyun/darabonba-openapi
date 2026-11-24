@@ -12,7 +12,7 @@
     "require": {
         "php": ">5.5",
         "alibabacloud/credentials": "^1.2.2",
-        "alibabacloud/darabonba": "^1.0.7",
+        "alibabacloud/darabonba": "^1.0.9",
         "alibabacloud/gateway-spi": "^1"
     },
     "require-dev": {

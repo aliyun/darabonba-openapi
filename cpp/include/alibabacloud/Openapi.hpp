@@ -37,6 +37,10 @@ namespace OpenApi
 
       Darabonba::Json callApi(const Utils::Models::Params &params, const Utils::Models::OpenApiRequest &request, const Darabonba::RuntimeOptions &runtime);
 
+      protected:
+      Darabonba::Json postOSSObjectWithURL(const string &ossPrivateUrl, const string &bucketName, const Darabonba::Json &form, const Darabonba::RuntimeOptions &runtime);
+      public:
+
       /**
        * Get accesskey id by using credential
        * @return accesskey id
@@ -154,6 +158,15 @@ namespace OpenApi
       AlibabaCloud::Gateway::Models::AttributeMap _attributeMap;
 
       int64_t _maxIdleConns;
+
+      string _ossPrivateUrl;
+
+      /**
+       * 解析单次请求和全局配置中的 OSS 私网地址，空字符串回退到全局配置。
+       */
+      protected:
+      string getOSSPrivateUrl(const Darabonba::RuntimeOptions &runtime);
+      public:
   };
 } // namespace AlibabaCloud
 } // namespace OpenApi

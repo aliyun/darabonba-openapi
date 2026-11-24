@@ -49,6 +49,7 @@ model Config {
   retryOptions?: $RetryOptions(description='retry options'),
   tlsMinVersion?: string(description='TLS Minimum Version', example='TLSv1, TLSv1.1, TLSv1.2, TLSv1.3',default=''),
   ipv4Only?: boolean(description='only use IPv4 to connect to the endpoint, AAAA records are ignored', example='false'),
+  ossPrivateUrl?: string(description='OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先',example='https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com'),
 }
 
 

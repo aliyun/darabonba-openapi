@@ -55,6 +55,7 @@ namespace Models
       DARABONBA_PTR_TO_JSON(retryOptions, retryOptions_);
       DARABONBA_PTR_TO_JSON(tlsMinVersion, tlsMinVersion_);
       DARABONBA_PTR_TO_JSON(ipv4Only, ipv4Only_);
+      DARABONBA_PTR_TO_JSON(ossPrivateUrl, ossPrivateUrl_);
     };
     friend void from_json(const Darabonba::Json& j, Config& obj) { 
       DARABONBA_PTR_FROM_JSON(accessKeyId, accessKeyId_);
@@ -91,6 +92,7 @@ namespace Models
       DARABONBA_PTR_FROM_JSON(retryOptions, retryOptions_);
       DARABONBA_PTR_FROM_JSON(tlsMinVersion, tlsMinVersion_);
       DARABONBA_PTR_FROM_JSON(ipv4Only, ipv4Only_);
+      DARABONBA_PTR_FROM_JSON(ossPrivateUrl, ossPrivateUrl_);
     };
     Config() = default ;
     Config(const Config &) = default ;
@@ -360,6 +362,13 @@ namespace Models
     inline Config& setIpv4Only(bool ipv4Only) { DARABONBA_PTR_SET_VALUE(ipv4Only_, ipv4Only) };
 
 
+    // ossPrivateUrl Field Functions
+    bool hasOssPrivateUrl() const { return this->ossPrivateUrl_ != nullptr;};
+    void deleteOssPrivateUrl() { this->ossPrivateUrl_ = nullptr;};
+    inline string getOssPrivateUrl() const { DARABONBA_PTR_GET_DEFAULT(ossPrivateUrl_, "") };
+    inline Config& setOssPrivateUrl(string ossPrivateUrl) { DARABONBA_PTR_SET_VALUE(ossPrivateUrl_, ossPrivateUrl) };
+
+
   protected:
     // accesskey id
     shared_ptr<string> accessKeyId_ {};
@@ -431,6 +440,8 @@ namespace Models
     shared_ptr<string> tlsMinVersion_ {};
     // only use IPv4 to connect to the endpoint, AAAA records are ignored
     shared_ptr<bool> ipv4Only_ {};
+    // OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先
+    shared_ptr<string> ossPrivateUrl_ {};
   };
 
   } // namespace Models
