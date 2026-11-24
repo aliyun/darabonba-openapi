@@ -221,6 +221,16 @@ namespace AlibabaCloud.OpenApiClient.Models
         [Validation(Required=false)]
         public string OpenPlatformEndpoint { get; set; }
 
+        /// <summary>
+        /// <para>OSS PrivateLink 上传地址（含协议），使用路径风格寻址，Runtime 非空配置优先</para>
+        ///
+        /// <b>Example:</b>
+        /// <para><a href="https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com">https://ep-example.oss.cn-hangzhou.privatelink.aliyuncs.com</a></para>
+        /// </summary>
+        [NameInMap("ossPrivateUrl")]
+        [Validation(Required=false)]
+        public string OssPrivateUrl { get; set; }
+
         /// <term><b>Obsolete</b></term>
         /// 
         /// <summary>

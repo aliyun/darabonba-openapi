@@ -200,6 +200,10 @@ public class Config extends TeaModel {
     @NameInMap("endpointType")
     public String endpointType;
 
+    /** OSS PrivateLink 上传地址（含协议），Runtime 非空配置优先。 */
+    @NameInMap("ossPrivateUrl")
+    public String ossPrivateUrl;
+
     /**
      * <p>OpenPlatform endpoint</p>
      * 
@@ -493,6 +497,14 @@ public class Config extends TeaModel {
     }
     public String getSocks5NetWork() {
         return this.socks5NetWork;
+    }
+
+    public Config setOssPrivateUrl(String ossPrivateUrl) {
+        this.ossPrivateUrl = ossPrivateUrl;
+        return this;
+    }
+    public String getOssPrivateUrl() {
+        return this.ossPrivateUrl;
     }
 
     public Config setEndpointType(String endpointType) {
