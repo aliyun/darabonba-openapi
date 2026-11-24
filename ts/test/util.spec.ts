@@ -600,6 +600,28 @@ describe('Tea Util', function () {
       assert.notDeepStrictEqual(nonce1, nonce2);
       assert.notDeepStrictEqual(nonce2, nonce3);
       assert.notDeepStrictEqual(nonce3, nonce4);
+      assert.strictEqual(nonce0.length, 64);
+      assert.ok(/^[0-9a-f]+$/.test(nonce0));
+  });
+
+  it('getNonce uses crypto.randomBytes and differs on entropy collision via counter', function () {
+      const crypto = require('crypto');
+      const orig = crypto.randomBytes;
+      let calls = 0;
+      crypto.randomBytes = function (size: number) {
+        calls++;
+        return Buffer.alloc(size, 0xab);
+      };
+      try {
+        const a = Client.getNonce();
+        const b = Client.getNonce();
+        assert.notDeepStrictEqual(a, b);
+        assert.ok(calls >= 2);
+        assert.strictEqual(a.length, 64);
+        assert.strictEqual(b.length, 64);
+      } finally {
+        crypto.randomBytes = orig;
+      }
   });
 
 
