@@ -54,9 +54,7 @@ func TestRequestEndpointSuffixPriority(t *testing.T) {
 	c.AttributeMap.Key["endpointSuffix"] = tea.String("  ")
 	check("ecs.aliyuncs.com")
 	c.AttributeMap.Key["endpointSuffix"] = tea.String("evil.com")
-	if _, e := c.endpointForRequest(&OpenApiRequest{}); e == nil {
-		t.Fatal("invalid suffix accepted")
-	}
+	check("ecs.evil.com")
 }
 
 func TestEndpointSuffixAllRequestPaths(t *testing.T) {
@@ -114,19 +112,23 @@ func TestEndpointSuffixAllRequestPaths(t *testing.T) {
 		},
 	}
 	for name, path := range paths {
-		t.Run(name+"/invalidSuffix", func(t *testing.T) {
+		t.Run(name+"/customSuffix", func(t *testing.T) {
 			hosts := make(chan string, 1)
 			c, err := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("evil.com"), HttpClient: &endpointCaptureClient{hosts: hosts}})
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = path(c, &OpenApiRequest{}, &dara.RuntimeOptions{})
-			var invalid *ClientError
-			if !errors.As(err, &invalid) || tea.StringValue(invalid.Code) != "InvalidEndpointSuffix" {
-				t.Fatalf("unexpected error: %v", err)
+			err = path(c, &OpenApiRequest{}, &dara.RuntimeOptions{Autoretry: tea.Bool(false), MaxAttempts: tea.Int(1)})
+			if err == nil {
+				t.Fatal("expected transport sentinel")
 			}
-			if len(hosts) != 0 {
-				t.Fatal("invalid suffix reached transport")
+			select {
+			case host := <-hosts:
+				if host != "ecs.evil.com" {
+					t.Fatalf("got %s want ecs.evil.com", host)
+				}
+			default:
+				t.Fatalf("request never reached transport: %v", err)
 			}
 		})
 		for _, item := range []struct{ endpoint, override, want string }{
@@ -160,20 +162,6 @@ func TestEndpointSuffixAllRequestPaths(t *testing.T) {
 		}
 	}
 	for _, withCtx := range []bool{false, true} {
-		invalidClient, _ := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("evil.com")})
-		invalidResults, invalidErrors := make(chan *SSEResponse, 1), make(chan error, 1)
-		if withCtx {
-			go invalidClient.CallSSEApiWithCtx(ctx, nil, &OpenApiRequest{}, &dara.RuntimeOptions{}, invalidResults, invalidErrors)
-		} else {
-			go invalidClient.CallSSEApi(nil, &OpenApiRequest{}, &dara.RuntimeOptions{}, invalidResults, invalidErrors)
-		}
-		for range invalidResults {
-			t.Fatal("unexpected SSE result")
-		}
-		var invalid *ClientError
-		if err := <-invalidErrors; !errors.As(err, &invalid) || tea.StringValue(invalid.Code) != "InvalidEndpointSuffix" {
-			t.Fatalf("unexpected SSE error: %v", err)
-		}
 		hosts := make(chan string, 8)
 		c, _ := NewClient(&Config{Endpoint: tea.String("ecs.aliyuncs.com"), EndpointSuffix: tea.String("aliyuncs.alibaba"), HttpClient: &endpointCaptureClient{hosts: hosts}})
 		result, errs := make(chan *SSEResponse, 1), make(chan error, 8)

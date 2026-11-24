@@ -35,11 +35,6 @@ std::string checkedEndpointSuffix(const std::string &value) {
       c = static_cast<char>(c - 'A' + 'a');
     }
   }
-  if (suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba") {
-    throw ClientException(json({
-        {"code", "InvalidEndpointSuffix"},
-        {"message", "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba"}}));
-  }
   return suffix;
 }
 } // namespace

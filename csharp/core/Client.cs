@@ -3574,8 +3574,6 @@ namespace AlibabaCloud.OpenApiClient
             if (attributes.Key != null) attributes.Key.TryGetValue("endpointSuffix", out suffix);
             if (string.IsNullOrWhiteSpace(suffix)) suffix = Environment.GetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX");
             suffix = string.IsNullOrWhiteSpace(suffix) ? "aliyuncs.com" : suffix.Trim().ToLowerInvariant();
-            if (suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba")
-                throw new ClientException { Code = "InvalidEndpointSuffix", Message = "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba" };
             const string old = ".aliyuncs.com";
             return !string.IsNullOrEmpty(endpoint) && suffix != "aliyuncs.com" && endpoint.EndsWith(old, StringComparison.Ordinal)
                 ? endpoint.Substring(0, endpoint.Length - old.Length) + "." + suffix : endpoint;

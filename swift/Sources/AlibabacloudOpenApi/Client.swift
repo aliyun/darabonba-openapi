@@ -1160,9 +1160,6 @@ open class Client {
         var suffix = (self._endpointSuffix ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if suffix.isEmpty { suffix = (ProcessInfo.processInfo.environment["ALIBABA_CLOUD_ENDPOINT_SUFFIX"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
         if suffix.isEmpty { suffix = "aliyuncs.com" }
-        if suffix != "aliyuncs.com" && suffix != "aliyuncs.alibaba" {
-            throw Tea.ReuqestError(["code": "InvalidEndpointSuffix", "message": "endpointSuffix must be aliyuncs.com or aliyuncs.alibaba"])
-        }
         let old = ".aliyuncs.com"
         return suffix != "aliyuncs.com" && endpoint.hasSuffix(old) ? String(endpoint.dropLast(old.count)) + "." + suffix : endpoint
     }

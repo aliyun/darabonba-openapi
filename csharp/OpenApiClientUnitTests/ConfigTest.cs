@@ -35,8 +35,9 @@ namespace OpenApiClientUnitTests
                 request.EndpointOverride = "ecs.aliyuncs.alibaba";
                 Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
                 client.AttributeMap.Key["endpointSuffix"] = "evil.com";
-                var error = Assert.Throws<System.Reflection.TargetInvocationException>(() => resolve.Invoke(client, new object[] { request }));
-                Assert.IsType<ClientException>(error.InnerException);
+                Assert.Equal("ecs.aliyuncs.alibaba", resolve.Invoke(client, new object[] { request }));
+                request.EndpointOverride = "ecs.aliyuncs.com";
+                Assert.Equal("ecs.evil.com", resolve.Invoke(client, new object[] { request }));
                 Assert.Equal("ecs.aliyuncs.com", client.Endpoint);
             }
             finally { Environment.SetEnvironmentVariable("ALIBABA_CLOUD_ENDPOINT_SUFFIX", previous); }

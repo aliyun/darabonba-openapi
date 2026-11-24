@@ -25,8 +25,7 @@ class EndpointPathsTests(unittest.TestCase):
             client._attribute_map.key['endpointSuffix'] = '  '
             self.assertEqual('ecs.aliyuncs.com', client._endpoint_for_request(request))
             client._attribute_map.key['endpointSuffix'] = 'evil.com'
-            with self.assertRaises(Exception):
-                client._endpoint_for_request(request)
+            self.assertEqual('ecs.evil.com', client._endpoint_for_request(request))
 
     def test_outbound_host_for_sync_and_async_entries(self):
         loop = asyncio.new_event_loop()

@@ -18,7 +18,9 @@ final class ClientExtraCoverageTests: XCTestCase {
         client._endpointSuffix = "aliyuncs.com"
         XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
         client._endpointSuffix = "evil.com"
-        XCTAssertThrowsError(try client.endpointForRequest(request))
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.aliyuncs.alibaba")
+        request.endpointOverride = "ecs.aliyuncs.com"
+        XCTAssertEqual(try client.endpointForRequest(request), "ecs.evil.com")
         XCTAssertEqual(client._endpoint, "ecs.aliyuncs.com")
     }
 
