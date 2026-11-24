@@ -56,7 +56,7 @@ final class OSSPrivateUrlTests: XCTestCase {
             do {
                 _ = try await client.postOSSObjectWithURL(url, "bucket", [:], RuntimeOptions())
                 XCTFail("应拒绝非法 URL：\(url)")
-            } catch let error as ClientError {
+            } catch let error as Tea.ReuqestError {
                 XCTAssertEqual(error.code, "InvalidOSSPrivateUrl", url)
             }
         }
@@ -100,7 +100,7 @@ final class OSSPrivateUrlTests: XCTestCase {
             do {
                 _ = try await client.postOSSObjectWithURL("http://127.0.0.1:\(server.port)", "bucket", ["key": "object"], RuntimeOptions())
                 XCTFail("应抛出 OSS XML 错误")
-            } catch let error as ClientError {
+            } catch let error as Tea.ReuqestError {
                 XCTAssertEqual(error.statusCode, status)
                 XCTAssertEqual(error.data?["httpCode"] as? Int32, Int32(status))
                 XCTAssertEqual(error.code, status == 400 ? "Missing" : "AccessDenied")

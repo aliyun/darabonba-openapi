@@ -1175,11 +1175,11 @@ open class Client {
                 if (TeaUtils.Client.is4xx(_response.statusCode) || TeaUtils.Client.is5xx(_response.statusCode)) {
                     let respMap = DarabonbaXML.Client.parseXml(bodyStr, nil)
                     let err = respMap["Error"] as? [String: Any] ?? respMap
-                    throw Tea.ClientError([
+                    throw Tea.ReuqestError([
                         "code": err["Code"] as? String ?? "",
                         "message": err["Message"] as? String ?? "",
-                        "statusCode": Int(_response.statusCode),
                         "data": [
+                            "statusCode": Int(_response.statusCode),
                             "httpCode": _response.statusCode,
                             "requestId": err["RequestId"] as? String ?? "",
                             "hostId": err["HostId"] as? String ?? ""
@@ -1243,7 +1243,7 @@ open class Client {
               let urlHost = url.host, !urlHost.isEmpty,
               urlHost.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
               url.url != nil else {
-            throw Tea.ClientError([
+            throw Tea.ReuqestError([
                 "code": "InvalidOSSPrivateUrl",
                 "message": "ossPrivateUrl must be an HTTP(S) endpoint without userinfo, query or fragment"
             ])
