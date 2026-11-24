@@ -1,3 +1,8 @@
+2026-11-24 Version: v2.2.6
+- Allow any domain as endpointSuffix. Do not reject values other than aliyuncs.com or aliyuncs.alibaba.
+- Support OSS PrivateLink file upload.
+- Fix Go retry matching by HTTP exception name.
+
 2026-11-05 Version: v2.2.5
 - Pass endpointSuffix from client config, then ALIBABA_CLOUD_ENDPOINT_SUFFIX, onto the request attribute map.
 - Leave that map unchanged when the caller already set a non-empty endpointSuffix.
