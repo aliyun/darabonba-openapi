@@ -27,6 +27,7 @@ namespace OpenApiClientUnitTests.Mock
         public int RequestCount { get; private set; }
         public List<string> RetryAttempts { get; } = new List<string>();
         public List<string> RetryDelays { get; } = new List<string>();
+        public Dictionary<string, string> LastRequestHeaders { get; private set; }
 
         public MockHttpServer()
         {
@@ -70,6 +71,9 @@ namespace OpenApiClientUnitTests.Mock
         {
             var req = context.Request;
             var res = context.Response;
+            var requestHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string key in req.Headers.AllKeys) requestHeaders[key] = req.Headers[key];
+            LastRequestHeaders = requestHeaders;
 
             if (ThrottlingMode)
             {

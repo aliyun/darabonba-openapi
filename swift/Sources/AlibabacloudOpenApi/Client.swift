@@ -3,10 +3,36 @@ import Tea
 import TeaUtils
 import AlibabaCloudCredentials
 import AlibabaCloudOpenApiUtil
+import CryptoSwift
 import AlibabacloudGatewaySPI
 import DarabonbaXML
 
 open class Client {
+    private static func v2Encode(_ value: String) -> String {
+        let allowed = NSMutableCharacterSet.alphanumeric()
+        allowed.addCharacters(in: "*-._ ")
+        return (value.addingPercentEncoding(withAllowedCharacters: allowed as CharacterSet) ?? "")
+            .replacingOccurrences(of: " ", with: "%20")
+            .replacingOccurrences(of: "+", with: "%20")
+            .replacingOccurrences(of: "*", with: "%2A")
+            .replacingOccurrences(of: "%7E", with: "~")
+    }
+
+    private static func v2Hmac(_ text: String, _ secret: String) throws -> String {
+        return Data(try HMAC(key: secret, variant: .sha2(.sha256)).authenticate(Array(text.utf8))).base64EncodedString()
+    }
+
+    private static func v2RpcSignature(_ params: [String: String], _ method: String, _ secret: String) throws -> String {
+        if secret.isEmpty { return "" }
+        var canonical = ""
+        var separator = ""
+        for key in params.keys.sorted() {
+            canonical += separator
+            if let value = params[key], !value.isEmpty { canonical += v2Encode(key) + "=" + v2Encode(value) }
+            separator = "&"
+        }
+        return try v2Hmac(method + "&%2F&" + v2Encode(canonical), secret + "&")
+    }
     public var _endpoint: String?
 
     public var _regionId: String?
@@ -252,15 +278,16 @@ open class Client {
                         if (!TeaUtils.Client.empty(securityToken)) {
                             _request.query["SecurityToken"] = securityToken as! String;
                         }
-                        _request.query["SignatureMethod"] = "HMAC-SHA1";
-                        _request.query["SignatureVersion"] = "1.0";
-                        _request.query["AccessKeyId"] = accessKeyId as! String;
                         var t: [String: Any]? = nil
                         if (!TeaUtils.Client.isUnset(request.body)) {
                             t = try TeaUtils.Client.assertAsMap(request.body)
                         }
-                        var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, AlibabaCloudOpenApiUtil.Client.query(t))
-                        _request.query["Signature"] = AlibabaCloudOpenApiUtil.Client.getRPCSignature(signedParam, _request.method, accessKeySecret);
+                        let bodyParams = AlibabaCloudOpenApiUtil.Client.query(t)
+                        _request.query["SignatureMethod"] = "HMAC-SHA256";
+                        _request.query["SignatureVersion"] = "1.0";
+                        _request.query["AccessKeyId"] = accessKeyId as! String;
+                        var signedParam: [String: String] = Tea.TeaConverter.merge([:], _request.query, bodyParams)
+                        _request.query["Signature"] = try Client.v2RpcSignature(signedParam, _request.method, accessKeySecret);
                     }
                 }
                 _lastRequest = _request
@@ -409,7 +436,7 @@ open class Client {
                     "host": try endpointForRequest(request),
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
-                    "x-acs-signature-method": "HMAC-SHA1",
+                    "x-acs-signature-method": "HMAC-SHA256",
                     "x-acs-signature-version": "1.0",
                     "x-acs-version": version as! String,
                     "x-acs-action": action as! String,
@@ -445,7 +472,8 @@ open class Client {
                             _request.headers["x-acs-security-token"] = securityToken as! String;
                         }
                         var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
+                        let signature = try Client.v2Hmac(stringToSign, accessKeySecret)
+                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + signature;
                     }
                 }
                 _lastRequest = _request
@@ -600,7 +628,7 @@ open class Client {
                     "host": try endpointForRequest(request),
                     "accept": "application/json",
                     "x-acs-signature-nonce": TeaUtils.Client.getNonce(),
-                    "x-acs-signature-method": "HMAC-SHA1",
+                    "x-acs-signature-method": "HMAC-SHA256",
                     "x-acs-signature-version": "1.0",
                     "x-acs-version": version as! String,
                     "x-acs-action": action as! String,
@@ -637,7 +665,8 @@ open class Client {
                             _request.headers["x-acs-security-token"] = securityToken as! String;
                         }
                         var stringToSign: String = AlibabaCloudOpenApiUtil.Client.getStringToSign(_request)
-                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + (AlibabaCloudOpenApiUtil.Client.getROASignature(stringToSign, accessKeySecret));
+                        let signature = try Client.v2Hmac(stringToSign, accessKeySecret)
+                        _request.headers["authorization"] = "acs " + (accessKeyId as! String) + ":" + signature;
                     }
                 }
                 _lastRequest = _request

@@ -10,6 +10,16 @@ namespace OpenApiClientUnitTests
     public class UtilsExtraCoverageTest
     {
         [Fact]
+        public void TestSignatureV2HashAlgorithms()
+        {
+            var query = new Dictionary<string, string> { { "test", "ok" } };
+            Assert.Equal("jHx/oHoHNrbVfhncHEvPdHXZwHU=", Utils.GetRPCSignature(query, "", "accessKeySecret"));
+            Assert.Equal("M+EiKoi2ps/3aJFloGUQMVbjHc/LLXAo8mBUeCXL4g0=", Utils.GetRPCSignatureWithSHA256(query, "", "accessKeySecret"));
+            Assert.Equal("XGXDWA78AEvx/wmfxKoVCq/afWw=", Utils.GetROASignature("GET\n\n\n\n\n", "secret"));
+            Assert.Equal("6A3H2s0DM+FzrtDz72tajIkEsT+oEYX3vHV5RBSrd9A=", Utils.GetROASignatureWithSHA256("GET\n\n\n\n\n", "secret"));
+        }
+
+        [Fact]
         public void TestEndpointNonceTimestampHashAndRetryHeaders()
         {
             Assert.Equal("ecs-internal.cn-hangzhou.aliyuncs.com", Utils.GetEndpoint("ecs.cn-hangzhou.aliyuncs.com", false, "internal"));

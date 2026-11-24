@@ -133,6 +133,13 @@ while (true) {
         // 构建响应体
         $responseBody = "";
 
+        if (isset($headerAssoc['capture-signature'])) {
+            $responseBody = json_encode(['method' => $method, 'path' => $path, 'headers' => $headerAssoc, 'body' => $body]);
+            fwrite($client, $responseHeaders . "\r\n" . $responseBody);
+            fclose($client);
+            continue;
+        }
+
         echo $bodyType . "\n";
 
         if ($path === '/empty') {

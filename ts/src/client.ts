@@ -285,19 +285,19 @@ export default class Client {
               request_.query["SecurityToken"] = securityToken;
             }
 
-            request_.query["SignatureMethod"] = "HMAC-SHA1";
-            request_.query["SignatureVersion"] = "1.0";
-            request_.query["AccessKeyId"] = accessKeyId;
             let t : {[key: string ]: any} = null;
             if (!$dara.isNull(request.body)) {
               t = request.body;
             }
-
+            const bodyParams = OpenApiUtil.query(t);
+            request_.query["SignatureMethod"] = 'HMAC-SHA256';
+            request_.query["SignatureVersion"] = "1.0";
+            request_.query["AccessKeyId"] = accessKeyId;
             let signedParam = {
               ...request_.query,
-              ...OpenApiUtil.query(t),
+              ...bodyParams,
             };
-            request_.query["Signature"] = OpenApiUtil.getRPCSignature(signedParam, request_.method, accessKeySecret);
+            request_.query["Signature"] = OpenApiUtil.getRPCSignatureWithSHA256(signedParam, request_.method, accessKeySecret);
           }
 
         }
@@ -493,7 +493,7 @@ export default class Client {
           host: this.endpointForRequest(request),
           accept: "application/json",
           'x-acs-signature-nonce': OpenApiUtil.getNonce(),
-          'x-acs-signature-method': "HMAC-SHA1",
+          'x-acs-signature-method': "HMAC-SHA256",
           'x-acs-signature-version': "1.0",
           'x-acs-version': version,
           'x-acs-action': action,
@@ -550,7 +550,8 @@ export default class Client {
             }
 
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+            const signature = OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
         }
@@ -753,7 +754,7 @@ export default class Client {
           host: this.endpointForRequest(request),
           accept: "application/json",
           'x-acs-signature-nonce': OpenApiUtil.getNonce(),
-          'x-acs-signature-method': "HMAC-SHA1",
+          'x-acs-signature-method': "HMAC-SHA256",
           'x-acs-signature-version': "1.0",
           'x-acs-version': version,
           'x-acs-action': action,
@@ -811,7 +812,8 @@ export default class Client {
             }
 
             let stringToSign = OpenApiUtil.getStringToSign(request_);
-            request_.headers["authorization"] = `acs ${accessKeyId}:${OpenApiUtil.getROASignature(stringToSign, accessKeySecret)}`;
+            const signature = OpenApiUtil.getROASignatureWithSHA256(stringToSign, accessKeySecret);
+            request_.headers["authorization"] = `acs ${accessKeyId}:${signature}`;
           }
 
         }

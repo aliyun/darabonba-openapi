@@ -285,6 +285,12 @@ func GetROASignature(stringToSign *string, secret *string) (_result *string) {
 	return dara.String(signedStr)
 }
 
+func GetROASignatureWithSHA256(stringToSign *string, secret *string) *string {
+	h := hmac.New(sha256.New, []byte(dara.StringValue(secret)))
+	io.WriteString(h, dara.StringValue(stringToSign))
+	return dara.String(base64.StdEncoding.EncodeToString(h.Sum(nil)))
+}
+
 // Description:
 //
 // # Parse filter into a form string
@@ -425,6 +431,13 @@ func GetRPCSignature(signedParams map[string]*string, method *string, secret *st
 	stringToSign := buildRpcStringToSign(signedParams, dara.StringValue(method))
 	signature := sign(stringToSign, dara.StringValue(secret), "&")
 	return dara.String(signature)
+}
+
+func GetRPCSignatureWithSHA256(signedParams map[string]*string, method *string, secret *string) *string {
+	stringToSign := buildRpcStringToSign(signedParams, dara.StringValue(method))
+	h := hmac.New(sha256.New, []byte(dara.StringValue(secret)+"&"))
+	io.WriteString(h, stringToSign)
+	return dara.String(base64.StdEncoding.EncodeToString(h.Sum(nil)))
 }
 
 // Description:

@@ -19,6 +19,11 @@ func Test_GetROASignature(t *testing.T) {
 	utils.AssertEqual(t, 28, len(dara.StringValue(signature)))
 }
 
+func Test_GetROASignatureWithSHA256(t *testing.T) {
+	signature := GetROASignatureWithSHA256(dara.String("The quick brown fox jumps over the lazy dog"), dara.String("key"))
+	utils.AssertEqual(t, "97yD9DBThCSxMpjmqm+xQ+9NWaFJRhdZl0edvC0aPNg=", dara.StringValue(signature))
+}
+
 func Test_Sorter(t *testing.T) {
 	tmp := map[string]string{
 		"key":   "ccp",
@@ -118,6 +123,15 @@ func Test_GetRPCSignature(t *testing.T) {
 
 	sign := GetRPCSignature(signed, dara.String(""), dara.String("accessKeySecret"))
 	utils.AssertEqual(t, "jHx/oHoHNrbVfhncHEvPdHXZwHU=", dara.StringValue(sign))
+}
+
+func Test_GetRPCSignatureWithSHA256(t *testing.T) {
+	signed := map[string]*string{
+		"Action":   dara.String("DescribeRegions"),
+		"RegionId": dara.String("cn-hangzhou"),
+	}
+	signature := GetRPCSignatureWithSHA256(signed, dara.String("POST"), dara.String("accessKeySecret"))
+	utils.AssertEqual(t, "gjdaIcZyoAB0PeP3fasNFCxUdzzfrQMjd8Gyi9fizpY=", dara.StringValue(signature))
 }
 
 func Test_GetTimestamp(t *testing.T) {

@@ -451,16 +451,17 @@ class OpenApiClient
               @$_request->query['SecurityToken'] = $securityToken;
             }
 
-            @$_request->query['SignatureMethod'] = 'HMAC-SHA1';
-            @$_request->query['SignatureVersion'] = '1.0';
-            @$_request->query['AccessKeyId'] = $accessKeyId;
             $t = null;
             if (!is_null($request->body)) {
               $t = $request->body;
             }
+            $bodyParams = Utils::query($t);
+            @$_request->query['SignatureMethod'] = 'HMAC-SHA256';
+            @$_request->query['SignatureVersion'] = '1.0';
+            @$_request->query['AccessKeyId'] = $accessKeyId;
 
-            $signedParam = Dara::merge([], $_request->query, Utils::query($t));
-            @$_request->query['Signature'] = Utils::getRPCSignature($signedParam, $_request->method, $accessKeySecret);
+            $signedParam = Dara::merge([], $_request->query, $bodyParams);
+            @$_request->query['Signature'] = Utils::getRPCSignatureWithSHA256($signedParam, $_request->method, $accessKeySecret);
           }
         }
 
@@ -663,7 +664,7 @@ class OpenApiClient
           'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
-          'x-acs-signature-method' => 'HMAC-SHA1',
+          'x-acs-signature-method' => 'HMAC-SHA256',
           'x-acs-signature-version' => '1.0',
           'x-acs-version' => $version,
           'x-acs-action' => $action,
@@ -711,7 +712,8 @@ class OpenApiClient
             }
 
             $stringToSign = Utils::getStringToSign($_request);
-            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
+            $signature = Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
 
@@ -921,7 +923,7 @@ class OpenApiClient
           'host' => $this->endpointForRequest($request),
           'accept' => 'application/json',
           'x-acs-signature-nonce' => Utils::getNonce(),
-          'x-acs-signature-method' => 'HMAC-SHA1',
+          'x-acs-signature-method' => 'HMAC-SHA256',
           'x-acs-signature-version' => '1.0',
           'x-acs-version' => $version,
           'x-acs-action' => $action,
@@ -970,7 +972,8 @@ class OpenApiClient
             }
 
             $stringToSign = Utils::getStringToSign($_request);
-            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . Utils::getROASignature($stringToSign, $accessKeySecret) . '';
+            $signature = Utils::getROASignatureWithSHA256($stringToSign, $accessKeySecret);
+            @$_request->headers['authorization'] = 'acs ' . $accessKeyId . ':' . $signature;
           }
         }
 

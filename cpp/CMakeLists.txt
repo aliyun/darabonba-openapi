@@ -92,6 +92,37 @@ target_link_libraries(${PROJECT_NAME}
         alibabacloud_credentials
 )
 
+if(ENABLE_UNIT_TESTS)
+  enable_testing()
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  add_executable(signature_v2_client_test tests/signature_v2_client.cpp)
+  target_link_libraries(signature_v2_client_test PRIVATE ${PROJECT_NAME})
+  add_test(NAME signature_v2_client
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_signature_v2.py $<TARGET_FILE:signature_v2_client_test>)
+  if(NOT TARGET gtest_main AND NOT TARGET GTest::gtest_main AND NOT TARGET GTest::Main)
+    find_package(GTest QUIET)
+  endif()
+  if(NOT TARGET gtest_main AND NOT TARGET GTest::gtest_main AND NOT TARGET GTest::Main)
+    include(FetchContent)
+    set(INSTALL_GTEST OFF)
+    FetchContent_Declare(googletest
+      GIT_REPOSITORY https://github.com/google/googletest.git
+      GIT_TAG release-1.12.1)
+    FetchContent_MakeAvailable(googletest)
+  endif()
+  if(TARGET GTest::gtest_main)
+    set(SIGNATURE_V2_GTEST_MAIN GTest::gtest_main)
+  elseif(TARGET GTest::Main)
+    set(SIGNATURE_V2_GTEST_MAIN GTest::Main)
+  else()
+    set(SIGNATURE_V2_GTEST_MAIN gtest_main)
+  endif()
+  add_executable(signature_v2_utils_test tests/test_utils.cpp)
+  target_link_libraries(signature_v2_utils_test PRIVATE ${PROJECT_NAME} ${SIGNATURE_V2_GTEST_MAIN})
+  add_test(NAME signature_v2_utils
+           COMMAND signature_v2_utils_test --gtest_filter=UtilsTest.GetROASignature:UtilsTest.GetRPCSignature)
+endif()
+
 # Windows compatibility
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PUBLIC Crypt32 Rpcrt4 Ws2_32)

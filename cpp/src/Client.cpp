@@ -239,18 +239,14 @@ Darabonba::Json Client::doRPCRequest(const string &action, const string &version
             request_.getQuery()["SecurityToken"] = securityToken;
           }
 
-          request_.getQuery()["SignatureMethod"] = "HMAC-SHA1";
+          json t = nullptr;
+          if (!!request.hasBody()) t = json(request.getBody());
+          map<string, string> bodyParams = Utils::Utils::query(t);
+          request_.getQuery()["SignatureMethod"] = "HMAC-SHA256";
           request_.getQuery()["SignatureVersion"] = "1.0";
           request_.getQuery()["AccessKeyId"] = accessKeyId;
-          json t = nullptr;
-          if (!!request.hasBody()) {
-            t = json(request.getBody());
-          }
-
-          map<string, string> signedParam = Darabonba::Core::merge(request_.getQuery(),
-            Utils::Utils::query(t)
-          ).get<map<string, string>>();
-          request_.getQuery()["Signature"] = Utils::Utils::getRPCSignature(signedParam, request_.getMethod(), accessKeySecret);
+          map<string, string> signedParam = Darabonba::Core::merge(request_.getQuery(), bodyParams).get<map<string, string>>();
+          request_.getQuery()["Signature"] = Utils::Utils::getRPCSignatureWithSHA256(signedParam, request_.getMethod(), accessKeySecret);
         }
 
       }
@@ -424,7 +420,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
           {"host" , endpointForRequest(request)},
           {"accept" , "application/json"},
           {"x-acs-signature-nonce" , Utils::Utils::getNonce()},
-          {"x-acs-signature-method" , "HMAC-SHA1"},
+          {"x-acs-signature-method" , "HMAC-SHA256"},
           {"x-acs-signature-version" , "1.0"},
           {"x-acs-version" , version},
           {"x-acs-action" , action},
@@ -479,7 +475,7 @@ Darabonba::Json Client::doROARequest(const string &action, const string &version
           }
 
           string stringToSign = Utils::Utils::getStringToSign(request_);
-          request_.getHeaders()["authorization"] = DARA_STRING_TEMPLATE("acs " , accessKeyId , ":" , Utils::Utils::getROASignature(stringToSign, accessKeySecret));
+          request_.getHeaders()["authorization"] = DARA_STRING_TEMPLATE("acs " , accessKeyId , ":" , Utils::Utils::getROASignatureWithSHA256(stringToSign, accessKeySecret));
         }
 
       }
@@ -661,7 +657,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
           {"host" , endpointForRequest(request)},
           {"accept" , "application/json"},
           {"x-acs-signature-nonce" , Utils::Utils::getNonce()},
-          {"x-acs-signature-method" , "HMAC-SHA1"},
+          {"x-acs-signature-method" , "HMAC-SHA256"},
           {"x-acs-signature-version" , "1.0"},
           {"x-acs-version" , version},
           {"x-acs-action" , action},
@@ -717,7 +713,7 @@ Darabonba::Json Client::doROARequestWithForm(const string &action, const string 
           }
 
           string stringToSign = Utils::Utils::getStringToSign(request_);
-          request_.getHeaders()["authorization"] = DARA_STRING_TEMPLATE("acs " , accessKeyId , ":" , Utils::Utils::getROASignature(stringToSign, accessKeySecret));
+          request_.getHeaders()["authorization"] = DARA_STRING_TEMPLATE("acs " , accessKeyId , ":" , Utils::Utils::getROASignatureWithSHA256(stringToSign, accessKeySecret));
         }
 
       }
